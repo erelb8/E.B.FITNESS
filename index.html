@@ -293,7 +293,10 @@ const DEFAULT = {
   features:{ nutrition:false, prs:false, whatsapp:true, health:false, photos:false, calc:false, renew:true, rpe:false },
   custom:[], wishlist:[], chat:[]
 };
-let S = Object.assign({}, DEFAULT, load()||{});
+/* var ולא let — בכוונה. משתנה let לא נרשם על window, ו-sync.js קורא
+   את המצב דרך window.S. עם var ההפניה נשארת מחוברת גם אחרי הקצאה
+   מחדש של S (מחיקת הכול, ייבוא גיבוי). */
+var S = Object.assign({}, DEFAULT, load()||{});
 S.settings = Object.assign({}, DEFAULT.settings, S.settings||{});
 S.features = Object.assign({}, DEFAULT.features, S.features||{});
 ['trainees','sessions','payments','measures','prs','photos','custom','wishlist','chat'].forEach(k=>{ if(!Array.isArray(S[k])) S[k]=[]; });
