@@ -63,6 +63,28 @@ a{color:var(--or);text-decoration:none}
 .brand small{font-family:'Heebo';font-weight:400;font-size:10px;color:var(--dim);letter-spacing:.14em}
 .top .spacer{flex:1}
 .top .now{font-size:12px;color:var(--mut);white-space:nowrap}
+
+/* חיווי מצב סנכרון */
+.syncpill{
+  font-size:11px;padding:4px 10px;border-radius:20px;white-space:nowrap;
+  background:var(--card);border:1px solid var(--line);color:var(--mut);font-weight:500;
+}
+.syncpill.s-ok{color:var(--ok);border-color:rgba(59,214,139,.35);background:rgba(59,214,139,.08)}
+.syncpill.s-sync{color:var(--amber);border-color:rgba(255,176,58,.35);background:rgba(255,176,58,.08)}
+.syncpill.s-error{color:var(--bad);border-color:rgba(255,93,93,.4);background:rgba(255,93,93,.08)}
+.syncpill.s-out{color:var(--or);border-color:rgba(255,107,26,.4);background:var(--or-soft)}
+.syncpill.s-offline{color:var(--dim)}
+@media(max-width:600px){ .syncpill{display:none} }
+
+/* קישור אישי למתאמן */
+.linkbox{
+  display:flex;gap:8px;align-items:center;background:var(--ink);border:1px solid var(--line);
+  border-radius:10px;padding:9px 11px;margin-top:10px;
+}
+.linkbox code{
+  flex:1;min-width:0;font-size:12px;color:var(--mut);overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap;direction:ltr;text-align:left;font-family:ui-monospace,monospace
+}
 .iconbtn{background:var(--card);border:1px solid var(--line);color:var(--mut);width:34px;height:34px;border-radius:10px;display:grid;place-items:center;font-size:15px}
 .iconbtn:hover{color:var(--tx);border-color:var(--line2)}
 
@@ -219,6 +241,7 @@ tbody tr:hover{background:var(--panel)}
 <header class="top">
   <div class="brand">E.B<span class="dot"></span>FIT <small id="brandSub">ניהול מתאמנים</small></div>
   <div class="spacer"></div>
+  <button class="syncpill s-off" id="syncPill" onclick="go('settings')" title="מצב סנכרון">מקומי בלבד</button>
   <span class="now" id="topDate"></span>
   <button class="iconbtn" title="גיבוי ושחזור" onclick="go('settings')">⚙</button>
 </header>
@@ -232,9 +255,13 @@ tbody tr:hover{background:var(--panel)}
 <div class="mask" id="mask" onclick="if(event.target===this)closeModal()"><div class="modal" id="modal"></div></div>
 <div id="toast"></div>
 
+<!-- ספריית Supabase מקומית (לא מ-CDN) כדי שהאפליקציה תעבוד גם בלי רשת -->
+<script src="vendor/supabase.js"></script>
+<script src="config.js"></script>
+
 <script>
 /* =======================================================================
-   E.B FIT — מערכת ניהול מתאמנים. קובץ אחד, בלי תלויות.
+   E.B FIT — מערכת ניהול מתאמנים.
    ======================================================================= */
 const $ = s => document.querySelector(s);
 const esc = s => String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -534,6 +561,47 @@ function tabDetails(t){
      +'<div style="white-space:pre-wrap;font-size:13.5px;color:var(--mut)">'+esc(t.health||'לא מולאה.')+'</div>';
   }
   h+='</div></div>';
+  h+=traineeLinkCard(t);
+  return h;
+}
+
+/* --------- הקישור האישי של המתאמן --------- */
+function traineeLinkCard(t){
+  const on = window.EBSync && EBSync.enabled();
+  const me = on && EBSync.user();
+
+  let h='<div class="card" style="margin-top:14px"><h3 style="font-size:15px;margin-bottom:6px">התוכנית אצל המתאמן</h3>';
+
+  if(!on){
+    h+='<p class="muted" style="font-size:13px;margin:0">הסנכרון עוד לא מוגדר. אחרי ההגדרה אפשר יהיה לשלוח ל'+esc(t.name)+' קישור אישי לתוכנית שלו.</p></div>';
+    return h;
+  }
+  if(!me){
+    h+='<p class="muted" style="font-size:13px;margin:0 0 10px">צריך להתחבר כדי ליצור קישור אישי.</p>'
+     +'<button class="btn ghost sm" onclick="go(\'settings\')">מעבר להתחברות</button></div>';
+    return h;
+  }
+
+  const link = EBSync.traineeLink(t);
+  if(!link){
+    h+='<p class="muted" style="font-size:13px;margin:0">הקישור ייווצר בסנכרון הבא. לחץ סנכרון עכשיו בהגדרות.</p></div>';
+    return h;
+  }
+
+  const active = t._tokenActive !== false;
+  h+='<p class="muted" style="font-size:13px;margin:0">'+esc(t.name)+' רואה רק את התוכנית — שם, מטרה ותרגילים. '
+   +'טלפון, הצהרת בריאות, כרטיסייה ותשלומים לא נחשפים בקישור.</p>'
+   +'<div class="linkbox"><code>'+esc(link)+'</code>'
+   +'<button class="btn sm ghost" onclick="copyLink(\''+esc(link)+'\')">העתקה</button></div>'
+   +'<div class="row" style="margin-top:10px">'
+   +'<button class="btn sm" onclick="sendProgram(\''+t.id+'\')">שליחה בווטסאפ</button>'
+   +'<button class="btn sm ghost" onclick="window.open(\''+esc(link)+'\',\'_blank\')">תצוגה מקדימה</button>'
+   +'<div style="flex:1"></div>'
+   +'<button class="btn sm '+(active?'danger':'ghost')+'" onclick="toggleAccess(\''+t.id+'\','+(!active)+')">'
+   +(active?'ביטול גישה':'החזרת גישה')+'</button></div>';
+
+  if(!active) h+='<div class="muted" style="font-size:12px;margin-top:8px">הגישה מבוטלת — הקישור לא יעבוד.</div>';
+  h+='</div>';
   return h;
 }
 
@@ -1081,6 +1149,8 @@ function vSettings(){
    +'<div class="muted" style="font-size:12px;margin-top:10px">'+(canStore?'שמירה אוטומטית פעילה בדפדפן הזה.':'הדפדפן חוסם שמירה מקומית — המידע קיים רק עד לרענון. כדאי לייצא גיבוי.')+'</div>'
    +'</div></div>';
 
+  h+=syncCard();
+
   h+='<div class="card" style="margin-top:14px"><h3 style="font-size:15px;margin-bottom:10px">מה יש במערכת</h3><div class="grid g4">'
    +stat('מתאמנים',S.trainees.length,'')+stat('אימונים',S.sessions.length,'')+stat('מדידות',S.measures.length,'')+stat('פיצ׳רים מותאמים',S.custom.length,'')+'</div></div>';
   return h;
@@ -1172,6 +1242,110 @@ if (location.protocol === 'file:') {
     }, 1200);
   });
 }
+</script>
+
+<script src="sync.js"></script>
+<script>
+/* =================== חיבור הסנכרון לאפליקציה =================== */
+
+/* כל שמירה מקומית מפעילה סנכרון מושהה. השמירה עצמה לא ממתינה לרשת —
+   האפליקציה ממשיכה לעבוד רגיל גם בלי חיבור. */
+window.rawSave = save;
+window.save = function(){ rawSave(); if(window.EBSync) EBSync.schedule(); };
+
+/* --------- כרטיס הסנכרון בהגדרות --------- */
+function syncCard(){
+  const on = window.EBSync && EBSync.enabled();
+  let h='<div class="card" style="margin-top:14px"><h3 style="font-size:15px;margin-bottom:8px">סנכרון ומתאמנים</h3>';
+
+  if(!on){
+    h+='<p class="muted" style="font-size:13px;margin:0 0 6px">הסנכרון כבוי — כל המידע נמצא במכשיר הזה בלבד.</p>'
+     +'<p class="muted" style="font-size:12.5px;margin:0">כדי להפעיל: למלא את הכתובת והמפתח בקובץ <code>config.js</code>. '
+     +'אחרי ההפעלה המידע יסונכרן בין המכשירים שלך, ותוכל לשלוח לכל מתאמן קישור אישי לתוכנית.</p></div>';
+    return h;
+  }
+
+  const me = EBSync.user(), st = EBSync.status();
+  if(!me){
+    h+='<p class="muted" style="font-size:13px;margin:0 0 10px">התחבר כדי לסנכרן בין המכשירים שלך ולשלוח תוכניות למתאמנים.</p>'
+     +'<div class="grid g2" style="margin-bottom:10px">'
+     +fld('אימייל','sy_mail','email','')+fld('סיסמה','sy_pass','password','')+'</div>'
+     +'<div class="row"><button class="btn" onclick="doSignIn()">התחברות</button>'
+     +'<button class="btn ghost" onclick="doSignUp()">יצירת חשבון</button></div>'
+     +'<div class="muted" style="font-size:12px;margin-top:8px">החשבון הזה שלך בלבד. המתאמנים לא נרשמים — הם מקבלים קישור.</div></div>';
+    return h;
+  }
+
+  h+='<div class="line-item"><span class="muted" style="width:110px;font-size:13px">מחובר כ</span>'
+   +'<span style="flex:1">'+esc(me.email)+'</span></div>'
+   +'<div class="line-item"><span class="muted" style="width:110px;font-size:13px">מצב</span>'
+   +'<span style="flex:1">'+esc(st.text)+'</span></div>';
+  if(EBSync.lastError()) h+='<div class="muted" style="font-size:12px;color:var(--bad);margin-top:6px">'+esc(EBSync.lastError())+'</div>';
+  h+='<div class="row" style="margin-top:12px"><button class="btn" onclick="syncNow()">סנכרון עכשיו</button>'
+   +'<button class="btn ghost" onclick="doSignOut()">התנתקות</button></div></div>';
+  return h;
+}
+
+async function doSignIn(){
+  const m=gv('sy_mail'), p=gv('sy_pass');
+  if(!m||!p){ toast('צריך אימייל וסיסמה'); return; }
+  try{ await EBSync.signIn(m,p); toast('מחובר'); render(); }
+  catch(e){ toast(authMsg(e)); }
+}
+async function doSignUp(){
+  const m=gv('sy_mail'), p=gv('sy_pass');
+  if(!m||!p){ toast('צריך אימייל וסיסמה'); return; }
+  if(p.length<8){ toast('הסיסמה צריכה לפחות 8 תווים'); return; }
+  try{
+    await EBSync.signUp(m,p);
+    toast('נוצר חשבון. אם נדרש אימות — בדוק את המייל.');
+    render();
+  }catch(e){ toast(authMsg(e)); }
+}
+async function doSignOut(){
+  if(!confirm('להתנתק? המידע יישאר במכשיר הזה.')) return;
+  await EBSync.signOut(); toast('התנתקת'); render();
+}
+async function syncNow(){ toast('מסנכרן…'); await EBSync.run(); render(); }
+
+function authMsg(e){
+  const m=(e&&e.message||'').toLowerCase();
+  if(m.includes('invalid login')) return 'אימייל או סיסמה שגויים';
+  if(m.includes('already registered')) return 'האימייל כבר רשום — נסה להתחבר';
+  if(m.includes('email')&&m.includes('confirm')) return 'צריך לאשר את המייל קודם';
+  if(m.includes('failed to fetch')) return 'אין חיבור לשרת';
+  return e&&e.message ? e.message : 'שגיאה';
+}
+
+/* --------- שליחת התוכנית למתאמן --------- */
+function copyLink(url){
+  navigator.clipboard.writeText(url).then(()=>toast('הקישור הועתק'))
+    .catch(()=>toast('לא הצלחנו להעתיק'));
+}
+
+function sendProgram(id){
+  const t=tById(id); if(!t) return;
+  const link=EBSync.traineeLink(t);
+  if(!link){ toast('הקישור עוד לא נוצר — סנכרן קודם'); return; }
+  const days=((t.program&&t.program.days)||[]).length;
+  const msg='היי '+t.name+'! 💪\n\nהתוכנית שלך מוכנה'
+    +(days?' — '+days+' ימי אימון':'')+'.\nהקישור אישי ושמור רק לך:\n'+link
+    +'\n\nאפשר לסמן בו מה ביצעת ולרשום משקלים, ואני רואה את זה.'
+    +'\nטיפ: בסאפארי → שיתוף → הוספה למסך הבית, וזה יישב לך כאפליקציה.';
+  let p=(t.phone||'').replace(/\D/g,'');
+  if(p.startsWith('0')) p='972'+p.slice(1);
+  window.open('https://wa.me/'+p+'?text='+encodeURIComponent(msg),'_blank');
+}
+
+async function toggleAccess(id,active){
+  if(!active && !confirm('לבטל את הגישה של המתאמן לקישור?')) return;
+  try{ await EBSync.setAccess(id,active); rawSave(); render();
+       toast(active?'הגישה הוחזרה':'הגישה בוטלה'); }
+  catch(e){ toast('לא הצלחנו לעדכן'); }
+}
+
+/* --------- הפעלה --------- */
+if(window.EBSync){ EBSync.init(); EBSync.paint(); }
 </script>
 </body>
 </html>

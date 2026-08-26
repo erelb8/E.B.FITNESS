@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>התוכנית שלי</title>
+
+<!-- הדף הזה מכוון למתאמן. בכוונה אין כאן link למניפסט של המאמן,
+     כדי שהוספה למסך הבית תיצור אצלו קיצור לתוכנית שלו ולא לאפליקציית הניהול. -->
+<meta name="theme-color" content="#0C0C0E">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="התוכנית שלי">
+<meta name="robots" content="noindex,nofollow">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700&family=Rubik:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#0C0C0E; --card:#1C1C22; --line:#2B2B34; --line2:#3A3A46;
+  --tx:#F3F3F6; --mut:#8D8D9A; --dim:#5F5F6B;
+  --or:#FF6B1A; --or-soft:rgba(255,107,26,.14);
+  --ok:#3BD68B; --r:14px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--ink); color:var(--tx);
+  font-family:'Heebo',system-ui,sans-serif; font-size:15px; line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+  background-image:radial-gradient(900px 500px at 90% -10%, rgba(255,107,26,.10), transparent 60%);
+  background-attachment:fixed;
+  padding-bottom:calc(96px + env(safe-area-inset-bottom));
+}
+h1,h2,h3{font-family:'Rubik',sans-serif;margin:0;font-weight:700;letter-spacing:-.02em}
+button,input{font-family:inherit;font-size:inherit;color:inherit}
+button{cursor:pointer}
+
+.top{
+  position:sticky;top:0;z-index:20;background:rgba(12,12,14,.9);backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--line);
+  padding:calc(12px + env(safe-area-inset-top)) 16px 12px;
+}
+.brand{font-family:'Rubik';font-weight:900;font-size:12px;letter-spacing:.14em;color:var(--dim)}
+.brand .dot{width:6px;height:6px;border-radius:50%;background:var(--or);display:inline-block}
+.top h1{font-size:22px;margin-top:3px}
+.top .sub{color:var(--mut);font-size:13px;margin-top:2px}
+
+.wrap{padding:16px 14px 0;max-width:640px;margin:0 auto}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px;margin-bottom:12px}
+
+.days{display:flex;gap:8px;overflow-x:auto;padding:2px 0 10px;-webkit-overflow-scrolling:touch}
+.days button{
+  flex:0 0 auto;background:var(--card);border:1px solid var(--line);color:var(--mut);
+  padding:8px 15px;border-radius:10px;font-weight:500;white-space:nowrap;
+}
+.days button.on{background:var(--or-soft);border-color:var(--or);color:var(--or);font-weight:700}
+
+.ex{border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px;background:var(--card);transition:border-color .15s}
+.ex.done{border-color:rgba(59,214,139,.45);background:rgba(59,214,139,.05)}
+.ex .hd{display:flex;align-items:flex-start;gap:11px}
+.ex .nm{font-weight:700;font-size:16px;flex:1;min-width:0;line-height:1.3}
+.ex .meta{color:var(--mut);font-size:13px;margin-top:3px}
+.ex .note{color:var(--or);font-size:12.5px;margin-top:6px}
+.chk{
+  flex:0 0 auto;width:30px;height:30px;border-radius:9px;border:2px solid var(--line2);
+  background:none;display:grid;place-items:center;font-size:16px;color:transparent;transition:.15s
+}
+.ex.done .chk{background:var(--ok);border-color:var(--ok);color:#04120A}
+.logs{display:flex;gap:8px;margin-top:11px}
+.logs input{
+  flex:1;min-width:0;background:var(--ink);border:1px solid var(--line);border-radius:9px;
+  padding:9px 10px;font-size:15px;text-align:center
+}
+.logs input::placeholder{color:var(--dim);font-size:13px}
+
+.bar{
+  position:fixed;bottom:0;right:0;left:0;z-index:30;
+  background:rgba(18,18,21,.97);backdrop-filter:blur(14px);border-top:1px solid var(--line);
+  padding:11px 14px calc(11px + env(safe-area-inset-bottom));
+  display:flex;align-items:center;gap:12px
+}
+.bar .prog{flex:1;font-size:13px;color:var(--mut)}
+.bar .prog b{color:var(--tx);font-family:'Rubik'}
+.btn{background:var(--or);color:#150800;border:0;border-radius:10px;padding:12px 20px;font-weight:700;font-family:'Rubik';font-size:15px}
+.btn:disabled{opacity:.4}
+.btn.ghost{background:var(--card);color:var(--tx);border:1px solid var(--line)}
+
+.msg{text-align:center;padding:56px 24px;color:var(--mut)}
+.msg h2{color:var(--tx);margin-bottom:8px;font-size:19px}
+.spin{width:26px;height:26px;border:3px solid var(--line);border-top-color:var(--or);border-radius:50%;margin:0 auto 16px;animation:sp .8s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.feel{display:flex;gap:8px;margin-top:10px}
+.feel button{flex:1;background:var(--ink);border:1px solid var(--line);color:var(--mut);padding:10px;border-radius:10px;font-size:14px}
+.feel button.on{border-color:var(--or);color:var(--or);background:var(--or-soft)}
+#toast{
+  position:fixed;bottom:calc(86px + env(safe-area-inset-bottom));right:50%;transform:translate(50%,14px);
+  background:#25252E;border:1px solid var(--line2);padding:11px 18px;border-radius:11px;
+  opacity:0;pointer-events:none;transition:.25s;z-index:60;font-size:14px;max-width:90vw;text-align:center
+}
+#toast.on{opacity:1;transform:translate(50%,0)}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="brand">E.B<span class="dot"></span>FIT</div>
+  <h1 id="hTitle">טוען…</h1>
+  <div class="sub" id="hSub"></div>
+</header>
+
+<div class="wrap" id="wrap">
+  <div class="msg"><div class="spin"></div>מביא את התוכנית שלך…</div>
+</div>
+
+<div id="toast"></div>
+
+<script src="vendor/supabase.js"></script>
+<script src="config.js"></script>
+<script>
+(function () {
+  'use strict';
+  const CFG   = window.EBFIT_CONFIG || {};
+  const TOKEN = location.hash.replace(/^#/, '').trim();
+  const CACHE = 'ebfit_t_' + TOKEN.slice(0, 12);
+
+  const $  = s => document.querySelector(s);
+  const esc = s => String(s == null ? '' : s)
+    .replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+
+  let DATA = null, DAY = 0, STATE = {}, FEEL = null, sb = null;
+
+  function toast(m) {
+    const t = $('#toast'); t.textContent = m; t.classList.add('on');
+    clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove('on'), 2400);
+  }
+  function screen(html) {
+    $('#wrap').innerHTML = html;
+    // בלי תוכנית טעונה הכותרת לא צריכה להישאר על "טוען…"
+    if (!DATA) { $('#hTitle').textContent = 'התוכנית שלי'; $('#hSub').textContent = ''; }
+  }
+
+  /* ---------- טעינה ---------- */
+  async function boot() {
+    if (!TOKEN) return screen(msg('קישור לא תקין', 'חסר המזהה בסוף הכתובת. בקש מהמאמן לשלוח את הקישור שוב.'));
+    if (!CFG.URL || !CFG.ANON) return screen(msg('המערכת עוד לא מחוברת', 'המאמן צריך לסיים את ההגדרה.'));
+
+    // קודם מהמטמון — כדי שהתוכנית תיפתח מיד גם בלי רשת
+    const cached = readCache();
+    if (cached) { DATA = cached; paint(); }
+
+    try {
+      sb = supabase.createClient(CFG.URL, CFG.ANON);
+      const { data, error } = await sb.rpc('trainee_program', { p_token: TOKEN });
+      if (error) throw error;
+      if (!data || !data.length) {
+        if (cached) return toast('אין חיבור — מוצגת הגרסה השמורה');
+        return screen(msg('הקישור לא פעיל', 'ייתכן שהמאמן ביטל את הגישה. פנה אליו.'));
+      }
+      DATA = data[0];
+      writeCache(DATA);
+      paint();
+    } catch (e) {
+      if (!DATA) screen(msg('לא הצלחנו להתחבר', 'בדוק חיבור לאינטרנט ונסה שוב.'));
+      else toast('אין חיבור — מוצגת הגרסה השמורה');
+    }
+  }
+
+  function msg(h, p) { return '<div class="msg"><h2>' + esc(h) + '</h2>' + esc(p) + '</div>'; }
+  function readCache() { try { return JSON.parse(localStorage.getItem(CACHE)); } catch (e) { return null; } }
+  function writeCache(d) { try { localStorage.setItem(CACHE, JSON.stringify(d)); } catch (e) {} }
+
+  /* ---------- תצוגה ---------- */
+  function paint() {
+    $('#hTitle').textContent = DATA.name || 'התוכנית שלי';
+    $('#hSub').textContent = [DATA.goal, DATA.trainer_name && 'מאמן: ' + DATA.trainer_name]
+      .filter(Boolean).join(' · ');
+
+    const days = (DATA.program && DATA.program.days) || [];
+    if (!days.length) {
+      screen(msg('התוכנית עוד בהכנה', 'המאמן עדיין לא הזין לך תרגילים. תיכנס שוב מאוחר יותר.'));
+      return;
+    }
+    if (DAY >= days.length) DAY = 0;
+    const ex = days[DAY].exercises || [];
+
+    let h = '<div class="days">' + days.map((d, i) =>
+      '<button class="' + (i === DAY ? 'on' : '') + '" data-day="' + i + '">' +
+      esc(d.name || ('יום ' + (i + 1))) + '</button>').join('') + '</div>';
+
+    h += ex.length
+      ? ex.map((e, i) => exCard(e, i)).join('')
+      : '<div class="card" style="text-align:center;color:var(--mut)">אין תרגילים ליום הזה</div>';
+
+    h += '<div class="card"><label style="font-size:13px;color:var(--mut)">איך היה?</label>'
+       + '<div class="feel">' + ['קל', 'בסדר', 'קשה'].map(f =>
+           '<button data-feel="' + f + '"' + (FEEL === f ? ' class="on"' : '') + '>' + f + '</button>').join('')
+       + '</div></div>';
+
+    screen(h);
+    bar();
+  }
+
+  function exCard(e, i) {
+    const st = STATE[DAY + ':' + i] || {};
+    const meta = [e.sets && e.sets + ' סטים', e.reps && e.reps + ' חזרות',
+                  e.rest && 'מנוחה ' + e.rest + 'שנ'].filter(Boolean).join(' · ');
+    return '<div class="ex' + (st.done ? ' done' : '') + '" data-ex="' + i + '">'
+      + '<div class="hd"><button class="chk" data-chk="' + i + '">✓</button>'
+      + '<div style="flex:1;min-width:0"><div class="nm">' + esc(e.name || 'תרגיל') + '</div>'
+      + (meta ? '<div class="meta">' + esc(meta) + '</div>' : '')
+      + (e.note ? '<div class="note">' + esc(e.note) + '</div>' : '')
+      + '</div></div>'
+      + '<div class="logs">'
+      + '<input data-f="weight" data-i="' + i + '" inputmode="decimal" placeholder="משקל" value="' + esc(st.weight != null ? st.weight : (e.weight || '')) + '">'
+      + '<input data-f="reps" data-i="' + i + '" inputmode="numeric" placeholder="חזרות" value="' + esc(st.reps != null ? st.reps : '') + '">'
+      + '</div></div>';
+  }
+
+  function bar() {
+    const ex = ((DATA.program.days[DAY] || {}).exercises) || [];
+    const done = ex.filter((_, i) => (STATE[DAY + ':' + i] || {}).done).length;
+    let b = document.querySelector('.bar');
+    if (!b) { b = document.createElement('div'); b.className = 'bar'; document.body.appendChild(b); }
+    b.innerHTML = '<div class="prog"><b>' + done + '</b> מתוך <b>' + ex.length + '</b> תרגילים</div>'
+      + '<button class="btn" id="finish"' + (done ? '' : ' disabled') + '>סיימתי אימון</button>';
+  }
+
+  /* ---------- אינטראקציה ---------- */
+  document.addEventListener('click', e => {
+    const day = e.target.closest('[data-day]');
+    if (day) { DAY = +day.dataset.day; paint(); return; }
+
+    const chk = e.target.closest('[data-chk]');
+    if (chk) {
+      const k = DAY + ':' + chk.dataset.chk;
+      STATE[k] = STATE[k] || {};
+      STATE[k].done = !STATE[k].done;
+      chk.closest('.ex').classList.toggle('done', STATE[k].done);
+      bar();
+      return;
+    }
+
+    const fl = e.target.closest('[data-feel]');
+    if (fl) {
+      FEEL = FEEL === fl.dataset.feel ? null : fl.dataset.feel;
+      document.querySelectorAll('[data-feel]').forEach(b =>
+        b.classList.toggle('on', b.dataset.feel === FEEL));
+      return;
+    }
+
+    if (e.target.id === 'finish') finish();
+  });
+
+  document.addEventListener('input', e => {
+    const f = e.target.dataset && e.target.dataset.f;
+    if (!f) return;
+    const k = DAY + ':' + e.target.dataset.i;
+    STATE[k] = STATE[k] || {};
+    STATE[k][f] = e.target.value;
+  });
+
+  /* ---------- שליחת דיווח ---------- */
+  async function finish() {
+    const btn = $('#finish'); if (btn) { btn.disabled = true; btn.textContent = 'שולח…'; }
+    const day = DATA.program.days[DAY] || {};
+    const entries = (day.exercises || []).map((e, i) => {
+      const st = STATE[DAY + ':' + i] || {};
+      return { ex: e.name || '', done: !!st.done, weight: st.weight || '', reps: st.reps || '' };
+    });
+    try {
+      const { error } = await sb.rpc('trainee_log', {
+        p_token: TOKEN, p_day_index: DAY,
+        p_day_name: day.name || ('יום ' + (DAY + 1)),
+        p_entries: entries, p_feel: FEEL, p_note: null
+      });
+      if (error) throw error;
+      toast('נשלח למאמן. כל הכבוד! 💪');
+      STATE = {}; FEEL = null; paint();
+    } catch (err) {
+      toast('לא הצלחנו לשלוח — נסה שוב כשתהיה רשת');
+      if (btn) { btn.disabled = false; btn.textContent = 'סיימתי אימון'; }
+    }
+  }
+
+  boot();
+})();
+</script>
+</body>
+</html>
