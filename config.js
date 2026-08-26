@@ -14,6 +14,8 @@
    ===================================================================== */
 
 window.EBFIT_CONFIG = {
-  URL:  '',
-  ANON: ''
+  // כתובת הבסיס בלבד — בלי /rest/v1/ בסוף
+  URL:  'https://yidvzlarrcxeonwkuygo.supabase.co',
+  // המפתח הפומבי (publishable). מוגן ע"י RLS — לא מפתח סודי.
+  ANON: 'sb_publishable_xZee-93eyIuq8NAJ_TRQoQ_f99064j9'
 };

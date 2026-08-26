@@ -233,6 +233,21 @@ revoke all on function public.trainee_log(text,integer,text,jsonb,text,text) fro
 grant execute on function public.trainee_program(text) to anon, authenticated;
 grant execute on function public.trainee_log(text,integer,text,jsonb,text,text) to anon, authenticated;
 
--- וידוא שאין גישה ישירה לטבלאות מ-anon
+-- ---------------------------------------------------------------------
+-- 4. הרשאות
+--    ב-anon מבטלים גישה ישירה לטבלאות לגמרי — הוא מגיע רק דרך
+--    שתי הפונקציות שלמעלה.
+--    ל-authenticated נותנים גישה במפורש; ה-RLS הוא זה שמגביל
+--    אותו לשורות שלו בלבד. כותבים את זה כאן ולא מסתמכים על
+--    ברירות המחדל של Supabase, כדי שהסכימה תעמוד בפני עצמה.
+-- ---------------------------------------------------------------------
+grant usage on schema public to anon, authenticated;
+
 revoke all on all tables in schema public from anon;
-grant usage on schema public to anon;
+
+grant select, insert, update, delete on
+  public.trainees, public.sessions, public.measures,
+  public.payments, public.trainer_prefs
+  to authenticated;
+
+grant select on public.workout_logs to authenticated;
