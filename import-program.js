@@ -141,14 +141,40 @@
     }
     return -1;
   }
-  // כל זוגות מפתח:'מחרוזת' באובייקט
+  /* כל זוגות מפתח:ערך באובייקט. מחרוזות ומספרים כאחד — יש תוכניות
+     שכותבות sets:4 בלי גרשיים, וקריאת מחרוזות בלבד איבדה אותן. */
   function keyVals(chunk) {
     var o = {}, re = /([A-Za-z_$][\w$]*)\s*:\s*/g, m;
     while ((m = re.exec(chunk))) {
-      var r = readString(chunk, m.index + m[0].length);
-      if (r) { o[m[1]] = r.v; re.lastIndex = r.i; }
+      var at = m.index + m[0].length;
+      var r = readString(chunk, at);
+      if (r) { o[m[1]] = r.v; re.lastIndex = r.i; continue; }
+      var num = /^-?\d+(?:\.\d+)?/.exec(chunk.slice(at));
+      if (num) { o[m[1]] = num[0]; re.lastIndex = at + num[0].length; }
     }
     return o;
+  }
+
+  /* "4×10" יכול להיות 4 סטים של 10, או 10 חזרות ב-4 סטים — בעברית
+     נכתב לפעמים הפוך ("8-10×6" = 6 סטים של 8-10). מזהים את הכיוון
+     פעם אחת לכל קובץ: הצד שאינו מספר שלם הוא תמיד החזרות. */
+  function specOrientation(specs) {
+    var repsLeft = 0, setsLeft = 0;
+    specs.forEach(function (s) {
+      var m = String(s).match(/^(.+?)\s*[x×*]\s*(.+)$/);
+      if (!m) return;
+      var L = /^\d+$/.test(m[1].trim()), R = /^\d+$/.test(m[2].trim());
+      if (!L && R) repsLeft++;
+      else if (L && !R) setsLeft++;
+    });
+    return repsLeft > setsLeft;          // true = החזרות משמאל
+  }
+  function splitSpec(s, repsLeft) {
+    var m = String(s || '').match(/^(.+?)\s*[x×*]\s*(.+)$/);
+    if (!m) return { sets: /^\d+$/.test(String(s).trim()) ? String(s).trim() : '',
+                     reps: /^\d+$/.test(String(s).trim()) ? '' : clean(s) };
+    return repsLeft ? { sets: m[2].trim(), reps: m[1].trim() }
+                    : { sets: m[1].trim(), reps: m[2].trim() };
   }
 
   /* מערכי exercises של אובייקטים, כולל מפתחות מקוצרים (n/s/r).
@@ -165,6 +191,14 @@
   }
 
   function fromObjects(src) {
+    // כיוון המפרט נקבע פעם אחת לכל הקובץ, לא לכל שורה
+    var allSpecs = [];
+    (src.match(/\bsets\s*:\s*['"][^'"]*['"]/g) || []).forEach(function (s) {
+      var v = s.replace(/^[^'"]*['"]/, '').replace(/['"]$/, '');
+      if (/[x×*]/.test(v)) allSpecs.push(v);
+    });
+    var repsLeft = specOrientation(allSpecs);
+
     var days = [], re = /\bexercises\s*:/g, m;
     while ((m = re.exec(src))) {
       var i = skip(src, m.index + m[0].length);
@@ -212,12 +246,16 @@
         if (end < 0) break;
         var o = keyVals(src.slice(i, end + 1));
         var nm = String(pickKey(o, K.name) || '').trim();
-        if (nm) ex.push({
-          name: nm,
-          sets: clean(pickKey(o, K.sets)),   reps:   clean(pickKey(o, K.reps)),
-          weight: clean(pickKey(o, K.weight)), rest: clean(pickKey(o, K.rest)),
-          note: clean(pickKey(o, K.note))
-        });
+        if (nm) {
+          var st = clean(pickKey(o, K.sets)), rp = clean(pickKey(o, K.reps));
+          // מפרט דחוס בשדה sets ואין reps — מפצלים לפי כיוון הקובץ
+          if (!rp && /[x×*]/.test(st)) { var sp = splitSpec(st, repsLeft); st = sp.sets; rp = sp.reps; }
+          ex.push({
+            name: nm, sets: st, reps: rp,
+            weight: clean(pickKey(o, K.weight)), rest: clean(pickKey(o, K.rest)),
+            note: clean(pickKey(o, K.note))
+          });
+        }
         i = end + 1;
       }
       if (!ex.length) continue;
@@ -236,9 +274,32 @@
     return days;
   }
 
+  /* תא "מפרט" — סטים/חזרות ולא שם תרגיל: 4×10, 3, —, "70 באימון" */
+  function isSpec(v) {
+    var s = String(v || '').trim();
+    if (!s) return true;
+    if (/^[—–\-]$/.test(s)) return true;
+    if (/^\d+\s*[x×*]\s*\d/.test(s)) return true;
+    if (/^\d+$/.test(s)) return true;
+    if (/^\d+\s*(באימון|דק|שנ|ק"?מ|לכל)/.test(s)) return true;
+    return false;
+  }
+  /* בחלק מהתוכניות המפרט מופיע ראשון והשם שני. מזהים את הסדר לפי
+     רוב השורות במקום להניח אותו — הנחה שגויה יוצרת "תרגילים" בשם
+     4×10 ומאבדת את השמות האמיתיים. */
+  function specFirst(rows) {
+    var a = 0, b = 0;
+    rows.forEach(function (c) {
+      if (c.length < 2) return;
+      if (isSpec(c[0]) && !isSpec(c[1])) a++;
+      else if (!isSpec(c[0])) b++;
+    });
+    return a > b;
+  }
+
   /* ---------- אסטרטגיה 1: נתוני JS ---------- */
   function fromJS(src) {
-    var days = [], re = /\brows\s*:/g, m;
+    var days = [], re = /\b(rows|ex)\s*:/g, m;
     while ((m = re.exec(src))) {
       var got = readRows(src, m.index + m[0].length);
       if (!got || !got.rows.length) continue;
@@ -251,7 +312,22 @@
       var ex = [];
       if (warm) ex.push({ name:'חימום', sets:'', reps:'', weight:'', rest:'', note:warm });
 
+      var flipped = specFirst(got.rows);
       got.rows.forEach(function (c) {
+        if (flipped) {
+          // [מפרט, שם, הערה] — המפרט מגיע דחוס, מפצלים לסטים וחזרות
+          var nm = String(c[1] || '').trim();
+          if (!nm) return;
+          var spec = String(c[0] || '').trim();
+          var sm = spec.match(/^(\d+)\s*[x×*]\s*(.+)$/);
+          ex.push({
+            name: nm,
+            sets: sm ? sm[1] : (/^\d+$/.test(spec) ? spec : ''),
+            reps: sm ? sm[2].trim() : (/^\d+$/.test(spec) ? '' : clean(spec)),
+            weight: '', rest: '', note: clean(c[2])
+          });
+          return;
+        }
         if (!c[0] || !String(c[0]).trim()) return;
         ex.push({
           name  : String(c[0]).trim(),
