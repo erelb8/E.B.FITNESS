@@ -173,28 +173,82 @@
     return String(v == null ? '' : v).replace(/\s+/g, ' ').trim().replace(/^-$/, '');
   }
 
-  /* ---------- אסטרטגיה 2: טבלאות HTML ---------- */
+  /* ---------- אסטרטגיה 2: טבלאות HTML ----------
+     שלוש דרכים לזהות עמודה, לפי סדר אמינות:
+       1. מחלקת ה-td   (ex-name, ex-sets...)
+       2. כותרת הטבלה  (תרגיל, סטים, חזרות...)
+       3. מיקום, אחרי דילוג על תאי בקרה בתחילת השורה
+
+     הדילוג בסעיף 3 הכרחי: בתוכניות עם תיבות סימון התא הראשון ריק,
+     וקריאה לפי מיקום בלבד הייתה מזהה כל שורה כחסרת שם ומוחקת אותה. */
+  var COL_CLASS = {
+    name:/(^|[\s-])(ex-)?name\b|תרגיל/i, sets:/(^|[\s-])(ex-)?sets\b/i,
+    reps:/(^|[\s-])(ex-)?reps\b/i,       weight:/(^|[\s-])(ex-)?weight\b/i,
+    rest:/(^|[\s-])(ex-)?rest\b/i,       note:/(^|[\s-])(ex-)?notes?\b/i
+  };
+  var COL_HEAD = {
+    name:/תרגיל|שם|exercise/i, sets:/סטים|sets/i, reps:/חזרות|reps/i,
+    weight:/משקל|weight|קילו/i, rest:/מנוחה|rest/i, note:/הערה|הערות|note/i
+  };
+
+  function headerMap(tb) {
+    var map = {}, ths = tb.querySelectorAll('thead th, tr:first-child th');
+    for (var i = 0; i < ths.length; i++) {
+      var t = (ths[i].textContent || '').trim();
+      if (!t) continue;
+      for (var k in COL_HEAD) if (map[k] === undefined && COL_HEAD[k].test(t)) { map[k] = i; break; }
+    }
+    return map;
+  }
+
   function fromTables(doc) {
     var days = [];
     var tables = doc.querySelectorAll('table');
     for (var i = 0; i < tables.length; i++) {
       var tb = tables[i];
-      var trs = tb.querySelectorAll('tr');
+      var hmap = headerMap(tb);
+      var trs = tb.querySelectorAll('tbody tr');
+      if (!trs.length) trs = tb.querySelectorAll('tr');
       var ex = [];
+
       for (var j = 0; j < trs.length; j++) {
+        if (trs[j].querySelector('th')) continue;           // שורת כותרת
         var tds = trs[j].querySelectorAll('td');
-        if (tds.length < 2) continue;                       // שורת כותרת
-        var cells = [].map.call(tds, function (td) {
+        if (tds.length < 2) continue;
+
+        var txt = [].map.call(tds, function (td) {
           return (td.textContent || '').replace(/\s+/g, ' ').trim();
         });
-        if (!cells[0] || /^(תרגיל|שם|exercise)$/i.test(cells[0])) continue;
+        var cls = [].map.call(tds, function (td) { return td.className || ''; });
+
+        var row = {};
+        // 1. לפי מחלקה
+        for (var c = 0; c < tds.length; c++)
+          for (var k in COL_CLASS)
+            if (row[k] === undefined && COL_CLASS[k].test(cls[c])) row[k] = txt[c];
+
+        // 2. לפי כותרת
+        for (var k2 in hmap)
+          if (row[k2] === undefined && txt[hmap[k2]] !== undefined) row[k2] = txt[hmap[k2]];
+
+        // 3. לפי מיקום, אחרי דילוג על תאי בקרה ריקים בתחילת השורה
+        if (row.name === undefined) {
+          var s = 0;
+          while (s < txt.length && !txt[s]) s++;
+          if (s >= txt.length) continue;
+          row.name   = txt[s];
+          row.sets   = row.sets   !== undefined ? row.sets   : (txt[s+1] || '');
+          row.reps   = row.reps   !== undefined ? row.reps   : (txt[s+2] || '');
+          row.weight = row.weight !== undefined ? row.weight : (txt[s+3] || '');
+          row.note   = row.note   !== undefined ? row.note   : (txt[s+4] || '');
+        }
+
+        var nm = (row.name || '').trim();
+        if (!nm || nm === '×' || /^(תרגיל|שם|exercise)$/i.test(nm)) continue;
+
         ex.push({
-          name  : cells[0],
-          sets  : cells[1] || '',
-          reps  : cells[2] || '',
-          weight: cells[3] || '',
-          rest  : cells[4] || '',
-          note  : cells.slice(5).filter(Boolean).join(' ')
+          name: nm, sets: clean(row.sets), reps: clean(row.reps),
+          weight: clean(row.weight), rest: clean(row.rest), note: clean(row.note)
         });
       }
       if (!ex.length) continue;
@@ -204,6 +258,15 @@
   }
   // הכותרת הקרובה ביותר שמעל האלמנט
   function titleNear(el) {
+    // כותרת ייעודית בתוך הכרטיס של היום עדיפה על סריקה כלפי מעלה
+    var box = el.closest ? el.closest('[class*="day"],[class*="card"],section,article') : null;
+    if (box) {
+      var d = box.querySelector('[class*="dtitle"],[class*="daytitle"],h3,h4');
+      if (d) {
+        var dt = (d.textContent || '').replace(/\s+/g, ' ').trim();
+        if (dt && dt.length < 90) return dt;
+      }
+    }
     var n = el;
     for (var hop = 0; hop < 6 && n; hop++) {
       var p = n.previousElementSibling;
@@ -244,6 +307,50 @@
     return days;
   }
 
+  /* ---------- תזונה ----------
+     חלק מהתוכניות הן "אימונים ותזונה". למערכת אין מבנה לתפריט, ובלי
+     החילוץ הזה חצי מהמסמך היה נעלם בייבוא. נאסף כטקסט להערות. */
+  function extractNutrition(src) {
+    var out = [];
+
+    var mm = /\bmeals\s*:/.exec(src);
+    if (mm) {
+      var i = skip(src, mm.index + mm[0].length);
+      if (src.charAt(i) === '[') {
+        i++;
+        while (i < src.length) {
+          i = skip(src, i);
+          if (src.charAt(i) === ']') break;
+          if (src.charAt(i) !== '{') { i++; continue; }
+          var depth = 0, start = i, j = i;
+          for (; j < src.length; j++) {                 // סוגר תואם, לא הראשון
+            var ch = src.charAt(j);
+            if (ch === '"' || ch === "'" || ch === '`') { var r = readString(src, j); j = r ? r.i - 1 : j; continue; }
+            if (ch === '{') depth++;
+            else if (ch === '}') { depth--; if (!depth) break; }
+          }
+          var chunk = src.slice(start, j + 1);
+          var title = lastField(chunk, 'title');
+          var im = /\bitems\s*:/.exec(chunk);
+          var items = im ? (readStrArray(chunk, im.index + im[0].length) || { arr: [] }).arr : [];
+          if (title || items.length) {
+            out.push((title ? '— ' + title + ' —' : '') +
+                     (items.length ? '\n' + items.map(function (x) { return '• ' + x; }).join('\n') : ''));
+          }
+          i = j + 1;
+        }
+      }
+    }
+
+    var rm = /\brules\s*:/.exec(src);
+    if (rm) {
+      var got = readStrArray(src, rm.index + rm[0].length);
+      if (got && got.arr.length)
+        out.push('— כללים —\n' + got.arr.map(function (x) { return '• ' + x; }).join('\n'));
+    }
+    return out.join('\n\n');
+  }
+
   /* ---------- הפענוח ---------- */
   function parse(src) {
     var days = fromJS(src), how = 'נתוני התוכנית שבקובץ';
@@ -253,7 +360,7 @@
       days = fromTables(doc); how = 'טבלאות';
       if (!days.length) { days = fromLists(doc); how = 'כותרות ורשימות'; }
     }
-    return { days: days, how: how };
+    return { days: days, how: how, nutrition: extractNutrition(src) };
   }
 
   /* ---------- ממשק ---------- */
@@ -320,6 +427,15 @@
       h += '<div class="muted" style="font-size:12.5px">' + partial
          + ' תרגילים הגיעו בלי סטים או חזרות מלאים — אפשר להשלים אחרי הייבוא.</div>';
 
+    if (DRAFT.nutrition) {
+      h += '<div class="sep"></div>'
+        + '<label style="font-size:13.5px;display:flex;align-items:center;gap:8px">'
+        + '<input type="checkbox" id="ip_nutri" checked> לצרף גם את התזונה שבקובץ להערות המתאמן</label>'
+        + '<div class="card" style="margin-top:8px;padding:12px;max-height:180px;overflow:auto">'
+        + '<pre style="margin:0;white-space:pre-wrap;font-family:inherit;font-size:12.5px;color:var(--mut)">'
+        + esc(DRAFT.nutrition) + '</pre></div>';
+    }
+
     var has = ((t.program && t.program.days) || []).length;
     h += '</div><div class="mf">'
       + '<button class="btn" onclick="EBImport.apply(0)">' + (has ? 'החלפת התוכנית' : 'ייבוא') + '</button>'
@@ -334,6 +450,13 @@
         !confirm('להחליף את התוכנית הקיימת? השינוי לא הפיך.')) return;
     t.program = t.program || { days: [] };
     t.program.days = append ? t.program.days.concat(DRAFT.days) : DRAFT.days.slice();
+
+    var nu = document.getElementById('ip_nutri');
+    if (DRAFT.nutrition && nu && nu.checked) {
+      var block = 'תזונה (מהקובץ המיובא)\n' + DRAFT.nutrition;
+      t.notes = t.notes ? (t.notes + '\n\n' + block) : block;
+    }
+
     save(); closeModal();
     SUBTAB = 'program'; render();
     toast('התוכנית יובאה — אפשר לערוך כל שדה');
