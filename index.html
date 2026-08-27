@@ -277,7 +277,7 @@ function age(b){ if(!b) return null; const d=new Date(b), t=new Date(); let a=t.
 
 /* ---------------- אחסון ---------------- */
 const KEY='ebfit_v1';
-const EB_VERSION='v22';   // חייב להתאים ל-VERSION ב-sw.js
+const EB_VERSION='v23';   // חייב להתאים ל-VERSION ב-sw.js
 let mem=null, canStore=true;
 function load(){
   try{ const r=localStorage.getItem(KEY); return r?JSON.parse(r):null; }
@@ -1261,7 +1261,18 @@ function importTrainee(e){
         n.program=n.program||{days:[]};
         if(n.pkgTotal==null) n.pkgTotal=S.settings.defaultPack;
         if(n.pkgUsed==null)  n.pkgUsed=0;
+
+        /* מדידות פתיחה מגיעות בתוך רשומת המתאמן, אבל חיות במערך נפרד
+           ומקושרות במזהה — לכן מפרידים אותן רק אחרי שנוצר המזהה. */
+        const ms = Array.isArray(n.measures) ? n.measures : [];
+        delete n.measures;
         S.trainees.push(n);
+        ms.forEach(m=>{
+          if(!m || (!m.weight && !m.waist && !m.fat)) return;
+          S.measures.push({ id:uid(), traineeId:n.id, date:m.date||todayISO(),
+                            weight:m.weight||'', fat:m.fat||'', waist:m.waist||'',
+                            note:m.note||'מהתוכנית' });
+        });
         added++;
       }
     });
