@@ -169,6 +169,39 @@
     while ((m = re.exec(src))) {
       var i = skip(src, m.index + m[0].length);
       if (src.charAt(i) !== '[') continue;
+
+      /* צורה חלופית:  exercises:[ ["סקוואט","4×8-10"], ... ]
+         שתי מחרוזות, כשהסטים והחזרות דחוסים לאחת. */
+      var peek = skip(src, i + 1);
+      if (src.charAt(peek) === '[') {
+        var got = readRows(src, i);
+        if (got && got.rows.length) {
+          var exA = [];
+          got.rows.forEach(function (c) {
+            var nm = String(c[0] || '').trim();
+            if (!nm) return;
+            var spec = String(c[1] || '').trim();
+            var sm = spec.match(/^(\d+)\s*[x×*]\s*(.+)$/);
+            exA.push({
+              name: nm,
+              sets: sm ? sm[1] : '',
+              reps: sm ? sm[2].trim() : spec,
+              weight: '', rest: clean(c[2]), note: clean(c[3])
+            });
+          });
+          if (exA.length) {
+            var nearA = src.slice(Math.max(0, m.index - 400), m.index);
+            var labelA = [lastField(nearA, 'title'), lastField(nearA, 'name'), lastField(nearA, 'focus')]
+              .filter(Boolean)
+              .filter(function (v, ix, a) { return a.indexOf(v) === ix; })
+              .join(' · ');
+            days.push({ name: labelA.slice(0, 80) || ('יום ' + (days.length + 1)), exercises: exA });
+          }
+          re.lastIndex = got.i;
+          continue;
+        }
+      }
+
       i++;
       var ex = [];
       while (i < src.length) {
