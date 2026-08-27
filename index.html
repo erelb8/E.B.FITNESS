@@ -277,7 +277,7 @@ function age(b){ if(!b) return null; const d=new Date(b), t=new Date(); let a=t.
 
 /* ---------------- אחסון ---------------- */
 const KEY='ebfit_v1';
-const EB_VERSION='v19';   // חייב להתאים ל-VERSION ב-sw.js
+const EB_VERSION='v20';   // חייב להתאים ל-VERSION ב-sw.js
 let mem=null, canStore=true;
 function load(){
   try{ const r=localStorage.getItem(KEY); return r?JSON.parse(r):null; }
@@ -450,7 +450,8 @@ function vTrainees(){
   list.sort((a,b)=>a.name.localeCompare(b.name,'he'));
 
   let h=head('מתאמנים','ניהול תיקים אישיים, כרטיסיות ותוכניות אימון',
-    '<button class="btn ghost" onclick="EBIntake.open()">קליטה משאלון</button>'
+    '<label class="btn ghost" style="cursor:pointer">ייבוא מתאמן<input type="file" accept="application/json,.json" hidden onchange="importTrainee(event)"></label>'
+   +'<button class="btn ghost" onclick="EBIntake.open()">קליטה משאלון</button>'
    +'<button class="btn" onclick="editTrainee()">+ מתאמן חדש</button>');
   h+='<div class="row" style="margin-bottom:16px">'
    +'<div class="search"><span>⌕</span><input placeholder="חיפוש לפי שם, טלפון או מטרה" value="'+esc(Q)+'" oninput="Q=this.value;render();this.focus()"></div>'
@@ -1226,6 +1227,51 @@ function exportJSON(){
   const a=document.createElement('a'); a.href=URL.createObjectURL(b);
   a.download='ebfit-backup-'+todayISO()+'.json'; a.click(); toast('הגיבוי ירד');
 }
+/* ייבוא מתאמן בודד מקובץ JSON — מוסיף, לא מחליף.
+   שונה מ-importJSON שדורס את כל המצב: כאן אפשר להוסיף מתאמן אחד
+   בלי לגעת בשאר, וזו הדרך הבטוחה להעביר מתאמן בין מכשירים. */
+function importTrainee(e){
+  const f=e.target.files[0]; if(!f) return;
+  e.target.value='';
+  const r=new FileReader();
+  r.onload=()=>{
+    let list;
+    try{
+      const d=JSON.parse(r.result);
+      list = Array.isArray(d) ? d : (Array.isArray(d.trainees) ? d.trainees : [d]);
+      if(!list.length || !list[0] || !list[0].name) throw 0;
+    }catch(err){ toast('הקובץ לא תקין'); return; }
+
+    let added=0, updated=0;
+    list.forEach(t=>{
+      if(!t || !t.name) return;
+      const exist = S.trainees.find(x=>x.name.trim()===String(t.name).trim());
+      if(exist){
+        const days=((t.program&&t.program.days)||[]).length;
+        if(!confirm(t.name+' כבר קיים.\n\nלעדכן לו את התוכנית ('+days+' ימים) ואת ההערות?\n\nביטול = לדלג עליו.')) return;
+        if(t.program) exist.program=t.program;
+        if(t.notes)   exist.notes = exist.notes ? (exist.notes+'\n\n'+t.notes) : t.notes;
+        if(t.goal && !exist.goal) exist.goal=t.goal;
+        updated++;
+      }else{
+        const n=Object.assign({}, t);
+        n.id=uid();
+        n.status=n.status||'active';
+        n.joined=n.joined||todayISO();
+        n.program=n.program||{days:[]};
+        if(n.pkgTotal==null) n.pkgTotal=S.settings.defaultPack;
+        if(n.pkgUsed==null)  n.pkgUsed=0;
+        S.trainees.push(n);
+        added++;
+      }
+    });
+    if(!added && !updated){ toast('לא נוסף כלום'); return; }
+    save(); render();
+    toast(added?(added+' מתאמנים נוספו'):(updated+' עודכנו'));
+  };
+  r.readAsText(f,'utf-8');
+}
+
 function importJSON(e){
   const f=e.target.files[0]; if(!f) return;
   const r=new FileReader();
