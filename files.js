@@ -17,6 +17,24 @@
 
   var OK_EXT = ['pdf','png','jpg','jpeg','webp','heic','docx','xlsx','txt'];
 
+  /* הדפדפן לא תמיד יודע לזהות סוג קובץ — במיוחד docx/xlsx/heic, ובקבצים
+     שהגיעו מווטסאפ או מ-Drive. במקרה כזה הוא מדווח סוג ריק, Supabase
+     מקבל application/octet-stream, והדלי דוחה. לכן גוזרים מהסיומת. */
+  var MIME = {
+    pdf : 'application/pdf',
+    png : 'image/png',
+    jpg : 'image/jpeg',  jpeg: 'image/jpeg',
+    webp: 'image/webp',  heic: 'image/heic',
+    txt : 'text/plain',
+    docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+  };
+  function mimeOf(file, ext) {
+    var t = file.type || '';
+    // סומכים על הדפדפן רק אם מה שדיווח תואם למה שהסיומת אומרת
+    return (t && t === MIME[ext]) ? t : (MIME[ext] || t || 'application/octet-stream');
+  }
+
   function icon(name) {
     var e = (name.split('.').pop() || '').toLowerCase();
     if (e === 'pdf') return '📄';
@@ -62,7 +80,7 @@
     toast('מעלה…');
     try {
       var up = await sb.storage.from(BUCKET).upload(path, file, {
-        cacheControl: '3600', upsert: false, contentType: file.type || undefined
+        cacheControl: '3600', upsert: false, contentType: mimeOf(file, ext)
       });
       if (up.error) throw up.error;
 
@@ -76,11 +94,21 @@
       save(); render();
       toast('הקובץ נוסף');
     } catch (e) {
-      var m = (e && e.message) || '';
-      if (/mime|type/i.test(m))      m = 'סוג הקובץ נחסם בשרת';
-      else if (/size|large/i.test(m)) m = 'הקובץ גדול מדי';
-      else if (/bucket/i.test(m))     m = 'האחסון לא הוגדר — צריך להריץ את storage.sql';
-      toast('ההעלאה נכשלה: ' + (m || 'שגיאה'));
+      var m = (e && e.message) || String(e || '');
+      if (/row-level security|violates|policy|Unauthorized|403/i.test(m))
+        m = 'אין הרשאה לאחסון — צריך להריץ את storage.sql ב-Supabase';
+      else if (/bucket not found|Bucket/i.test(m))
+        m = 'דלי האחסון לא קיים — צריך להריץ את storage.sql';
+      else if (/mime|content.?type/i.test(m))
+        m = 'סוג הקובץ נחסם בשרת';
+      else if (/size|large|exceeded/i.test(m))
+        m = 'הקובץ גדול מדי (מקסימום 10MB)';
+      else if (/already exists|duplicate/i.test(m))
+        m = 'קובץ בשם הזה כבר קיים — נסה שוב';
+      else if (/fetch|network/i.test(m))
+        m = 'אין חיבור לשרת';
+      console.error('[EBFiles] upload failed:', e);   // הפירוט המלא לקונסול
+      toast('ההעלאה נכשלה: ' + (m || 'שגיאה לא ידועה'));
     }
   }
 
