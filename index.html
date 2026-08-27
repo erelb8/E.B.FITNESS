@@ -1047,6 +1047,16 @@ async function botSend(){
       '<button class="btn sm" onclick="toggleMod(\''+mk+'\')">הפעלה עכשיו</button><button class="btn sm ghost" onclick="buildFeature(\''+esc(txt.replace(/['\"\\\\\n]/g,' '))+'\')">לא, תבנה לי משהו חדש</button>');
     render(); return;
   }
+  /* בלי מפתח API אין בנייה אוטומטית. במקום להיכשל — שומרים את הרעיון
+     ברשימה, כדי שיהיה אפשר להעביר אותו לפיתוח. */
+  if(!S.settings.apiKey){
+    S.wishlist.push({id:uid(), text:txt, date:todayISO()});
+    save();
+    pushChat('bot','שמרתי את הרעיון ברשימה למטה.\n\nבניית פיצ׳רים אוטומטית דורשת מפתח Anthropic API בתשלום. '
+      +'הדרך הפשוטה יותר: להעביר את הרעיון לפיתוח ולקבל אותו בנוי ובדוק.\n\n'
+      +'המודולים המוכנים שמימין עובדים כבר עכשיו, בלי שום מפתח.');
+    render(); return;
+  }
   buildFeature(txt);
 }
 async function buildFeature(txt){
