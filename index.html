@@ -477,13 +477,17 @@ function editTrainee(id){
   openModal('<div class="mh"><h3>'+(id?'עריכת מתאמן':'מתאמן חדש')+'</h3><button class="iconbtn" onclick="closeModal()">✕</button></div>'
   +'<div class="mb"><div class="grid g2">'
   +fld('שם מלא','tf_name','text',t.name)+fld('טלפון','tf_phone','tel',t.phone)
-  +fld('אימייל','tf_email','email',t.email)+fld('תאריך לידה','tf_birth','date',t.birth)
-  +sel('מין','tf_gender',['','זכר','נקבה'],t.gender)+sel('רמה','tf_level',['מתחיל','בינוני','מתקדם'],t.level)
-  +fld('מטרה','tf_goal','text',t.goal)+sel('סטטוס','tf_status',[['active','פעיל'],['paused','בהקפאה'],['archived','ארכיון']],t.status)
-  +fld('תאריך הצטרפות','tf_joined','date',t.joined)+fld('תגיות (מופרדות בפסיק)','tf_tags','text',(t.tags||[]).join(', '))
-  +fld('אימונים בכרטיסייה','tf_pkgTotal','number',t.pkgTotal)+fld('אימונים שנוצלו','tf_pkgUsed','number',t.pkgUsed)
-  +fld('מחיר לאימון','tf_price','number',t.pricePerSession)+fld('יתרת חוב','tf_due','number',t.balanceDue||0)
+  +fld('גובה (ס״מ)','tf_height','number',t.height)+fld('מטרה','tf_goal','text',t.goal)
   +'</div><div style="margin-top:12px"><label class="f">הערות אישיות</label><textarea class="f" id="tf_notes">'+esc(t.notes)+'</textarea></div>'
+  +'<div class="grid g2" style="margin-top:12px">'
+  +sel('סטטוס','tf_status',[['active','פעיל'],['paused','בהקפאה'],['archived','ארכיון']],t.status)
+  +fld('תאריך לידה','tf_birth','date',t.birth)
+  +sel('מין','tf_gender',['','זכר','נקבה'],t.gender)+sel('רמה','tf_level',['מתחיל','בינוני','מתקדם'],t.level)
+  +fld('תאריך הצטרפות','tf_joined','date',t.joined)
+  +fld('אימונים בכרטיסייה','tf_pkgTotal','number',t.pkgTotal)
+  +fld('אימונים שנוצלו','tf_pkgUsed','number',t.pkgUsed)
+  +fld('מחיר לאימון','tf_price','number',t.pricePerSession)
+  +'</div>'
   +(S.features.health?'<div class="sep"></div><label class="f">הצהרת בריאות — מגבלות, פציעות, תרופות</label><textarea class="f" id="tf_health">'+esc(t.health||'')+'</textarea><div class="row" style="margin-top:8px"><label style="font-size:13px"><input type="checkbox" id="tf_hok" '+(t.healthOk?'checked':'')+'> ההצהרה נחתמה ואושרה</label></div>':'')
   +(S.features.nutrition?'<div class="sep"></div><div class="grid g3">'+fld('יעד קלוריות','tf_kcal','number',t.kcal||'')+fld('יעד חלבון (ג׳)','tf_prot','number',t.prot||'')+fld('יעד צעדים','tf_steps','number',t.steps||'')+'</div>':'')
   +'</div><div class="mf"><button class="btn" onclick="saveTrainee('+(id?'\''+id+'\'':'null')+')">שמירה</button>'
@@ -500,11 +504,12 @@ const gv = id => { const e=document.getElementById(id); return e?e.value.trim():
 const gn = id => Number(gv(id)||0);
 function saveTrainee(id){
   const name=gv('tf_name'); if(!name){ toast('צריך למלא שם'); return; }
-  const o={ name, phone:gv('tf_phone'), email:gv('tf_email'), birth:gv('tf_birth'), gender:gv('tf_gender'),
+  /* אימייל, תגיות ויתרת חוב הוסרו מהטופס. הם לא נכללים כאן בכוונה —
+     כך ערכים שכבר הוזנו בעבר נשמרים ולא נדרסים ב-Object.assign למטה. */
+  const o={ name, phone:gv('tf_phone'), height:gn('tf_height'), birth:gv('tf_birth'), gender:gv('tf_gender'),
     goal:gv('tf_goal'), level:gv('tf_level'), status:gv('tf_status'), joined:gv('tf_joined'),
-    tags:gv('tf_tags').split(',').map(x=>x.trim()).filter(Boolean),
     pkgTotal:gn('tf_pkgTotal'), pkgUsed:gn('tf_pkgUsed'), pricePerSession:gn('tf_price'),
-    balanceDue:gn('tf_due'), notes:gv('tf_notes') };
+    notes:gv('tf_notes') };
   if(S.features.health){ o.health=gv('tf_health'); const c=document.getElementById('tf_hok'); o.healthOk=c?c.checked:false; }
   if(S.features.nutrition){ o.kcal=gn('tf_kcal'); o.prot=gn('tf_prot'); o.steps=gn('tf_steps'); }
   if(id){ Object.assign(tById(id), o); } else { o.id=uid(); o.program={days:[]}; S.trainees.push(o); }
@@ -554,8 +559,11 @@ function vTrainee(){
   return h;
 }
 function tabDetails(t){
-  const rows=[['טלפון',t.phone],['אימייל',t.email],['תאריך לידה',t.birth?fmtFull(t.birth):''],['מין',t.gender],
-    ['מחיר לאימון',t.pricePerSession?money(t.pricePerSession):''],['יתרת חוב',t.balanceDue?money(t.balanceDue):'אין']];
+  /* שורה עם ערך ריק לא מוצגת (ראה הלולאה למטה). לכן אימייל ויתרת חוב
+     שהוסרו מהטופס עדיין יופיעו כאן אם יש להם ערך היסטורי. */
+  const rows=[['טלפון',t.phone],['גובה',t.height?t.height+' ס״מ':''],['תאריך לידה',t.birth?fmtFull(t.birth):''],
+    ['מין',t.gender],['רמה',t.level],['מחיר לאימון',t.pricePerSession?money(t.pricePerSession):''],
+    ['אימייל',t.email],['יתרת חוב',t.balanceDue?money(t.balanceDue):'']];
   let h='<div class="grid g2"><div class="card"><h3 style="font-size:15px;margin-bottom:10px">פרטי קשר</h3>';
   rows.forEach(r=>{ if(r[1]) h+='<div class="line-item"><span class="muted" style="width:110px;font-size:13px">'+r[0]+'</span><span style="flex:1">'+esc(r[1])+'</span></div>'; });
   h+='</div><div class="card"><h3 style="font-size:15px;margin-bottom:10px">הערות</h3><div style="white-space:pre-wrap;font-size:14px;color:'+(t.notes?'var(--tx)':'var(--mut)')+'">'+esc(t.notes||'אין הערות. אפשר להוסיף דרך עריכה.')+'</div>';
