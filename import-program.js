@@ -18,6 +18,9 @@
 (function () {
   'use strict';
 
+  // חותמת גרסה — index.html משווה אליה כדי לזהות קובץ ישן במטמון
+  (window.EB_MOD = window.EB_MOD || {})['import'] = 'v24';
+
   var FOR = null, DRAFT = null;
 
   /* ---------- מפענח מחרוזות מצוטטות ----------

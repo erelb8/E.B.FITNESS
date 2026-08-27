@@ -1516,6 +1516,29 @@ async function toggleAccess(id,active){
   catch(e){ toast('לא הצלחנו לעדכן'); }
 }
 
+/* --------- זיהוי מודול ישן ותיקון עצמי ---------
+   index.html נטען תמיד מהרשת, אבל קבצי הצד עלולים להישאר במטמון של
+   גרסה קודמת — וזה מתבטא בפיצ׳ר שנראה שבור בלי שום הודעה. כל מודול
+   נושא חותמת גרסה; אם היא לא תואמת, מנקים ומרעננים פעם אחת בלבד. */
+(function(){
+  const need = ['files','intake','builder','import','sync'];
+  const got  = window.EB_MOD || {};
+  const bad  = need.filter(k => got[k] !== EB_VERSION);
+  if(!bad.length) return;
+
+  console.warn('[EB] מודולים ישנים במטמון:', bad.map(k=>k+'='+(got[k]||'חסר')).join(', '), 'צפוי', EB_VERSION);
+
+  // מרעננים פעם אחת בלבד, כדי שלא ניכנס ללולאת טעינה
+  let tried = false;
+  try { tried = sessionStorage.getItem('eb_selfheal') === EB_VERSION; } catch(e){}
+  if(tried){
+    setTimeout(()=>toast('חלק מהקבצים ישנים — לחץ "רענון מלא" בהגדרות'), 1500);
+    return;
+  }
+  try { sessionStorage.setItem('eb_selfheal', EB_VERSION); } catch(e){}
+  setTimeout(()=>{ if(typeof forceUpdate==='function') forceUpdate(); }, 300);
+})();
+
 /* --------- הפעלה --------- */
 if(window.EBSync){ EBSync.init(); EBSync.paint(); }
 </script>
