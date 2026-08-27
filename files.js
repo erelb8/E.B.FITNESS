@@ -15,7 +15,7 @@
   var BUCKET = 'programs';
   var MAX    = 10 * 1024 * 1024;   // 10MB, תואם למגבלת הדלי
 
-  var OK_EXT = ['pdf','png','jpg','jpeg','webp','heic','docx','xlsx','txt'];
+  var OK_EXT = ['pdf','png','jpg','jpeg','webp','heic','docx','xlsx','txt','html','htm'];
 
   /* הדפדפן לא תמיד יודע לזהות סוג קובץ — במיוחד docx/xlsx/heic, ובקבצים
      שהגיעו מווטסאפ או מ-Drive. במקרה כזה הוא מדווח סוג ריק, Supabase
@@ -26,6 +26,7 @@
     jpg : 'image/jpeg',  jpeg: 'image/jpeg',
     webp: 'image/webp',  heic: 'image/heic',
     txt : 'text/plain',
+    html: 'text/html',  htm : 'text/html',
     docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
   };
@@ -41,6 +42,7 @@
     if (['png','jpg','jpeg','webp','heic'].indexOf(e) > -1) return '🖼';
     if (e === 'xlsx') return '📊';
     if (e === 'docx') return '📝';
+    if (e === 'html' || e === 'htm') return '🌐';
     return '📎';
   }
   function human(b) {
@@ -62,7 +64,7 @@
     var inp = document.createElement('input');
     inp.type = 'file';
     inp.multiple = true;
-    inp.accept = '.pdf,.png,.jpg,.jpeg,.webp,.heic,.docx,.xlsx,.txt';
+    inp.accept = '.pdf,.png,.jpg,.jpeg,.webp,.heic,.docx,.xlsx,.txt,.html,.htm';
     inp.onchange = function () {
       var list = Array.prototype.slice.call(inp.files || []);
       if (list.length) uploadMany(traineeId, list);
