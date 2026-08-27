@@ -277,6 +277,7 @@ function age(b){ if(!b) return null; const d=new Date(b), t=new Date(); let a=t.
 
 /* ---------------- אחסון ---------------- */
 const KEY='ebfit_v1';
+const EB_VERSION='v19';   // חייב להתאים ל-VERSION ב-sw.js
 let mem=null, canStore=true;
 function load(){
   try{ const r=localStorage.getItem(KEY); return r?JSON.parse(r):null; }
@@ -1212,7 +1213,7 @@ function vSettings(){
   h+=syncCard();
 
   h+='<div class="card" style="margin-top:14px"><h3 style="font-size:15px;margin-bottom:10px">מה יש במערכת</h3><div class="grid g4">'
-   +stat('מתאמנים',S.trainees.length,'')+stat('אימונים',S.sessions.length,'')+stat('מדידות',S.measures.length,'')+stat('פיצ׳רים מותאמים',S.custom.length,'')+'</div></div>';
+   +stat('מתאמנים',S.trainees.length,'')+stat('אימונים',S.sessions.length,'')+stat('מדידות',S.measures.length,'')+stat('גרסה',EB_VERSION,'')+'</div>'+'<div class="muted" style="font-size:12px;margin-top:10px">אם הגרסה כאן שונה מזו שבפיתוח — הדפדפן מציג עותק ישן. '+'<button class="btn sm ghost" onclick="forceUpdate()">רענון מלא</button></div></div>';
   return h;
 }
 function saveSettings(){
@@ -1316,6 +1317,24 @@ if (location.protocol === 'file:') {
    האפליקציה ממשיכה לעבוד רגיל גם בלי חיבור. */
 window.rawSave = save;
 window.save = function(){ rawSave(); if(window.EBSync) EBSync.schedule(); };
+
+/* מוחק את ה-Service Worker ואת כל המטמון וטוען מחדש.
+   קיים כי ניקוי ידני דרך כלי הפיתוח הוא מחסום אמיתי למי שלא מפתח. */
+async function forceUpdate(){
+  toast('מנקה ומרענן…');
+  try{
+    if(navigator.serviceWorker){
+      const regs = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(regs.map(r=>r.unregister()));
+    }
+    if(window.caches){
+      const keys = await caches.keys();
+      await Promise.all(keys.map(k=>caches.delete(k)));
+    }
+  }catch(e){}
+  // פרמטר משתנה, כדי לעקוף גם את מטמון ה-HTTP של הדפדפן
+  location.href = location.pathname + '?fresh=' + Date.now();
+}
 
 /* --------- כרטיס הסנכרון בהגדרות --------- */
 function syncCard(){

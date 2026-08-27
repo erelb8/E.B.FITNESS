@@ -2,7 +2,7 @@
    נותן לאפליקציה לעבוד לגמרי בלי אינטרנט אחרי הפתיחה הראשונה.
    כשמעדכנים את האפליקציה — מעלים את המספר ב-VERSION. */
 
-const VERSION = 'ebfit-v18';
+const VERSION = 'ebfit-v19';
 const SHELL   = VERSION + '-shell';
 const FONTS   = VERSION + '-fonts';
 
@@ -79,10 +79,28 @@ self.addEventListener('fetch', e => {
     return;
   }
 
-  // שאר הקבצים שלנו — מטמון קודם
-  if (url.origin === self.location.origin) {
+  if (url.origin !== self.location.origin) return;
+
+  /* תמונות ואייקונים כמעט לא משתנים — מהמטמון מיד, זה מהיר יותר. */
+  if (/\.(png|jpg|jpeg|webp|svg|ico|woff2?)$/i.test(url.pathname)) {
     e.respondWith(staleWhileRevalidate(req, SHELL));
+    return;
   }
+
+  /* קוד — רשת קודם, מטמון רק כגיבוי.
+     הגשה מהמטמון קודם גרמה לכך שעדכון לא הגיע למכשיר עד שנוקה המטמון
+     ידנית: המשתמש קיבל קוד ישן גם כשהיה מחובר לרשת. עלות: מילישניות
+     בודדות בטעינה. תמורה: מה שרואים הוא תמיד מה שפורסם. */
+  e.respondWith((async () => {
+    const c = await caches.open(SHELL);
+    try {
+      const fresh = await fetch(req);
+      if (fresh && fresh.ok) c.put(req, fresh.clone());
+      return fresh;
+    } catch {
+      return (await c.match(req)) || new Response('', { status: 504 });
+    }
+  })());
 });
 
 async function staleWhileRevalidate(req, cacheName) {
