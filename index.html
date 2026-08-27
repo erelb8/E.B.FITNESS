@@ -446,7 +446,9 @@ function vTrainees(){
   if(Q) list=list.filter(t=>(t.name+' '+(t.phone||'')+' '+(t.goal||'')+' '+(t.tags||[]).join(' ')).includes(Q));
   list.sort((a,b)=>a.name.localeCompare(b.name,'he'));
 
-  let h=head('מתאמנים','ניהול תיקים אישיים, כרטיסיות ותוכניות אימון','<button class="btn" onclick="editTrainee()">+ מתאמן חדש</button>');
+  let h=head('מתאמנים','ניהול תיקים אישיים, כרטיסיות ותוכניות אימון',
+    '<button class="btn ghost" onclick="EBIntake.open()">קליטה משאלון</button>'
+   +'<button class="btn" onclick="editTrainee()">+ מתאמן חדש</button>');
   h+='<div class="row" style="margin-bottom:16px">'
    +'<div class="search"><span>⌕</span><input placeholder="חיפוש לפי שם, טלפון או מטרה" value="'+esc(Q)+'" oninput="Q=this.value;render();this.focus()"></div>'
    +filtBtn('all','הכול')+filtBtn('active','פעילים')+filtBtn('low','כרטיסייה נגמרת')+filtBtn('archived','ארכיון')+'</div>';
@@ -554,8 +556,10 @@ function vTrainee(){
   if(S.features.prs) tabs.push(['prs','שיאים']);
   if(S.features.photos) tabs.push(['photos','תמונות']);
   if(S.features.nutrition) tabs.push(['nutri','תזונה']);
+  if(t.intake) tabs.push(['intake','שאלון']);   // רק למי שנקלט משאלון
   h+='<div class="tabs noprint" style="margin-top:18px">'+tabs.map(x=>'<button class="'+(SUBTAB===x[0]?'on':'')+'" onclick="SUBTAB=\''+x[0]+'\';render()">'+x[1]+'</button>').join('')+'</div>';
-  h+={details:tabDetails,program:tabProgram,measures:tabMeasures,history:tabHistory,pay:tabPay,prs:tabPRs,photos:tabPhotos,nutri:tabNutri}[SUBTAB](t);
+  const TABFN={details:tabDetails,program:tabProgram,measures:tabMeasures,history:tabHistory,pay:tabPay,prs:tabPRs,photos:tabPhotos,nutri:tabNutri,intake:(x)=>EBIntake.tab(x)};
+  h+=(TABFN[SUBTAB]||tabDetails)(t);
   return h;
 }
 function tabDetails(t){
@@ -1274,6 +1278,7 @@ if (location.protocol === 'file:') {
 }
 </script>
 
+<script src="intake.js"></script>
 <script src="sync.js"></script>
 <script>
 /* =================== חיבור הסנכרון לאפליקציה =================== */
