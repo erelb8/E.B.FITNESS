@@ -616,6 +616,25 @@ function traineeLinkCard(t){
    +(active?'ביטול גישה':'החזרת גישה')+'</button></div>';
 
   if(!active) h+='<div class="muted" style="font-size:12px;margin-top:8px">הגישה מבוטלת — הקישור לא יעבוד.</div>';
+
+  /* --- שם משתמש וסיסמה --- */
+  const un = t._username || '';
+  h+='<div class="sep"></div>'
+   +'<h3 style="font-size:14px;margin-bottom:6px">כניסה עם שם משתמש</h3>'
+   +'<p class="muted" style="font-size:12.5px;margin:0 0 10px">'
+   +(un ? 'שם המשתמש של '+esc(t.name)+' הוא <b style="color:var(--tx)">'+esc(un)+'</b>. אפשר לשנות סיסמה בלי לשנות אותו.'
+        : 'חלופה לקישור: '+esc(t.name)+' נכנס לאתר עם שם משתמש וסיסמה. הסיסמה נשמרת מוצפנת — לא תוכל לראות אותה שוב, רק לאפס.')
+   +'</p>'
+   +'<div class="grid g2">'
+   +'<div><label class="f">שם משתמש (אנגלית וספרות)</label><input class="f" id="lg_user_'+t.id+'" type="text" value="'+esc(un)+'" placeholder="yonatan"></div>'
+   +'<div><label class="f">'+(un?'סיסמה חדשה (ריק = בלי שינוי)':'סיסמה (6+ תווים)')+'</label><input class="f" id="lg_pass_'+t.id+'" type="text" placeholder="'+(un?'ללא שינוי':'לפחות 6 תווים')+'"></div>'
+   +'</div>'
+   +'<div class="row" style="margin-top:10px">'
+   +'<button class="btn sm" onclick="saveTraineeLogin(\''+t.id+'\')">'+(un?'עדכון':'הפעלת כניסה')+'</button>'
+   +(un?'<button class="btn sm ghost" onclick="sendLoginDetails(\''+t.id+'\')">שליחת הפרטים בווטסאפ</button>'
+       +'<div style="flex:1"></div><button class="btn sm danger" onclick="clearTraineeLogin(\''+t.id+'\')">ביטול הכניסה</button>':'')
+   +'</div>';
+
   h+='</div>';
   return h;
 }
@@ -1372,6 +1391,38 @@ function sendProgram(id){
   let p=(t.phone||'').replace(/\D/g,'');
   if(p.startsWith('0')) p='972'+p.slice(1);
   window.open('https://wa.me/'+p+'?text='+encodeURIComponent(msg),'_blank');
+}
+
+/* --------- כניסת מתאמן עם שם משתמש --------- */
+async function saveTraineeLogin(id){
+  const u=gv('lg_user_'+id), p=gv('lg_pass_'+id);
+  const t=tById(id); if(!t) return;
+  if(!u){ toast('צריך שם משתמש'); return; }
+  if(!t._username && !p){ toast('צריך גם סיסמה בפעם הראשונה'); return; }
+  if(p && p.length<6){ toast('הסיסמה חייבת לפחות 6 תווים'); return; }
+  try{
+    await EBSync.setLogin(id,u,p);
+    rawSave(); render();
+    toast(p?'פרטי הכניסה נשמרו':'שם המשתמש עודכן');
+  }catch(e){ toast((e&&e.message)||'לא הצלחנו לשמור'); }
+}
+
+async function clearTraineeLogin(id){
+  const t=tById(id); if(!t) return;
+  if(!confirm('לבטל את הכניסה של '+t.name+'? הוא לא יוכל להיכנס עם שם משתמש, אבל הקישור האישי ימשיך לעבוד.')) return;
+  try{ await EBSync.setLogin(id,'',''); rawSave(); render(); toast('הכניסה בוטלה'); }
+  catch(e){ toast((e&&e.message)||'לא הצלחנו לבטל'); }
+}
+
+function sendLoginDetails(id){
+  const t=tById(id); if(!t||!t._username) return;
+  const base=location.href.replace(/[^/]*$/,'')+'t.html';
+  const msg='היי '+t.name+'! 💪\n\nהכניסה לתוכנית שלך:\n'+base
+    +'\n\nשם משתמש: '+t._username
+    +'\nסיסמה: (הסיסמה שקבענו)\n\n'
+    +'שם תראה את התוכנית, היעדים והקבצים שלך, ותוכל לסמן מה ביצעת.';
+  let ph=(t.phone||'').replace(/\D/g,''); if(ph.startsWith('0')) ph='972'+ph.slice(1);
+  window.open('https://wa.me/'+ph+'?text='+encodeURIComponent(msg),'_blank');
 }
 
 async function toggleAccess(id,active){

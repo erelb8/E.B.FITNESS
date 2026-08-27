@@ -126,8 +126,8 @@ button{cursor:pointer}
 (function () {
   'use strict';
   const CFG   = window.EBFIT_CONFIG || {};
-  const TOKEN = location.hash.replace(/^#/, '').trim();
-  const CACHE = 'ebfit_t_' + TOKEN.slice(0, 12);
+  let TOKEN = location.hash.replace(/^#/, '').trim();
+  let CACHE = 'ebfit_t_' + TOKEN.slice(0, 12);
 
   const $  = s => document.querySelector(s);
   const esc = s => String(s == null ? '' : s)
@@ -147,15 +147,20 @@ button{cursor:pointer}
 
   /* ---------- טעינה ---------- */
   async function boot() {
-    if (!TOKEN) return screen(msg('קישור לא תקין', 'חסר המזהה בסוף הכתובת. בקש מהמאמן לשלוח את הקישור שוב.'));
     if (!CFG.URL || !CFG.ANON) return screen(msg('המערכת עוד לא מחוברת', 'המאמן צריך לסיים את ההגדרה.'));
+    sb = supabase.createClient(CFG.URL, CFG.ANON);
+
+    // אין טוקן בכתובת? אולי המכשיר כבר התחבר בעבר.
+    if (!TOKEN) TOKEN = localStorage.getItem('ebfit_t_token') || '';
+    if (!TOKEN) return loginScreen();
+
+    CACHE = 'ebfit_t_' + TOKEN.slice(0, 12);
 
     // קודם מהמטמון — כדי שהתוכנית תיפתח מיד גם בלי רשת
     const cached = readCache();
     if (cached) { DATA = cached; paint(); }
 
     try {
-      sb = supabase.createClient(CFG.URL, CFG.ANON);
       const { data, error } = await sb.rpc('trainee_program', { p_token: TOKEN });
       if (error) throw error;
       if (!data || !data.length) {
@@ -172,6 +177,82 @@ button{cursor:pointer}
   }
 
   function msg(h, p) { return '<div class="msg"><h2>' + esc(h) + '</h2>' + esc(p) + '</div>'; }
+
+  /* ---------- כניסה עם שם משתמש ---------- */
+  function loginScreen(err) {
+    DATA = null;
+    screen('<div class="card" style="margin-top:24px">'
+      + '<h2 style="font-size:19px;margin-bottom:4px">הכניסה שלך</h2>'
+      + '<p style="color:var(--mut);font-size:13px;margin:0 0 16px">הפרטים שקיבלת מהמאמן.</p>'
+      + '<label style="font-size:13px;color:var(--mut)">שם משתמש</label>'
+      + '<input id="lg_u" autocapitalize="none" autocorrect="off" spellcheck="false" '
+      + 'style="width:100%;background:var(--ink);border:1px solid var(--line);border-radius:10px;'
+      + 'padding:12px;margin:6px 0 12px;font-size:16px;direction:ltr;text-align:left">'
+      + '<label style="font-size:13px;color:var(--mut)">סיסמה</label>'
+      + '<input id="lg_p" type="password" '
+      + 'style="width:100%;background:var(--ink);border:1px solid var(--line);border-radius:10px;'
+      + 'padding:12px;margin:6px 0 4px;font-size:16px;direction:ltr;text-align:left">'
+      + (err ? '<div style="color:#FF5D5D;font-size:13px;margin-top:8px">' + esc(err) + '</div>' : '')
+      + '<button class="btn" id="lg_go" style="width:100%;margin-top:14px">כניסה</button>'
+      + '</div>');
+    var go = document.getElementById('lg_go');
+    go.onclick = doLogin;
+    document.getElementById('lg_p').addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') doLogin();
+    });
+  }
+
+  async function doLogin() {
+    var u = (document.getElementById('lg_u') || {}).value || '';
+    var p = (document.getElementById('lg_p') || {}).value || '';
+    if (!u.trim() || !p) { loginScreen('צריך למלא שם משתמש וסיסמה'); return; }
+    var btn = document.getElementById('lg_go');
+    if (btn) { btn.disabled = true; btn.textContent = 'בודק…'; }
+    try {
+      var r = await sb.rpc('trainee_login', { p_username: u.trim(), p_password: p });
+      if (r.error) throw r.error;
+      var d = r.data && r.data[0];
+      if (!d) throw new Error('שם משתמש או סיסמה שגויים');
+
+      TOKEN = d.token;
+      CACHE = 'ebfit_t_' + TOKEN.slice(0, 12);
+      try { localStorage.setItem('ebfit_t_token', TOKEN); } catch (e) {}
+
+      DATA = d;
+      writeCache(d);
+      paint();
+    } catch (e) {
+      loginScreen((e && e.message) || 'לא הצלחנו להיכנס');
+    }
+  }
+
+  function logout() {
+    try {
+      localStorage.removeItem('ebfit_t_token');
+      if (CACHE) localStorage.removeItem(CACHE);
+    } catch (e) {}
+    TOKEN = ''; DATA = null;
+    var b = document.querySelector('.bar'); if (b) b.remove();
+    $('#hTitle').textContent = 'התוכנית שלי'; $('#hSub').textContent = '';
+    location.hash = '';
+    loginScreen();
+  }
+  window.__ebLogout = logout;
+
+  /* ---------- היעדים ---------- */
+  function goalsBlock(d) {
+    var rows = [['המטרה', d.goal], ['מטרה משנית', d.goal2], ['הצלחה ב-3 חודשים', d.success3m]]
+      .filter(function (r) { return r[1]; });
+    if (!rows.length) return '';
+    return '<div class="card" style="margin-bottom:12px">'
+      + '<div style="font-size:13px;color:var(--mut);margin-bottom:8px">היעדים שלך</div>'
+      + rows.map(function (r) {
+          return '<div style="display:flex;gap:10px;padding:6px 0;align-items:baseline">'
+            + '<span style="color:var(--mut);font-size:12.5px;min-width:110px">' + esc(r[0]) + '</span>'
+            + '<span style="flex:1;font-size:14.5px">' + esc(r[1]) + '</span></div>';
+        }).join('')
+      + '</div>';
+  }
 
   // קבצים שהמאמן צירף. נפתחים בלשונית חדשה — באייפון זה מעביר
   // לצפיין המובנה, שם אפשר גם לשמור לקבצים או להדפיס.
@@ -212,14 +293,14 @@ button{cursor:pointer}
 
     // תוכנית שהיא קובץ בלבד, בלי תרגילים מוקלדים
     if (!days.length) {
-      if (files.length) { screen(filesBlock(files)); return; }
+      if (files.length) { screen(goalsBlock(DATA) + filesBlock(files)); return; }
       screen(msg('התוכנית עוד בהכנה', 'המאמן עדיין לא הזין לך תרגילים. תיכנס שוב מאוחר יותר.'));
       return;
     }
     if (DAY >= days.length) DAY = 0;
     const ex = days[DAY].exercises || [];
 
-    let h = filesBlock(files) + '<div class="days">' + days.map((d, i) =>
+    let h = goalsBlock(DATA) + filesBlock(files) + '<div class="days">' + days.map((d, i) =>
       '<button class="' + (i === DAY ? 'on' : '') + '" data-day="' + i + '">' +
       esc(d.name || ('יום ' + (i + 1))) + '</button>').join('') + '</div>';
 
@@ -227,6 +308,10 @@ button{cursor:pointer}
       ? ex.map((e, i) => exCard(e, i)).join('')
       : '<div class="card" style="text-align:center;color:var(--mut)">אין תרגילים ליום הזה</div>';
 
+    h += (localStorage.getItem('ebfit_t_token')
+      ? '<div style="text-align:center;margin:18px 0 4px"><button class="btn ghost" '
+        + 'style="font-size:13px;padding:8px 18px" onclick="__ebLogout()">יציאה</button></div>'
+      : '');
     h += '<div class="card"><label style="font-size:13px;color:var(--mut)">איך היה?</label>'
        + '<div class="feel">' + ['קל', 'בסדר', 'קשה'].map(f =>
            '<button data-feel="' + f + '"' + (FEEL === f ? ' class="on"' : '') + '>' + f + '</button>').join('')

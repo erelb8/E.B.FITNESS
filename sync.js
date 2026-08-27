@@ -34,7 +34,7 @@
     const priv = {};
     for (const k in t) {
       if (SHARED.includes(k)) continue;
-      if (k === '_token' || k === '_tokenActive') continue; // שדות שרת, לא נשמרים בחזרה
+      if (k.charAt(0) === '_') continue;   // שדות שרת (_token, _username...) — לא נשמרים ב-private
       priv[k] = t[k];
     }
     return {
@@ -58,7 +58,8 @@
       files: r.files || [],
       status: r.status,
       _token: r.access_token,
-      _tokenActive: r.access_active
+      _tokenActive: r.access_active,
+      _username: r.username || ''
     });
   }
 
@@ -258,6 +259,18 @@
     if (t) t._tokenActive = !!active;
   }
 
+  // קביעת שם משתמש וסיסמה למתאמן. הסיסמה נשלחת פעם אחת בלבד
+  // ומוצפנת בשרת; היא לא נשמרת אצלנו בשום מקום.
+  async function setLogin(traineeId, username, password) {
+    if (!sb || !user) throw new Error('לא מחובר');
+    const { error } = await sb.rpc('set_trainee_login', {
+      p_trainee_id: traineeId, p_username: username || null, p_password: password || null
+    });
+    if (error) throw error;
+    const t = (window.S.trainees || []).find(x => x.id === traineeId);
+    if (t) t._username = (username || '').toLowerCase().trim();
+  }
+
   // מה המתאמן דיווח שביצע
   async function logsFor(traineeId, limit) {
     if (!sb || !user) return [];
@@ -293,6 +306,6 @@
     signIn, signUp, signOut,
     user: () => user,
     client: () => sb,
-    traineeLink, setAccess, logsFor
+    traineeLink, setAccess, logsFor, setLogin
   };
 })();
