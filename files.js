@@ -76,7 +76,10 @@
     var t = tById(traineeId); if (!t) return;
     var ext = (file.name.split('.').pop() || '').toLowerCase();
 
-    if (OK_EXT.indexOf(ext) < 0) { toast('סוג קובץ לא נתמך'); return; }
+    if (OK_EXT.indexOf(ext) < 0) {
+      toast('"' + (ext || '?') + '" לא נתמך. אפשר: ' + OK_EXT.join(', '));
+      return;
+    }
     if (file.size > MAX) { toast('הקובץ גדול מ-10MB'); return; }
     if (!navigator.onLine) { toast('צריך חיבור לאינטרנט להעלאה'); return; }
 
