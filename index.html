@@ -277,7 +277,7 @@ function age(b){ if(!b) return null; const d=new Date(b), t=new Date(); let a=t.
 
 /* ---------------- אחסון ---------------- */
 const KEY='ebfit_v1';
-const EB_VERSION='v25';   // חייב להתאים ל-VERSION ב-sw.js
+const EB_VERSION='v26';   // חייב להתאים ל-VERSION ב-sw.js
 let mem=null, canStore=true;
 function load(){
   try{ const r=localStorage.getItem(KEY); return r?JSON.parse(r):null; }
@@ -1515,6 +1515,19 @@ async function bulkLogins(){
   if(!window.EBSync || !EBSync.enabled() || !EBSync.user()){ toast('צריך להתחבר לסנכרון קודם'); return; }
   const list = activeTrainees();
   if(!list.length){ toast('אין מתאמנים'); return; }
+
+  /* מתאמן שיובא זה עתה קיים רק במכשיר. set_trainee_login מחפש אותו
+     בשרת ונכשל ב"not your trainee" — כלומר ייבוא ואז הפעלת כניסה מיד
+     אחריו היה נכשל לכולם. מסנכרנים קודם וממתינים. */
+  if(navigator.onLine){
+    toast('מסנכרן לפני ההגדרה…');
+    try{ await EBSync.run(); }catch(e){}
+    const unsynced = list.filter(t=>!t._token);
+    if(unsynced.length){
+      toast('הסנכרון לא הושלם — נסה שוב בעוד רגע');
+      return;
+    }
+  }
 
   const withLogin = list.filter(t=>t._username).length;
   if(!confirm('להפעיל כניסה ל-'+list.length+' מתאמנים?\n\n'
