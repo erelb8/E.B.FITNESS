@@ -644,7 +644,8 @@ function traineeLinkCard(t){
 /* --------- תוכנית אימון --------- */
 function tabProgram(t){
   const p=t.program||{days:[]};
-  let h='<div class="row noprint" style="margin-bottom:12px"><button class="btn sm" onclick="addDay(\''+t.id+'\')">+ יום אימון</button>'
+  let h='<div class="row noprint" style="margin-bottom:12px"><button class="btn sm" onclick="EBBuild.open(\''+t.id+'\')">🤖 בניית תוכנית</button>'
+   +'<button class="btn sm ghost" onclick="addDay(\''+t.id+'\')">+ יום אימון</button>'
    +'<button class="btn sm ghost" onclick="window.print()">הדפסה</button><div class="spacer" style="flex:1"></div>'
    +'<span class="muted" style="font-size:12.5px">לחיצה על שדה מאפשרת עריכה ישירה</span></div>';
   /* גם בלי תוכנית מוקלדת מציגים את כרטיס הקבצים — זה בדיוק המקרה
@@ -1304,6 +1305,7 @@ if (location.protocol === 'file:') {
 
 <script src="intake.js"></script>
 <script src="files.js"></script>
+<script src="builder.js"></script>
 <script src="sync.js"></script>
 <script>
 /* =================== חיבור הסנכרון לאפליקציה =================== */
