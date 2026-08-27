@@ -172,6 +172,32 @@ button{cursor:pointer}
   }
 
   function msg(h, p) { return '<div class="msg"><h2>' + esc(h) + '</h2>' + esc(p) + '</div>'; }
+
+  // קבצים שהמאמן צירף. נפתחים בלשונית חדשה — באייפון זה מעביר
+  // לצפיין המובנה, שם אפשר גם לשמור לקבצים או להדפיס.
+  function filesBlock(files) {
+    if (!files || !files.length) return '';
+    var ic = function (n) {
+      var e = (String(n).split('.').pop() || '').toLowerCase();
+      if (e === 'pdf') return '📄';
+      if (['png','jpg','jpeg','webp','heic'].indexOf(e) > -1) return '🖼';
+      if (e === 'xlsx') return '📊';
+      if (e === 'docx') return '📝';
+      return '📎';
+    };
+    return '<div class="card" style="margin-bottom:12px">'
+      + '<div style="font-size:13px;color:var(--mut);margin-bottom:8px">קבצים מהמאמן</div>'
+      + files.map(function (f) {
+          return '<a href="' + esc(f.url) + '" target="_blank" rel="noopener" '
+            + 'style="display:flex;align-items:center;gap:10px;padding:10px 0;color:var(--tx);'
+            + 'border-top:1px solid var(--line)">'
+            + '<span style="font-size:19px">' + ic(f.name) + '</span>'
+            + '<span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'
+            + esc(f.name) + '</span>'
+            + '<span style="color:var(--or);font-size:13px;white-space:nowrap">פתיחה ›</span></a>';
+        }).join('')
+      + '</div>';
+  }
   function readCache() { try { return JSON.parse(localStorage.getItem(CACHE)); } catch (e) { return null; } }
   function writeCache(d) { try { localStorage.setItem(CACHE, JSON.stringify(d)); } catch (e) {} }
 
@@ -181,15 +207,19 @@ button{cursor:pointer}
     $('#hSub').textContent = [DATA.goal, DATA.trainer_name && 'מאמן: ' + DATA.trainer_name]
       .filter(Boolean).join(' · ');
 
-    const days = (DATA.program && DATA.program.days) || [];
+    const days  = (DATA.program && DATA.program.days) || [];
+    const files = DATA.files || [];
+
+    // תוכנית שהיא קובץ בלבד, בלי תרגילים מוקלדים
     if (!days.length) {
+      if (files.length) { screen(filesBlock(files)); return; }
       screen(msg('התוכנית עוד בהכנה', 'המאמן עדיין לא הזין לך תרגילים. תיכנס שוב מאוחר יותר.'));
       return;
     }
     if (DAY >= days.length) DAY = 0;
     const ex = days[DAY].exercises || [];
 
-    let h = '<div class="days">' + days.map((d, i) =>
+    let h = filesBlock(files) + '<div class="days">' + days.map((d, i) =>
       '<button class="' + (i === DAY ? 'on' : '') + '" data-day="' + i + '">' +
       esc(d.name || ('יום ' + (i + 1))) + '</button>').join('') + '</div>';
 

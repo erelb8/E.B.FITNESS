@@ -28,7 +28,7 @@
 
   /* ---------- המרה בין מבנה האפליקציה למבנה השרת ---------- */
   // מתאמן: name/goal/program משותפים עם המתאמן, כל השאר ב-private.
-  const SHARED = ['id', 'name', 'goal', 'program', 'status'];
+  const SHARED = ['id', 'name', 'goal', 'program', 'status', 'files'];
 
   function traineeToRow(t) {
     const priv = {};
@@ -43,6 +43,7 @@
       name: t.name || '',
       goal: t.goal || null,
       program: t.program || { days: [] },
+      files: t.files || [],
       status: t.status || 'active',
       private: priv,
       deleted: false
@@ -54,6 +55,7 @@
       name: r.name,
       goal: r.goal,
       program: r.program || { days: [] },
+      files: r.files || [],
       status: r.status,
       _token: r.access_token,
       _tokenActive: r.access_active
@@ -290,6 +292,7 @@
     init, enabled, schedule, run, status, paint, lastError: () => lastError,
     signIn, signUp, signOut,
     user: () => user,
+    client: () => sb,
     traineeLink, setAccess, logsFor
   };
 })();

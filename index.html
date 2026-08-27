@@ -641,6 +641,7 @@ function tabProgram(t){
     if(!(d.exercises||[]).length) h+='<tr><td colspan="7" class="muted" style="text-align:center;padding:18px">אין תרגילים ביום הזה.</td></tr>';
     h+='</tbody></table></div>';
   });
+  h+=EBFiles.card(t);
   return h;
 }
 function exCell(tid,di,ei,k,v,ph){
@@ -1279,6 +1280,7 @@ if (location.protocol === 'file:') {
 </script>
 
 <script src="intake.js"></script>
+<script src="files.js"></script>
 <script src="sync.js"></script>
 <script>
 /* =================== חיבור הסנכרון לאפליקציה =================== */
