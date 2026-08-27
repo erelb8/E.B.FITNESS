@@ -130,6 +130,79 @@
     return days;
   }
 
+  // סוגר תואם לאובייקט, מדלג על מחרוזות כדי לא להיתפס לסוגר שבתוכן
+  function objEnd(s, i) {
+    var d = 0;
+    for (var j = i; j < s.length; j++) {
+      var c = s.charAt(j);
+      if (c === '"' || c === "'" || c === '`') { var r = readString(s, j); j = r ? r.i - 1 : j; continue; }
+      if (c === '{') d++;
+      else if (c === '}') { d--; if (!d) return j; }
+    }
+    return -1;
+  }
+  // כל זוגות מפתח:'מחרוזת' באובייקט
+  function keyVals(chunk) {
+    var o = {}, re = /([A-Za-z_$][\w$]*)\s*:\s*/g, m;
+    while ((m = re.exec(chunk))) {
+      var r = readString(chunk, m.index + m[0].length);
+      if (r) { o[m[1]] = r.v; re.lastIndex = r.i; }
+    }
+    return o;
+  }
+
+  /* מערכי exercises של אובייקטים, כולל מפתחות מקוצרים (n/s/r).
+     פורמט נפוץ בתוכניות מחזוריות, ובלי זה הקובץ נראה ריק לגמרי
+     כי ה-HTML בנוי מתבניות. */
+  var K = {
+    name:['n','name','ex','exercise','title'], sets:['s','sets'],
+    reps:['r','reps'], weight:['w','weight','kg'],
+    rest:['rest','pause'], note:['note','notes','tip','comment']
+  };
+  function pickKey(o, list) {
+    for (var i = 0; i < list.length; i++) if (o[list[i]] !== undefined) return o[list[i]];
+    return '';
+  }
+
+  function fromObjects(src) {
+    var days = [], re = /\bexercises\s*:/g, m;
+    while ((m = re.exec(src))) {
+      var i = skip(src, m.index + m[0].length);
+      if (src.charAt(i) !== '[') continue;
+      i++;
+      var ex = [];
+      while (i < src.length) {
+        i = skip(src, i);
+        if (src.charAt(i) === ']') { i++; break; }
+        if (src.charAt(i) !== '{') { i++; continue; }
+        var end = objEnd(src, i);
+        if (end < 0) break;
+        var o = keyVals(src.slice(i, end + 1));
+        var nm = String(pickKey(o, K.name) || '').trim();
+        if (nm) ex.push({
+          name: nm,
+          sets: clean(pickKey(o, K.sets)),   reps:   clean(pickKey(o, K.reps)),
+          weight: clean(pickKey(o, K.weight)), rest: clean(pickKey(o, K.rest)),
+          note: clean(pickKey(o, K.note))
+        });
+        i = end + 1;
+      }
+      if (!ex.length) continue;
+
+      // שם היום מהטקסט שלפניו, ושם המחזור מרחוק יותר
+      var near  = src.slice(Math.max(0, m.index - 400), m.index);
+      var far   = src.slice(Math.max(0, m.index - 6000), m.index);
+      var dName = lastField(near, 'name') || '';
+      var focus = lastField(near, 'focus') || '';
+      var phase = (lastField(far, 'title') || '').split('·')[0].trim();
+
+      var label = [phase, dName, focus].filter(Boolean).join(' · ');
+      days.push({ name: label.slice(0, 80) || ('יום ' + (days.length + 1)), exercises: ex });
+      re.lastIndex = i;
+    }
+    return days;
+  }
+
   /* ---------- אסטרטגיה 1: נתוני JS ---------- */
   function fromJS(src) {
     var days = [], re = /\brows\s*:/g, m;
@@ -351,16 +424,30 @@
     return out.join('\n\n');
   }
 
+  /* קבצים אינטראקטיביים מכילים גם את קוד ה"הוסף יום"/"הוסף תרגיל" שלהם,
+     ובתוכו תבנית של שורה ריקה. הסורק קולט אותה כיום אמיתי. מסננים
+     ימים שכל תוכנם הוא תבנית — לא לפי מיקום בקובץ, שזה שביר. */
+  var PLACEHOLDER = /^(תרגיל|יום|אימון)\s*חדש$|^new\s|^(—|-|\.)$/i;
+  function dropPlaceholders(days) {
+    return days.filter(function (d) {
+      var real = d.exercises.filter(function (e) { return !PLACEHOLDER.test(String(e.name).trim()); });
+      if (!real.length) return false;
+      d.exercises = real;
+      return true;
+    });
+  }
+
   /* ---------- הפענוח ---------- */
   function parse(src) {
     var days = fromJS(src), how = 'נתוני התוכנית שבקובץ';
     if (days.length) days = days.concat(fromBlocks(src));   // ימי אירובי בסוף
+    if (!days.length) { days = fromObjects(src); how = 'מבנה התוכנית שבקובץ'; }
     if (!days.length) {
       var doc = new DOMParser().parseFromString(src, 'text/html');
       days = fromTables(doc); how = 'טבלאות';
       if (!days.length) { days = fromLists(doc); how = 'כותרות ורשימות'; }
     }
-    return { days: days, how: how, nutrition: extractNutrition(src) };
+    return { days: dropPlaceholders(days), how: how, nutrition: extractNutrition(src) };
   }
 
   /* ---------- ממשק ---------- */

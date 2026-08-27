@@ -2,7 +2,7 @@
    נותן לאפליקציה לעבוד לגמרי בלי אינטרנט אחרי הפתיחה הראשונה.
    כשמעדכנים את האפליקציה — מעלים את המספר ב-VERSION. */
 
-const VERSION = 'ebfit-v20';
+const VERSION = 'ebfit-v21';
 const SHELL   = VERSION + '-shell';
 const FONTS   = VERSION + '-fonts';
 
