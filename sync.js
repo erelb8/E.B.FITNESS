@@ -202,8 +202,12 @@
       }
     }
 
-    // הגדרות ופיצ'רים
-    const prefs = JSON.stringify({ settings: window.S.settings, features: window.S.features });
+    // הגדרות ופיצ'רים.
+    // מפתח ה-API של Anthropic נשאר במכשיר בלבד ולא נשלח לשרת — הוא סוד
+    // שמאפשר לחייב את חשבון המאמן, ואין שום סיבה שיישב בבסיס הנתונים.
+    const safeSettings = Object.assign({}, window.S.settings);
+    delete safeSettings.apiKey;
+    const prefs = JSON.stringify({ settings: safeSettings, features: window.S.features });
     if (snap._prefs !== prefs) {
       const { error } = await sb.from('trainer_prefs')
         .upsert({ trainer_id: user.id, data: JSON.parse(prefs) }, { onConflict: 'trainer_id' });
@@ -222,7 +226,13 @@
     const { data: p } = await sb.from('trainer_prefs')
       .select('data').eq('trainer_id', user.id).maybeSingle();
     if (p && p.data) {
-      if (p.data.settings) window.S.settings = Object.assign({}, window.S.settings, p.data.settings);
+      if (p.data.settings) {
+        // המפתח המקומי מנצח תמיד — הוא לא מסונכרן, ולכן אסור שמשיכה
+        // מהשרת תדרוס אותו בערך ריק.
+        const localKey = window.S.settings.apiKey;
+        window.S.settings = Object.assign({}, window.S.settings, p.data.settings);
+        window.S.settings.apiKey = localKey || '';
+      }
       if (p.data.features) window.S.features = Object.assign({}, window.S.features, p.data.features);
     }
     if (typeof window.rawSave === 'function') window.rawSave();
