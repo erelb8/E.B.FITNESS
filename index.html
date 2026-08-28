@@ -277,7 +277,7 @@ function age(b){ if(!b) return null; const d=new Date(b), t=new Date(); let a=t.
 
 /* ---------------- אחסון ---------------- */
 const KEY='ebfit_v1';
-const EB_VERSION='v26';   // חייב להתאים ל-VERSION ב-sw.js
+const EB_VERSION='v27';   // חייב להתאים ל-VERSION ב-sw.js
 let mem=null, canStore=true;
 function load(){
   try{ const r=localStorage.getItem(KEY); return r?JSON.parse(r):null; }
@@ -1206,7 +1206,12 @@ function vSettings(){
    +'<button class="btn danger" onclick="wipe()">מחיקת הכול</button></div>'
    +'<div class="sep"></div>'
    +'<h3 style="font-size:15px;margin-bottom:8px">הבוט שבונה פיצ׳רים</h3>'
-   +'<p class="muted" style="font-size:13px;margin:0 0 10px">כדי שהבוט יבנה פיצ׳רים חדשים צריך מפתח Anthropic API. המפתח נשמר רק בדפדפן שלך.</p>'
+   +'<p class="muted" style="font-size:13px;margin:0 0 10px">'
+   +'<b style="color:var(--tx)">אופציונלי — המערכת עובדת מלא בלעדיו.</b> '
+   +'מפתח Anthropic API מאפשר לבוט שבלשונית הפיצ׳רים לנסח ולבנות פיצ׳ר חדש בעצמו. '
+   +'זה שירות בתשלום לפי שימוש (בערך 10–30 סנט לפיצ׳ר). '
+   +'בלי מפתח — 8 המודולים המוכנים עובדים, והרעיונות שתכתוב לבוט נשמרים ברשימה. '
+   +'המפתח נשמר בדפדפן הזה בלבד ולא מסונכרן לשרת.</p>'
    +'<div class="row"><input class="f" id="st_key" type="password" placeholder="sk-ant-..." value="'+esc(S.settings.apiKey||'')+'" style="flex:1;min-width:180px">'
    +'<button class="btn" onclick="S.settings.apiKey=gv(\'st_key\');save();toast(\'המפתח נשמר\')">שמירה</button></div>'
    +'<div class="muted" style="font-size:12px;margin-top:10px">'+(canStore?'שמירה אוטומטית פעילה בדפדפן הזה.':'הדפדפן חוסם שמירה מקומית — המידע קיים רק עד לרענון. כדאי לייצא גיבוי.')+'</div>'
