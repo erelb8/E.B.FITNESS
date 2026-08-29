@@ -277,7 +277,7 @@ function age(b){ if(!b) return null; const d=new Date(b), t=new Date(); let a=t.
 
 /* ---------------- אחסון ---------------- */
 const KEY='ebfit_v1';
-const EB_VERSION='v27';   // חייב להתאים ל-VERSION ב-sw.js
+const EB_VERSION='v28';   // חייב להתאים ל-VERSION ב-sw.js
 let mem=null, canStore=true;
 function load(){
   try{ const r=localStorage.getItem(KEY); return r?JSON.parse(r):null; }
@@ -290,7 +290,7 @@ function save(){
 const DEFAULT = {
   settings:{ business:'E.B FIT', trainer:'אראל באואר', phone:'0542687313', currency:'₪',
              sessionPrice:150, defaultPack:12, apiKey:'' },
-  trainees:[], sessions:[], payments:[], measures:[], prs:[], photos:[],
+  trainees:[], sessions:[], payments:[], measures:[], daily:[], prs:[], photos:[],
   features:{ nutrition:false, prs:false, whatsapp:true, health:false, photos:false, calc:false, renew:true, rpe:false },
   custom:[], wishlist:[], chat:[]
 };
@@ -300,7 +300,7 @@ const DEFAULT = {
 var S = Object.assign({}, DEFAULT, load()||{});
 S.settings = Object.assign({}, DEFAULT.settings, S.settings||{});
 S.features = Object.assign({}, DEFAULT.features, S.features||{});
-['trainees','sessions','payments','measures','prs','photos','custom','wishlist','chat'].forEach(k=>{ if(!Array.isArray(S[k])) S[k]=[]; });
+['trainees','sessions','payments','measures','daily','prs','photos','custom','wishlist','chat'].forEach(k=>{ if(!Array.isArray(S[k])) S[k]=[]; });
 
 function toast(m){ const t=$('#toast'); t.textContent=m; t.classList.add('on'); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('on'),2300); }
 
@@ -561,9 +561,10 @@ function vTrainee(){
   if(S.features.prs) tabs.push(['prs','שיאים']);
   if(S.features.photos) tabs.push(['photos','תמונות']);
   if(S.features.nutrition) tabs.push(['nutri','תזונה']);
+  tabs.push(['track','מעקב יומי']);
   if(t.intake) tabs.push(['intake','שאלון']);   // רק למי שנקלט משאלון
   h+='<div class="tabs noprint" style="margin-top:18px">'+tabs.map(x=>'<button class="'+(SUBTAB===x[0]?'on':'')+'" onclick="SUBTAB=\''+x[0]+'\';render()">'+x[1]+'</button>').join('')+'</div>';
-  const TABFN={details:tabDetails,program:tabProgram,measures:tabMeasures,history:tabHistory,pay:tabPay,prs:tabPRs,photos:tabPhotos,nutri:tabNutri,intake:(x)=>EBIntake.tab(x)};
+  const TABFN={details:tabDetails,program:tabProgram,measures:tabMeasures,history:tabHistory,pay:tabPay,prs:tabPRs,photos:tabPhotos,nutri:tabNutri,intake:(x)=>EBIntake.tab(x), track:(x)=>EBTrack.tab(x)};
   h+=(TABFN[SUBTAB]||tabDetails)(t);
   return h;
 }
@@ -1372,6 +1373,7 @@ if (location.protocol === 'file:') {
 <script src="files.js"></script>
 <script src="builder.js"></script>
 <script src="import-program.js"></script>
+<script src="tracking.js"></script>
 <script src="sync.js"></script>
 <script>
 /* =================== חיבור הסנכרון לאפליקציה =================== */
@@ -1649,7 +1651,7 @@ async function toggleAccess(id,active){
    גרסה קודמת — וזה מתבטא בפיצ׳ר שנראה שבור בלי שום הודעה. כל מודול
    נושא חותמת גרסה; אם היא לא תואמת, מנקים ומרעננים פעם אחת בלבד. */
 (function(){
-  const need = ['files','intake','builder','import','sync'];
+  const need = ['files','intake','builder','import','sync','tracking'];
   const got  = window.EB_MOD || {};
   const bad  = need.filter(k => got[k] !== EB_VERSION);
   if(!bad.length) return;

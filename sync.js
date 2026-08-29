@@ -15,11 +15,15 @@
   'use strict';
 
   // חותמת גרסה — index.html משווה אליה כדי לזהות קובץ ישן במטמון
-  (window.EB_MOD = window.EB_MOD || {})['sync'] = 'v27';
+  (window.EB_MOD = window.EB_MOD || {})['sync'] = 'v28';
 
   const CFG      = window.EBFIT_CONFIG || { URL: '', ANON: '' };
   const SNAP_KEY = 'ebfit_sync_v1';
-  const ARRAYS   = ['trainees', 'sessions', 'measures', 'payments'];
+  const ARRAYS   = ['trainees', 'sessions', 'measures', 'payments', 'daily'];
+  /* daily יושב באותה טבלה כמו measures ומסומן ב-kind, כדי לא לחייב
+     טבלה חדשה בשרת. במשיכה מפרידים בחזרה לפי הסימון. */
+  const TABLE    = { trainees:'trainees', sessions:'sessions', measures:'measures',
+                     payments:'payments', daily:'measures' };
 
   let sb = null;                 // לקוח Supabase
   let user = null;               // המאמן המחובר
@@ -87,11 +91,17 @@
     });
   }
 
+  function dailyToRow(o) {
+    const r = childToRow(o);
+    r.data.kind = 'daily';
+    return r;
+  }
   const MAP = {
     trainees: { to: traineeToRow, from: traineeFromRow },
     sessions: { to: childToRow,   from: childFromRow },
     measures: { to: childToRow,   from: childFromRow },
-    payments: { to: childToRow,   from: childFromRow }
+    payments: { to: childToRow,   from: childFromRow },
+    daily:    { to: dailyToRow,   from: childFromRow }
   };
 
   /* ---------- תצלום המצב האחרון שסונכרן ---------- */
@@ -194,7 +204,7 @@
       if (rows.length) {
         // בנתחים, כדי לא לחרוג ממגבלת גודל בקשה
         for (let i = 0; i < rows.length; i += 200) {
-          const { error } = await sb.from(key).upsert(rows.slice(i, i + 200), { onConflict: 'id' });
+          const { error } = await sb.from(TABLE[key]).upsert(rows.slice(i, i + 200), { onConflict: 'id' });
           if (error) throw error;
         }
       }
@@ -202,7 +212,7 @@
       // מה שהיה בתצלום ואיננו עכשיו — נמחק במכשיר
       const gone = Object.keys(prev).filter(id => !seen.has(id));
       if (gone.length) {
-        const { error } = await sb.from(key)
+        const { error } = await sb.from(TABLE[key])
           .update({ deleted: true }).in('id', gone).eq('trainer_id', user.id);
         if (error) throw error;
       }
@@ -223,12 +233,22 @@
 
   // מושך את האמת מהשרת ומחליף את המערכים המקומיים
   async function pull() {
-    for (const key of ARRAYS) {
-      const { data, error } = await sb.from(key)
+    // כל טבלה נשלפת פעם אחת, ואז מפוצלת למערכים המקומיים
+    const fetched = {};
+    for (const tbl of ['trainees','sessions','measures','payments']) {
+      const { data, error } = await sb.from(tbl)
         .select('*').eq('trainer_id', user.id).eq('deleted', false);
       if (error) throw error;
-      window.S[key] = (data || []).map(MAP[key].from);
+      fetched[tbl] = data || [];
     }
+    window.S.trainees = fetched.trainees.map(traineeFromRow);
+    window.S.sessions = fetched.sessions.map(childFromRow);
+    window.S.payments = fetched.payments.map(childFromRow);
+    const isDaily = r => ((r.data || {}).kind === 'daily');
+    window.S.measures = fetched.measures.filter(r => !isDaily(r)).map(childFromRow);
+    window.S.daily    = fetched.measures.filter(isDaily).map(r => {
+      const o = childFromRow(r); delete o.kind; return o;
+    });
     const { data: p } = await sb.from('trainer_prefs')
       .select('data').eq('trainer_id', user.id).maybeSingle();
     if (p && p.data) {
