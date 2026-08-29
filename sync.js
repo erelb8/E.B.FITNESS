@@ -15,7 +15,7 @@
   'use strict';
 
   // חותמת גרסה — index.html משווה אליה כדי לזהות קובץ ישן במטמון
-  (window.EB_MOD = window.EB_MOD || {})['sync'] = 'v28';
+  (window.EB_MOD = window.EB_MOD || {})['sync'] = 'v29';
 
   const CFG      = window.EBFIT_CONFIG || { URL: '', ANON: '' };
   const SNAP_KEY = 'ebfit_sync_v1';
@@ -80,7 +80,9 @@
       id: o.id,
       trainer_id: user.id,
       trainee_id: o.traineeId,
-      date: o.date || new Date().toISOString().slice(0, 10),
+      // תאריך מקומי, לא UTC — ראה ההערה ב-index.html ליד isoOf
+      date: o.date || (function(){ const d=new Date();
+        return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); })(),
       data: data,
       deleted: false
     };

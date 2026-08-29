@@ -266,18 +266,26 @@ tbody tr:hover{background:var(--panel)}
 const $ = s => document.querySelector(s);
 const esc = s => String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
-const todayISO = () => new Date().toISOString().slice(0,10);
+/* תאריך מקומי, לא UTC.
+   toISOString() מחזיר UTC, וישראל היא UTC+2/3 — כך שכל רישום אחרי
+   21:00 או 22:00 נשמר עם התאריך של אתמול, ו-addDays החזיר יומיים
+   אחורה במקום יום. משפיע על המעקב היומי, המדידות, יומן האימונים
+   וחישוב הכרטיסיות. */
+const isoOf = d => d.getFullYear() + '-'
+  + String(d.getMonth()+1).padStart(2,'0') + '-'
+  + String(d.getDate()).padStart(2,'0');
+const todayISO = () => isoOf(new Date());
 const HE_DAYS = ['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'];
 const HE_MON = ['ינו','פבר','מרץ','אפר','מאי','יונ','יול','אוג','ספט','אוק','נוב','דצמ'];
 function fmtDate(iso){ if(!iso) return '—'; const d=new Date(iso+'T00:00'); return d.getDate()+' '+HE_MON[d.getMonth()]; }
 function fmtFull(iso){ if(!iso) return '—'; const d=new Date(iso+'T00:00'); return d.getDate()+'.'+(d.getMonth()+1)+'.'+d.getFullYear(); }
-function addDays(iso,n){ const d=new Date(iso+'T00:00'); d.setDate(d.getDate()+n); return d.toISOString().slice(0,10); }
+function addDays(iso,n){ const d=new Date(iso+'T00:00'); d.setDate(d.getDate()+n); return isoOf(d); }
 function money(n){ return (S.settings.currency||'₪') + Number(n||0).toLocaleString('he-IL'); }
 function age(b){ if(!b) return null; const d=new Date(b), t=new Date(); let a=t.getFullYear()-d.getFullYear(); if(t<new Date(t.getFullYear(),d.getMonth(),d.getDate()))a--; return a; }
 
 /* ---------------- אחסון ---------------- */
 const KEY='ebfit_v1';
-const EB_VERSION='v28';   // חייב להתאים ל-VERSION ב-sw.js
+const EB_VERSION='v29';   // חייב להתאים ל-VERSION ב-sw.js
 let mem=null, canStore=true;
 function load(){
   try{ const r=localStorage.getItem(KEY); return r?JSON.parse(r):null; }
@@ -845,7 +853,7 @@ function sendWa(phone){
 <script>
 /* =================== יומן אימונים =================== */
 let WEEK0=null;
-function weekStart(iso){ const d=new Date(iso+'T00:00'); d.setDate(d.getDate()-d.getDay()); return d.toISOString().slice(0,10); }
+function weekStart(iso){ const d=new Date(iso+'T00:00'); d.setDate(d.getDate()-d.getDay()); return isoOf(d); }
 function vSchedule(){
   if(!WEEK0) WEEK0=weekStart(todayISO());
   const days=[]; for(let i=0;i<7;i++) days.push(addDays(WEEK0,i));
@@ -915,7 +923,7 @@ function vMoney(){
    +stat('חובות פתוחים',money(due),'')+stat('ממוצע לתשלום',money(all.length?Math.round(total/all.length):0),'')+'</div>';
   /* גרף חודשי */
   const months=[]; const d=new Date();
-  for(let i=5;i>=0;i--){ const m=new Date(d.getFullYear(),d.getMonth()-i,1); const key=m.toISOString().slice(0,7);
+  for(let i=5;i>=0;i--){ const m=new Date(d.getFullYear(),d.getMonth()-i,1); const key=isoOf(m).slice(0,7);
     months.push({key,lbl:HE_MON[m.getMonth()],sum:S.payments.filter(p=>(p.date||'').slice(0,7)===key).reduce((a,p)=>a+Number(p.amount||0),0)}); }
   const mx=Math.max(1,...months.map(m=>m.sum));
   h+='<div class="card" style="margin-top:14px"><h3 style="font-size:15px;margin-bottom:16px">הכנסות ב־6 חודשים</h3><div class="bars">'
