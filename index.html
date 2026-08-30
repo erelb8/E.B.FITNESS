@@ -285,7 +285,7 @@ function age(b){ if(!b) return null; const d=new Date(b), t=new Date(); let a=t.
 
 /* ---------------- אחסון ---------------- */
 const KEY='ebfit_v1';
-const EB_VERSION='v29';   // חייב להתאים ל-VERSION ב-sw.js
+const EB_VERSION='v30';   // חייב להתאים ל-VERSION ב-sw.js
 let mem=null, canStore=true;
 function load(){
   try{ const r=localStorage.getItem(KEY); return r?JSON.parse(r):null; }
@@ -569,10 +569,11 @@ function vTrainee(){
   if(S.features.prs) tabs.push(['prs','שיאים']);
   if(S.features.photos) tabs.push(['photos','תמונות']);
   if(S.features.nutrition) tabs.push(['nutri','תזונה']);
+  tabs.push(['metrics','מדדים']);
   tabs.push(['track','מעקב יומי']);
   if(t.intake) tabs.push(['intake','שאלון']);   // רק למי שנקלט משאלון
   h+='<div class="tabs noprint" style="margin-top:18px">'+tabs.map(x=>'<button class="'+(SUBTAB===x[0]?'on':'')+'" onclick="SUBTAB=\''+x[0]+'\';render()">'+x[1]+'</button>').join('')+'</div>';
-  const TABFN={details:tabDetails,program:tabProgram,measures:tabMeasures,history:tabHistory,pay:tabPay,prs:tabPRs,photos:tabPhotos,nutri:tabNutri,intake:(x)=>EBIntake.tab(x), track:(x)=>EBTrack.tab(x)};
+  const TABFN={details:tabDetails,program:tabProgram,measures:tabMeasures,history:tabHistory,pay:tabPay,prs:tabPRs,photos:tabPhotos,nutri:tabNutri,intake:(x)=>EBIntake.tab(x), track:(x)=>EBTrack.tab(x),metrics:(x)=>EBMetrics.tab(x)};
   h+=(TABFN[SUBTAB]||tabDetails)(t);
   return h;
 }
@@ -1382,6 +1383,7 @@ if (location.protocol === 'file:') {
 <script src="builder.js"></script>
 <script src="import-program.js"></script>
 <script src="tracking.js"></script>
+<script src="metrics.js"></script>
 <script src="sync.js"></script>
 <script>
 /* =================== חיבור הסנכרון לאפליקציה =================== */
