@@ -285,7 +285,7 @@ function age(b){ if(!b) return null; const d=new Date(b), t=new Date(); let a=t.
 
 /* ---------------- אחסון ---------------- */
 const KEY='ebfit_v1';
-const EB_VERSION='v30';   // חייב להתאים ל-VERSION ב-sw.js
+const EB_VERSION='v31';   // חייב להתאים ל-VERSION ב-sw.js
 let mem=null, canStore=true;
 function load(){
   try{ const r=localStorage.getItem(KEY); return r?JSON.parse(r):null; }
@@ -743,14 +743,16 @@ function editMeasure(id,tid){
   +'<div class="mb"><div class="grid g3">'
   +fld('תאריך','m_date','date',m.date)+fld('משקל (ק״ג)','m_weight','number',m.weight)+fld('אחוז שומן','m_fat','number',m.fat)
   +fld('חזה (ס״מ)','m_chest','number',m.chest)+fld('מותן (ס״מ)','m_waist','number',m.waist)+fld('ירכיים (ס״מ)','m_hips','number',m.hips)
-  +fld('זרוע (ס״מ)','m_arm','number',m.arm)+fld('ירך (ס״מ)','m_thigh','number',m.thigh)+'</div>'
+  +fld('זרוע (ס״מ)','m_arm','number',m.arm)+fld('ירך (ס״מ)','m_thigh','number',m.thigh)
+  +fld('צוואר (ס״מ)','m_neck','number',m.neck)+'</div>'
+  +'<div class="muted" style="font-size:12px;margin-top:8px">צוואר ומותן מאפשרים חישוב אחוז שומן בנוסחת US Navy, שמדויקת יותר מהערכה לפי BMI.</div>'
   +'<div style="margin-top:12px"><label class="f">הערה</label><input class="f" id="m_note" value="'+esc(m.note||'')+'"></div></div>'
   +'<div class="mf"><button class="btn" onclick="saveMeasure('+(id?'\''+id+'\'':'null')+',\''+(m.traineeId)+'\')">שמירה</button><button class="btn ghost" onclick="closeModal()">ביטול</button>'
   +(id?'<div style="flex:1"></div><button class="btn danger" onclick="S.measures=S.measures.filter(x=>x.id!==\''+id+'\');save();closeModal();render()">מחיקה</button>':'')+'</div>');
 }
 function saveMeasure(id,tid){
   const o={traineeId:tid,date:gv('m_date'),weight:gv('m_weight'),fat:gv('m_fat'),chest:gv('m_chest'),
-    waist:gv('m_waist'),hips:gv('m_hips'),arm:gv('m_arm'),thigh:gv('m_thigh'),note:gv('m_note')};
+    waist:gv('m_waist'),hips:gv('m_hips'),arm:gv('m_arm'),thigh:gv('m_thigh'),neck:gv('m_neck'),note:gv('m_note')};
   if(id) Object.assign(S.measures.find(x=>x.id===id),o); else { o.id=uid(); S.measures.push(o); }
   save(); closeModal(); toast('המדידה נשמרה'); render();
 }
