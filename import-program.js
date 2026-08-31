@@ -19,7 +19,7 @@
   'use strict';
 
   // חותמת גרסה — index.html משווה אליה כדי לזהות קובץ ישן במטמון
-  (window.EB_MOD = window.EB_MOD || {})['import'] = 'v38';
+  (window.EB_MOD = window.EB_MOD || {})['import'] = 'v39';
 
   var FOR = null, DRAFT = null;
 
@@ -661,5 +661,12 @@
     toast('התוכנית יובאה — אפשר לערוך כל שדה');
   }
 
-  window.EBImport = { open: open, apply: apply, parse: parse };
+  /* כניסה מטקסט שכבר נקרא — משמשת את הגרירה, שקוראת את הקובץ בעצמה
+     ולכן לא עוברת דרך בורר הקבצים של open() */
+  function fromText(src, fname, traineeId) {
+    FOR = traineeId;
+    handle(src, fname || 'קובץ');
+  }
+
+  window.EBImport = { open: open, apply: apply, parse: parse, fromText: fromText };
 })();

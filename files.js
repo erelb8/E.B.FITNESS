@@ -13,7 +13,7 @@
   'use strict';
 
   // חותמת גרסה — index.html משווה אליה כדי לזהות קובץ ישן במטמון
-  (window.EB_MOD = window.EB_MOD || {})['files'] = 'v38';
+  (window.EB_MOD = window.EB_MOD || {})['files'] = 'v39';
 
   var BUCKET = 'programs';
   var MAX    = 10 * 1024 * 1024;   // 10MB, תואם למגבלת הדלי
@@ -275,11 +275,63 @@
 
     var t = target();
     if (!t) { toast('פתח תיק מתאמן ואז גרור לשם את הקובץ'); return; }
-    if (!window.EBSync || !EBSync.user()) { toast('צריך להתחבר כדי להעלות קבצים'); return; }
-
     var list = Array.prototype.slice.call(e.dataTransfer.files || []);
     if (!list.length) return;
+
+    /* קובץ HTML בודד הוא דו-משמעי: הוא יכול להיות תוכנית אימון לייבוא,
+       או סתם קובץ לצרף. עד עכשיו הגרירה תמיד צירפה — מי שגרר תוכנית
+       קיבל קובץ מצורף בשקט ולא הבין למה התוכנית לא השתנתה. שואלים. */
+    if (list.length === 1 && /\.(html?|htm)$/i.test(list[0].name) && window.EBImport) {
+      askHtml(t, list[0]);
+      return;
+    }
+    if (!loggedIn()) return;
     await uploadMany(t.id, list);
+  }
+
+  /* ההעלאה דורשת שרת; הייבוא לא. עד עכשיו שתיהן נחסמו יחד, וגרירת
+     תוכנית בזמן שהסנכרון מנותק נענתה ב"צריך להתחבר" בלי סיבה. */
+  function loggedIn() {
+    if (window.EBSync && EBSync.user()) return true;
+    toast('צריך להתחבר כדי לצרף קבצים');
+    return false;
+  }
+
+  function askHtml(t, file) {
+    var name = esc(file.name);
+    openModal(
+      '<div class="mh"><h3>מה לעשות עם הקובץ?</h3>'
+      + '<button class="iconbtn" onclick="closeModal()">✕</button></div>'
+      + '<div class="mb"><div class="muted" style="font-size:13px;line-height:1.6">'
+      + '<b style="color:var(--tx)">' + name + '</b><br>'
+      + 'קובץ HTML יכול להיות תוכנית אימון לייבוא, או קובץ לצרף לתיק.'
+      + '</div></div>'
+      + '<div class="mf" style="gap:8px;flex-wrap:wrap">'
+      + '<button class="btn" onclick="EBFiles.asProgram()">ייבוא כתוכנית אימון</button>'
+      + '<button class="btn ghost" onclick="EBFiles.asAttachment()">צירוף כקובץ</button>'
+      + '<div style="flex:1"></div>'
+      + '<button class="btn ghost" onclick="closeModal()">ביטול</button></div>');
+    PENDING = { t: t, file: file };
+  }
+
+  var PENDING = null;
+
+  function asProgram() {
+    if (!PENDING) return;
+    var f = PENDING.file, tid = PENDING.t.id;
+    PENDING = null; closeModal();
+    var fr = new FileReader();
+    fr.onload  = function () { EBImport.fromText(String(fr.result || ''), f.name, tid); };
+    fr.onerror = function () { toast('לא הצלחנו לקרוא את הקובץ'); };
+    fr.readAsText(f, 'utf-8');
+  }
+
+  async function asAttachment() {
+    if (!PENDING) return;
+    var f = PENDING.file, tid = PENDING.t.id;
+    PENDING = null; closeModal();
+    if (!loggedIn()) return;
+    await uploadMany(tid, [f]);
   }
 
   // העלאה סדרתית ולא במקביל — כך שכשל בקובץ אחד לא מפיל את השאר,
@@ -302,7 +354,7 @@
   document.addEventListener('dragleave', onDragLeave);
   document.addEventListener('drop',      onDrop);
 
-  window.EBFiles = {
+  window.EBFiles = { asProgram: asProgram, asAttachment: asAttachment,
     pick: pick, remove: remove, card: card, icon: icon, human: human,
     uploadMany: uploadMany
   };
