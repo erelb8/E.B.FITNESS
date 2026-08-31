@@ -90,6 +90,8 @@ button{cursor:pointer}
 .btn:disabled{opacity:.4}
 .btn.ghost{background:var(--card);color:var(--tx);border:1px solid var(--line)}
 
+.mt{color:var(--mut)}
+.mt b{color:var(--tx);font-family:'Rubik'}
 .msg{text-align:center;padding:56px 24px;color:var(--mut)}
 .msg h2{color:var(--tx);margin-bottom:8px;font-size:19px}
 .spin{width:26px;height:26px;border:3px solid var(--line);border-top-color:var(--or);border-radius:50%;margin:0 auto 16px;animation:sp .8s linear infinite}
@@ -239,6 +241,74 @@ button{cursor:pointer}
   }
   window.__ebLogout = logout;
 
+  /* ---------- תפריט הארוחות ----------
+     תמונה שווה יותר מרשימת מרכיבים: המתאמן רואה מה בדיוק לשים בצלחת.
+     הערכים מוצגים לצד כל ארוחה, וסיכום יומי בראש. */
+  const MEAL_TYPES = { breakfast:'בוקר', lunch:'צהריים', dinner:'ערב',
+                       snack:'ביניים', pre:'לפני אימון', post:'אחרי אימון' };
+
+  function mealsBlock(meals) {
+    if (!meals || !meals.length) return '';
+    const n = v => { const x = Number(v); return isFinite(x) && x > 0 ? x : 0; };
+    const tot = meals.reduce((a,m) => ({
+      kcal:a.kcal+n(m.kcal), p:a.p+n(m.protein), c:a.c+n(m.carbs), f:a.f+n(m.fat)
+    }), {kcal:0,p:0,c:0,f:0});
+
+    let h = '<div class="card" style="margin-bottom:12px">'
+      + '<div style="font-size:13px;color:var(--mut);margin-bottom:10px">התפריט שלך · '
+      + meals.length + ' ארוחות</div>';
+
+    if (tot.kcal) {
+      h += '<div style="display:flex;gap:14px;flex-wrap:wrap;font-size:13px;margin-bottom:4px">'
+        + '<span><b style="font-family:Rubik;color:var(--or)">' + tot.kcal + '</b> קק״ל</span>'
+        + (tot.p ? '<span class="mt">חלבון <b>' + tot.p + '</b></span>' : '')
+        + (tot.c ? '<span class="mt">פחמימות <b>' + tot.c + '</b></span>' : '')
+        + (tot.f ? '<span class="mt">שומן <b>' + tot.f + '</b></span>' : '')
+        + '</div>';
+    }
+    h += '</div>';
+
+    // מקובץ לפי סוג, בסדר היום
+    const order = ['breakfast','pre','post','lunch','snack','dinner','other'];
+    const by = {};
+    meals.forEach(m => { const k = MEAL_TYPES[m.type] ? m.type : 'other';
+                         (by[k] = by[k] || []).push(m); });
+
+    order.forEach(k => {
+      const g = by[k];
+      if (!g) return;
+      h += '<div style="font-size:12px;color:var(--dim);letter-spacing:.1em;margin:14px 0 8px">'
+        + esc(MEAL_TYPES[k] || 'נוספות') + '</div>';
+      g.forEach(m => {
+        h += '<div class="card" style="padding:0;overflow:hidden;margin-bottom:10px">'
+          + (m.photo
+              ? '<img src="' + esc(m.photo) + '" alt="' + esc(m.name||'') + '" loading="lazy" '
+                + 'style="width:100%;aspect-ratio:16/10;object-fit:cover;display:block;background:var(--ink)">'
+              : '')
+          + '<div style="padding:13px">'
+          + '<div style="font-family:Rubik;font-weight:700;font-size:16px;line-height:1.3">'
+          + esc(m.name || 'ארוחה') + '</div>'
+          + (m.desc ? '<div style="color:var(--mut);font-size:13.5px;margin-top:5px;line-height:1.5;white-space:pre-wrap">'
+                      + esc(m.desc) + '</div>' : '')
+          + (n(m.kcal)||n(m.protein)||n(m.carbs)||n(m.fat)
+              ? '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px">'
+                + (n(m.kcal)    ? tag(n(m.kcal) + ' קק״ל', 1) : '')
+                + (n(m.protein) ? tag('חלבון ' + n(m.protein)) : '')
+                + (n(m.carbs)   ? tag('פחמימות ' + n(m.carbs)) : '')
+                + (n(m.fat)     ? tag('שומן ' + n(m.fat)) : '')
+                + '</div>' : '')
+          + '</div></div>';
+      });
+    });
+    return h;
+  }
+  function tag(txt, hot) {
+    return '<span style="font-size:12px;padding:4px 10px;border-radius:20px;white-space:nowrap;'
+      + (hot ? 'background:var(--or-soft);color:var(--or);border:1px solid rgba(255,106,26,.3)'
+             : 'background:var(--card);color:var(--mut);border:1px solid var(--line)') + '">'
+      + esc(txt) + '</span>';
+  }
+
   /* ---------- היעדים ---------- */
   function goalsBlock(d) {
     var rows = [['המטרה', d.goal], ['מטרה משנית', d.goal2], ['הצלחה ב-3 חודשים', d.success3m]]
@@ -293,14 +363,15 @@ button{cursor:pointer}
 
     // תוכנית שהיא קובץ בלבד, בלי תרגילים מוקלדים
     if (!days.length) {
-      if (files.length) { screen(goalsBlock(DATA) + filesBlock(files)); return; }
+      const onlyMeals = mealsBlock(DATA.meals);
+      if (files.length || onlyMeals) { screen(goalsBlock(DATA) + onlyMeals + filesBlock(files)); return; }
       screen(msg('התוכנית עוד בהכנה', 'המאמן עדיין לא הזין לך תרגילים. תיכנס שוב מאוחר יותר.'));
       return;
     }
     if (DAY >= days.length) DAY = 0;
     const ex = days[DAY].exercises || [];
 
-    let h = goalsBlock(DATA) + filesBlock(files) + '<div class="days">' + days.map((d, i) =>
+    let h = goalsBlock(DATA) + mealsBlock(DATA.meals) + filesBlock(files) + '<div class="days">' + days.map((d, i) =>
       '<button class="' + (i === DAY ? 'on' : '') + '" data-day="' + i + '">' +
       esc(d.name || ('יום ' + (i + 1))) + '</button>').join('') + '</div>';
 
