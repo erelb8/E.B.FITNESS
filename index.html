@@ -275,8 +275,8 @@ tbody tr:hover{background:var(--panel)}
 <div id="toast"></div>
 
 <!-- ספריית Supabase מקומית (לא מ-CDN) כדי שהאפליקציה תעבוד גם בלי רשת -->
-<script src="vendor/supabase.js?v=v41"></script>
-<script src="config.js?v=v41"></script>
+<script src="vendor/supabase.js?v=v42"></script>
+<script src="config.js?v=v42"></script>
 
 <script>
 /* =======================================================================
@@ -304,7 +304,7 @@ function age(b){ if(!b) return null; const d=new Date(b), t=new Date(); let a=t.
 
 /* ---------------- אחסון ---------------- */
 const KEY='ebfit_v1';
-const EB_VERSION='v41';   // חייב להתאים ל-VERSION ב-sw.js
+const EB_VERSION='v42';   // חייב להתאים ל-VERSION ב-sw.js
 let mem=null, canStore=true;
 function load(){
   try{ const r=localStorage.getItem(KEY); return r?JSON.parse(r):null; }
@@ -589,11 +589,12 @@ function vTrainee(){
   if(S.features.photos) tabs.push(['photos','תמונות']);
   if(S.features.nutrition) tabs.push(['nutri','תזונה']);
   tabs.push(['meals','תפריט']);
+  tabs.push(['cardio','אירובי ולב']);
   tabs.push(['metrics','מדדים']);
   tabs.push(['track','מעקב יומי']);
   if(t.intake) tabs.push(['intake','שאלון']);   // רק למי שנקלט משאלון
   h+='<div class="tabs noprint" style="margin-top:18px">'+tabs.map(x=>'<button class="'+(SUBTAB===x[0]?'on':'')+'" onclick="SUBTAB=\''+x[0]+'\';render()">'+x[1]+'</button>').join('')+'</div>';
-  const TABFN={details:tabDetails,program:tabProgram,measures:tabMeasures,history:tabHistory,pay:tabPay,prs:tabPRs,photos:tabPhotos,nutri:tabNutri,intake:(x)=>EBIntake.tab(x), track:(x)=>EBTrack.tab(x),metrics:(x)=>EBMetrics.tab(x),meals:(x)=>EBMeals.tab(x)};
+  const TABFN={details:tabDetails,program:tabProgram,measures:tabMeasures,history:tabHistory,pay:tabPay,prs:tabPRs,photos:tabPhotos,nutri:tabNutri,intake:(x)=>EBIntake.tab(x), track:(x)=>EBTrack.tab(x),metrics:(x)=>EBMetrics.tab(x),meals:(x)=>EBMeals.tab(x),cardio:(x)=>EBCardioUI.tab(x)};
   h+=(TABFN[SUBTAB]||tabDetails)(t);
   return h;
 }
@@ -806,13 +807,34 @@ function editMeasure(id,tid){
   +fld('זרוע (ס״מ)','m_arm','number',m.arm)+fld('ירך (ס״מ)','m_thigh','number',m.thigh)
   +fld('צוואר (ס״מ)','m_neck','number',m.neck)+'</div>'
   +'<div class="muted" style="font-size:12px;margin-top:8px">צוואר ומותן מאפשרים חישוב אחוז שומן בנוסחת US Navy, שמדויקת יותר מהערכה לפי BMI.</div>'
+
+  +'<div class="muted" style="font-size:12px;letter-spacing:.1em;margin:16px 0 8px">לב וכלי דם</div>'
+  +'<div class="grid g3">'
+  +fld('דופק מנוחה','m_restHr','number',m.restHr)
+  +fld('לחץ דם עליון','m_bpSys','number',m.bpSys)
+  +fld('לחץ דם תחתון','m_bpDia','number',m.bpDia)+'</div>'
+  +'<div class="muted" style="font-size:12px;margin-top:8px">דופק מנוחה נמדד בבוקר לפני קימה. הוא לבדו מספיק לאומדן צח״מ ולחישוב אזורי דופק מדויקים.</div>'
+
+  +'<div class="muted" style="font-size:12px;letter-spacing:.1em;margin:16px 0 8px">מבחני כושר — למלא רק את מה שביצעת</div>'
+  +'<div class="grid g3">'
+  +fld('קופר 12 דק׳ (מ׳)','m_cooper12','number',m.cooper12)
+  +fld('ריצת 2.4 ק״מ (דק׳)','m_run15','number',m.run15)
+  +fld('מבחן מדרגה — דופק','m_stepHr','number',m.stepHr)
+  +fld('הליכת מייל (דק׳)','m_walkMin','number',m.walkMin)
+  +fld('הליכת מייל — דופק','m_walkHr','number',m.walkHr)
+  +fld('הליכון Bruce (דק׳)','m_bruceMin','number',m.bruceMin)+'</div>'
+  +'<div class="muted" style="font-size:12px;margin-top:8px">כל מבחן נותן אומדן צח״מ עצמאי. ככל שיש יותר — האומדן יציב יותר, והמערכת לוקחת את החציון.</div>'
   +'<div style="margin-top:12px"><label class="f">הערה</label><input class="f" id="m_note" value="'+esc(m.note||'')+'"></div></div>'
   +'<div class="mf"><button class="btn" onclick="saveMeasure('+(id?'\''+id+'\'':'null')+',\''+(m.traineeId)+'\')">שמירה</button><button class="btn ghost" onclick="closeModal()">ביטול</button>'
   +(id?'<div style="flex:1"></div><button class="btn danger" onclick="S.measures=S.measures.filter(x=>x.id!==\''+id+'\');save();closeModal();render()">מחיקה</button>':'')+'</div>');
 }
 function saveMeasure(id,tid){
   const o={traineeId:tid,date:gv('m_date'),weight:gv('m_weight'),fat:gv('m_fat'),chest:gv('m_chest'),
-    waist:gv('m_waist'),hips:gv('m_hips'),arm:gv('m_arm'),thigh:gv('m_thigh'),neck:gv('m_neck'),note:gv('m_note')};
+    waist:gv('m_waist'),hips:gv('m_hips'),arm:gv('m_arm'),thigh:gv('m_thigh'),neck:gv('m_neck'),
+    restHr:gv('m_restHr'),bpSys:gv('m_bpSys'),bpDia:gv('m_bpDia'),
+    cooper12:gv('m_cooper12'),run15:gv('m_run15'),stepHr:gv('m_stepHr'),
+    walkMin:gv('m_walkMin'),walkHr:gv('m_walkHr'),bruceMin:gv('m_bruceMin'),
+    note:gv('m_note')};
   if(id) Object.assign(S.measures.find(x=>x.id===id),o); else { o.id=uid(); S.measures.push(o); }
   save(); closeModal(); toast('המדידה נשמרה'); render();
 }
@@ -1440,17 +1462,19 @@ if (location.protocol === 'file:') {
 }
 </script>
 
-<script src="intake.js?v=v41"></script>
-<script src="files.js?v=v41"></script>
-<script src="builder.js?v=v41"></script>
-<script src="import-program.js?v=v41"></script>
-<script src="tracking.js?v=v41"></script>
-<script src="metrics.js?v=v41"></script>
-<script src="meal-library.js?v=v41"></script>
-<script src="library-ui.js?v=v41"></script>
-<script src="export-plan.js?v=v41"></script>
-<script src="meals.js?v=v41"></script>
-<script src="sync.js?v=v41"></script>
+<script src="intake.js?v=v42"></script>
+<script src="files.js?v=v42"></script>
+<script src="builder.js?v=v42"></script>
+<script src="import-program.js?v=v42"></script>
+<script src="tracking.js?v=v42"></script>
+<script src="metrics.js?v=v42"></script>
+<script src="meal-library.js?v=v42"></script>
+<script src="library-ui.js?v=v42"></script>
+<script src="export-plan.js?v=v42"></script>
+<script src="cardio.js?v=v42"></script>
+<script src="cardio-ui.js?v=v42"></script>
+<script src="meals.js?v=v42"></script>
+<script src="sync.js?v=v42"></script>
 <script>
 /* =================== חיבור הסנכרון לאפליקציה =================== */
 
@@ -1734,7 +1758,7 @@ async function toggleAccess(id,active){
         metrics נשאר בגרסה ישנה כי לא הופיע ברשימה קבועה.
      2. הרשימה — תופסת מודול שלא נטען כלל ולכן גם לא הספיק להירשם. */
   const stale  = Object.keys(got).filter(k => got[k] !== EB_VERSION);
-  const need   = ['files','intake','builder','import','sync','tracking','metrics','meals','library','libraryUi','exportPlan'];
+  const need   = ['files','intake','builder','import','sync','tracking','metrics','meals','library','libraryUi','exportPlan','cardio','cardioUi'];
   const absent = need.filter(k => got[k] === undefined);
   const bad    = stale.concat(absent);
   if(!bad.length) return;
