@@ -76,6 +76,36 @@ a{color:var(--or);text-decoration:none}
 .syncpill.s-offline{color:var(--dim)}
 @media(max-width:600px){ .syncpill{display:none} }
 
+/* ---------- תיקיות הניווט בתיק המתאמן ---------- */
+.folders{
+  display:grid; grid-template-columns:repeat(5,1fr);
+  gap:6px; margin-top:18px;
+}
+/* חמש תיקיות בשורה אחת: אחת שנופלת לשורה שנייה נראית תלושה,
+   וחמש שורות ניווט על מסך טלפון הן בזבוז גובה. */
+@media(min-width:520px){ .folders{gap:9px} }
+.folder{
+  position:relative; background:var(--card); border:1px solid var(--line);
+  border-radius:13px; padding:10px 3px 8px; display:flex; flex-direction:column;
+  align-items:center; gap:3px; cursor:pointer; transition:.16s; color:var(--mut);
+  min-width:0; overflow:hidden;
+}
+.folder:hover{border-color:var(--line2)}
+.folder .fic{font-size:18px; line-height:1; filter:grayscale(.55); transition:.16s}
+.folder .fnm{font-family:'Rubik'; font-weight:700; font-size:11.5px; white-space:nowrap}
+.folder .fct{
+  position:absolute; top:5px; inset-inline-end:5px; font-size:9px;
+  font-family:'Rubik'; font-weight:700; color:var(--dim);
+  background:var(--ink); border-radius:20px; padding:1px 5px; line-height:1.5;
+}
+.folder.on{
+  background:var(--or-soft); border-color:var(--or); color:var(--or);
+  box-shadow:0 0 0 1px rgba(255,107,26,.18);
+}
+.folder.on .fic{filter:none}
+.folder.on .fct{color:var(--or); background:rgba(255,107,26,.16)}
+@media print{ .folders{display:none} }
+
 /* ---------- ימי אימון כתיקיות ---------- */
 .daycard .daybody{display:none}
 .daycard.on .daybody{display:block}
@@ -275,8 +305,8 @@ tbody tr:hover{background:var(--panel)}
 <div id="toast"></div>
 
 <!-- ספריית Supabase מקומית (לא מ-CDN) כדי שהאפליקציה תעבוד גם בלי רשת -->
-<script src="vendor/supabase.js?v=v42"></script>
-<script src="config.js?v=v42"></script>
+<script src="vendor/supabase.js?v=v43"></script>
+<script src="config.js?v=v43"></script>
 
 <script>
 /* =======================================================================
@@ -299,12 +329,19 @@ const HE_MON = ['ינו','פבר','מרץ','אפר','מאי','יונ','יול','
 function fmtDate(iso){ if(!iso) return '—'; const d=new Date(iso+'T00:00'); return d.getDate()+' '+HE_MON[d.getMonth()]; }
 function fmtFull(iso){ if(!iso) return '—'; const d=new Date(iso+'T00:00'); return d.getDate()+'.'+(d.getMonth()+1)+'.'+d.getFullYear(); }
 function addDays(iso,n){ const d=new Date(iso+'T00:00'); d.setDate(d.getDate()+n); return isoOf(d); }
-function money(n){ return (S.settings.currency||'₪') + Number(n||0).toLocaleString('he-IL'); }
+/* סכום עם סימן מטבע בתוך טקסט עברי מתהפך — "₪1,200" הוצג כ-"1,200₪"
+   עם הסימן דבוק למספר הבא. בידוד דו-כיווני מצמיד אותו לסכום שלו. */
+function money(n){
+  return '<span dir="ltr" style="unicode-bidi:isolate;display:inline-block">'
+    + moneyTxt(n) + '</span>';
+}
+/* גרסת טקסט, למקומות שעוברים esc() ולכן לא יכולים לקבל HTML */
+function moneyTxt(n){ return (S.settings.currency||'₪') + Number(n||0).toLocaleString('he-IL'); }
 function age(b){ if(!b) return null; const d=new Date(b), t=new Date(); let a=t.getFullYear()-d.getFullYear(); if(t<new Date(t.getFullYear(),d.getMonth(),d.getDate()))a--; return a; }
 
 /* ---------------- אחסון ---------------- */
 const KEY='ebfit_v1';
-const EB_VERSION='v42';   // חייב להתאים ל-VERSION ב-sw.js
+const EB_VERSION='v43';   // חייב להתאים ל-VERSION ב-sw.js
 let mem=null, canStore=true;
 function load(){
   try{ const r=localStorage.getItem(KEY); return r?JSON.parse(r):null; }
@@ -355,6 +392,9 @@ function activeTrainees(){ return S.trainees.filter(t=>t.status!=='archived'); }
 /* var ולא let — מודולים חיצוניים (files.js) צריכים לדעת מי המסך הפתוח
    ואיזה מתאמן מוצג, ומשתנה let לא נרשם על window. */
 var VIEW='dash', ARG=null, SUBTAB='details';
+/* התיקייה הפתוחה בתיק המתאמן. var ולא let — נדרש על window
+   כמו שאר מצב הניווט. */
+var FOLDER=null;
 const NAV=[
   {id:'dash',   ic:'◧', t:'לוח בקרה'},
   {id:'trainees',ic:'👥', t:'מתאמנים'},
@@ -593,7 +633,7 @@ function vTrainee(){
   tabs.push(['metrics','מדדים']);
   tabs.push(['track','מעקב יומי']);
   if(t.intake) tabs.push(['intake','שאלון']);   // רק למי שנקלט משאלון
-  h+='<div class="tabs noprint" style="margin-top:18px">'+tabs.map(x=>'<button class="'+(SUBTAB===x[0]?'on':'')+'" onclick="SUBTAB=\''+x[0]+'\';render()">'+x[1]+'</button>').join('')+'</div>';
+  h+=folderNav(tabs);
   const TABFN={details:tabDetails,program:tabProgram,measures:tabMeasures,history:tabHistory,pay:tabPay,prs:tabPRs,photos:tabPhotos,nutri:tabNutri,intake:(x)=>EBIntake.tab(x), track:(x)=>EBTrack.tab(x),metrics:(x)=>EBMetrics.tab(x),meals:(x)=>EBMeals.tab(x),cardio:(x)=>EBCardioUI.tab(x)};
   h+=(TABFN[SUBTAB]||tabDetails)(t);
   return h;
@@ -602,10 +642,10 @@ function tabDetails(t){
   /* שורה עם ערך ריק לא מוצגת (ראה הלולאה למטה). לכן אימייל ויתרת חוב
      שהוסרו מהטופס עדיין יופיעו כאן אם יש להם ערך היסטורי. */
   const rows=[['טלפון',t.phone],['גובה',t.height?t.height+' ס״מ':''],['תאריך לידה',t.birth?fmtFull(t.birth):''],
-    ['מין',t.gender],['רמה',t.level],['מחיר לאימון',t.pricePerSession?money(t.pricePerSession):''],
-    ['אימייל',t.email],['יתרת חוב',t.balanceDue?money(t.balanceDue):'']];
+    ['מין',t.gender],['רמה',t.level],['מחיר לאימון',t.pricePerSession?moneyTxt(t.pricePerSession):''],
+    ['אימייל',t.email],['יתרת חוב',t.balanceDue?moneyTxt(t.balanceDue):'']];
   let h='<div class="grid g2"><div class="card"><h3 style="font-size:15px;margin-bottom:10px">פרטי קשר</h3>';
-  rows.forEach(r=>{ if(r[1]) h+='<div class="line-item"><span class="muted" style="width:110px;font-size:13px">'+r[0]+'</span><span style="flex:1">'+esc(r[1])+'</span></div>'; });
+  rows.forEach(r=>{ if(r[1]) h+='<div class="line-item"><span class="muted" style="width:110px;font-size:13px">'+r[0]+'</span><span style="flex:1" dir="auto">'+esc(r[1])+'</span></div>'; });
   h+='</div><div class="card"><h3 style="font-size:15px;margin-bottom:10px">הערות</h3><div style="white-space:pre-wrap;font-size:14px;color:'+(t.notes?'var(--tx)':'var(--mut)')+'">'+esc(t.notes||'אין הערות. אפשר להוסיף דרך עריכה.')+'</div>';
   if(S.features.health){
     h+='<div class="sep"></div><h3 style="font-size:15px;margin-bottom:8px">הצהרת בריאות '+(t.healthOk?'<span class="pill ok">אושרה</span>':'<span class="pill warn">ממתינה</span>')+'</h3>'
@@ -676,6 +716,49 @@ function traineeLinkCard(t){
 }
 
 /* --------- תוכנית אימון --------- */
+/* --------- ניווט בתיקיות ---------
+   שלוש-עשרה לשוניות בפס גלילה אחד הן שורה שצריך לגרור בה כדי למצוא
+   פריט, ובטלפון חצי ממנה מחוץ למסך. הן מקובצות עכשיו לחמש תיקיות
+   לפי נושא: כל פריט במרחק שתי לחיצות, והתיקייה הנוכחית תמיד גלויה. */
+const FOLDERS=[
+  {k:'train', ic:'🏋', name:'אימון',  of:['program','cardio','prs']},
+  {k:'body',  ic:'📐', name:'גוף',    of:['measures','metrics','photos']},
+  {k:'food',  ic:'🥗', name:'תזונה',  of:['meals','nutri']},
+  {k:'follow',ic:'📅', name:'מעקב',   of:['track','history']},
+  {k:'admin', ic:'📋', name:'מנהלה',  of:['details','intake','pay']}
+];
+function folderOf(key){
+  const f=FOLDERS.find(x=>x.of.includes(key));
+  return f?f.k:'admin';
+}
+function folderNav(tabs){
+  const have=new Map(tabs);                       // רק לשוניות שקיימות למתאמן הזה
+  const groups=FOLDERS.map(f=>({...f, items:f.of.filter(k=>have.has(k))}))
+                      .filter(g=>g.items.length);
+  if(!FOLDER || !groups.some(g=>g.k===FOLDER)) FOLDER=folderOf(SUBTAB);
+  const cur=groups.find(g=>g.k===FOLDER)||groups[0];
+  if(!cur) return '';
+  FOLDER=cur.k;
+  if(!cur.items.includes(SUBTAB)) SUBTAB=cur.items[0];
+
+  let h='<div class="folders noprint">'+groups.map(g=>
+    '<button class="folder'+(g.k===cur.k?' on':'')+'" onclick="openFolder(\''+g.k+'\')">'
+    +'<span class="fic">'+g.ic+'</span>'
+    +'<span class="fnm">'+g.name+'</span>'
+    +'<span class="fct">'+g.items.length+'</span></button>').join('')+'</div>';
+
+  h+='<div class="tabs noprint" style="margin-top:10px">'+cur.items.map(k=>
+    '<button class="'+(SUBTAB===k?'on':'')+'" onclick="SUBTAB=\''+k+'\';render()">'
+    +esc(have.get(k))+'</button>').join('')+'</div>';
+  return h;
+}
+function openFolder(k){
+  FOLDER=k;
+  const f=FOLDERS.find(x=>x.k===k);
+  if(f) SUBTAB=f.of[0];
+  render();
+}
+
 function tabProgram(t){
   const p=t.program||{days:[]};
   let h='<div class="row noprint" style="margin-bottom:12px"><button class="btn sm" onclick="EBBuild.open(\''+t.id+'\')">🤖 בניית תוכנית</button>'
@@ -1462,19 +1545,19 @@ if (location.protocol === 'file:') {
 }
 </script>
 
-<script src="intake.js?v=v42"></script>
-<script src="files.js?v=v42"></script>
-<script src="builder.js?v=v42"></script>
-<script src="import-program.js?v=v42"></script>
-<script src="tracking.js?v=v42"></script>
-<script src="metrics.js?v=v42"></script>
-<script src="meal-library.js?v=v42"></script>
-<script src="library-ui.js?v=v42"></script>
-<script src="export-plan.js?v=v42"></script>
-<script src="cardio.js?v=v42"></script>
-<script src="cardio-ui.js?v=v42"></script>
-<script src="meals.js?v=v42"></script>
-<script src="sync.js?v=v42"></script>
+<script src="intake.js?v=v43"></script>
+<script src="files.js?v=v43"></script>
+<script src="builder.js?v=v43"></script>
+<script src="import-program.js?v=v43"></script>
+<script src="tracking.js?v=v43"></script>
+<script src="metrics.js?v=v43"></script>
+<script src="meal-library.js?v=v43"></script>
+<script src="library-ui.js?v=v43"></script>
+<script src="export-plan.js?v=v43"></script>
+<script src="cardio.js?v=v43"></script>
+<script src="cardio-ui.js?v=v43"></script>
+<script src="meals.js?v=v43"></script>
+<script src="sync.js?v=v43"></script>
 <script>
 /* =================== חיבור הסנכרון לאפליקציה =================== */
 

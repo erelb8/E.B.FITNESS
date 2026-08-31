@@ -21,7 +21,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['cardio'] = 'v42';
+  (window.EB_MOD = window.EB_MOD || {})['cardio'] = 'v43';
 
   var r1 = function (x) { return Math.round(x * 10) / 10; };
   var r0 = function (x) { return Math.round(x); };
@@ -328,10 +328,13 @@
     if (/סבולת|ריצה|מרתון|טריאתלון|אירובי/.test(goal))  dir = 'endur';
     if (/חיטוב/.test(goal) && /מסה|עלייה/.test(goal))   dir = 'fat';
 
-    /* כמה ימים פנויים באמת */
-    var days = dir === 'mass'  ? 2
+    /* כמה ימים. ההצעה האוטומטית לוקחת בחשבון את עומס הכוח הקיים,
+       אבל אם המאמן קבע מספר בעצמו — הוא קובע. */
+    var auto = dir === 'mass'  ? 2
              : dir === 'endur' ? (strengthDays >= 4 ? 3 : 4)
              : strengthDays >= 5 ? 2 : 3;
+    var picked = Number(t.cardioDays);
+    var days = (isFinite(picked) && picked >= 0 && picked <= 7) ? picked : auto;
 
     var Z = function (num) {
       if (!z) return '';
@@ -341,52 +344,69 @@
 
     var lib = {
       fat: [
-        { name:'אירובי בסיס — Z2', min:40, zone:2,
+        { id:'fat_z2', name:'אירובי בסיס — Z2', min:40, zone:2,
           desc:'הליכה מהירה בעלייה, אליפטיקל או אופניים. קצב שמאפשר לדבר במשפטים שלמים.',
           why:'ב-Z2 שיעור חמצון השומן הוא הגבוה ביותר, וההתאוששות ממנו מהירה — אפשר להוסיף אותו בלי לפגוע באימוני הכוח.' },
-        { name:'אינטרוולים — Z4', min:25, zone:4,
+        { id:'fat_int', name:'אינטרוולים — Z4', min:25, zone:4,
           desc:'חימום 8 דק׳ · 8 × (2 דק׳ מאמץ / 2 דק׳ קל) · שחרור 5 דק׳',
           why:'מעלה צח״מ מהר יותר מכל שיטה אחרת, ומייצר צריכת חמצן מוגברת גם שעות אחרי.' },
-        { name:'הליכה ארוכה — Z1–Z2', min:55, zone:2,
+        { id:'fat_walk', name:'הליכה ארוכה — Z1–Z2', min:55, zone:2,
           desc:'הליכה רציפה, שיפוע קל. אפשר לפצל לשתי יחידות ביום.',
           why:'מוסיף הוצאה קלורית כמעט בלי עלות התאוששות.' }
       ],
       mass: [
-        { name:'אירובי קל — Z2', min:25, zone:2,
+        { id:'mass_z2', name:'אירובי קל — Z2', min:25, zone:2,
           desc:'אופניים או הליכה בשיפוע, ביום שאין בו רגליים.',
           why:'שומר על בריאות הלב ועל מחזור הדם לשרירים בלי לגזול מהתאוששות. יותר מזה פוגע בעלייה במסה.' },
-        { name:'שחרור אחרי כוח — Z1', min:15, zone:1,
+        { id:'mass_cool', name:'שחרור אחרי כוח — Z1', min:15, zone:1,
           desc:'הליכה קלה מיד אחרי אימון הכוח.',
           why:'מאיץ פינוי תוצרי מאמץ ומקצר את כאבי השריר למחרת.' }
       ],
       endur: [
-        { name:'ריצה קלה ארוכה — Z2', min:60, zone:2,
+        { id:'end_long', name:'ריצה קלה ארוכה — Z2', min:60, zone:2,
           desc:'קצב שיחה רציף. להאריך ב-10% בשבוע, לא יותר.',
           why:'80% מנפח האימון של רצים מובילים הוא בעצימות נמוכה. זה מה שבונה את הבסיס.' },
-        { name:'אימון סף — Z4', min:35, zone:4,
+        { id:'end_thr', name:'אימון סף — Z4', min:35, zone:4,
           desc:'חימום 10 דק׳ · 20 דק׳ בקצב סף · שחרור 5 דק׳',
           why:'מעלה את המהירות שבה מצטברת חומצת חלב — הגורם המגביל בתחרות.' },
-        { name:'אינטרוולים קצרים — Z5', min:30, zone:5,
+        { id:'end_int', name:'אינטרוולים קצרים — Z5', min:30, zone:5,
           desc:'חימום 10 דק׳ · 6 × (3 דק׳ חזק / 3 דק׳ קל) · שחרור 5 דק׳',
           why:'מגייס את הצח״מ המרבי ומשפר כלכלת ריצה.' },
-        { name:'ריצת התאוששות — Z1', min:30, zone:1,
+        { id:'end_rec', name:'ריצת התאוששות — Z1', min:30, zone:1,
           desc:'איטי בכוונה. אם מרגיש מהר — להאט.',
           why:'נפח בלי עומס. הטעות הנפוצה היא לרוץ אותו מהר מדי.' }
       ],
       base: [
-        { name:'אירובי בסיס — Z2', min:30, zone:2,
+        { id:'base_z2', name:'אירובי בסיס — Z2', min:30, zone:2,
           desc:'כל מכשיר או הליכה בחוץ, בקצב שמאפשר לדבר.',
           why:'הבסיס שממנו הכול נבנה, ומה שמשפר את הצח״מ בשלב הראשון.' },
-        { name:'טמפו — Z3', min:25, zone:3,
+        { id:'base_tempo', name:'טמפו — Z3', min:25, zone:3,
           desc:'חימום 5 דק׳ · 15 דק׳ בקצב נוח-קשה · שחרור 5 דק׳',
           why:'מגשר בין בסיס לעצימות, בלי העומס של אינטרוולים.' },
-        { name:'אינטרוולים — Z4', min:22, zone:4,
+        { id:'base_int', name:'אינטרוולים — Z4', min:22, zone:4,
           desc:'חימום 6 דק׳ · 6 × (1 דק׳ מאמץ / 2 דק׳ קל) · שחרור 4 דק׳',
           why:'הדרך המהירה ביותר להעלות צח״מ בשבועות הראשונים.' }
       ]
     };
 
-    var chosen = lib[dir].slice(0, days);
+    /* בחירה ידנית גוברת על ההצעה. אם נבחרו אימונים מפורשות —
+       הם נלקחים מכל הספרייה ולא רק מקבוצת המטרה. */
+    var all = [];
+    Object.keys(lib).forEach(function (g) {
+      lib[g].forEach(function (x) { all.push(Object.assign({ group: g }, x)); });
+    });
+    var chosen;
+    if (Array.isArray(t.cardioPick) && t.cardioPick.length) {
+      chosen = t.cardioPick.map(function (id) {
+        return all.filter(function (x) { return x.id === id; })[0];
+      }).filter(Boolean);
+      days = chosen.length;
+    } else {
+      /* מחזוריות אם ביקשו יותר ימים ממה שיש בקבוצה */
+      var pool = lib[dir];
+      chosen = [];
+      for (var i = 0; i < days; i++) chosen.push(pool[i % pool.length]);
+    }
 
     /* מתחילים מקצרים ומאריכים בהדרגה — התקדמות של 10% בשבוע */
     if (lvl === 'bad') chosen = chosen.map(function (s) {
@@ -396,6 +416,10 @@
 
     return {
       dir: dir,
+      auto: auto,
+      manual: (isFinite(picked) && picked >= 0 && picked <= 7),
+      hasPick: !!(Array.isArray(t.cardioPick) && t.cardioPick.length),
+      catalogue: all,
       dirTxt: { fat:'חיטוב', mass:'בניית מסה', endur:'סבולת', base:'בסיס וכושר כללי' }[dir],
       days: days, level: v.band, vo2: v.best, strengthDays: strengthDays,
       zonesRef: z,
@@ -556,7 +580,23 @@
     };
   }
 
+  var GROUP_NAMES = { fat:'חיטוב', mass:'בניית מסה', endur:'סבולת', base:'בסיס וכושר כללי' };
+
+  /* כל האימונים שיש, מכל המטרות — כדי שאפשר יהיה לבחור מהם ידנית */
+  function catalogue(t) {
+    var p = planFor(t);
+    var picked = (t && Array.isArray(t.cardioPick)) ? t.cardioPick : [];
+    return p.catalogue.map(function (x) {
+      return Object.assign({}, x, {
+        groupName: GROUP_NAMES[x.group] || x.group,
+        chosen: picked.indexOf(x.id) > -1,
+        suggested: x.group === p.dir
+      });
+    });
+  }
+
   window.EBCardio = {
+    catalogue: catalogue, groupNames: GROUP_NAMES,
     intervals: intervals, volume: volume, systems: SYSTEMS,
     vo2: vo2, zones: zones, bp: bp, energy: energy, running: running,
     plan: planFor, toDays: toDays, hrMax: hrMax, trimp: trimp,

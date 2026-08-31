@@ -10,7 +10,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['cardioUi'] = 'v42';
+  (window.EB_MOD = window.EB_MOD || {})['cardioUi'] = 'v43';
 
   var SHOW_F = false;   // הצגת הנוסחאות
 
@@ -226,13 +226,30 @@
     var p = EBCardio.plan(t);
     var h = '<div class="row" style="gap:8px;flex-wrap:wrap;margin-bottom:12px">'
       + '<span class="pill"><span class="muted">מטרה </span><b>' + esc(p.dirTxt) + '</b></span>'
-      + '<span class="pill"><span class="muted">ימים </span><b>' + ltr(p.days) + '</b></span>'
       + '<span class="pill"><span class="muted">שבועי </span><b>' + ltr(p.weekMin) + ' דק׳</b></span>'
       + (p.vo2 ? '<span class="pill"><span class="muted">צח״מ </span><b>' + ltr(p.vo2) + '</b></span>' : '')
-      + '</div>'
-      + '<div class="muted" style="font-size:12.5px;line-height:1.6;margin-bottom:12px">'
-      + 'נבנה לפי המטרה, רמת הכושר ו-' + p.strengthDays + ' ימי הכוח שכבר בתוכנית. '
-      + 'מי שמתאמן הרבה בכוח לא מקבל עוד ארבעה אימוני ריצה — זה היה פוגע בהתאוששות.'
+      + '</div>';
+
+    /* בורר מספר הימים. ההצעה מסומנת, אבל ההחלטה של המאמן גוברת עליה. */
+    h += '<div class="muted" style="font-size:12px;margin-bottom:7px">אימוני אירובי בשבוע</div>'
+      + '<div class="row" style="gap:5px;flex-wrap:wrap;margin-bottom:10px">';
+    for (var d = 0; d <= 7; d++) {
+      var on = p.hasPick ? false : (p.days === d);
+      h += '<button class="btn sm ' + (on ? '' : 'ghost') + '" style="min-width:38px;padding:7px 0" '
+        + 'onclick="EBCardioUI.setDays(\'' + t.id + '\',' + d + ')">' + d + '</button>';
+    }
+    h += '<div style="flex:1"></div>'
+      + (p.manual || p.hasPick
+          ? '<button class="btn sm ghost" onclick="EBCardioUI.setDays(\'' + t.id + '\',null)">'
+            + 'חזרה להצעה (' + p.auto + ')</button>'
+          : '<span class="pill" style="color:var(--or)">מוצע ' + p.auto + '</span>')
+      + '</div>';
+
+    h += '<div class="muted" style="font-size:12.5px;line-height:1.6;margin-bottom:12px">'
+      + (p.hasPick
+          ? 'בחרת את האימונים ידנית. אפשר לשנות בכל רגע ברשימה למטה.'
+          : 'ההצעה לוקחת בחשבון את המטרה, את רמת הכושר ואת ' + p.strengthDays
+            + ' ימי הכוח שכבר בתוכנית — מי שמתאמן הרבה בכוח לא מקבל עוד ארבעה אימוני ריצה.')
       + '</div>';
 
     p.sessions.forEach(function (s, i) {
@@ -253,6 +270,35 @@
         + '<div style="font-size:12px;color:var(--amber);margin-top:9px;line-height:1.55">'
         + esc(s.why) + '</div></div>';
     });
+
+    /* כל האימונים שיש, מכל המטרות — לבחירה ידנית */
+    var cat = EBCardio.catalogue(t);
+    h += '<details style="margin-top:14px"' + (p.hasPick ? ' open' : '') + '>'
+      + '<summary class="muted" style="font-size:12.5px;cursor:pointer">'
+      + 'בחירה ידנית מתוך כל ' + cat.length + ' האימונים</summary>'
+      + '<div class="muted" style="font-size:11.5px;margin:8px 0 10px">'
+      + 'לחיצה מוסיפה או מסירה. סדר הבחירה הוא הסדר בתוכנית.</div>';
+    var lastG = '';
+    cat.forEach(function (x) {
+      if (x.groupName !== lastG) {
+        lastG = x.groupName;
+        h += '<div class="muted" style="font-size:11px;letter-spacing:.1em;margin:12px 0 6px">'
+          + esc(lastG) + (x.suggested ? ' · מותאם למטרה' : '') + '</div>';
+      }
+      h += '<button style="width:100%;text-align:right;background:'
+        + (x.chosen ? 'var(--or-soft)' : 'var(--ink)') + ';border:1px solid '
+        + (x.chosen ? 'var(--or)' : 'var(--line)') + ';border-radius:11px;padding:10px 12px;'
+        + 'margin-bottom:6px;cursor:pointer;color:inherit;font:inherit" '
+        + 'onclick="EBCardioUI.pick(\'' + t.id + '\',\'' + x.id + '\')">'
+        + '<div class="row" style="align-items:baseline;gap:8px">'
+        + '<span style="width:16px;flex:none;color:' + (x.chosen ? 'var(--or)' : 'var(--dim)') + '">'
+        + (x.chosen ? '✓' : '+') + '</span>'
+        + '<span style="flex:1;min-width:0;font-size:13.5px;font-weight:500">' + esc(x.name) + '</span>'
+        + '<span class="pill" style="white-space:nowrap">' + ltr(x.min) + ' דק׳</span></div>'
+        + '<div class="muted" style="font-size:11.5px;margin-top:5px;line-height:1.5;'
+        + 'padding-inline-start:24px">' + esc(x.desc) + '</div></button>';
+    });
+    h += '</details>';
 
     h += '<div class="row" style="gap:8px;margin-top:12px;flex-wrap:wrap">'
       + '<button class="btn" onclick="EBCardioUI.add(\'' + t.id + '\')">הוספה לתוכנית האימון</button>'
@@ -422,7 +468,25 @@
     save(); render();
     toast(removed ? (removed + ' הוחלפו') : 'נוספו ימי אירובי');
   }
+  /* מספר ימים שנבחר ידנית מבטל בחירה פרטנית קודמת, ולהפך —
+     שני מצבים שמתחרים על אותה תוצאה רק היו מבלבלים. */
+  function setDays(tid, d) {
+    var t = tById(tid); if (!t) return;
+    if (d === null) { delete t.cardioDays; delete t.cardioPick; }
+    else            { t.cardioDays = d;    delete t.cardioPick; }
+    save(); render();
+  }
+  function pick(tid, id) {
+    var t = tById(tid); if (!t) return;
+    var list = Array.isArray(t.cardioPick) ? t.cardioPick.slice() : [];
+    var i = list.indexOf(id);
+    if (i > -1) list.splice(i, 1); else list.push(id);
+    if (list.length) { t.cardioPick = list; delete t.cardioDays; }
+    else delete t.cardioPick;
+    save(); render();
+  }
   function toggleF() { SHOW_F = !SHOW_F; render(); }
 
-  window.EBCardioUI = { tab: tab, add: add, replace: replace, toggleF: toggleF };
+  window.EBCardioUI = { tab: tab, add: add, replace: replace, toggleF: toggleF,
+                        setDays: setDays, pick: pick };
 })();
