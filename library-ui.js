@@ -11,7 +11,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['libraryUi'] = 'v44';
+  (window.EB_MOD = window.EB_MOD || {})['libraryUi'] = 'v45';
 
   var Q = '', TYPE = 'all', OPEN = {};
 
@@ -49,7 +49,7 @@
   function card(m, action) {
     var t = EBLib.calc(m.items).total;
     var open = !!OPEN[m.id];
-    return '<div class="card" style="margin-bottom:10px">'
+    return '<div class="card" style="margin-bottom:10px" data-mid="' + esc(m.id) + '">'
       + '<div class="row" style="align-items:flex-start">'
       + '<div style="flex:1;min-width:0">'
       + '<div style="font-family:Rubik;font-weight:700;font-size:15px;line-height:1.3">' + esc(m.name) + '</div>'
@@ -64,10 +64,10 @@
       + '</div>'
       + (m.note ? '<div style="font-size:12px;color:var(--amber);margin-top:8px;line-height:1.5">' + esc(m.note) + '</div>' : '')
       + '<div class="row" style="margin-top:10px">'
-      + '<button class="btn sm ghost" onclick="EBLibUI.toggle(\'' + m.id + '\')">'
+      + '<button class="btn sm ghost" data-mbtn onclick="EBLibUI.toggle(\'' + m.id + '\')">'
       + (open ? 'סגירת הפירוט' : 'פירוט מלא') + '</button>'
       + (action || '') + '</div>'
-      + (open ? table(m) : '')
+      + (open ? '<div data-mtbl>' + table(m) + '</div>' : '')
       + '</div>';
   }
   function pill(txt) {
@@ -139,7 +139,24 @@
 
   function search(v, tid) { Q = v; paint(tid || null); }
   function setType(k)     { TYPE = k; paint(currentTid()); }
-  function toggle(id)     { OPEN[id] = !OPEN[id]; paint(currentTid()); }
+  /* פתיחת פירוט משנה כרטיס אחד. ציור מחדש של כל הרשימה החזיר את
+     הגלילה לראש המסך — אחרי ארוחה עשרים זה אומר לגלול הכול שוב.
+     הטבלה נכנסת ויוצאת במקום, והגלילה לא זזה. */
+  function toggle(id) {
+    OPEN[id] = !OPEN[id];
+    var el = document.querySelector('[data-mid="' + id + '"]');
+    var m  = EBLib.byId(id);
+    if (!el || !m) { paint(currentTid()); return; }   // נפילה לאחור אם המבנה השתנה
+    var btn = el.querySelector('[data-mbtn]');
+    var tbl = el.querySelector('[data-mtbl]');
+    if (OPEN[id]) {
+      if (!tbl) el.insertAdjacentHTML('beforeend', '<div data-mtbl>' + table(m) + '</div>');
+      if (btn) btn.textContent = 'סגירת הפירוט';
+    } else {
+      if (tbl) tbl.remove();
+      if (btn) btn.textContent = 'פירוט מלא';
+    }
+  }
   function currentTid()   { return window.VIEW === 'trainee' ? window.ARG : null; }
 
   /* ---------- הוספה לתפריט המתאמן ---------- */
