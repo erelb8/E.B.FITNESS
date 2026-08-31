@@ -351,7 +351,7 @@ button{cursor:pointer}
 
   function libTag(k, label, n) {
     const on = LIB_TYPE === k;
-    return '<button onclick="__libType('' + k + '')" style="font-size:12.5px;padding:6px 12px;'
+    return '<button data-lt="' + esc(k) + '" style="font-size:12.5px;padding:6px 12px;'
       + 'border-radius:20px;white-space:nowrap;border:1px solid ' + (on?'var(--or)':'var(--line)') + ';'
       + 'background:' + (on?'var(--or-soft)':'var(--card)') + ';color:' + (on?'var(--or)':'var(--mut)') + '">'
       + esc(label) + ' <span style="opacity:.6">' + n + '</span></button>';
@@ -371,7 +371,7 @@ button{cursor:pointer}
       + tag('חלבון ' + r1(t.p)) + tag('פחמימות ' + r1(t.c)) + tag('שומן ' + r1(t.f)) + '</div>'
       + (m.note ? '<div style="font-size:12px;color:var(--or);margin-top:8px;line-height:1.5">' + esc(m.note) + '</div>' : '')
       + '<button class="btn ghost" style="font-size:12.5px;padding:7px 14px;margin-top:10px" '
-      + 'onclick="__libRow('' + m.id + '')">' + (open ? 'סגירת הפירוט' : 'פירוט לגרם') + '</button>';
+      + 'data-lr="' + esc(m.id) + '">' + (open ? 'סגירת הפירוט' : 'פירוט לגרם') + '</button>';
 
     if (open) {
       h += '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12.5px;margin-top:10px">'
@@ -395,8 +395,14 @@ button{cursor:pointer}
   window.__libSearch = v => { LIB_Q = v; screen(libScreen());
                               const el = document.getElementById('lq');
                               if (el) { el.focus(); el.setSelectionRange(v.length, v.length); } };
-  window.__libType   = k => { LIB_TYPE = k; screen(libScreen()); };
-  window.__libRow    = id => { LIB_ROW[id] = !LIB_ROW[id]; screen(libScreen()); };
+  /* מאזין אחד במקום onclick מוטבע: הזרקת מזהה לתוך מחרוזת בתוך
+     מאפיין HTML נשברת בקלות על ציטוטים, וזה בדיוק מה שקרה כאן. */
+  document.addEventListener('click', e => {
+    const t = e.target.closest('[data-lt]');
+    if (t) { LIB_TYPE = t.dataset.lt; screen(libScreen()); return; }
+    const r = e.target.closest('[data-lr]');
+    if (r) { LIB_ROW[r.dataset.lr] = !LIB_ROW[r.dataset.lr]; screen(libScreen()); }
+  });
 
   /* ---------- היעדים ---------- */
   function goalsBlock(d) {
