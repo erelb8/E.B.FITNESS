@@ -305,8 +305,8 @@ tbody tr:hover{background:var(--panel)}
 <div id="toast"></div>
 
 <!-- ספריית Supabase מקומית (לא מ-CDN) כדי שהאפליקציה תעבוד גם בלי רשת -->
-<script src="vendor/supabase.js?v=v45"></script>
-<script src="config.js?v=v45"></script>
+<script src="vendor/supabase.js?v=v46"></script>
+<script src="config.js?v=v46"></script>
 
 <script>
 /* =======================================================================
@@ -341,7 +341,7 @@ function age(b){ if(!b) return null; const d=new Date(b), t=new Date(); let a=t.
 
 /* ---------------- אחסון ---------------- */
 const KEY='ebfit_v1';
-const EB_VERSION='v45';   // חייב להתאים ל-VERSION ב-sw.js
+const EB_VERSION='v46';   // חייב להתאים ל-VERSION ב-sw.js
 let mem=null, canStore=true;
 function load(){
   try{ const r=localStorage.getItem(KEY); return r?JSON.parse(r):null; }
@@ -861,12 +861,18 @@ function tabMeasures(t){
      +stat('מותן',(d(first.waist,last.waist)||'—')+' ס״מ','')
      +stat('מדידות',ms.length,'נרשמו')+'</div>';
   }
-  h+='<div class="card" style="margin-top:14px"><table><thead><tr><th>תאריך</th><th>משקל</th><th>שומן %</th><th>חזה</th><th>מותן</th><th>ירך</th><th>זרוע</th><th>הערה</th><th class="noprint"></th></tr></thead><tbody>';
+  /* הטבלה גולשת בתוך המסגרת שלה ולא מזיזה את כל הדף. עם עמודות
+     הדופק ולחץ הדם היא רחבה ממסך טלפון, ובלי העטיפה הזו כל המסך
+     נגרר הצידה. */
+  h+='<div class="card" style="margin-top:14px;padding-inline:0">'
+   +'<div style="overflow-x:auto;padding-inline:14px">'
+   +'<table style="min-width:640px"><thead><tr><th>תאריך</th><th>משקל</th><th>שומן %</th><th>חזה</th><th>מותן</th><th>ירך</th><th>זרוע</th><th>צוואר</th><th>דופק</th><th>לחץ דם</th><th>הערה</th><th class="noprint"></th></tr></thead><tbody>';
   ms.slice().reverse().forEach(m=>{
-    h+='<tr><td>'+fmtFull(m.date)+'</td><td>'+esc(m.weight||'—')+'</td><td>'+esc(m.fat||'—')+'</td><td>'+esc(m.chest||'—')+'</td><td>'+esc(m.waist||'—')+'</td><td>'+esc(m.hips||'—')+'</td><td>'+esc(m.arm||'—')+'</td><td class="muted">'+esc(m.note||'')+'</td>'
+    const bp = (m.bpSys&&m.bpDia) ? '<span dir="ltr" style="unicode-bidi:isolate">'+esc(m.bpSys)+'/'+esc(m.bpDia)+'</span>' : '—';
+    h+='<tr><td style="white-space:nowrap">'+fmtFull(m.date)+'</td><td>'+esc(m.weight||'—')+'</td><td>'+esc(m.fat||'—')+'</td><td>'+esc(m.chest||'—')+'</td><td>'+esc(m.waist||'—')+'</td><td>'+esc(m.hips||'—')+'</td><td>'+esc(m.arm||'—')+'</td><td>'+esc(m.neck||'—')+'</td><td>'+esc(m.restHr||'—')+'</td><td style="white-space:nowrap">'+bp+'</td><td class="muted">'+esc(m.note||'')+'</td>'
      +'<td class="noprint"><button class="iconbtn" style="width:28px;height:28px" onclick="editMeasure(\''+m.id+'\')">✎</button></td></tr>';
   });
-  return h+'</tbody></table></div>';
+  return h+'</tbody></table></div></div>';
 }
 function lineChart(pts,unit){
   if(!pts.length) return '<div class="empty" style="padding:40px">אין נתונים.</div>';
@@ -947,10 +953,11 @@ function tabPay(t){
   const ps=S.payments.filter(p=>p.traineeId===t.id).sort((a,b)=>b.date.localeCompare(a.date));
   let h='<div class="row noprint" style="margin-bottom:12px"><button class="btn sm" onclick="openPay(\''+t.id+'\')">+ תשלום</button></div>';
   if(!ps.length) return h+'<div class="empty"><div class="big">₪</div>לא נרשמו תשלומים.</div>';
-  h+='<div class="card"><table><thead><tr><th>תאריך</th><th>סכום</th><th>אמצעי</th><th>אימונים</th><th>הערה</th><th class="noprint"></th></tr></thead><tbody>';
+  h+='<div class="card" style="padding-inline:0"><div style="overflow-x:auto;padding-inline:14px">'
+   +'<table style="min-width:480px"><thead><tr><th>תאריך</th><th>סכום</th><th>אמצעי</th><th>אימונים</th><th>הערה</th><th class="noprint"></th></tr></thead><tbody>';
   ps.forEach(p=>{ h+='<tr><td>'+fmtFull(p.date)+'</td><td style="font-family:Rubik;font-weight:700">'+money(p.amount)+'</td><td>'+esc(p.method||'')+'</td><td>'+esc(p.sessions||'—')+'</td><td class="muted">'+esc(p.note||'')+'</td>'
    +'<td class="noprint"><button class="iconbtn" style="width:28px;height:28px" onclick="S.payments=S.payments.filter(x=>x.id!==\''+p.id+'\');save();render()">✕</button></td></tr>'; });
-  return h+'</tbody></table></div>';
+  return h+'</tbody></table></div></div>';
 }
 
 /* --------- מודולים אופציונליים בתיק --------- */
@@ -1104,11 +1111,11 @@ function vMoney(){
    +months.map(m=>'<div class="b" style="height:'+Math.max(3,m.sum/mx*100)+'%"><b>'+(m.sum?money(m.sum):'')+'</b><span>'+m.lbl+'</span></div>').join('')+'</div><div style="height:22px"></div></div>';
   h+='<div class="card" style="margin-top:14px"><h3 style="font-size:15px;margin-bottom:10px">כל התשלומים</h3>';
   if(!all.length) h+='<div class="empty" style="padding:30px">לא נרשמו תשלומים.</div>';
-  else{ h+='<table><thead><tr><th>תאריך</th><th>מתאמן</th><th>סכום</th><th>אמצעי</th><th>אימונים</th><th>הערה</th><th class="noprint"></th></tr></thead><tbody>';
+  else{ h+='<div style="overflow-x:auto"><table style="min-width:560px"><thead><tr><th>תאריך</th><th>מתאמן</th><th>סכום</th><th>אמצעי</th><th>אימונים</th><th>הערה</th><th class="noprint"></th></tr></thead><tbody>';
     all.forEach(p=>{ const t=tById(p.traineeId);
       h+='<tr><td>'+fmtFull(p.date)+'</td><td>'+esc(t?t.name:'—')+'</td><td style="font-family:Rubik;font-weight:700">'+money(p.amount)+'</td><td>'+esc(p.method||'')+'</td><td>'+esc(p.sessions||'—')+'</td><td class="muted">'+esc(p.note||'')+'</td>'
        +'<td class="noprint"><button class="iconbtn" style="width:28px;height:28px" onclick="S.payments=S.payments.filter(x=>x.id!==\''+p.id+'\');save();render()">✕</button></td></tr>'; });
-    h+='</tbody></table>'; }
+    h+='</tbody></table></div>'; }
   return h+'</div>';
 }
 function openPay(tid){
@@ -1144,7 +1151,8 @@ function vProgress(){
     const last=S.sessions.filter(s=>s.traineeId===t.id&&s.status==='done').map(s=>s.date).sort().pop();
     return {t,dw,done,last,l};
   });
-  h+='<div class="card"><table><thead><tr><th>מתאמן</th><th>אימונים</th><th>אימון אחרון</th><th>משקל נוכחי</th><th>שינוי</th><th>כרטיסייה</th><th></th></tr></thead><tbody>';
+  h+='<div class="card" style="padding-inline:0"><div style="overflow-x:auto;padding-inline:14px">'
+   +'<table style="min-width:620px"><thead><tr><th>מתאמן</th><th>אימונים</th><th>אימון אחרון</th><th>משקל נוכחי</th><th>שינוי</th><th>כרטיסייה</th><th></th></tr></thead><tbody>';
   rows.forEach(r=>{
     const cls = r.dw==null?'':(r.dw<0?'pill ok':(r.dw>0?'pill warn':'pill'));
     h+='<tr onclick="go(\'trainee\',\''+r.t.id+'\')" style="cursor:pointer"><td><div class="row" style="gap:8px"><div class="av" style="width:28px;height:28px;flex:0 0 28px;border-radius:8px;font-size:11px;background:'+tColor(r.t)+'">'+esc(initials(r.t.name))+'</div>'+esc(r.t.name)+'</div></td>'
@@ -1152,7 +1160,7 @@ function vProgress(){
      +'<td>'+(r.dw==null?'—':'<span class="'+cls+'">'+(r.dw>0?'+':'')+r.dw.toFixed(1)+' ק״ג</span>')+'</td>'
      +'<td>'+left(r.t)+'/'+(r.t.pkgTotal||0)+'</td><td class="muted">←</td></tr>';
   });
-  h+='</tbody></table></div>';
+  h+='</tbody></table></div></div>';
   const withM=act.filter(t=>S.measures.some(m=>m.traineeId===t.id&&m.weight));
   if(withM.length){
     h+='<div class="grid g2" style="margin-top:14px">';
@@ -1551,19 +1559,19 @@ if (location.protocol === 'file:') {
 }
 </script>
 
-<script src="intake.js?v=v45"></script>
-<script src="files.js?v=v45"></script>
-<script src="builder.js?v=v45"></script>
-<script src="import-program.js?v=v45"></script>
-<script src="tracking.js?v=v45"></script>
-<script src="metrics.js?v=v45"></script>
-<script src="meal-library.js?v=v45"></script>
-<script src="library-ui.js?v=v45"></script>
-<script src="export-plan.js?v=v45"></script>
-<script src="cardio.js?v=v45"></script>
-<script src="cardio-ui.js?v=v45"></script>
-<script src="meals.js?v=v45"></script>
-<script src="sync.js?v=v45"></script>
+<script src="intake.js?v=v46"></script>
+<script src="files.js?v=v46"></script>
+<script src="builder.js?v=v46"></script>
+<script src="import-program.js?v=v46"></script>
+<script src="tracking.js?v=v46"></script>
+<script src="metrics.js?v=v46"></script>
+<script src="meal-library.js?v=v46"></script>
+<script src="library-ui.js?v=v46"></script>
+<script src="export-plan.js?v=v46"></script>
+<script src="cardio.js?v=v46"></script>
+<script src="cardio-ui.js?v=v46"></script>
+<script src="meals.js?v=v46"></script>
+<script src="sync.js?v=v46"></script>
 <script>
 /* =================== חיבור הסנכרון לאפליקציה =================== */
 
