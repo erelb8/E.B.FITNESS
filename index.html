@@ -76,6 +76,25 @@ a{color:var(--or);text-decoration:none}
 .syncpill.s-offline{color:var(--dim)}
 @media(max-width:600px){ .syncpill{display:none} }
 
+/* ---------- ימי אימון כתיקיות ---------- */
+.daycard .daybody{display:none}
+.daycard.on .daybody{display:block}
+.daycard.on{border-color:var(--line2)}
+.dayhead:hover{background:rgba(255,255,255,.02)}
+.daynum{
+  width:30px;height:30px;flex:none;border-radius:50%;display:grid;place-items:center;
+  font-family:'Rubik';font-weight:900;font-size:13px;
+  background:var(--or-soft);color:var(--or);border:1px solid rgba(255,107,26,.3);
+}
+.daycard.on .daynum{background:var(--or);color:#150800;border-color:var(--or)}
+.daychev{
+  width:8px;height:8px;flex:none;transform:rotate(45deg);transition:transform .22s;
+  border-right:2px solid var(--dim);border-bottom:2px solid var(--dim);
+}
+.daycard.on .daychev{transform:rotate(-135deg)}
+.dayname:focus{background:var(--panel)!important;border-color:var(--line2)!important}
+@media print{ .daycard .daybody{display:block!important} .daychev{display:none} }
+
 /* קישור אישי למתאמן */
 .linkbox{
   display:flex;gap:8px;align-items:center;background:var(--ink);border:1px solid var(--line);
@@ -285,7 +304,7 @@ function age(b){ if(!b) return null; const d=new Date(b), t=new Date(); let a=t.
 
 /* ---------------- אחסון ---------------- */
 const KEY='ebfit_v1';
-const EB_VERSION='v36';   // חייב להתאים ל-VERSION ב-sw.js
+const EB_VERSION='v37';   // חייב להתאים ל-VERSION ב-sw.js
 let mem=null, canStore=true;
 function load(){
   try{ const r=localStorage.getItem(KEY); return r?JSON.parse(r):null; }
@@ -668,19 +687,36 @@ function tabProgram(t){
   /* גם בלי תוכנית מוקלדת מציגים את כרטיס הקבצים — זה בדיוק המקרה
      שבו רוצים לצרף תוכנית מוכנה כ-PDF במקום להקליד אותה. */
   if(!p.days.length) return h+'<div class="empty"><div class="big">🏋</div>אין עדיין תוכנית מוקלדת. אפשר לפתוח יום אימון ראשון (A), או לצרף תוכנית מוכנה כקובץ למטה.</div>'+EBFiles.card(t);
+  /* כל יום הוא תיקייה שנפתחת בלחיצה. תוכנית של 13 ימים פרושה בבת אחת
+     היא גלילה בלתי נגמרת, וקשה למצוא בה יום מסוים. הראשון פתוח כדי
+     שלא ייפתח מסך של כותרות בלבד; בהדפסה כולם נפתחים. */
+  h+='<div class="row noprint" style="margin-bottom:10px;gap:6px">'
+   +'<button class="btn sm ghost" onclick="openAllDays('+p.days.length+')">פתיחת הכול</button>'
+   +'<button class="btn sm ghost" onclick="closeAllDays()">סגירת הכול</button></div>';
+
   p.days.forEach((d,di)=>{
-    h+='<div class="card" style="margin-bottom:14px"><div class="row" style="margin-bottom:10px">'
-     +'<input class="f" style="flex:1;font-family:Rubik;font-weight:700;font-size:16px;background:transparent;border-color:transparent" value="'+esc(d.name)+'" onchange="setDay(\''+t.id+'\','+di+',\'name\',this.value)">'
-     +'<button class="btn sm ghost noprint" onclick="addEx(\''+t.id+'\','+di+')">+ תרגיל</button>'
-     +'<button class="iconbtn noprint" onclick="delDay(\''+t.id+'\','+di+')">🗑</button></div>'
-     +'<table><thead><tr><th style="width:40%">תרגיל</th><th>סטים</th><th>חזרות</th><th>משקל</th><th>מנוחה</th><th>הערה</th><th class="noprint"></th></tr></thead><tbody>';
-    (d.exercises||[]).forEach((e,ei)=>{
+    const ex=d.exercises||[];
+    const open = DAY_OPEN[t.id+':'+di] !== undefined ? DAY_OPEN[t.id+':'+di] : (di===0);
+    h+='<div class="card daycard'+(open?' on':'')+'" style="margin-bottom:12px;padding:0;overflow:hidden">'
+     +'<div class="row dayhead" style="padding:13px 14px;gap:11px;cursor:pointer" onclick="toggleDay(\''+t.id+'\','+di+',event)">'
+     +'<span class="daynum">'+(di+1)+'</span>'
+     +'<input class="f dayname" style="flex:1;font-family:Rubik;font-weight:700;font-size:15.5px;background:transparent;border-color:transparent;padding:2px 4px" value="'+esc(d.name)+'" onclick="event.stopPropagation()" onchange="setDay(\''+t.id+'\','+di+',\'name\',this.value)">'
+     +'<span class="muted" style="font-size:12.5px;white-space:nowrap">'+ex.length+' תרגילים</span>'
+     +'<span class="daychev"></span></div>'
+     +'<div class="daybody">'
+     +'<div class="row noprint" style="padding:0 14px 10px;gap:6px">'
+     +'<button class="btn sm ghost" onclick="addEx(\''+t.id+'\','+di+')">+ תרגיל</button>'
+     +'<div style="flex:1"></div>'
+     +'<button class="iconbtn" onclick="delDay(\''+t.id+'\','+di+')">🗑</button></div>'
+     +'<div style="overflow-x:auto;padding:0 14px 12px">'
+     +'<table><thead><tr><th style="width:34%">תרגיל</th><th>סטים</th><th>חזרות</th><th>משקל</th><th>מנוחה</th><th>הערה</th><th class="noprint"></th></tr></thead><tbody>';
+    ex.forEach((e,ei)=>{
       h+='<tr>'+exCell(t.id,di,ei,'name',e.name,'שם התרגיל')+exCell(t.id,di,ei,'sets',e.sets)+exCell(t.id,di,ei,'reps',e.reps)
        +exCell(t.id,di,ei,'weight',e.weight)+exCell(t.id,di,ei,'rest',e.rest)+exCell(t.id,di,ei,'note',e.note)
        +'<td class="noprint"><button class="iconbtn" style="width:28px;height:28px" onclick="delEx(\''+t.id+'\','+di+','+ei+')">✕</button></td></tr>';
     });
-    if(!(d.exercises||[]).length) h+='<tr><td colspan="7" class="muted" style="text-align:center;padding:18px">אין תרגילים ביום הזה.</td></tr>';
-    h+='</tbody></table></div>';
+    if(!ex.length) h+='<tr><td colspan="7" class="muted" style="text-align:center;padding:18px">אין תרגילים ביום הזה.</td></tr>';
+    h+='</tbody></table></div></div></div>';
   });
   h+=EBFiles.card(t);
   return h;
@@ -688,6 +724,27 @@ function tabProgram(t){
 function exCell(tid,di,ei,k,v,ph){
   return '<td><input class="f" style="background:transparent;border-color:transparent;padding:5px 6px" placeholder="'+(ph||'—')+'" value="'+esc(v==null?'':v)+'" onchange="setEx(\''+tid+'\','+di+','+ei+',\''+k+'\',this.value)"></td>';
 }
+/* מצב הפתיחה של ימי האימון. לא נשמר בין רענונים בכוונה — זו העדפת
+   תצוגה רגעית ולא נתון של המתאמן, ואין סיבה שתסתנכרן בין מכשירים. */
+var DAY_OPEN = {};
+function toggleDay(tid, di, ev){
+  if(ev && ev.target && ev.target.closest('input,button')) return;
+  const k = tid+':'+di;
+  const cur = DAY_OPEN[k] !== undefined ? DAY_OPEN[k] : (di===0);
+  DAY_OPEN[k] = !cur;
+  render();
+}
+function openAllDays(n){
+  const t = tById(ARG); if(!t) return;
+  for(let i=0;i<n;i++) DAY_OPEN[t.id+':'+i] = true;
+  render();
+}
+function closeAllDays(){
+  const t = tById(ARG); if(!t) return;
+  ((t.program||{}).days||[]).forEach((_,i)=>{ DAY_OPEN[t.id+':'+i] = false; });
+  render();
+}
+
 function addDay(id){ const t=tById(id); t.program=t.program||{days:[]}; t.program.days.push({name:'יום '+String.fromCharCode(65+t.program.days.length),exercises:[]}); save(); render(); }
 function delDay(id,di){ if(!confirm('למחוק את יום האימון?'))return; tById(id).program.days.splice(di,1); save(); render(); }
 function setDay(id,di,k,v){ tById(id).program.days[di][k]=v; save(); }

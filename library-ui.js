@@ -11,7 +11,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['libraryUi'] = 'v36';
+  (window.EB_MOD = window.EB_MOD || {})['libraryUi'] = 'v37';
 
   var Q = '', TYPE = 'all', OPEN = {};
 
