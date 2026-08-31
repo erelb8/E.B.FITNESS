@@ -275,8 +275,8 @@ tbody tr:hover{background:var(--panel)}
 <div id="toast"></div>
 
 <!-- ספריית Supabase מקומית (לא מ-CDN) כדי שהאפליקציה תעבוד גם בלי רשת -->
-<script src="vendor/supabase.js"></script>
-<script src="config.js"></script>
+<script src="vendor/supabase.js?v=v38"></script>
+<script src="config.js?v=v38"></script>
 
 <script>
 /* =======================================================================
@@ -304,7 +304,7 @@ function age(b){ if(!b) return null; const d=new Date(b), t=new Date(); let a=t.
 
 /* ---------------- אחסון ---------------- */
 const KEY='ebfit_v1';
-const EB_VERSION='v37';   // חייב להתאים ל-VERSION ב-sw.js
+const EB_VERSION='v38';   // חייב להתאים ל-VERSION ב-sw.js
 let mem=null, canStore=true;
 function load(){
   try{ const r=localStorage.getItem(KEY); return r?JSON.parse(r):null; }
@@ -1440,17 +1440,17 @@ if (location.protocol === 'file:') {
 }
 </script>
 
-<script src="intake.js"></script>
-<script src="files.js"></script>
-<script src="builder.js"></script>
-<script src="import-program.js"></script>
-<script src="tracking.js"></script>
-<script src="metrics.js"></script>
-<script src="meal-library.js"></script>
-<script src="library-ui.js"></script>
-<script src="export-plan.js"></script>
-<script src="meals.js"></script>
-<script src="sync.js"></script>
+<script src="intake.js?v=v38"></script>
+<script src="files.js?v=v38"></script>
+<script src="builder.js?v=v38"></script>
+<script src="import-program.js?v=v38"></script>
+<script src="tracking.js?v=v38"></script>
+<script src="metrics.js?v=v38"></script>
+<script src="meal-library.js?v=v38"></script>
+<script src="library-ui.js?v=v38"></script>
+<script src="export-plan.js?v=v38"></script>
+<script src="meals.js?v=v38"></script>
+<script src="sync.js?v=v38"></script>
 <script>
 /* =================== חיבור הסנכרון לאפליקציה =================== */
 
