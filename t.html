@@ -122,9 +122,10 @@ button{cursor:pointer}
 
 <div id="toast"></div>
 
-<script src="vendor/supabase.js?v=v39"></script>
-<script src="config.js?v=v39"></script>
-<script src="meal-library.js?v=v39"></script>
+<script src="vendor/supabase.js?v=v40"></script>
+<script src="config.js?v=v40"></script>
+<script src="meal-library.js?v=v40"></script>
+<script src="progress.js?v=v40"></script>
 <script>
 (function () {
   'use strict';
@@ -158,6 +159,7 @@ button{cursor:pointer}
     if (!TOKEN) return loginScreen();
 
     CACHE = 'ebfit_t_' + TOKEN.slice(0, 12);
+    if (window.EBProg) EBProg.load(TOKEN);
 
     // קודם מהמטמון — כדי שהתוכנית תיפתח מיד גם בלי רשת
     const cached = readCache();
@@ -219,6 +221,7 @@ button{cursor:pointer}
 
       TOKEN = d.token;
       CACHE = 'ebfit_t_' + TOKEN.slice(0, 12);
+    if (window.EBProg) EBProg.load(TOKEN);
       try { localStorage.setItem('ebfit_t_token', TOKEN); } catch (e) {}
 
       DATA = d;
@@ -405,6 +408,12 @@ button{cursor:pointer}
   });
 
   /* ---------- היעדים ---------- */
+  /* עוטף: אם progress.js לא נטען משום סיבה, הדף ממשיך לעבוד בלעדיו */
+  function progBlock() {
+    try { return window.EBProg ? EBProg.block(DATA) : ''; }
+    catch (e) { return ''; }
+  }
+
   function goalsBlock(d) {
     var rows = [['המטרה', d.goal], ['מטרה משנית', d.goal2], ['הצלחה ב-3 חודשים', d.success3m]]
       .filter(function (r) { return r[1]; });
@@ -459,14 +468,14 @@ button{cursor:pointer}
     // תוכנית שהיא קובץ בלבד, בלי תרגילים מוקלדים
     if (!days.length) {
       const onlyMeals = mealsBlock(DATA.meals);
-      if (files.length || onlyMeals) { screen(goalsBlock(DATA) + libButton() + onlyMeals + filesBlock(files)); return; }
-      screen(msg('התוכנית עוד בהכנה', 'המאמן עדיין לא הזין לך תרגילים. תיכנס שוב מאוחר יותר.'));
+      if (files.length || onlyMeals) { screen(progBlock() + goalsBlock(DATA) + libButton() + onlyMeals + filesBlock(files)); return; }
+      screen(progBlock() + goalsBlock(DATA) + libButton());
       return;
     }
     if (DAY >= days.length) DAY = 0;
     const ex = days[DAY].exercises || [];
 
-    let h = goalsBlock(DATA) + libButton() + mealsBlock(DATA.meals) + filesBlock(files) + '<div class="days">' + days.map((d, i) =>
+    let h = progBlock() + goalsBlock(DATA) + libButton() + mealsBlock(DATA.meals) + filesBlock(files) + '<div class="days">' + days.map((d, i) =>
       '<button class="' + (i === DAY ? 'on' : '') + '" data-day="' + i + '">' +
       esc(d.name || ('יום ' + (i + 1))) + '</button>').join('') + '</div>';
 
@@ -535,6 +544,21 @@ button{cursor:pointer}
       return;
     }
 
+    const pg = e.target.closest('[data-pg]');
+    if (pg) {
+      if (pg.dataset.pg === 'save') {
+        const inp = document.getElementById('pg_w');
+        const v = inp ? inp.value : '';
+        if (!String(v).trim()) { toast('הזן משקל'); if (inp) inp.focus(); return; }
+        if (!EBProg.add(v)) { toast('משקל לא תקין'); if (inp) inp.select(); return; }
+        toast('נרשם ✓'); paint();
+      } else if (pg.dataset.pg === 'edit') {
+        EBProg.clearToday(); paint();
+        const inp = document.getElementById('pg_w'); if (inp) inp.focus();
+      }
+      return;
+    }
+
     if (e.target.id === 'finish') finish();
   });
 
@@ -562,6 +586,7 @@ button{cursor:pointer}
       });
       if (error) throw error;
       toast('נשלח למאמן. כל הכבוד! 💪');
+      if (window.EBProg) EBProg.logWorkout();   // נספר לשבוע הנוכחי בכרטיס ההתקדמות
       STATE = {}; FEEL = null; paint();
     } catch (err) {
       toast('לא הצלחנו לשלוח — נסה שוב כשתהיה רשת');
