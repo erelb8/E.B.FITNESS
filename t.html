@@ -124,6 +124,7 @@ button{cursor:pointer}
 
 <script src="vendor/supabase.js"></script>
 <script src="config.js"></script>
+<script src="meal-library.js"></script>
 <script>
 (function () {
   'use strict';
@@ -309,6 +310,94 @@ button{cursor:pointer}
       + esc(txt) + '</span>';
   }
 
+  /* ---------- ספריית הארוחות ----------
+     כל 42 הארוחות זמינות לכל מתאמן, גם אלה שלא שויכו לו. הטבלה של
+     כל ארוחה סגורה כברירת מחדל — 42 טבלאות פתוחות בטלפון הופכות
+     את המסך לבלתי קריא. */
+  let LIB_OPEN = false, LIB_Q = '', LIB_TYPE = 'all', LIB_ROW = {};
+
+  function r1(x){ return Math.round(x*10)/10; }
+
+  function libButton() {
+    if (typeof EBLib === 'undefined') return '';
+    return '<button class="btn ghost" style="width:100%;margin-bottom:12px;font-size:14px" '
+      + 'onclick="__libOpen()">כל הארוחות · ' + EBLib.MEALS.length + ' עם ערכים מלאים</button>';
+  }
+
+  function libScreen() {
+    const q = LIB_Q.trim();
+    const items = EBLib.MEALS.filter(m => {
+      if (LIB_TYPE !== 'all' && m.type !== LIB_TYPE) return false;
+      if (!q) return true;
+      return m.name.indexOf(q) > -1 || m.items.some(p => p[0].indexOf(q) > -1);
+    });
+    const counts = EBLib.byType();
+
+    let h = '<button class="btn ghost" style="margin-bottom:12px" onclick="__libClose()">‹ חזרה לתוכנית</button>'
+      + '<input id="lq" placeholder="חיפוש ארוחה או מרכיב" value="' + esc(LIB_Q) + '" '
+      + 'oninput="__libSearch(this.value)" style="width:100%;background:var(--card);'
+      + 'border:1px solid var(--line);border-radius:10px;padding:11px;font-size:15px;margin-bottom:10px">'
+      + '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">'
+      + libTag('all','הכול',EBLib.MEALS.length);
+    ['breakfast','pre','post','lunch','snack','dinner'].forEach(k => {
+      if (counts[k]) h += libTag(k, EBLib.TYPES[k], counts[k].length);
+    });
+    h += '</div><div style="color:var(--mut);font-size:12.5px;margin-bottom:10px">' + items.length + ' ארוחות</div>';
+
+    if (!items.length) h += '<div class="msg">לא נמצאה ארוחה מתאימה.</div>';
+    items.forEach(m => h += libCard(m));
+    return h;
+  }
+
+  function libTag(k, label, n) {
+    const on = LIB_TYPE === k;
+    return '<button onclick="__libType('' + k + '')" style="font-size:12.5px;padding:6px 12px;'
+      + 'border-radius:20px;white-space:nowrap;border:1px solid ' + (on?'var(--or)':'var(--line)') + ';'
+      + 'background:' + (on?'var(--or-soft)':'var(--card)') + ';color:' + (on?'var(--or)':'var(--mut)') + '">'
+      + esc(label) + ' <span style="opacity:.6">' + n + '</span></button>';
+  }
+
+  function libCard(m) {
+    const c = EBLib.calc(m.items), t = c.total, open = !!LIB_ROW[m.id];
+    let h = '<div class="card" style="margin-bottom:10px">'
+      + '<div style="display:flex;align-items:flex-start;gap:10px">'
+      + '<div style="flex:1;min-width:0">'
+      + '<div style="font-family:Rubik;font-weight:700;font-size:15.5px;line-height:1.3">' + esc(m.name) + '</div>'
+      + '<div style="color:var(--dim);font-size:12px;margin-top:3px">' + esc(EBLib.TYPES[m.type]||'') + '</div></div>'
+      + '<div style="text-align:center;flex:none">'
+      + '<div style="font-family:Rubik;font-weight:900;font-size:21px;color:var(--or);line-height:1">' + Math.round(t.k) + '</div>'
+      + '<div style="color:var(--dim);font-size:10.5px">קק״ל</div></div></div>'
+      + '<div style="display:flex;gap:6px;margin-top:9px;flex-wrap:wrap">'
+      + tag('חלבון ' + r1(t.p)) + tag('פחמימות ' + r1(t.c)) + tag('שומן ' + r1(t.f)) + '</div>'
+      + (m.note ? '<div style="font-size:12px;color:var(--or);margin-top:8px;line-height:1.5">' + esc(m.note) + '</div>' : '')
+      + '<button class="btn ghost" style="font-size:12.5px;padding:7px 14px;margin-top:10px" '
+      + 'onclick="__libRow('' + m.id + '')">' + (open ? 'סגירת הפירוט' : 'פירוט לגרם') + '</button>';
+
+    if (open) {
+      h += '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12.5px;margin-top:10px">'
+        + '<thead><tr>' + lth('רכיב','right') + lth('גרם') + lth('קק״ל') + lth('חלבון') + lth('פחמ׳') + lth('שומן') + '</tr></thead><tbody>';
+      c.rows.forEach(r => {
+        h += '<tr>' + ltd(esc(r.name),'right') + ltd(r.g) + ltd(Math.round(r.k))
+           + ltd(r1(r.p)) + ltd(r1(r.c)) + ltd(r1(r.f)) + '</tr>';
+      });
+      h += '<tr style="border-top:2px solid var(--or)">'
+        + ltd('<b>סה״כ</b>','right') + ltd('<b>'+t.g+'</b>') + ltd('<b>'+Math.round(t.k)+'</b>')
+        + ltd('<b>'+r1(t.p)+'</b>') + ltd('<b>'+r1(t.c)+'</b>') + ltd('<b>'+r1(t.f)+'</b>')
+        + '</tr></tbody></table></div>';
+    }
+    return h + '</div>';
+  }
+  function lth(x,a){ return '<th style="text-align:'+(a||'left')+';padding:5px 4px;border-bottom:1px solid var(--line);font-size:11px;color:var(--mut);font-weight:500;white-space:nowrap">'+x+'</th>'; }
+  function ltd(x,a){ return '<td style="text-align:'+(a||'left')+';padding:5px 4px;border-bottom:1px solid var(--line);white-space:nowrap;font-variant-numeric:tabular-nums">'+x+'</td>'; }
+
+  window.__libOpen   = () => { LIB_OPEN = true;  screen(libScreen()); window.scrollTo(0,0); };
+  window.__libClose  = () => { LIB_OPEN = false; paint(); window.scrollTo(0,0); };
+  window.__libSearch = v => { LIB_Q = v; screen(libScreen());
+                              const el = document.getElementById('lq');
+                              if (el) { el.focus(); el.setSelectionRange(v.length, v.length); } };
+  window.__libType   = k => { LIB_TYPE = k; screen(libScreen()); };
+  window.__libRow    = id => { LIB_ROW[id] = !LIB_ROW[id]; screen(libScreen()); };
+
   /* ---------- היעדים ---------- */
   function goalsBlock(d) {
     var rows = [['המטרה', d.goal], ['מטרה משנית', d.goal2], ['הצלחה ב-3 חודשים', d.success3m]]
@@ -364,14 +453,14 @@ button{cursor:pointer}
     // תוכנית שהיא קובץ בלבד, בלי תרגילים מוקלדים
     if (!days.length) {
       const onlyMeals = mealsBlock(DATA.meals);
-      if (files.length || onlyMeals) { screen(goalsBlock(DATA) + onlyMeals + filesBlock(files)); return; }
+      if (files.length || onlyMeals) { screen(goalsBlock(DATA) + libButton() + onlyMeals + filesBlock(files)); return; }
       screen(msg('התוכנית עוד בהכנה', 'המאמן עדיין לא הזין לך תרגילים. תיכנס שוב מאוחר יותר.'));
       return;
     }
     if (DAY >= days.length) DAY = 0;
     const ex = days[DAY].exercises || [];
 
-    let h = goalsBlock(DATA) + mealsBlock(DATA.meals) + filesBlock(files) + '<div class="days">' + days.map((d, i) =>
+    let h = goalsBlock(DATA) + libButton() + mealsBlock(DATA.meals) + filesBlock(files) + '<div class="days">' + days.map((d, i) =>
       '<button class="' + (i === DAY ? 'on' : '') + '" data-day="' + i + '">' +
       esc(d.name || ('יום ' + (i + 1))) + '</button>').join('') + '</div>';
 
