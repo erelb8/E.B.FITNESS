@@ -7,3 +7,5 @@ node_modules/
 # קבצי תוכניות של מתאמנים — מידע אישי, לא נכנס לריפו ציבורי
 _test_*.html
 tochnit_*.html
+
+_test_*.json
