@@ -2,7 +2,7 @@
    נותן לאפליקציה לעבוד לגמרי בלי אינטרנט אחרי הפתיחה הראשונה.
    כשמעדכנים את האפליקציה — מעלים את המספר ב-VERSION. */
 
-const VERSION = 'ebfit-v40';
+const VERSION = 'ebfit-v41';
 const SHELL   = VERSION + '-shell';
 const FONTS   = VERSION + '-fonts';
 
@@ -11,20 +11,20 @@ const SHELL_FILES = [
   './index.html',
   './manifest.json',
   './t.html',
-  './config.js?v=v40',
-  './sync.js?v=v40',
-  './intake.js?v=v40',
-  './files.js?v=v40',
-  './builder.js?v=v40',
-  './import-program.js?v=v40',
-  './tracking.js?v=v40',
-  './metrics.js?v=v40',
-  './meals.js?v=v40',
-  './meal-library.js?v=v40',
-  './progress.js?v=v40',
-  './library-ui.js?v=v40',
-  './export-plan.js?v=v40',
-  './vendor/supabase.js?v=v40',
+  './config.js?v=v41',
+  './sync.js?v=v41',
+  './intake.js?v=v41',
+  './files.js?v=v41',
+  './builder.js?v=v41',
+  './import-program.js?v=v41',
+  './tracking.js?v=v41',
+  './metrics.js?v=v41',
+  './meals.js?v=v41',
+  './meal-library.js?v=v41',
+  './progress.js?v=v41',
+  './library-ui.js?v=v41',
+  './export-plan.js?v=v41',
+  './vendor/supabase.js?v=v41',
   './icons/icon-180.png',
   './icons/icon-192.png',
   './icons/icon-256.png',

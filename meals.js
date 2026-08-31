@@ -12,7 +12,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['meals'] = 'v40';
+  (window.EB_MOD = window.EB_MOD || {})['meals'] = 'v41';
 
   var BUCKET = 'programs';
   var MAXW   = 900;          // רוחב מרבי אחרי הקטנה
@@ -83,6 +83,22 @@
       + '</div>';
 
     if (!on) return h + '<div class="empty">צריך להתחבר לסנכרון כדי לנהל תפריט.</div>';
+
+    /* אם עמודת meals חסרה בשרת, התפריט נשמר במכשיר בלבד ולא מגיע
+       למתאמן. בלי ההודעה הזו זה נראה כאילו הכול עובד. */
+    if (window.EBSync && EBSync.missing) {
+      var miss = (EBSync.missing().trainees || []);
+      if (miss.indexOf('meals') > -1) {
+        h += '<div class="card" style="margin-bottom:12px;border-color:var(--amber);'
+          + 'background:rgba(255,162,77,.07)">'
+          + '<div style="font-family:Rubik;font-weight:700;font-size:14px;color:var(--amber)">'
+          + 'התפריט נשמר במכשיר הזה בלבד</div>'
+          + '<div class="muted" style="font-size:13px;line-height:1.6;margin-top:6px">'
+          + 'בשרת חסרה עמודת הארוחות, ולכן התפריט לא מגיע למתאמן בקישור שלו. '
+          + 'הכול כאן ממשיך לעבוד, וברגע שתריץ את <b>supabase/meals.sql</b> '
+          + 'התפריטים יסונכרנו מעצמם.</div></div>';
+      }
+    }
 
     /* סיכום מול היעד */
     if (list.length) {

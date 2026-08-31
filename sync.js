@@ -15,7 +15,7 @@
   'use strict';
 
   // חותמת גרסה — index.html משווה אליה כדי לזהות קובץ ישן במטמון
-  (window.EB_MOD = window.EB_MOD || {})['sync'] = 'v40';
+  (window.EB_MOD = window.EB_MOD || {})['sync'] = 'v41';
 
   const CFG      = window.EBFIT_CONFIG || { URL: '', ANON: '' };
   const SNAP_KEY = 'ebfit_sync_v1';
@@ -192,6 +192,38 @@
   }
 
   // דוחף רק את מה שהשתנה מאז התצלום האחרון
+  /* עמודות שהשרת לא מכיר. מיגרציה שלא הורצה הפילה עד עכשיו את כל
+     הדחיפה — עמודה אחת חסרה ביטלה גם שמירת תוכניות, קבצים והגדרות.
+     עכשיו העמודה נושרת מהבקשה והשאר ממשיך, והחוסר מדווח למעלה. */
+  const MISSING = {};
+  const NEVER_STRIP = ['id', 'trainer_id'];
+
+  function missingColumn(err) {
+    const m = String((err && (err.message || err.details)) || '');
+    let a = m.match(/[Cc]ould not find the '([^']+)' column/);
+    if (a) return a[1];
+    a = m.match(/column "([^"]+)" of relation/i);        // column "meals" of relation "trainees"
+    if (a) return a[1];
+    a = m.match(/column\s+[\w.]*?(\w+)\s+does not exist/i);
+    if (a) return a[1];
+    return null;
+  }
+
+  async function upsertRows(table, rows) {
+    const strip = MISSING[table] || [];
+    const payload = strip.length
+      ? rows.map(r => { const c = Object.assign({}, r); strip.forEach(k => delete c[k]); return c; })
+      : rows;
+    const { error } = await sb.from(table).upsert(payload, { onConflict: 'id' });
+    if (!error) return;
+    const col = missingColumn(error);
+    if (col && NEVER_STRIP.indexOf(col) === -1 && strip.indexOf(col) === -1) {
+      (MISSING[table] = MISSING[table] || []).push(col);
+      return upsertRows(table, rows);        // ניסיון חוזר בלי העמודה החסרה
+    }
+    throw error;
+  }
+
   async function push(snap) {
     for (const key of ARRAYS) {
       const list = window.S[key] || [];
@@ -208,8 +240,7 @@
       if (rows.length) {
         // בנתחים, כדי לא לחרוג ממגבלת גודל בקשה
         for (let i = 0; i < rows.length; i += 200) {
-          const { error } = await sb.from(TABLE[key]).upsert(rows.slice(i, i + 200), { onConflict: 'id' });
-          if (error) throw error;
+          await upsertRows(TABLE[key], rows.slice(i, i + 200));
         }
       }
 
@@ -333,6 +364,7 @@
     signIn, signUp, signOut,
     user: () => user,
     client: () => sb,
+    missing: () => MISSING,
     traineeLink, setAccess, logsFor, setLogin
   };
 })();
