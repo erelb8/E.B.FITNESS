@@ -122,10 +122,10 @@ button{cursor:pointer}
 
 <div id="toast"></div>
 
-<script src="vendor/supabase.js?v=v46"></script>
-<script src="config.js?v=v46"></script>
-<script src="meal-library.js?v=v46"></script>
-<script src="progress.js?v=v46"></script>
+<script src="vendor/supabase.js?v=v47"></script>
+<script src="config.js?v=v47"></script>
+<script src="meal-library.js?v=v47"></script>
+<script src="progress.js?v=v47"></script>
 <script>
 (function () {
   'use strict';
@@ -394,7 +394,13 @@ button{cursor:pointer}
   function ltd(x,a){ return '<td style="text-align:'+(a||'left')+';padding:5px 4px;border-bottom:1px solid var(--line);white-space:nowrap;font-variant-numeric:tabular-nums">'+x+'</td>'; }
 
   window.__libOpen   = () => { LIB_OPEN = true;  screen(libScreen()); window.scrollTo(0,0); };
-  window.__libClose  = () => { LIB_OPEN = false; paint(); window.scrollTo(0,0); };
+  /* בלי תוכנית טעונה אין למה לחזור — paint() קורא מ-DATA ונופל.
+     קורה אם הטוקן בוטל או שהמטמון נוקה בזמן שהספרייה פתוחה. */
+  window.__libClose  = () => {
+    LIB_OPEN = false;
+    if (DATA) paint(); else loginScreen();
+    window.scrollTo(0,0);
+  };
   window.__libSearch = v => { LIB_Q = v; screen(libScreen());
                               const el = document.getElementById('lq');
                               if (el) { el.focus(); el.setSelectionRange(v.length, v.length); } };
