@@ -123,10 +123,10 @@ button{cursor:pointer}
 
 <div id="toast"></div>
 
-<script src="vendor/supabase.js?v=v48"></script>
-<script src="config.js?v=v48"></script>
-<script src="meal-library.js?v=v48"></script>
-<script src="progress.js?v=v48"></script>
+<script src="vendor/supabase.js?v=v49"></script>
+<script src="config.js?v=v49"></script>
+<script src="meal-library.js?v=v49"></script>
+<script src="progress.js?v=v49"></script>
 <script>
 (function () {
   'use strict';
@@ -139,6 +139,14 @@ button{cursor:pointer}
     .replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
 
   let DATA = null, DAY = 0, STATE = {}, FEEL = null, sb = null;
+
+  /* הארוחות שהמתאמן בחר לעצמו. נשמרות גם במכשיר וגם בשרת: המכשיר
+     כדי שההוספה תהיה מיידית וגם בלי רשת, והשרת כדי שהמאמן יראה. */
+  let MY_MEALS = [];
+  const myKey = () => 'ebfit_my_' + String(TOKEN || '').slice(0, 12);
+  function readMy() { try { return JSON.parse(localStorage.getItem(myKey())) || []; } catch (e) { return []; } }
+  function writeMy() { try { localStorage.setItem(myKey(), JSON.stringify(MY_MEALS)); } catch (e) {} }
+  const inMy = id => MY_MEALS.some(x => x.libId === id);
 
   function toast(m) {
     const t = $('#toast'); t.textContent = m; t.classList.add('on');
@@ -161,6 +169,7 @@ button{cursor:pointer}
 
     CACHE = 'ebfit_t_' + TOKEN.slice(0, 12);
     if (window.EBProg) EBProg.load(TOKEN);
+    MY_MEALS = readMy();
 
     // קודם מהמטמון — כדי שהתוכנית תיפתח מיד גם בלי רשת
     const cached = readCache();
@@ -174,6 +183,7 @@ button{cursor:pointer}
         return screen(msg('הקישור לא פעיל', 'ייתכן שהמאמן ביטל את הגישה. פנה אליו.'));
       }
       DATA = data[0];
+      mergeMy(DATA.meals_self);
       writeCache(DATA);
       paint();
     } catch (e) {
@@ -223,9 +233,11 @@ button{cursor:pointer}
       TOKEN = d.token;
       CACHE = 'ebfit_t_' + TOKEN.slice(0, 12);
     if (window.EBProg) EBProg.load(TOKEN);
+    MY_MEALS = readMy();
       try { localStorage.setItem('ebfit_t_token', TOKEN); } catch (e) {}
 
       DATA = d;
+      mergeMy(d.meals_self);
       writeCache(d);
       paint();
     } catch (e) {
@@ -325,7 +337,9 @@ button{cursor:pointer}
   function libButton() {
     if (typeof EBLib === 'undefined') return '';
     return '<button class="btn ghost" style="width:100%;margin-bottom:12px;font-size:14px" '
-      + 'onclick="__libOpen()">כל הארוחות · ' + EBLib.MEALS.length + ' עם ערכים מלאים</button>';
+      + 'onclick="__libOpen()">כל הארוחות · ' + EBLib.MEALS.length + ' עם ערכים מלאים'
+      + (MY_MEALS.length ? ' · <b style="color:var(--or)">' + MY_MEALS.length + ' שלי</b>' : '')
+      + '</button>';
   }
 
   function libScreen() {
@@ -361,6 +375,101 @@ button{cursor:pointer}
       + esc(label) + ' <span style="opacity:.6">' + n + '</span></button>';
   }
 
+  /* השרת הוא המקור האמין. אם הוא החזיר רשימה — היא גוברת על המכשיר,
+     כך שהוספה שנעשתה בטלפון אחר מופיעה גם כאן. */
+  function mergeMy(fromServer) {
+    if (!Array.isArray(fromServer)) return;      // העמודה עוד לא קיימת בשרת
+    MY_MEALS = fromServer;
+    writeMy();
+  }
+
+  async function myAdd(libId) {
+    const meal = EBLib.byId(libId);
+    if (!meal || inMy(libId)) return;
+    MY_MEALS.push({ libId: libId, name: meal.name, at: todayStr() });
+    writeMy(); refreshLib(libId);
+    toast(meal.name + ' נוספה לתפריט שלך');
+    try {
+      const { data, error } = await sb.rpc('trainee_add_meal',
+        { p_token: TOKEN, p_lib_id: libId, p_name: meal.name });
+      if (error) throw error;
+      mergeMy(data);
+    } catch (e) {
+      /* בלי הפונקציה בשרת ההוספה נשארת במכשיר. עדיין עובד למתאמן,
+         רק שהמאמן לא רואה — ולכן הודעה אחת ולא כישלון. */
+      toast('נשמר במכשיר. המאמן יראה אחרי שיסיים את ההגדרה.');
+    }
+  }
+
+  async function myRemove(libId) {
+    MY_MEALS = MY_MEALS.filter(x => x.libId !== libId);
+    writeMy(); refreshLib(libId);
+    try {
+      const { data, error } = await sb.rpc('trainee_remove_meal',
+        { p_token: TOKEN, p_lib_id: libId });
+      if (error) throw error;
+      mergeMy(data);
+    } catch (e) {}
+  }
+
+  function todayStr() {
+    const d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0')
+         + '-' + String(d.getDate()).padStart(2,'0');
+  }
+
+  /* מעדכנים כרטיס אחד ולא מציירים מחדש — ציור מלא מחזיר את הגלילה
+     לראש המסך, וזה בדיוק מה שתוקן בפירוט הארוחה. */
+  function refreshLib(libId) {
+    const el = document.querySelector('[data-mid="' + libId + '"] [data-my]');
+    if (el) {
+      const on = inMy(libId);
+      el.textContent = on ? '✓ בתפריט שלי' : '+ הוספה לתפריט שלי';
+      el.style.background = on ? 'var(--or-soft)' : 'transparent';
+      el.style.color = on ? 'var(--or)' : 'var(--mut)';
+      el.style.borderColor = on ? 'var(--or)' : 'var(--line2)';
+    }
+    const cnt = document.getElementById('myCount');
+    if (cnt) cnt.textContent = MY_MEALS.length;
+  }
+
+  /* מה שהמתאמן הוסיף — מוצג בנפרד מהתפריט של המאמן, כדי שלא
+     ייווצר רושם שהמאמן רשם את זה. */
+  function myMealsBlock() {
+    if (typeof EBLib === 'undefined' || !MY_MEALS.length) return '';
+    const rows = MY_MEALS.map(x => EBLib.byId(x.libId)).filter(Boolean);
+    if (!rows.length) return '';
+    let k = 0, p = 0, c = 0, f = 0;
+    rows.forEach(m => { const t = EBLib.calc(m.items).total;
+                        k += t.k; p += t.p; c += t.c; f += t.f; });
+    const r0 = x => Math.round(x);
+    let h = '<div class="card" style="margin-bottom:12px;border-color:var(--line2)">'
+      + '<div style="display:flex;align-items:baseline;gap:8px;margin-bottom:10px">'
+      + '<div style="flex:1;font-family:Frank Ruhl Libre,serif;font-weight:700;font-size:15px">'
+      + 'הוספתי לעצמי</div>'
+      + '<span class="mt" style="font-size:12px">' + rows.length + ' ארוחות</span></div>'
+      + '<div style="display:flex;gap:14px;flex-wrap:wrap;font-size:13px;margin-bottom:10px">'
+      + '<span><b style="font-family:Heebo;color:var(--or)">' + r0(k) + '</b> קק״ל</span>'
+      + '<span class="mt">חלבון <b>' + r0(p) + '</b></span>'
+      + '<span class="mt">פחמימות <b>' + r0(c) + '</b></span>'
+      + '<span class="mt">שומן <b>' + r0(f) + '</b></span></div>';
+    rows.forEach(m => {
+      const t = EBLib.calc(m.items).total;
+      h += '<div style="display:flex;align-items:center;gap:10px;padding:9px 0;'
+        + 'border-top:1px solid var(--line)">'
+        + '<div style="flex:1;min-width:0">'
+        + '<div style="font-size:14px;font-weight:500">' + esc(m.name) + '</div>'
+        + '<div class="mt" style="font-size:11.5px;margin-top:2px">'
+        + esc(EBLib.TYPES[m.type] || '') + '</div></div>'
+        + '<span style="font-family:Heebo;font-weight:700;font-size:14px">'
+        + Math.round(t.k) + '</span>'
+        + '<button data-myrm="' + esc(m.id) + '" style="background:none;border:0;'
+        + 'color:var(--dim);font-size:17px;cursor:pointer;padding:0 4px;line-height:1">✕</button>'
+        + '</div>';
+    });
+    return h + '</div>';
+  }
+
   function libCard(m) {
     const c = EBLib.calc(m.items), t = c.total, open = !!LIB_ROW[m.id];
     let h = '<div class="card" style="margin-bottom:10px" data-mid="' + esc(m.id) + '">'
@@ -375,7 +484,13 @@ button{cursor:pointer}
       + tag('חלבון ' + r1(t.p)) + tag('פחמימות ' + r1(t.c)) + tag('שומן ' + r1(t.f)) + '</div>'
       + (m.note ? '<div style="font-size:12px;color:var(--or);margin-top:8px;line-height:1.5">' + esc(m.note) + '</div>' : '')
       + '<button class="btn ghost" style="font-size:12.5px;padding:7px 14px;margin-top:10px" '
-      + 'data-lr="' + esc(m.id) + '">' + (open ? 'סגירת הפירוט' : 'פירוט לגרם') + '</button>';
+      + 'data-lr="' + esc(m.id) + '">' + (open ? 'סגירת הפירוט' : 'פירוט לגרם') + '</button>'
+      + '<button data-my="' + esc(m.id) + '" style="font-size:12.5px;padding:7px 14px;'
+      + 'margin-top:10px;margin-inline-start:7px;border-radius:9px;cursor:pointer;'
+      + 'border:1px solid ' + (inMy(m.id) ? 'var(--or)' : 'var(--line2)') + ';'
+      + 'background:' + (inMy(m.id) ? 'var(--or-soft)' : 'transparent') + ';'
+      + 'color:' + (inMy(m.id) ? 'var(--or)' : 'var(--mut)') + '">'
+      + (inMy(m.id) ? '✓ בתפריט שלי' : '+ הוספה לתפריט שלי') + '</button>';
 
     if (open) {
       h += '<div data-mtbl style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12.5px;margin-top:10px">'
@@ -410,6 +525,12 @@ button{cursor:pointer}
   document.addEventListener('click', e => {
     const t = e.target.closest('[data-lt]');
     if (t) { LIB_TYPE = t.dataset.lt; screen(libScreen()); return; }
+    const my = e.target.closest('[data-my]');
+    if (my) { const id = my.dataset.my; inMy(id) ? myRemove(id) : myAdd(id); return; }
+
+    const rm = e.target.closest('[data-myrm]');
+    if (rm) { myRemove(rm.dataset.myrm); paint(); return; }
+
     const r = e.target.closest('[data-lr]');
     if (r) {
       /* פתיחת פירוט משנה כרטיס אחד. ציור מחדש של כל הרשימה החזיר
@@ -496,7 +617,7 @@ button{cursor:pointer}
 
     // תוכנית שהיא קובץ בלבד, בלי תרגילים מוקלדים
     if (!days.length) {
-      const onlyMeals = mealsBlock(DATA.meals);
+      const onlyMeals = mealsBlock(DATA.meals) + myMealsBlock();
       if (files.length || onlyMeals) { screen(progBlock() + goalsBlock(DATA) + libButton() + onlyMeals + filesBlock(files)); return; }
       screen(progBlock() + goalsBlock(DATA) + libButton());
       return;
@@ -504,7 +625,7 @@ button{cursor:pointer}
     if (DAY >= days.length) DAY = 0;
     const ex = days[DAY].exercises || [];
 
-    let h = progBlock() + goalsBlock(DATA) + libButton() + mealsBlock(DATA.meals) + filesBlock(files) + '<div class="days">' + days.map((d, i) =>
+    let h = progBlock() + goalsBlock(DATA) + libButton() + mealsBlock(DATA.meals) + myMealsBlock() + filesBlock(files) + '<div class="days">' + days.map((d, i) =>
       '<button class="' + (i === DAY ? 'on' : '') + '" data-day="' + i + '">' +
       esc(d.name || ('יום ' + (i + 1))) + '</button>').join('') + '</div>';
 

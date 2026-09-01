@@ -12,7 +12,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['meals'] = 'v48';
+  (window.EB_MOD = window.EB_MOD || {})['meals'] = 'v49';
 
   var BUCKET = 'programs';
   var MAXW   = 900;          // רוחב מרבי אחרי הקטנה
@@ -67,6 +67,40 @@
       a.c += num(m.carbs);   a.f += num(m.fat);
       return a;
     }, { kcal:0, p:0, c:0, f:0 });
+  }
+
+  /* מה שהמתאמן הוסיף לעצמו מהספרייה. מוצג בנפרד מהתפריט שאתה בנית,
+     כי זו אינפורמציה על מה שהוא בוחר לאכול — לא הוראה שנתת. */
+  function selfBlock(t) {
+    var mine = t.mealsSelf || [];
+    if (!mine.length || typeof EBLib === 'undefined') return '';
+    var rows = mine.map(function (x) { return EBLib.byId(x.libId); }).filter(Boolean);
+    if (!rows.length) return '';
+    var k = 0, p = 0, c = 0, f = 0;
+    rows.forEach(function (m) { var x = EBLib.calc(m.items).total;
+      k += x.k; p += x.p; c += x.c; f += x.f; });
+
+    var h = '<div class="card" style="margin-bottom:14px;border-color:var(--line2)">'
+      + '<div class="row" style="align-items:baseline;margin-bottom:8px">'
+      + '<h3 style="flex:1;font-size:14.5px">' + esc(t.name.split(' ')[0]) + ' הוסיף לעצמו</h3>'
+      + '<span class="muted" style="font-size:12px">' + rows.length + ' ארוחות</span></div>'
+      + '<div class="row" style="gap:14px;flex-wrap:wrap;font-size:13px;margin-bottom:6px">'
+      + '<span><b style="font-family:Heebo;color:var(--or)">' + Math.round(k) + '</b> קק״ל</span>'
+      + '<span class="muted">חלבון <b>' + Math.round(p) + '</b></span>'
+      + '<span class="muted">פחמימות <b>' + Math.round(c) + '</b></span>'
+      + '<span class="muted">שומן <b>' + Math.round(f) + '</b></span></div>';
+
+    rows.forEach(function (m) {
+      var x = EBLib.calc(m.items).total;
+      h += '<div class="row" style="padding:7px 0;border-top:1px solid var(--line);font-size:13px">'
+        + '<span style="flex:1;min-width:0">' + esc(m.name) + '</span>'
+        + '<span class="muted" style="font-size:11.5px">' + esc(EBLib.TYPES[m.type] || '') + '</span>'
+        + '<span style="font-family:Heebo;font-weight:700;min-width:44px;text-align:left">'
+        + Math.round(x.k) + '</span></div>';
+    });
+    return h + '<div class="muted" style="font-size:11.5px;margin-top:9px">'
+      + 'הוא בחר אותן בעצמו מהספרייה. אפשר להוסיף אותן לתפריט הרשמי או לדבר איתו עליהן.'
+      + '</div></div>';
   }
 
   /* ---------- כרטיס בתיק המאמן ---------- */
@@ -126,7 +160,9 @@
         + '</div>';
     }
 
-    if (!list.length)
+    h += selfBlock(t);
+
+    if (!list.length && !((t.mealsSelf || []).length))
       return h + '<div class="empty"><div class="big">🍽</div>אין עדיין ארוחות.<br>'
         + '<div class="row" style="justify-content:center;margin-top:12px">'
         + '<button class="btn" onclick="EBLibUI.browse(\'' + t.id + '\')">בחירה מהספרייה</button>'
