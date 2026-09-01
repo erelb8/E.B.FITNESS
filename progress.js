@@ -15,7 +15,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['progress'] = 'v47';
+  (window.EB_MOD = window.EB_MOD || {})['progress'] = 'v48';
 
   var esc = function (s) {
     return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
@@ -153,7 +153,7 @@
     var wk = DB.workouts[thisW] || 0;
     var h = '<div class="card" style="margin-bottom:12px">'
       + '<div class="row" style="align-items:baseline;margin-bottom:2px">'
-      + '<div style="flex:1;font-family:Rubik;font-weight:700;font-size:15px">השיפור שלי</div>'
+      + '<div style="flex:1;font-family:Heebo;font-weight:700;font-size:15px">השיפור שלי</div>'
       + (dir ? '<div class="mt" style="font-size:11.5px">היעד: ' + dirName(dir) + '</div>' : '')
       + '</div>';
 
@@ -169,12 +169,12 @@
 
     var delta = (cur && prev) ? r1(cur.log.w - prev.log.w) : null;
     var j = judge(delta, dir);
-    var color = j.cls === 'good' ? 'var(--ok)' : j.cls === 'warn' ? '#F2545B' : 'var(--mut)';
+    var color = j.cls === 'good' ? 'var(--ok)' : j.cls === 'warn' ? '#D9605A' : 'var(--mut)';
     var arrow = delta === null ? '' : (delta > 0 ? '▲' : delta < 0 ? '▼' : '=');
 
     h += '<div class="row" style="align-items:center;gap:14px;margin-top:10px">'
       + '<div style="flex:none;text-align:center;min-width:98px">'
-      + '<div style="font-family:Rubik;font-weight:900;font-size:26px;line-height:1;color:' + color + '">'
+      + '<div style="font-family:Heebo;font-weight:900;font-size:26px;line-height:1;color:' + color + '">'
       + (delta === null ? '—' : arrow + ' ' + num2(Math.abs(delta))) + '</div>'
       + '<div class="mt" style="font-size:10.5px;margin-top:3px">'
       + (delta === null ? 'אין עדיין השוואה' : 'ק״ג מהשבוע שעבר') + '</div></div>'
@@ -191,7 +191,7 @@
       var jt = judge(tot, dir);
       h += '<div class="row" style="gap:8px;margin-top:12px;flex-wrap:wrap">'
         + chip('מאז ההתחלה', (tot > 0 ? '+' : '') + tot + ' ק״ג',
-               jt.cls === 'good' ? 'var(--ok)' : jt.cls === 'warn' ? '#F2545B' : null)
+               jt.cls === 'good' ? 'var(--ok)' : jt.cls === 'warn' ? '#D9605A' : null)
         + chip('שקילות', String(rows.length), null)
         + chip('אימונים השבוע', String(wk), wk > 0 ? 'var(--ok)' : null)
         + '</div>';
@@ -223,10 +223,10 @@
             return '<div style="display:flex;gap:12px;align-items:baseline;font-size:12.5px;'
               + 'padding:6px 0;border-bottom:1px solid var(--line)">'
               + '<span class="mt" style="flex:1;min-width:0">' + num2(weekLabel(r.week)) + '</span>'
-              + '<span style="font-family:Rubik;font-weight:700;min-width:52px;text-align:center">'
+              + '<span style="font-family:Heebo;font-weight:700;min-width:52px;text-align:center">'
               + num2(r1(r.log.w)) + '</span>'
-              + '<span style="min-width:48px;text-align:center;font-family:Rubik;color:'
-              + (d === null ? 'var(--dim)' : d < 0 ? 'var(--ok)' : d > 0 ? '#F2545B' : 'var(--dim)') + '">'
+              + '<span style="min-width:48px;text-align:center;font-family:Heebo;color:'
+              + (d === null ? 'var(--dim)' : d < 0 ? 'var(--ok)' : d > 0 ? '#D9605A' : 'var(--dim)') + '">'
               + (d === null ? '—' : num2((d > 0 ? '+' : '') + d)) + '</span></div>';
           }).join('')
         + '</div></details>';
@@ -239,7 +239,7 @@
     return '<span style="font-size:11.5px;padding:4px 10px;border-radius:20px;background:var(--ink);'
       + 'border:1px solid var(--line);white-space:nowrap">'
       + '<span class="mt">' + esc(label) + ' </span>'
-      + '<b style="font-family:Rubik' + (color ? ';color:' + color : '') + '">' + num2(val) + '</b></span>';
+      + '<b style="font-family:Heebo' + (color ? ';color:' + color : '') + '">' + num2(val) + '</b></span>';
   }
 
   /* מספר עם סימן בתוך משפט עברי מתהפך — "‎-2.4" מוצג כ-"2.4-".

@@ -11,7 +11,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['libraryUi'] = 'v47';
+  (window.EB_MOD = window.EB_MOD || {})['libraryUi'] = 'v48';
 
   var Q = '', TYPE = 'all', OPEN = {};
 
@@ -52,11 +52,11 @@
     return '<div class="card" style="margin-bottom:10px" data-mid="' + esc(m.id) + '">'
       + '<div class="row" style="align-items:flex-start">'
       + '<div style="flex:1;min-width:0">'
-      + '<div style="font-family:Rubik;font-weight:700;font-size:15px;line-height:1.3">' + esc(m.name) + '</div>'
+      + '<div style="font-family:Heebo;font-weight:700;font-size:15px;line-height:1.3">' + esc(m.name) + '</div>'
       + '<div class="muted" style="font-size:12px;margin-top:3px">' + esc(EBLib.TYPES[m.type] || '') + '</div>'
       + '</div>'
       + '<div style="text-align:center;flex:none;padding-inline-start:10px">'
-      + '<div style="font-family:Rubik;font-weight:900;font-size:20px;color:var(--or);line-height:1">' + Math.round(t.k) + '</div>'
+      + '<div style="font-family:Heebo;font-weight:900;font-size:20px;color:var(--or);line-height:1">' + Math.round(t.k) + '</div>'
       + '<div class="muted" style="font-size:10.5px">קק״ל</div></div>'
       + '</div>'
       + '<div class="row" style="gap:6px;margin-top:9px;flex-wrap:wrap">'
@@ -71,7 +71,7 @@
       + '</div>';
   }
   function pill(txt) {
-    return '<span style="font-size:11.5px;padding:3px 9px;border-radius:20px;background:var(--panel-2,#1C1C22);'
+    return '<span style="font-size:11.5px;padding:3px 9px;border-radius:20px;background:var(--panel-2,#26221B);'
       + 'border:1px solid var(--line);color:var(--mut);white-space:nowrap">' + esc(txt) + '</span>';
   }
 

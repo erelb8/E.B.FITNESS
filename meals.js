@@ -12,7 +12,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['meals'] = 'v47';
+  (window.EB_MOD = window.EB_MOD || {})['meals'] = 'v48';
 
   var BUCKET = 'programs';
   var MAXW   = 900;          // רוחב מרבי אחרי הקטנה
@@ -90,8 +90,8 @@
       var miss = (EBSync.missing().trainees || []);
       if (miss.indexOf('meals') > -1) {
         h += '<div class="card" style="margin-bottom:12px;border-color:var(--amber);'
-          + 'background:rgba(255,162,77,.07)">'
-          + '<div style="font-family:Rubik;font-weight:700;font-size:14px;color:var(--amber)">'
+          + 'background:rgba(217,164,65,.07)">'
+          + '<div style="font-family:Heebo;font-weight:700;font-size:14px;color:var(--amber)">'
           + 'התפריט נשמר במכשיר הזה בלבד</div>'
           + '<div class="muted" style="font-size:13px;line-height:1.6;margin-top:6px">'
           + 'בשרת חסרה עמודת הארוחות, ולכן התפריט לא מגיע למתאמן בקישור שלו. '
@@ -108,7 +108,7 @@
         return '<div style="flex:1;min-width:120px">'
           + '<div class="row" style="font-size:12.5px;margin-bottom:4px">'
           + '<span class="muted" style="flex:1">' + label + '</span>'
-          + '<span style="font-family:Rubik;font-weight:700">' + Math.round(val) + (goal ? ' / ' + Math.round(goal) : '') + ' ' + unit + '</span></div>'
+          + '<span style="font-family:Heebo;font-weight:700">' + Math.round(val) + (goal ? ' / ' + Math.round(goal) : '') + ' ' + unit + '</span></div>'
           + '<div style="height:5px;background:var(--panel);border-radius:20px;overflow:hidden">'
           + '<div style="height:100%;width:' + pct + '%;border-radius:20px;background:'
           + (over ? 'var(--bad)' : 'linear-gradient(90deg,var(--or),var(--amber))') + '"></div></div></div>';
@@ -148,7 +148,7 @@
               ? '<div style="aspect-ratio:16/10;background:var(--ink) url(' + esc(m.photo) + ') center/cover"></div>'
               : '<div style="aspect-ratio:16/10;background:var(--panel-2);display:grid;place-items:center;font-size:30px">🍽</div>')
           + '<div style="padding:12px">'
-          + '<div style="font-family:Rubik;font-weight:700;font-size:15px;line-height:1.3">' + esc(m.name || 'ארוחה') + '</div>'
+          + '<div style="font-family:Heebo;font-weight:700;font-size:15px;line-height:1.3">' + esc(m.name || 'ארוחה') + '</div>'
           + (m.desc ? '<div class="muted" style="font-size:12.5px;margin-top:4px;line-height:1.45">' + esc(m.desc) + '</div>' : '')
           + '<div class="row" style="gap:6px;margin-top:10px;flex-wrap:wrap">'
           + (num(m.kcal)    ? '<span class="pill">' + num(m.kcal) + ' קק״ל</span>' : '')

@@ -19,7 +19,7 @@
   'use strict';
 
   // חותמת גרסה — index.html משווה אליה כדי לזהות קובץ ישן במטמון
-  (window.EB_MOD = window.EB_MOD || {})['import'] = 'v47';
+  (window.EB_MOD = window.EB_MOD || {})['import'] = 'v48';
 
   var FOR = null, DRAFT = null;
 
@@ -609,7 +609,7 @@
 
     DRAFT.days.forEach(function (d) {
       h += '<div class="card" style="margin-bottom:10px;padding:12px">'
-        + '<div style="font-family:Rubik;font-weight:700;margin-bottom:8px">' + esc(d.name) + '</div>';
+        + '<div style="font-family:Heebo;font-weight:700;margin-bottom:8px">' + esc(d.name) + '</div>';
       d.exercises.forEach(function (e) {
         var meta = [e.sets && e.sets + (e.reps ? '×' + e.reps : ' סטים'),
                     !e.sets && e.reps ? e.reps : '', e.weight].filter(Boolean).join(' · ');

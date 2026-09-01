@@ -7,7 +7,7 @@
 
 <!-- ===== PWA — הופך את האתר לאפליקציה במסך הבית ===== -->
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#0C0C0E">
+<meta name="theme-color" content="#17140F">
 <meta name="description" content="מערכת לניהול מתאמנים, תוכניות אימון, יומן ותשלומים">
 
 <!-- אייפון / אייפד -->
@@ -22,15 +22,16 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700&family=Rubik:wght@500;700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@500;700;900&family=Heebo:wght@300;400;500;700;800&display=swap" rel="stylesheet">
 <style>
 :root{
-  --ink:#0C0C0E; --panel:#151519; --card:#1C1C22; --line:#2B2B34; --line2:#3A3A46;
-  --tx:#F3F3F6; --mut:#8D8D9A; --dim:#5F5F6B;
-  --or:#FF6B1A; --or-soft:rgba(255,107,26,.14); --amber:#FFB03A;
-  --ok:#3BD68B; --warn:#FFC53D; --bad:#FF5D5D;
-  --r:14px; --r-s:10px;
-  --shadow:0 10px 30px rgba(0,0,0,.45);
+  /* חול ובזלת × דיו — בזלת חמה, זית כדגש יחיד, צבע רק כשהוא אומר משהו */
+  --ink:#17140F; --panel:#1F1B15; --card:#26221B; --line:#37312A; --line2:#4A4239;
+  --tx:#EDE4D6; --mut:#A69C8E; --dim:#756B5E;
+  --or:#8FA84F; --or-soft:rgba(143,168,79,.13); --amber:#D9A441;
+  --ok:#BCE05B; --warn:#D9A441; --bad:#D9605A;
+  --r:10px; --r-s:7px;
+  --shadow:0 12px 34px rgba(0,0,0,.5);
 }
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
@@ -38,10 +39,10 @@ body{
   background:var(--ink); color:var(--tx);
   font-family:'Heebo',system-ui,sans-serif; font-size:15px; line-height:1.5;
   -webkit-font-smoothing:antialiased;
-  background-image:radial-gradient(1200px 600px at 90% -10%, rgba(255,107,26,.09), transparent 60%);
+  background-image:radial-gradient(1200px 600px at 90% -10%, rgba(143,168,79,.09), transparent 60%);
   background-attachment:fixed;
 }
-h1,h2,h3,h4{font-family:'Rubik',sans-serif;margin:0;font-weight:700;letter-spacing:-.02em}
+h1,h2,h3,h4{font-family:'Frank Ruhl Libre',Georgia,serif;margin:0;font-weight:700;letter-spacing:-.02em}
 button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit}
 button{cursor:pointer}
 a{color:var(--or);text-decoration:none}
@@ -58,7 +59,7 @@ a{color:var(--or);text-decoration:none}
   padding-top:calc(10px + env(safe-area-inset-top));
   padding-inline:calc(16px + env(safe-area-inset-right)) calc(16px + env(safe-area-inset-left));
 }
-.brand{display:flex;align-items:baseline;gap:6px;font-family:'Rubik';font-weight:900;font-size:15px;letter-spacing:.06em}
+.brand{display:flex;align-items:baseline;gap:6px;font-family:'Heebo';font-weight:900;font-size:15px;letter-spacing:.06em}
 .brand .dot{width:7px;height:7px;border-radius:50%;background:var(--or);display:inline-block;transform:translateY(-1px)}
 .brand small{font-family:'Heebo';font-weight:400;font-size:10px;color:var(--dim);letter-spacing:.14em}
 .top .spacer{flex:1}
@@ -69,10 +70,10 @@ a{color:var(--or);text-decoration:none}
   font-size:11px;padding:4px 10px;border-radius:20px;white-space:nowrap;
   background:var(--card);border:1px solid var(--line);color:var(--mut);font-weight:500;
 }
-.syncpill.s-ok{color:var(--ok);border-color:rgba(59,214,139,.35);background:rgba(59,214,139,.08)}
+.syncpill.s-ok{color:var(--ok);border-color:rgba(188,224,91,.35);background:rgba(188,224,91,.08)}
 .syncpill.s-sync{color:var(--amber);border-color:rgba(255,176,58,.35);background:rgba(255,176,58,.08)}
 .syncpill.s-error{color:var(--bad);border-color:rgba(255,93,93,.4);background:rgba(255,93,93,.08)}
-.syncpill.s-out{color:var(--or);border-color:rgba(255,107,26,.4);background:var(--or-soft)}
+.syncpill.s-out{color:var(--or);border-color:rgba(143,168,79,.4);background:var(--or-soft)}
 .syncpill.s-offline{color:var(--dim)}
 @media(max-width:600px){ .syncpill{display:none} }
 
@@ -92,18 +93,18 @@ a{color:var(--or);text-decoration:none}
 }
 .folder:hover{border-color:var(--line2)}
 .folder .fic{font-size:18px; line-height:1; filter:grayscale(.55); transition:.16s}
-.folder .fnm{font-family:'Rubik'; font-weight:700; font-size:11.5px; white-space:nowrap}
+.folder .fnm{font-family:'Heebo'; font-weight:700; font-size:11.5px; white-space:nowrap}
 .folder .fct{
   position:absolute; top:5px; inset-inline-end:5px; font-size:9px;
-  font-family:'Rubik'; font-weight:700; color:var(--dim);
+  font-family:'Heebo'; font-weight:700; color:var(--dim);
   background:var(--ink); border-radius:20px; padding:1px 5px; line-height:1.5;
 }
 .folder.on{
   background:var(--or-soft); border-color:var(--or); color:var(--or);
-  box-shadow:0 0 0 1px rgba(255,107,26,.18);
+  box-shadow:0 0 0 1px rgba(143,168,79,.18);
 }
 .folder.on .fic{filter:none}
-.folder.on .fct{color:var(--or); background:rgba(255,107,26,.16)}
+.folder.on .fct{color:var(--or); background:rgba(143,168,79,.16)}
 @media print{ .folders{display:none} }
 
 /* ---------- ימי אימון כתיקיות ---------- */
@@ -113,10 +114,10 @@ a{color:var(--or);text-decoration:none}
 .dayhead:hover{background:rgba(255,255,255,.02)}
 .daynum{
   width:30px;height:30px;flex:none;border-radius:50%;display:grid;place-items:center;
-  font-family:'Rubik';font-weight:900;font-size:13px;
-  background:var(--or-soft);color:var(--or);border:1px solid rgba(255,107,26,.3);
+  font-family:'Heebo';font-weight:900;font-size:13px;
+  background:var(--or-soft);color:var(--or);border:1px solid rgba(143,168,79,.3);
 }
-.daycard.on .daynum{background:var(--or);color:#150800;border-color:var(--or)}
+.daycard.on .daynum{background:var(--or);color:#141A06;border-color:var(--or)}
 .daychev{
   width:8px;height:8px;flex:none;transform:rotate(45deg);transition:transform .22s;
   border-right:2px solid var(--dim);border-bottom:2px solid var(--dim);
@@ -155,7 +156,7 @@ main{flex:1;min-width:0;padding:22px 24px 90px}
 .page-head .spacer{flex:1}
 
 /* ---------- bits ---------- */
-.btn{background:var(--or);color:#150800;border:0;border-radius:var(--r-s);padding:9px 16px;font-weight:700;font-family:'Rubik';font-size:14px}
+.btn{background:var(--or);color:#141A06;border:0;border-radius:var(--r-s);padding:9px 16px;font-weight:700;font-family:'Heebo';font-size:14px}
 .btn:hover{filter:brightness(1.08)}
 .btn.ghost{background:var(--card);color:var(--tx);border:1px solid var(--line)}
 .btn.ghost:hover{border-color:var(--or);color:var(--or)}
@@ -167,13 +168,13 @@ main{flex:1;min-width:0;padding:22px 24px 90px}
 .g3{grid-template-columns:repeat(3,1fr)}
 .g2{grid-template-columns:repeat(2,1fr)}
 .stat .lbl{font-size:11px;color:var(--mut);letter-spacing:.08em}
-.stat .val{font-family:'Rubik';font-weight:900;font-size:30px;line-height:1.1;margin-top:4px;font-variant-numeric:tabular-nums}
+.stat .val{font-family:'Heebo';font-weight:900;font-size:30px;line-height:1.1;margin-top:4px;font-variant-numeric:tabular-nums}
 .stat .sub{font-size:12px;color:var(--dim);margin-top:2px}
 .pill{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;padding:3px 9px;border-radius:20px;border:1px solid var(--line2);color:var(--mut)}
-.pill.ok{color:var(--ok);border-color:rgba(59,214,139,.35);background:rgba(59,214,139,.08)}
+.pill.ok{color:var(--ok);border-color:rgba(188,224,91,.35);background:rgba(188,224,91,.08)}
 .pill.warn{color:var(--warn);border-color:rgba(255,197,61,.35);background:rgba(255,197,61,.08)}
 .pill.bad{color:var(--bad);border-color:rgba(255,93,93,.35);background:rgba(255,93,93,.08)}
-.pill.or{color:var(--or);border-color:rgba(255,107,26,.4);background:var(--or-soft)}
+.pill.or{color:var(--or);border-color:rgba(143,168,79,.4);background:var(--or-soft)}
 .muted{color:var(--mut)}
 .sep{height:1px;background:var(--line);margin:14px 0}
 label.f{display:block;font-size:11.5px;color:var(--mut);margin:0 0 5px 2px;letter-spacing:.04em}
@@ -196,16 +197,16 @@ textarea.f{resize:vertical;min-height:70px}
 .tcard{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px;cursor:pointer;transition:.16s;position:relative;overflow:hidden}
 .tcard:hover{border-color:var(--or);transform:translateY(-2px)}
 .tcard .hd{display:flex;gap:11px;align-items:center}
-.av{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;font-family:'Rubik';font-weight:900;font-size:15px;color:#140700;flex:0 0 42px}
-.tcard .nm{font-family:'Rubik';font-weight:700;font-size:16px}
+.av{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;font-family:'Heebo';font-weight:900;font-size:15px;color:#140700;flex:0 0 42px}
+.tcard .nm{font-family:'Heebo';font-weight:700;font-size:16px}
 .tcard .gl{font-size:12px;color:var(--mut);margin-top:1px}
 /* signature: plate bar */
 .plates{display:flex;gap:3px;margin-top:12px;align-items:flex-end;height:22px}
 .plate{flex:1;height:100%;border-radius:3px;background:var(--line);position:relative}
-.plate.used{background:linear-gradient(180deg,var(--or),#C24A0A)}
+.plate.used{background:linear-gradient(180deg,var(--or),#6E8438)}
 .plate.next{background:var(--line2);box-shadow:inset 0 0 0 1px var(--or)}
 .plates-lbl{display:flex;justify-content:space-between;font-size:11px;color:var(--dim);margin-top:6px}
-.plates-lbl b{color:var(--tx);font-family:'Rubik'}
+.plates-lbl b{color:var(--tx);font-family:'Heebo'}
 
 /* ---------- lists/tables ---------- */
 table{width:100%;border-collapse:collapse;font-size:13.5px}
@@ -235,20 +236,20 @@ tbody tr:hover{background:var(--panel)}
 .chart .pt{fill:var(--ink);stroke:var(--or);stroke-width:2}
 .chart text{fill:var(--dim);font-size:10px;font-family:'Heebo'}
 .bars{display:flex;align-items:flex-end;gap:6px;height:150px}
-.bars .b{flex:1;background:linear-gradient(180deg,var(--or),rgba(255,107,26,.25));border-radius:5px 5px 0 0;min-height:3px;position:relative}
+.bars .b{flex:1;background:linear-gradient(180deg,var(--or),rgba(143,168,79,.25));border-radius:5px 5px 0 0;min-height:3px;position:relative}
 .bars .b span{position:absolute;bottom:-20px;right:0;left:0;text-align:center;font-size:10px;color:var(--dim)}
-.bars .b b{position:absolute;top:-17px;right:0;left:0;text-align:center;font-size:10.5px;color:var(--mut);font-family:'Rubik'}
+.bars .b b{position:absolute;top:-17px;right:0;left:0;text-align:center;font-size:10.5px;color:var(--mut);font-family:'Heebo'}
 
 /* ---------- lab ---------- */
 .mod{display:flex;gap:12px;align-items:flex-start;background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px}
-.mod.on{border-color:rgba(255,107,26,.5);background:linear-gradient(180deg,var(--or-soft),transparent)}
+.mod.on{border-color:rgba(143,168,79,.5);background:linear-gradient(180deg,var(--or-soft),transparent)}
 .mod .ic{font-size:20px;width:38px;height:38px;border-radius:11px;background:var(--panel);display:grid;place-items:center;border:1px solid var(--line)}
 .mod h4{font-size:14.5px}
 .mod p{margin:3px 0 0;font-size:12.5px;color:var(--mut);line-height:1.45}
 .sw{width:44px;height:25px;border-radius:20px;background:var(--line);border:0;position:relative;flex:0 0 44px;transition:.18s}
 .sw::after{content:'';position:absolute;top:3px;right:3px;width:19px;height:19px;border-radius:50%;background:var(--mut);transition:.18s}
 .sw.on{background:var(--or)}
-.sw.on::after{background:#150800;transform:translateX(-19px)}
+.sw.on::after{background:#141A06;transform:translateX(-19px)}
 .chat{display:flex;flex-direction:column;gap:12px;height:min(58vh,460px);overflow:auto;padding:4px 2px}
 .msg{max-width:82%;padding:10px 13px;border-radius:14px;font-size:14px;line-height:1.55;white-space:pre-wrap}
 .msg.bot{background:var(--card);border:1px solid var(--line);border-top-right-radius:4px;align-self:flex-start}
@@ -305,8 +306,8 @@ tbody tr:hover{background:var(--panel)}
 <div id="toast"></div>
 
 <!-- ספריית Supabase מקומית (לא מ-CDN) כדי שהאפליקציה תעבוד גם בלי רשת -->
-<script src="vendor/supabase.js?v=v47"></script>
-<script src="config.js?v=v47"></script>
+<script src="vendor/supabase.js?v=v48"></script>
+<script src="config.js?v=v48"></script>
 
 <script>
 /* =======================================================================
@@ -341,7 +342,7 @@ function age(b){ if(!b) return null; const d=new Date(b), t=new Date(); let a=t.
 
 /* ---------------- אחסון ---------------- */
 const KEY='ebfit_v1';
-const EB_VERSION='v47';   // חייב להתאים ל-VERSION ב-sw.js
+const EB_VERSION='v48';   // חייב להתאים ל-VERSION ב-sw.js
 let mem=null, canStore=true;
 function load(){
   try{ const r=localStorage.getItem(KEY); return r?JSON.parse(r):null; }
@@ -380,8 +381,18 @@ function closeModal(){ $('#mask').classList.remove('on'); document.body.style.ov
 document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeModal(); });
 
 /* ---------------- עזרי מתאמן ---------------- */
-const PALETTE=['#FF6B1A','#FFB03A','#3BD68B','#4CC3FF','#B983FF','#FF7A9C','#59D9C9','#FFD166'];
-function tColor(t){ return t.color || PALETTE[(t.name||'').length % PALETTE.length]; }
+/* גוונים מאותה משפחה: מבדילים בין מתאמנים בלי להפוך את המסך לקשת.
+   שמונה ערכים כדי שגם ברשימה ארוכה שני שכנים לא ייראו זהים. */
+const PALETTE=['#8FA84F','#C08A4A','#A8894F','#7E9B6B','#C4744F','#8C9AA0','#B39A5B','#6F8F73'];
+/* גיבוב על השם כולו ולא על אורכו: "אור שריקי", "נמרוד לרר" ו"הראל דביר"
+   כולם באורך תשע, ולפי אורך שלושתם היו מקבלים בדיוק אותו צבע. */
+function tColor(t){
+  if(t.color) return t.color;
+  const n=t.name||'';
+  let h=0;
+  for(let i=0;i<n.length;i++) h=(h*31+n.charCodeAt(i))>>>0;
+  return PALETTE[h % PALETTE.length];
+}
 function initials(n){ const p=(n||'?').trim().split(/\s+/); return (p[0]||'?')[0] + (p[1]?p[1][0]:''); }
 function tById(id){ return S.trainees.find(t=>t.id===id); }
 function left(t){ return Math.max(0,(t.pkgTotal||0)-(t.pkgUsed||0)); }
@@ -790,7 +801,7 @@ function tabProgram(t){
     h+='<div class="card daycard'+(open?' on':'')+'" style="margin-bottom:12px;padding:0;overflow:hidden">'
      +'<div class="row dayhead" style="padding:13px 14px;gap:11px;cursor:pointer" onclick="toggleDay(\''+t.id+'\','+di+',event)">'
      +'<span class="daynum">'+(di+1)+'</span>'
-     +'<input class="f dayname" style="flex:1;font-family:Rubik;font-weight:700;font-size:15.5px;background:transparent;border-color:transparent;padding:2px 4px" value="'+esc(d.name)+'" onclick="event.stopPropagation()" onchange="setDay(\''+t.id+'\','+di+',\'name\',this.value)">'
+     +'<input class="f dayname" style="flex:1;font-family:Heebo;font-weight:700;font-size:15.5px;background:transparent;border-color:transparent;padding:2px 4px" value="'+esc(d.name)+'" onclick="event.stopPropagation()" onchange="setDay(\''+t.id+'\','+di+',\'name\',this.value)">'
      +'<span class="muted" style="font-size:12.5px;white-space:nowrap">'+ex.length+' תרגילים</span>'
      +'<span class="daychev"></span></div>'
      +'<div class="daybody">'
@@ -890,7 +901,7 @@ function lineChart(pts,unit){
   lb='<text x="'+(W-P)+'" y="14" text-anchor="end">'+mx+' '+unit+'</text><text x="'+(W-P)+'" y="'+(H-8)+'" text-anchor="end">'+mn+' '+unit+'</text>';
   lb+='<text x="'+P+'" y="'+(H-8)+'">'+fmtDate(pts[0].x)+'</text>';
   return '<svg class="chart" viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="xMidYMid meet" style="width:100%;height:auto">'
-   +'<defs><linearGradient id="gr" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#FF6B1A" stop-opacity=".28"/><stop offset="1" stop-color="#FF6B1A" stop-opacity="0"/></linearGradient></defs>'
+   +'<defs><linearGradient id="gr" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#8FA84F" stop-opacity=".28"/><stop offset="1" stop-color="#8FA84F" stop-opacity="0"/></linearGradient></defs>'
    +g+'<path class="ar" d="'+ar+'"/><path class="ln" d="'+d+'"/>'+pt+lb+'</svg>';
 }
 function editMeasure(id,tid){
@@ -955,7 +966,7 @@ function tabPay(t){
   if(!ps.length) return h+'<div class="empty"><div class="big">₪</div>לא נרשמו תשלומים.</div>';
   h+='<div class="card" style="padding-inline:0"><div style="overflow-x:auto;padding-inline:14px">'
    +'<table style="min-width:480px"><thead><tr><th>תאריך</th><th>סכום</th><th>אמצעי</th><th>אימונים</th><th>הערה</th><th class="noprint"></th></tr></thead><tbody>';
-  ps.forEach(p=>{ h+='<tr><td>'+fmtFull(p.date)+'</td><td style="font-family:Rubik;font-weight:700">'+money(p.amount)+'</td><td>'+esc(p.method||'')+'</td><td>'+esc(p.sessions||'—')+'</td><td class="muted">'+esc(p.note||'')+'</td>'
+  ps.forEach(p=>{ h+='<tr><td>'+fmtFull(p.date)+'</td><td style="font-family:Heebo;font-weight:700">'+money(p.amount)+'</td><td>'+esc(p.method||'')+'</td><td>'+esc(p.sessions||'—')+'</td><td class="muted">'+esc(p.note||'')+'</td>'
    +'<td class="noprint"><button class="iconbtn" style="width:28px;height:28px" onclick="S.payments=S.payments.filter(x=>x.id!==\''+p.id+'\');save();render()">✕</button></td></tr>'; });
   return h+'</tbody></table></div></div>';
 }
@@ -970,7 +981,7 @@ function tabPRs(t){
   Object.keys(byEx).forEach(k=>{
     const arr=byEx[k], best=arr.slice().sort((a,b)=>Number(b.value)-Number(a.value))[0];
     h+='<div class="card"><div class="lbl muted" style="font-size:11px">'+esc(k)+'</div>'
-     +'<div style="font-family:Rubik;font-weight:900;font-size:26px;margin-top:4px">'+esc(best.value)+' <span style="font-size:13px;color:var(--mut)">'+esc(best.unit||'ק״ג')+' × '+esc(best.reps||1)+'</span></div>'
+     +'<div style="font-family:Heebo;font-weight:900;font-size:26px;margin-top:4px">'+esc(best.value)+' <span style="font-size:13px;color:var(--mut)">'+esc(best.unit||'ק״ג')+' × '+esc(best.reps||1)+'</span></div>'
      +'<div class="muted" style="font-size:12px">'+fmtFull(best.date)+' · '+arr.length+' רישומים</div></div>';
   });
   return h+'</div>';
@@ -1049,7 +1060,7 @@ function vSchedule(){
     const isToday=d===todayISO();
     h+='<div class="card" style="padding:10px;min-height:150px'+(isToday?';border-color:var(--or)':'')+'">'
      +'<div style="font-size:11px;color:var(--dim)">'+HE_DAYS[new Date(d+"T00:00").getDay()]+'</div>'
-     +'<div style="font-family:Rubik;font-weight:700;font-size:16px;margin-bottom:8px;color:'+(isToday?'var(--or)':'var(--tx)')+'">'+new Date(d+'T00:00').getDate()+'</div>';
+     +'<div style="font-family:Heebo;font-weight:700;font-size:16px;margin-bottom:8px;color:'+(isToday?'var(--or)':'var(--tx)')+'">'+new Date(d+'T00:00').getDate()+'</div>';
     ss.forEach(s=>{ const t=tById(s.traineeId);
       h+='<button style="width:100%;text-align:right;background:var(--panel);border:1px solid var(--line);border-right:3px solid '+(t?tColor(t):'#666')+';border-radius:8px;padding:6px 8px;margin-bottom:5px;'+(s.status==='done'?'opacity:.55':'')+'" onclick="editSession(\''+s.id+'\')">'
        +'<div style="font-size:11.5px;color:var(--mut)">'+esc(s.time||'')+'</div>'
@@ -1113,7 +1124,7 @@ function vMoney(){
   if(!all.length) h+='<div class="empty" style="padding:30px">לא נרשמו תשלומים.</div>';
   else{ h+='<div style="overflow-x:auto"><table style="min-width:560px"><thead><tr><th>תאריך</th><th>מתאמן</th><th>סכום</th><th>אמצעי</th><th>אימונים</th><th>הערה</th><th class="noprint"></th></tr></thead><tbody>';
     all.forEach(p=>{ const t=tById(p.traineeId);
-      h+='<tr><td>'+fmtFull(p.date)+'</td><td>'+esc(t?t.name:'—')+'</td><td style="font-family:Rubik;font-weight:700">'+money(p.amount)+'</td><td>'+esc(p.method||'')+'</td><td>'+esc(p.sessions||'—')+'</td><td class="muted">'+esc(p.note||'')+'</td>'
+      h+='<tr><td>'+fmtFull(p.date)+'</td><td>'+esc(t?t.name:'—')+'</td><td style="font-family:Heebo;font-weight:700">'+money(p.amount)+'</td><td>'+esc(p.method||'')+'</td><td>'+esc(p.sessions||'—')+'</td><td class="muted">'+esc(p.note||'')+'</td>'
        +'<td class="noprint"><button class="iconbtn" style="width:28px;height:28px" onclick="S.payments=S.payments.filter(x=>x.id!==\''+p.id+'\');save();render()">✕</button></td></tr>'; });
     h+='</tbody></table></div>'; }
   return h+'</div>';
@@ -1313,7 +1324,7 @@ const BOT_SYS = 'אתה בונה מיני-אפליקציות לתוך מערכת
  +'החזר JSON בלבד, בלי טקסט לפני או אחרי, בלי גדרות קוד, במבנה: {"title":"שם קצר בעברית","icon":"אמוג׳י אחד","html":"..."}\n'
  +'ה-html הוא מקטע עצמאי הכולל <style> ו-<script> (בלי html/head/body). כללים:\n'
  +'1. עברית, dir="rtl", טקסט ברור.\n'
- +'2. עיצוב כהה תואם: רקע שקוף, כרטיסים #1C1C22, גבול #2B2B34, טקסט #F3F3F6, טקסט משני #8D8D9A, צבע הדגשה #FF6B1A, פונט Heebo, פינות 12px.\n'
+ +'2. עיצוב כהה תואם: רקע שקוף, כרטיסים #26221B, גבול #37312A, טקסט #EDE4D6, טקסט משני #A69C8E, צבע הדגשה #8FA84F, פונט Heebo, פינות 12px.\n'
  +'3. אין רשת, אין ספריות חיצוניות, אין localStorage.\n'
  +'4. שמירת מידע: window.EB.data (הנתונים השמורים, יכול להיות null) ו-window.EB.save(obj). קריאה ל-save שומרת בתוך האפליקציה הראשית.\n'
  +'5. רשימת המתאמנים זמינה ב-window.EB.trainees (מערך של {id,name,goal,pkgTotal,pkgUsed,pricePerSession}). אם הפיצ׳ר קשור למתאמן — תן לבחור מתאמן מהרשימה.\n'
@@ -1353,8 +1364,8 @@ function mountCustom(){
    +'save:function(d){parent.postMessage({type:"eb-save",id:"'+c.id+'",data:d},"*")}};<\/script>';
   const doc='<!DOCTYPE html><html dir="rtl" lang="he"><head><meta charset="utf-8">'
    +'<meta name="viewport" content="width=device-width,initial-scale=1">'
-   +'<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700&display=swap" rel="stylesheet">'
-   +'<style>body{margin:0;padding:16px;background:#151519;color:#F3F3F6;font-family:Heebo,sans-serif}'
+   +'<link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@500;700;900&family=Heebo:wght@300;400;500;700;800&display=swap" rel="stylesheet">'
+   +'<style>body{margin:0;padding:16px;background:#1F1B15;color:#EDE4D6;font-family:Heebo,sans-serif}'
    +'button{font-family:inherit;cursor:pointer}input,select,textarea{font-family:inherit}</style></head><body>'
    +boot+c.html+'</body></html>';
   $('#cframe').srcdoc=doc;
@@ -1499,9 +1510,9 @@ function seedDemo(){
   const t=todayISO();
   const mk=(name,goal,level,total,used,price,color,goalW)=>({id:uid(),name,goal,level,status:'active',joined:addDays(t,-90),
     pkgTotal:total,pkgUsed:used,pricePerSession:price,balanceDue:0,notes:'',tags:[],color,program:{days:[]}});
-  const a=mk('דניאל כהן','ירידה באחוזי שומן','בינוני',12,10,150,'#FF6B1A');
-  const b=mk('מאיה לוי','חיזוק וכוח','מתחיל',10,3,150,'#4CC3FF');
-  const c=mk('אורי שריקי','עלייה במסת שריר','מתקדם',16,7,170,'#3BD68B');
+  const a=mk('דניאל כהן','ירידה באחוזי שומן','בינוני',12,10,150,'#8FA84F');
+  const b=mk('מאיה לוי','חיזוק וכוח','מתחיל',10,3,150,'#8C9AA0');
+  const c=mk('אורי שריקי','עלייה במסת שריר','מתקדם',16,7,170,'#BCE05B');
   a.phone='0501111111'; b.phone='0502222222'; c.phone='0503333333';
   a.program.days=[{name:'יום A — פלג גוף עליון',exercises:[
     {name:'לחיצת חזה במוט',sets:'4',reps:'8',weight:'60',rest:'90',note:''},
@@ -1559,19 +1570,19 @@ if (location.protocol === 'file:') {
 }
 </script>
 
-<script src="intake.js?v=v47"></script>
-<script src="files.js?v=v47"></script>
-<script src="builder.js?v=v47"></script>
-<script src="import-program.js?v=v47"></script>
-<script src="tracking.js?v=v47"></script>
-<script src="metrics.js?v=v47"></script>
-<script src="meal-library.js?v=v47"></script>
-<script src="library-ui.js?v=v47"></script>
-<script src="export-plan.js?v=v47"></script>
-<script src="cardio.js?v=v47"></script>
-<script src="cardio-ui.js?v=v47"></script>
-<script src="meals.js?v=v47"></script>
-<script src="sync.js?v=v47"></script>
+<script src="intake.js?v=v48"></script>
+<script src="files.js?v=v48"></script>
+<script src="builder.js?v=v48"></script>
+<script src="import-program.js?v=v48"></script>
+<script src="tracking.js?v=v48"></script>
+<script src="metrics.js?v=v48"></script>
+<script src="meal-library.js?v=v48"></script>
+<script src="library-ui.js?v=v48"></script>
+<script src="export-plan.js?v=v48"></script>
+<script src="cardio.js?v=v48"></script>
+<script src="cardio-ui.js?v=v48"></script>
+<script src="meals.js?v=v48"></script>
+<script src="sync.js?v=v48"></script>
 <script>
 /* =================== חיבור הסנכרון לאפליקציה =================== */
 

@@ -10,7 +10,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['cardioUi'] = 'v47';
+  (window.EB_MOD = window.EB_MOD || {})['cardioUi'] = 'v48';
 
   var SHOW_F = false;   // הצגת הנוסחאות
 
@@ -31,13 +31,13 @@
     return '<span dir="ltr" style="unicode-bidi:isolate;display:inline-block">' + esc(v) + '</span>';
   }
   function big(v, unit, color) {
-    return '<div style="font-family:Rubik;font-weight:900;font-size:34px;line-height:1;'
+    return '<div style="font-family:Heebo;font-weight:900;font-size:34px;line-height:1;'
       + (color ? 'color:' + color : '') + '">' + ltr(v)
       + (unit ? '<span style="font-size:13px;font-weight:500;color:var(--mut)"> ' + unit + '</span>' : '')
       + '</div>';
   }
   function clsColor(c) {
-    return c === 'good' ? 'var(--ok)' : c === 'bad' ? 'var(--bad,#F2545B)'
+    return c === 'good' ? 'var(--ok)' : c === 'bad' ? 'var(--bad,#D9605A)'
          : c === 'warn' ? 'var(--amber)' : 'var(--mut)';
   }
   function need(list) {
@@ -63,7 +63,7 @@
       + '<div class="muted" style="font-size:12px;margin-top:5px">'
       + (b ? b.txt + ' · אחוזון ' + b.pct : 'אין נורמה לגיל או למין הזה') + '</div></div>'
       + '<div style="flex:1"></div>'
-      + '<div style="text-align:center"><div style="font-family:Rubik;font-weight:700;font-size:19px">'
+      + '<div style="text-align:center"><div style="font-family:Heebo;font-weight:700;font-size:19px">'
       + ltr(v.mets) + '</div><div class="muted" style="font-size:11px">MET מרבי</div></div>'
       + '</div>';
 
@@ -78,7 +78,7 @@
       h += '<div style="padding:9px 0;border-top:1px solid var(--line)">'
         + '<div class="row" style="align-items:baseline">'
         + '<span style="flex:1;font-size:13.5px">' + esc(m.name) + '</span>'
-        + '<b style="font-family:Rubik;font-size:15px">' + ltr(m.v) + '</b></div>'
+        + '<b style="font-family:Heebo;font-size:15px">' + ltr(m.v) + '</b></div>'
         + (m.note ? '<div class="muted" style="font-size:11.5px;margin-top:3px">' + esc(m.note) + '</div>' : '')
         + f(m.f) + '</div>';
     });
@@ -101,9 +101,9 @@
       + 'דופק מרבי · ' + esc(z.src) + '</div></div>';
     if (z.restHr) {
       h += '<div style="flex:1"></div><div style="text-align:center">'
-        + '<div style="font-family:Rubik;font-weight:700;font-size:19px">' + ltr(z.restHr) + '</div>'
+        + '<div style="font-family:Heebo;font-weight:700;font-size:19px">' + ltr(z.restHr) + '</div>'
         + '<div class="muted" style="font-size:11px">מנוחה</div></div>'
-        + '<div style="text-align:center"><div style="font-family:Rubik;font-weight:700;font-size:19px">'
+        + '<div style="text-align:center"><div style="font-family:Heebo;font-weight:700;font-size:19px">'
         + ltr(z.reserve) + '</div><div class="muted" style="font-size:11px">רזרבה</div></div>';
     }
     h += '</div>';
@@ -117,11 +117,11 @@
             + 'white-space:nowrap">' + x + '</th>'; }).join('') + '</tr></thead><tbody>';
     z.rows.forEach(function (r) {
       h += '<tr>'
-        + '<td style="padding:7px 5px;border-bottom:1px solid var(--line);font-family:Rubik;'
+        + '<td style="padding:7px 5px;border-bottom:1px solid var(--line);font-family:Heebo;'
         + 'font-weight:900;color:var(--or)">Z' + r.z + '</td>'
         + '<td style="padding:7px 5px;border-bottom:1px solid var(--line);white-space:nowrap">' + esc(r.name) + '</td>'
         + '<td style="padding:7px 5px;border-bottom:1px solid var(--line);text-align:center;'
-        + 'font-family:Rubik;font-weight:700;white-space:nowrap">' + ltr(r.lo + '–' + r.hi) + '</td>'
+        + 'font-family:Heebo;font-weight:700;white-space:nowrap">' + ltr(r.lo + '–' + r.hi) + '</td>'
         + '<td style="padding:7px 5px;border-bottom:1px solid var(--line);text-align:center;'
         + 'color:var(--mut);white-space:nowrap">' + ltr(r.pct) + '</td>'
         + '<td style="padding:7px 5px;border-bottom:1px solid var(--line);color:var(--mut);'
@@ -137,7 +137,7 @@
           + '<span style="flex:1">' + esc(a.src) + '</span>'
           + '<span dir="ltr" style="font-family:ui-monospace,monospace;color:var(--dim);font-size:11.5px">'
           + esc(a.f) + '</span>'
-          + '<b style="font-family:Rubik;min-width:42px;text-align:left">' + ltr(a.v) + '</b></div>';
+          + '<b style="font-family:Heebo;min-width:42px;text-align:left">' + ltr(a.v) + '</b></div>';
       });
     }
     return card('דופק ואזורי אימון', h, 'Karvonen · Tanaka');
@@ -152,17 +152,17 @@
       + '<div>' + big(b.sys + '/' + b.dia, 'ממ״כ', col)
       + '<div style="font-size:13px;margin-top:5px;color:' + col + ';font-weight:500">'
       + esc(b.cls.txt) + '</div></div><div style="flex:1"></div>'
-      + '<div style="text-align:center"><div style="font-family:Rubik;font-weight:700;font-size:19px">'
+      + '<div style="text-align:center"><div style="font-family:Heebo;font-weight:700;font-size:19px">'
       + ltr(b.map) + '</div><div class="muted" style="font-size:11px">לחץ ממוצע</div></div>'
-      + '<div style="text-align:center"><div style="font-family:Rubik;font-weight:700;font-size:19px">'
+      + '<div style="text-align:center"><div style="font-family:Heebo;font-weight:700;font-size:19px">'
       + ltr(b.pp) + '</div><div class="muted" style="font-size:11px">לחץ דופק</div></div>'
-      + (b.rpp ? '<div style="text-align:center"><div style="font-family:Rubik;font-weight:700;font-size:19px">'
+      + (b.rpp ? '<div style="text-align:center"><div style="font-family:Heebo;font-weight:700;font-size:19px">'
           + ltr(b.rpp.toLocaleString('en-US')) + '</div>'
           + '<div class="muted" style="font-size:11px">מכפלת לחץ-דופק</div></div>' : '')
       + '</div>';
     if (b.cls.act) {
       h += '<div style="font-size:13px;margin-top:10px;padding:9px 11px;border-radius:9px;'
-        + 'background:' + (b.cls.cls === 'bad' ? 'rgba(242,84,91,.10)' : 'rgba(255,162,77,.09)')
+        + 'background:' + (b.cls.cls === 'bad' ? 'rgba(217,96,90,.10)' : 'rgba(217,164,65,.09)')
         + ';border:1px solid ' + col + ';color:' + col + '">' + esc(b.cls.act) + '</div>';
     }
     h += f('לחץ ממוצע = ' + b.fMap) + f('לחץ דופק = ' + b.fPp)
@@ -188,7 +188,7 @@
       h += '<tr><td style="padding:6px 5px;border-bottom:1px solid var(--line)">' + esc(r.name) + '</td>'
         + [r.met, r.min, r.c30, r.c45].map(function (x, i) {
             return '<td style="padding:6px 5px;border-bottom:1px solid var(--line);text-align:center;'
-              + 'font-family:Rubik' + (i > 1 ? ';font-weight:700' : ';color:var(--mut)') + '">'
+              + 'font-family:Heebo' + (i > 1 ? ';font-weight:700' : ';color:var(--mut)') + '">'
               + ltr(x) + '</td>'; }).join('') + '</tr>';
     });
     return card('הוצאה קלורית לפי פעילות', h + '</tbody></table></div>', 'ACSM · MET');
@@ -203,7 +203,7 @@
       h += '<div class="row" style="gap:8px;flex-wrap:wrap;margin-top:10px">'
         + r.paces.map(function (p) {
             return '<span class="pill" style="white-space:nowrap"><span class="muted">' + esc(p[0])
-              + ' </span><b style="font-family:Rubik">' + ltr(p[1]) + '</b></span>'; }).join('')
+              + ' </span><b style="font-family:Heebo">' + ltr(p[1]) + '</b></span>'; }).join('')
         + '</div>' + f(r.fV);
     }
     h += '<div class="muted" style="font-size:12px;margin:14px 0 6px">תחזית זמנים</div>'
@@ -211,7 +211,7 @@
     r.races.forEach(function (x) {
       h += '<tr><td style="padding:6px 5px;border-bottom:1px solid var(--line)">' + esc(x.name) + '</td>'
         + '<td style="padding:6px 5px;border-bottom:1px solid var(--line);text-align:center;'
-        + 'font-family:Rubik;font-weight:700">' + ltr(x.time) + '</td>'
+        + 'font-family:Heebo;font-weight:700">' + ltr(x.time) + '</td>'
         + '<td style="padding:6px 5px;border-bottom:1px solid var(--line);text-align:center;'
         + 'color:var(--mut)">' + ltr(x.pace) + '</td></tr>';
     });
@@ -256,9 +256,9 @@
       h += '<div class="card" style="margin-bottom:10px;background:var(--ink)">'
         + '<div class="row" style="align-items:baseline;gap:10px">'
         + '<span style="width:26px;height:26px;flex:none;border-radius:50%;display:grid;place-items:center;'
-        + 'background:var(--or-soft);color:var(--or);font-family:Rubik;font-weight:900;font-size:12px">'
+        + 'background:var(--or-soft);color:var(--or);font-family:Heebo;font-weight:900;font-size:12px">'
         + (i + 1) + '</span>'
-        + '<div style="flex:1;min-width:0;font-family:Rubik;font-weight:700;font-size:14.5px">'
+        + '<div style="flex:1;min-width:0;font-family:Heebo;font-weight:700;font-size:14.5px">'
         + esc(s.name) + '</div>'
         + '<span class="pill" style="white-space:nowrap">' + ltr(s.min) + ' דק׳</span>'
         + '</div>'
@@ -318,12 +318,12 @@
     var h = '<div class="row" style="gap:16px;flex-wrap:wrap;align-items:flex-end">'
       + '<div>' + big(v.current, 'דק\u05f3 בשבוע') + '</div>'
       + '<div style="flex:1"></div>'
-      + '<div style="text-align:center"><div style="font-family:Rubik;font-weight:700;font-size:19px;'
+      + '<div style="text-align:center"><div style="font-family:Heebo;font-weight:700;font-size:19px;'
       + 'color:var(--or)">+' + ltr(v.pct) + '%</div>'
       + '<div class="muted" style="font-size:11px">תוספת שבועית</div></div>'
-      + '<div style="text-align:center"><div style="font-family:Rubik;font-weight:700;font-size:19px">'
+      + '<div style="text-align:center"><div style="font-family:Heebo;font-weight:700;font-size:19px">'
       + ltr(v.hard) + '</div><div class="muted" style="font-size:11px">ימים קשים</div></div>'
-      + '<div style="text-align:center"><div style="font-family:Rubik;font-weight:700;font-size:19px">'
+      + '<div style="text-align:center"><div style="font-family:Heebo;font-weight:700;font-size:19px">'
       + ltr(v.ceiling) + '</div><div class="muted" style="font-size:11px">תקרה</div></div>'
       + '</div>' + f(v.f);
 
@@ -335,9 +335,9 @@
     v.weeks.forEach(function (w) {
       var px = Math.max(6, Math.round((w.min - floor) / ((max - floor) || 1) * TRACK));
       h += '<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px">'
-        + '<div style="font-size:10px;color:var(--mut);font-family:Rubik">' + ltr(w.min) + '</div>'
+        + '<div style="font-size:10px;color:var(--mut);font-family:Heebo">' + ltr(w.min) + '</div>'
         + '<div style="width:100%;height:' + px + 'px;border-radius:5px 5px 0 0;background:'
-        + (w.deload ? 'var(--line2)' : 'linear-gradient(180deg,var(--or),rgba(255,107,26,.45))') + '"></div>'
+        + (w.deload ? 'var(--line2)' : 'linear-gradient(180deg,var(--or),rgba(143,168,79,.45))') + '"></div>'
         + '<div style="font-size:10px;color:' + (w.deload ? 'var(--amber)' : 'var(--dim)') + '">'
         + (w.deload ? 'הורדה' : ltr(w.week)) + '</div></div>';
     });
@@ -370,7 +370,7 @@
         + '<td style="padding:8px 5px;border-bottom:1px solid var(--line);white-space:nowrap;color:var(--mut)">'
         + ltr(r.dur) + '</td>'
         + '<td style="padding:8px 5px;border-bottom:1px solid var(--line);text-align:center;'
-        + 'font-family:Rubik;font-weight:700;color:var(--or);white-space:nowrap">' + ltr(r.ratio) + '</td>'
+        + 'font-family:Heebo;font-weight:700;color:var(--or);white-space:nowrap">' + ltr(r.ratio) + '</td>'
         + '<td style="padding:8px 5px;border-bottom:1px solid var(--line);color:var(--mut);'
         + 'font-size:11.5px;line-height:1.5">' + esc(r.why) + '</td></tr>';
     });
@@ -383,7 +383,7 @@
     var h = '';
     if (iv.caution) {
       h += '<div style="font-size:13px;padding:9px 11px;border-radius:9px;margin-bottom:12px;'
-        + 'background:rgba(255,162,77,.09);border:1px solid var(--amber);color:var(--amber)">'
+        + 'background:rgba(217,164,65,.09);border:1px solid var(--amber);color:var(--amber)">'
         + esc(iv.caution) + '</div>';
     }
     if (!iv.hasHr) {
@@ -394,7 +394,7 @@
     iv.list.forEach(function (x) {
       h += '<div class="card" style="margin-bottom:10px;background:var(--ink)">'
         + '<div class="row" style="align-items:baseline;gap:8px">'
-        + '<div style="flex:1;min-width:0;font-family:Rubik;font-weight:700;font-size:14.5px">'
+        + '<div style="flex:1;min-width:0;font-family:Heebo;font-weight:700;font-size:14.5px">'
         + esc(x.name) + '</div>'
         + '<span class="pill" style="color:var(--or);white-space:nowrap">' + esc(x.tag) + '</span>'
         + '<span class="pill" style="white-space:nowrap">' + ltr(x.total) + '</span></div>'
@@ -413,7 +413,7 @@
     h += '<div class="muted" style="font-size:12px;letter-spacing:.1em;margin:18px 0 10px">ספרינטים</div>';
     iv.sprints.forEach(function (x) {
       h += '<div class="card" style="margin-bottom:10px;background:var(--ink)">'
-        + '<div style="font-family:Rubik;font-weight:700;font-size:14.5px">' + esc(x.name) + '</div>'
+        + '<div style="font-family:Heebo;font-weight:700;font-size:14.5px">' + esc(x.name) + '</div>'
         + '<div class="row" style="gap:6px;margin-top:9px;flex-wrap:wrap">'
         + pill2('מאמץ', x.work) + pill2('הפוגה', x.rest) + pill2('חזרות', x.reps) + '</div>'
         + '<div style="font-size:12px;color:var(--amber);margin-top:8px;line-height:1.55">'
@@ -429,7 +429,7 @@
   function pill2(label, val) {
     if (!val) return '';
     return '<span class="pill" style="white-space:nowrap"><span class="muted">' + esc(label)
-      + ' </span><b style="font-family:Rubik">' + ltr(val) + '</b></span>';
+      + ' </span><b style="font-family:Heebo">' + ltr(val) + '</b></span>';
   }
 
   /* ---------------- הלשונית ---------------- */

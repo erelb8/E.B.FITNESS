@@ -7,7 +7,7 @@
 
 <!-- הדף הזה מכוון למתאמן. בכוונה אין כאן link למניפסט של המאמן,
      כדי שהוספה למסך הבית תיצור אצלו קיצור לתוכנית שלו ולא לאפליקציית הניהול. -->
-<meta name="theme-color" content="#0C0C0E">
+<meta name="theme-color" content="#17140F">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -18,13 +18,14 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700&family=Rubik:wght@500;700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@500;700;900&family=Heebo:wght@300;400;500;700;800&display=swap" rel="stylesheet">
 <style>
 :root{
-  --ink:#0C0C0E; --card:#1C1C22; --line:#2B2B34; --line2:#3A3A46;
-  --tx:#F3F3F6; --mut:#8D8D9A; --dim:#5F5F6B;
-  --or:#FF6B1A; --or-soft:rgba(255,107,26,.14);
-  --ok:#3BD68B; --r:14px;
+  /* חול ובזלת × דיו — זהה לאפליקציית הניהול, כדי שהמתאמן יראה אותו מותג */
+  --ink:#17140F; --card:#26221B; --line:#37312A; --line2:#4A4239;
+  --tx:#EDE4D6; --mut:#A69C8E; --dim:#756B5E;
+  --or:#8FA84F; --or-soft:rgba(143,168,79,.13);
+  --ok:#BCE05B; --r:10px;
 }
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
@@ -32,11 +33,11 @@ body{
   background:var(--ink); color:var(--tx);
   font-family:'Heebo',system-ui,sans-serif; font-size:15px; line-height:1.5;
   -webkit-font-smoothing:antialiased;
-  background-image:radial-gradient(900px 500px at 90% -10%, rgba(255,107,26,.10), transparent 60%);
+  background-image:radial-gradient(900px 500px at 90% -10%, rgba(143,168,79,.10), transparent 60%);
   background-attachment:fixed;
   padding-bottom:calc(96px + env(safe-area-inset-bottom));
 }
-h1,h2,h3{font-family:'Rubik',sans-serif;margin:0;font-weight:700;letter-spacing:-.02em}
+h1,h2,h3{font-family:'Frank Ruhl Libre',Georgia,serif;margin:0;font-weight:700;letter-spacing:-.02em}
 button,input{font-family:inherit;font-size:inherit;color:inherit}
 button{cursor:pointer}
 
@@ -45,7 +46,7 @@ button{cursor:pointer}
   border-bottom:1px solid var(--line);
   padding:calc(12px + env(safe-area-inset-top)) 16px 12px;
 }
-.brand{font-family:'Rubik';font-weight:900;font-size:12px;letter-spacing:.14em;color:var(--dim)}
+.brand{font-family:'Heebo';font-weight:900;font-size:12px;letter-spacing:.14em;color:var(--dim)}
 .brand .dot{width:6px;height:6px;border-radius:50%;background:var(--or);display:inline-block}
 .top h1{font-size:22px;margin-top:3px}
 .top .sub{color:var(--mut);font-size:13px;margin-top:2px}
@@ -61,7 +62,7 @@ button{cursor:pointer}
 .days button.on{background:var(--or-soft);border-color:var(--or);color:var(--or);font-weight:700}
 
 .ex{border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px;background:var(--card);transition:border-color .15s}
-.ex.done{border-color:rgba(59,214,139,.45);background:rgba(59,214,139,.05)}
+.ex.done{border-color:rgba(188,224,91,.45);background:rgba(188,224,91,.05)}
 .ex .hd{display:flex;align-items:flex-start;gap:11px}
 .ex .nm{font-weight:700;font-size:16px;flex:1;min-width:0;line-height:1.3}
 .ex .meta{color:var(--mut);font-size:13px;margin-top:3px}
@@ -70,7 +71,7 @@ button{cursor:pointer}
   flex:0 0 auto;width:30px;height:30px;border-radius:9px;border:2px solid var(--line2);
   background:none;display:grid;place-items:center;font-size:16px;color:transparent;transition:.15s
 }
-.ex.done .chk{background:var(--ok);border-color:var(--ok);color:#04120A}
+.ex.done .chk{background:var(--ok);border-color:var(--ok);color:#141A06}
 .logs{display:flex;gap:8px;margin-top:11px}
 .logs input{
   flex:1;min-width:0;background:var(--ink);border:1px solid var(--line);border-radius:9px;
@@ -85,13 +86,13 @@ button{cursor:pointer}
   display:flex;align-items:center;gap:12px
 }
 .bar .prog{flex:1;font-size:13px;color:var(--mut)}
-.bar .prog b{color:var(--tx);font-family:'Rubik'}
-.btn{background:var(--or);color:#150800;border:0;border-radius:10px;padding:12px 20px;font-weight:700;font-family:'Rubik';font-size:15px}
+.bar .prog b{color:var(--tx);font-family:'Heebo'}
+.btn{background:var(--or);color:#141A06;border:0;border-radius:10px;padding:12px 20px;font-weight:700;font-family:'Heebo';font-size:15px}
 .btn:disabled{opacity:.4}
 .btn.ghost{background:var(--card);color:var(--tx);border:1px solid var(--line)}
 
 .mt{color:var(--mut)}
-.mt b{color:var(--tx);font-family:'Rubik'}
+.mt b{color:var(--tx);font-family:'Heebo'}
 .msg{text-align:center;padding:56px 24px;color:var(--mut)}
 .msg h2{color:var(--tx);margin-bottom:8px;font-size:19px}
 .spin{width:26px;height:26px;border:3px solid var(--line);border-top-color:var(--or);border-radius:50%;margin:0 auto 16px;animation:sp .8s linear infinite}
@@ -122,10 +123,10 @@ button{cursor:pointer}
 
 <div id="toast"></div>
 
-<script src="vendor/supabase.js?v=v47"></script>
-<script src="config.js?v=v47"></script>
-<script src="meal-library.js?v=v47"></script>
-<script src="progress.js?v=v47"></script>
+<script src="vendor/supabase.js?v=v48"></script>
+<script src="config.js?v=v48"></script>
+<script src="meal-library.js?v=v48"></script>
+<script src="progress.js?v=v48"></script>
 <script>
 (function () {
   'use strict';
@@ -197,7 +198,7 @@ button{cursor:pointer}
       + '<input id="lg_p" type="password" '
       + 'style="width:100%;background:var(--ink);border:1px solid var(--line);border-radius:10px;'
       + 'padding:12px;margin:6px 0 4px;font-size:16px;direction:ltr;text-align:left">'
-      + (err ? '<div style="color:#FF5D5D;font-size:13px;margin-top:8px">' + esc(err) + '</div>' : '')
+      + (err ? '<div style="color:#D9605A;font-size:13px;margin-top:8px">' + esc(err) + '</div>' : '')
       + '<button class="btn" id="lg_go" style="width:100%;margin-top:14px">כניסה</button>'
       + '</div>');
     var go = document.getElementById('lg_go');
@@ -264,7 +265,7 @@ button{cursor:pointer}
 
     if (tot.kcal) {
       h += '<div style="display:flex;gap:14px;flex-wrap:wrap;font-size:13px;margin-bottom:4px">'
-        + '<span><b style="font-family:Rubik;color:var(--or)">' + tot.kcal + '</b> קק״ל</span>'
+        + '<span><b style="font-family:Heebo;color:var(--or)">' + tot.kcal + '</b> קק״ל</span>'
         + (tot.p ? '<span class="mt">חלבון <b>' + tot.p + '</b></span>' : '')
         + (tot.c ? '<span class="mt">פחמימות <b>' + tot.c + '</b></span>' : '')
         + (tot.f ? '<span class="mt">שומן <b>' + tot.f + '</b></span>' : '')
@@ -290,7 +291,7 @@ button{cursor:pointer}
                 + 'style="width:100%;aspect-ratio:16/10;object-fit:cover;display:block;background:var(--ink)">'
               : '')
           + '<div style="padding:13px">'
-          + '<div style="font-family:Rubik;font-weight:700;font-size:16px;line-height:1.3">'
+          + '<div style="font-family:Heebo;font-weight:700;font-size:16px;line-height:1.3">'
           + esc(m.name || 'ארוחה') + '</div>'
           + (m.desc ? '<div style="color:var(--mut);font-size:13.5px;margin-top:5px;line-height:1.5;white-space:pre-wrap">'
                       + esc(m.desc) + '</div>' : '')
@@ -365,10 +366,10 @@ button{cursor:pointer}
     let h = '<div class="card" style="margin-bottom:10px" data-mid="' + esc(m.id) + '">'
       + '<div style="display:flex;align-items:flex-start;gap:10px">'
       + '<div style="flex:1;min-width:0">'
-      + '<div style="font-family:Rubik;font-weight:700;font-size:15.5px;line-height:1.3">' + esc(m.name) + '</div>'
+      + '<div style="font-family:Heebo;font-weight:700;font-size:15.5px;line-height:1.3">' + esc(m.name) + '</div>'
       + '<div style="color:var(--dim);font-size:12px;margin-top:3px">' + esc(EBLib.TYPES[m.type]||'') + '</div></div>'
       + '<div style="text-align:center;flex:none">'
-      + '<div style="font-family:Rubik;font-weight:900;font-size:21px;color:var(--or);line-height:1">' + Math.round(t.k) + '</div>'
+      + '<div style="font-family:Heebo;font-weight:900;font-size:21px;color:var(--or);line-height:1">' + Math.round(t.k) + '</div>'
       + '<div style="color:var(--dim);font-size:10.5px">קק״ל</div></div></div>'
       + '<div style="display:flex;gap:6px;margin-top:9px;flex-wrap:wrap">'
       + tag('חלבון ' + r1(t.p)) + tag('פחמימות ' + r1(t.c)) + tag('שומן ' + r1(t.f)) + '</div>'

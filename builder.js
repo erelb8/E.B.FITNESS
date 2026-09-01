@@ -14,7 +14,7 @@
   'use strict';
 
   // חותמת גרסה — index.html משווה אליה כדי לזהות קובץ ישן במטמון
-  (window.EB_MOD = window.EB_MOD || {})['builder'] = 'v47';
+  (window.EB_MOD = window.EB_MOD || {})['builder'] = 'v48';
 
   /* ---------- דפוסי תנועה ----------
      החלוקה לפי דפוס ולא לפי שריר, כי כך בונים פיצולים מאוזנים
@@ -351,7 +351,7 @@
 
     DRAFT.days.forEach(function (d, i) {
       h += '<div class="card" style="margin-bottom:10px;padding:12px">'
-        + '<div style="font-family:Rubik;font-weight:700;margin-bottom:8px">' + esc(d.name) + '</div>';
+        + '<div style="font-family:Heebo;font-weight:700;margin-bottom:8px">' + esc(d.name) + '</div>';
       d.exercises.forEach(function (e) {
         h += '<div class="line-item" style="padding:5px 0">'
           + '<span style="flex:1;font-size:14px">' + esc(e.name) + '</span>'

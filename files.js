@@ -13,7 +13,7 @@
   'use strict';
 
   // חותמת גרסה — index.html משווה אליה כדי לזהות קובץ ישן במטמון
-  (window.EB_MOD = window.EB_MOD || {})['files'] = 'v47';
+  (window.EB_MOD = window.EB_MOD || {})['files'] = 'v48';
 
   var BUCKET = 'programs';
   var MAX    = 10 * 1024 * 1024;   // 10MB, תואם למגבלת הדלי
@@ -218,12 +218,12 @@
       el.style.cssText =
         'position:fixed;inset:0;z-index:200;display:grid;place-items:center;' +
         'background:rgba(12,12,14,.82);backdrop-filter:blur(3px);pointer-events:none;' +
-        'font-family:Rubik,sans-serif';
+        'font-family:Frank Ruhl Libre,Georgia,serif';
       document.body.appendChild(el);
     }
     el.innerHTML =
       '<div style="border:2px dashed var(--or);border-radius:18px;padding:38px 54px;text-align:center;' +
-      'background:rgba(255,107,26,.07)">' +
+      'background:rgba(143,168,79,.07)">' +
       '<div style="font-size:38px;margin-bottom:10px">📎</div>' +
       '<div style="font-size:19px;font-weight:700;color:var(--tx)">' + esc(text) + '</div>' +
       '<div style="font-size:13px;color:var(--mut);margin-top:6px;font-family:Heebo,sans-serif">' +
