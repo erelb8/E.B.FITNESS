@@ -7,7 +7,7 @@
 
 <!-- ===== PWA — הופך את האתר לאפליקציה במסך הבית ===== -->
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#17140F">
+<meta name="theme-color" content="#221A12">
 <meta name="description" content="מערכת לניהול מתאמנים, תוכניות אימון, יומן ותשלומים">
 
 <!-- אייפון / אייפד -->
@@ -25,13 +25,16 @@
 <link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@500;700;900&family=Heebo:wght@300;400;500;700;800&display=swap" rel="stylesheet">
 <style>
 :root{
-  /* חול ובזלת × דיו — בזלת חמה, זית כדגש יחיד, צבע רק כשהוא אומר משהו */
-  --ink:#17140F; --panel:#1F1B15; --card:#26221B; --line:#37312A; --line2:#4A4239;
-  --tx:#EDE4D6; --mut:#A69C8E; --dim:#756B5E;
-  --or:#8FA84F; --or-soft:rgba(143,168,79,.13); --amber:#D9A441;
-  --ok:#BCE05B; --warn:#D9A441; --bad:#D9605A;
+  /* בזלת חומה · זית לפעולה · נחושת לנתונים.
+     הקרקע חמה באמת ולא אפורה, והפרדת שני הצבעים היא מה שנותן לכל
+     אחד מהם משמעות: זית = משהו שלוחצים, נחושת = משהו שנמדד. */
+  --ink:#221A12; --panel:#2B2119; --card:#34281E; --line:#48392B; --line2:#5F4C39;
+  --tx:#F2E8D8; --mut:#B3A48E; --dim:#7E7060;
+  --or:#8FA84F; --or-soft:rgba(143,168,79,.15); --amber:#D9A441;
+  --cop:#D19A55; --cop-soft:rgba(209,154,85,.14);
+  --ok:#A8C75E; --warn:#D9A441; --bad:#D9605A;
   --r:10px; --r-s:7px;
-  --shadow:0 12px 34px rgba(0,0,0,.5);
+  --shadow:0 14px 38px rgba(0,0,0,.5);
 }
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
@@ -39,7 +42,9 @@ body{
   background:var(--ink); color:var(--tx);
   font-family:'Heebo',system-ui,sans-serif; font-size:15px; line-height:1.5;
   -webkit-font-smoothing:antialiased;
-  background-image:radial-gradient(1200px 600px at 90% -10%, rgba(143,168,79,.09), transparent 60%);
+  background-image:
+    radial-gradient(1100px 560px at 88% -12%, rgba(143,168,79,.10), transparent 62%),
+    radial-gradient(900px 520px at 6% 104%, rgba(209,154,85,.07), transparent 60%);
   background-attachment:fixed;
 }
 h1,h2,h3,h4{font-family:'Frank Ruhl Libre',Georgia,serif;margin:0;font-weight:700;letter-spacing:-.02em}
@@ -70,7 +75,7 @@ a{color:var(--or);text-decoration:none}
   font-size:11px;padding:4px 10px;border-radius:20px;white-space:nowrap;
   background:var(--card);border:1px solid var(--line);color:var(--mut);font-weight:500;
 }
-.syncpill.s-ok{color:var(--ok);border-color:rgba(188,224,91,.35);background:rgba(188,224,91,.08)}
+.syncpill.s-ok{color:var(--ok);border-color:rgba(168,199,94,.35);background:rgba(168,199,94,.08)}
 .syncpill.s-sync{color:var(--amber);border-color:rgba(255,176,58,.35);background:rgba(255,176,58,.08)}
 .syncpill.s-error{color:var(--bad);border-color:rgba(255,93,93,.4);background:rgba(255,93,93,.08)}
 .syncpill.s-out{color:var(--or);border-color:rgba(143,168,79,.4);background:var(--or-soft)}
@@ -167,11 +172,17 @@ main{flex:1;min-width:0;padding:22px 24px 90px}
 .g4{grid-template-columns:repeat(4,1fr)}
 .g3{grid-template-columns:repeat(3,1fr)}
 .g2{grid-template-columns:repeat(2,1fr)}
+/* מתמלאת לפי מספר הכרטיסים בפועל, כדי שהסתרת אחד מהם לא תשאיר חור */
+.stats-auto{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+/* מספר אי-זוגי של כרטיסים משאיר את האחרון לבד עם חור לצידו.
+   הוא נמתח על השורה במקום להיתלות. */
+@media(max-width:520px){ .stats-auto > :last-child:nth-child(odd){grid-column:1 / -1} }
 .stat .lbl{font-size:11px;color:var(--mut);letter-spacing:.08em}
-.stat .val{font-family:'Heebo';font-weight:900;font-size:30px;line-height:1.1;margin-top:4px;font-variant-numeric:tabular-nums}
+.stat .val{font-family:'Heebo';font-weight:900;font-size:30px;line-height:1.1;margin-top:4px;
+  font-variant-numeric:tabular-nums;color:var(--cop)}
 .stat .sub{font-size:12px;color:var(--dim);margin-top:2px}
 .pill{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;padding:3px 9px;border-radius:20px;border:1px solid var(--line2);color:var(--mut)}
-.pill.ok{color:var(--ok);border-color:rgba(188,224,91,.35);background:rgba(188,224,91,.08)}
+.pill.ok{color:var(--ok);border-color:rgba(168,199,94,.35);background:rgba(168,199,94,.08)}
 .pill.warn{color:var(--warn);border-color:rgba(255,197,61,.35);background:rgba(255,197,61,.08)}
 .pill.bad{color:var(--bad);border-color:rgba(255,93,93,.35);background:rgba(255,93,93,.08)}
 .pill.or{color:var(--or);border-color:rgba(143,168,79,.4);background:var(--or-soft)}
@@ -306,8 +317,8 @@ tbody tr:hover{background:var(--panel)}
 <div id="toast"></div>
 
 <!-- ספריית Supabase מקומית (לא מ-CDN) כדי שהאפליקציה תעבוד גם בלי רשת -->
-<script src="vendor/supabase.js?v=v60"></script>
-<script src="config.js?v=v60"></script>
+<script src="vendor/supabase.js?v=v61"></script>
+<script src="config.js?v=v61"></script>
 
 <script>
 /* =======================================================================
@@ -342,7 +353,7 @@ function age(b){ if(!b) return null; const d=new Date(b), t=new Date(); let a=t.
 
 /* ---------------- אחסון ---------------- */
 const KEY='ebfit_v1';
-const EB_VERSION='v60';   // חייב להתאים ל-VERSION ב-sw.js
+const EB_VERSION='v61';   // חייב להתאים ל-VERSION ב-sw.js
 let mem=null, canStore=true;
 function load(){
   try{ const r=localStorage.getItem(KEY); return r?JSON.parse(r):null; }
@@ -662,7 +673,7 @@ function vTrainee(){
 
   /* הכרטיסייה מוצגת רק למי שיש לו אחת. "0 מתוך 0" תופס רבע מהשורה
      ולא אומר כלום, ומי שמוכר מנוי חודשי לא צריך אותה בכלל. */
-  h+='<div class="grid g4" style="margin-top:14px">'
+  h+='<div class="grid stats-auto" style="margin-top:14px">'
    +(t.pkgTotal>0 ? stat('נותרו בכרטיסייה',left(t),'מתוך '+t.pkgTotal) : '')
    +stat('אימונים שבוצעו',done,'סה״כ')
    +stat('שולם',money(paid),S.payments.filter(p=>p.traineeId===t.id).length+' תשלומים')
@@ -1361,7 +1372,7 @@ const BOT_SYS = 'אתה בונה מיני-אפליקציות לתוך מערכת
  +'החזר JSON בלבד, בלי טקסט לפני או אחרי, בלי גדרות קוד, במבנה: {"title":"שם קצר בעברית","icon":"אמוג׳י אחד","html":"..."}\n'
  +'ה-html הוא מקטע עצמאי הכולל <style> ו-<script> (בלי html/head/body). כללים:\n'
  +'1. עברית, dir="rtl", טקסט ברור.\n'
- +'2. עיצוב כהה תואם: רקע שקוף, כרטיסים #26221B, גבול #37312A, טקסט #EDE4D6, טקסט משני #A69C8E, צבע הדגשה #8FA84F, פונט Heebo, פינות 12px.\n'
+ +'2. עיצוב כהה תואם: רקע שקוף, כרטיסים #34281E, גבול #48392B, טקסט #F2E8D8, טקסט משני #B3A48E, צבע הדגשה #8FA84F, פונט Heebo, פינות 12px.\n'
  +'3. אין רשת, אין ספריות חיצוניות, אין localStorage.\n'
  +'4. שמירת מידע: window.EB.data (הנתונים השמורים, יכול להיות null) ו-window.EB.save(obj). קריאה ל-save שומרת בתוך האפליקציה הראשית.\n'
  +'5. רשימת המתאמנים זמינה ב-window.EB.trainees (מערך של {id,name,goal,pkgTotal,pkgUsed,pricePerSession}). אם הפיצ׳ר קשור למתאמן — תן לבחור מתאמן מהרשימה.\n'
@@ -1402,7 +1413,7 @@ function mountCustom(){
   const doc='<!DOCTYPE html><html dir="rtl" lang="he"><head><meta charset="utf-8">'
    +'<meta name="viewport" content="width=device-width,initial-scale=1">'
    +'<link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@500;700;900&family=Heebo:wght@300;400;500;700;800&display=swap" rel="stylesheet">'
-   +'<style>body{margin:0;padding:16px;background:#1F1B15;color:#EDE4D6;font-family:Heebo,sans-serif}'
+   +'<style>body{margin:0;padding:16px;background:#2B2119;color:#F2E8D8;font-family:Heebo,sans-serif}'
    +'button{font-family:inherit;cursor:pointer}input,select,textarea{font-family:inherit}</style></head><body>'
    +boot+c.html+'</body></html>';
   $('#cframe').srcdoc=doc;
@@ -1549,7 +1560,7 @@ function seedDemo(){
     pkgTotal:total,pkgUsed:used,pricePerSession:price,balanceDue:0,notes:'',tags:[],color,program:{days:[]}});
   const a=mk('דניאל כהן','ירידה באחוזי שומן','בינוני',12,10,150,'#8FA84F');
   const b=mk('מאיה לוי','חיזוק וכוח','מתחיל',10,3,150,'#8C9AA0');
-  const c=mk('אורי שריקי','עלייה במסת שריר','מתקדם',16,7,170,'#BCE05B');
+  const c=mk('אורי שריקי','עלייה במסת שריר','מתקדם',16,7,170,'#A8C75E');
   a.phone='0501111111'; b.phone='0502222222'; c.phone='0503333333';
   a.program.days=[{name:'יום A — פלג גוף עליון',exercises:[
     {name:'לחיצת חזה במוט',sets:'4',reps:'8',weight:'60',rest:'90',note:''},
@@ -1607,21 +1618,21 @@ if (location.protocol === 'file:') {
 }
 </script>
 
-<script src="intake.js?v=v60"></script>
-<script src="files.js?v=v60"></script>
-<script src="builder.js?v=v60"></script>
-<script src="import-program.js?v=v60"></script>
-<script src="tracking.js?v=v60"></script>
-<script src="metrics.js?v=v60"></script>
-<script src="meal-library.js?v=v60"></script>
-<script src="library-ui.js?v=v60"></script>
-<script src="export-plan.js?v=v60"></script>
-<script src="cardio.js?v=v60"></script>
-<script src="cardio-ui.js?v=v60"></script>
-<script src="exercise-library.js?v=v60"></script>
-<script src="exercise-ui.js?v=v60"></script>
-<script src="meals.js?v=v60"></script>
-<script src="sync.js?v=v60"></script>
+<script src="intake.js?v=v61"></script>
+<script src="files.js?v=v61"></script>
+<script src="builder.js?v=v61"></script>
+<script src="import-program.js?v=v61"></script>
+<script src="tracking.js?v=v61"></script>
+<script src="metrics.js?v=v61"></script>
+<script src="meal-library.js?v=v61"></script>
+<script src="library-ui.js?v=v61"></script>
+<script src="export-plan.js?v=v61"></script>
+<script src="cardio.js?v=v61"></script>
+<script src="cardio-ui.js?v=v61"></script>
+<script src="exercise-library.js?v=v61"></script>
+<script src="exercise-ui.js?v=v61"></script>
+<script src="meals.js?v=v61"></script>
+<script src="sync.js?v=v61"></script>
 <script>
 /* =================== חיבור הסנכרון לאפליקציה =================== */
 

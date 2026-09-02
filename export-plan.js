@@ -14,7 +14,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['exportPlan'] = 'v60';
+  (window.EB_MOD = window.EB_MOD || {})['exportPlan'] = 'v61';
 
   var esc2 = function (s) {
     return String(s == null ? '' : s)
@@ -97,7 +97,7 @@
     return '<!DOCTYPE html>\n<html lang="he" dir="rtl"><head><meta charset="utf-8">'
 + '<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">'
 + '<title>' + esc2(t.name) + ' — תוכנית אימונים</title>'
-+ '<meta name="theme-color" content="#17140F">'
++ '<meta name="theme-color" content="#221A12">'
 + '<meta name="apple-mobile-web-app-capable" content="yes">'
 + '<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">'
 + '<meta name="apple-mobile-web-app-title" content="' + esc2(t.name) + '">'
@@ -105,8 +105,8 @@
 + '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>'
 + '<link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@500;700;900&family=Heebo:wght@300;400;500;700;800&display=swap" rel="stylesheet">'
 + '<style>'
-+ ':root{--ink:#17140F;--panel:#1F1B15;--panel-2:#26221B;--line:#37312A;--line-2:#4A4239;'
-+ '--text:#EDE4D6;--muted:#A69C8E;--dim:#756B5E;--flame:#8FA84F;--ember:#D9A441;--ok:#BCE05B;--r:14px}'
++ ':root{--ink:#221A12;--panel:#2B2119;--panel-2:#34281E;--line:#48392B;--line-2:#5F4C39;'
++ '--text:#F2E8D8;--muted:#B3A48E;--dim:#7E7060;--flame:#8FA84F;--ember:#D9A441;--ok:#A8C75E;--r:14px}'
 + '*{box-sizing:border-box}html,body{margin:0;padding:0}'
 + 'body{background:var(--ink);color:var(--text);font-family:Heebo,system-ui,sans-serif;font-size:15px;line-height:1.5;'
 + '-webkit-font-smoothing:antialiased;background-image:radial-gradient(900px 460px at 88% -8%,rgba(143,168,79,.13),transparent 62%);'

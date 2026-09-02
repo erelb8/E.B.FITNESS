@@ -15,7 +15,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['progress'] = 'v60';
+  (window.EB_MOD = window.EB_MOD || {})['progress'] = 'v61';
 
   var esc = function (s) {
     return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {

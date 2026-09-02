@@ -11,7 +11,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['libraryUi'] = 'v60';
+  (window.EB_MOD = window.EB_MOD || {})['libraryUi'] = 'v61';
 
   var Q = '', TYPE = 'all', OPEN = {}, TAB = 'meals';
 
@@ -71,7 +71,7 @@
       + '</div>';
   }
   function pill(txt) {
-    return '<span style="font-size:11.5px;padding:3px 9px;border-radius:20px;background:var(--panel-2,#26221B);'
+    return '<span style="font-size:11.5px;padding:3px 9px;border-radius:20px;background:var(--panel-2,#34281E);'
       + 'border:1px solid var(--line);color:var(--mut);white-space:nowrap">' + esc(txt) + '</span>';
   }
 
