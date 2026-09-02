@@ -8,7 +8,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['exUi'] = 'v58';
+  (window.EB_MOD = window.EB_MOD || {})['exUi'] = 'v59';
 
   var Q = '', MUS = 'all', EQ = 'all', FOR = null, DAY = 0, TARGET = null;
 
@@ -289,6 +289,96 @@
                 : 'כל התוכניות כבר מלאות');
   }
 
+  /* ══════════ התאמת המרשם למטרה ══════════
+     אותו תרגיל נראה אחרת לפי המטרה: סקוואט לכוח הוא 5×3-5 עם שלוש
+     דקות מנוחה, ולחיטוב הוא 4×10-12 עם דקה. ההבדל הוא לא קוסמטי —
+     הוא מה שקובע איזו הסתגלות הגוף עושה.
+
+     תרגילי בסיס מקבלים יותר סטים ויותר מנוחה מתרגילי בידוד, כי הם
+     מגייסים יותר מסה ולכן דורשים התאוששות ארוכה יותר בין הסטים. */
+
+  var COMPOUND = /סקוואט|דדליפט|לחיצת חזה|לחיצת כתפיים|לחיצת רגליים|מתח|חתירה|מקבילים|קלין|סנאץ|ת׳רסטר|היפ ת|לאנג|הק סקוואט|שכיבות סמיכה|מאסל|פיסטול|מכרעים|גובלט|סטפ-אפ|פולי עליון|משיכת פולי|בולגרי/;
+
+  var RX = {
+    strength: { n:'כוח',      comp:['5','3-5','180 שנ׳'],   iso:['3','6-8','90 שנ׳'] },
+    mass:     { n:'מסה',      comp:['4','8-10','90 שנ׳'],   iso:['3','10-12','60 שנ׳'] },
+    cut:      { n:'חיטוב',    comp:['4','10-12','60 שנ׳'],  iso:['3','12-15','45 שנ׳'] },
+    endur:    { n:'סיבולת',   comp:['3','15-20','45 שנ׳'],  iso:['3','15-20','30 שנ׳'] },
+    base:     { n:'כושר כללי', comp:['3','10-12','75 שנ׳'],  iso:['3','12','60 שנ׳'] }
+  };
+
+  /* ליבה, אירובי, גמישות וניידות לא נמדדים בסטים וחזרות של משקולות,
+     ולכן נשארים עם מה שהספרייה קבעה להם. */
+  var KEEP = { core:1, cardio:1, flex:1, mob:1 };
+
+  function goalKey(t) {
+    var g = String((t && t.goal) || '') + ' ' + String((t && t.goal2) || '');
+    if (/סיבולת|מרתון|טריאתלון|ריצה למרחקים/.test(g)) return 'endur';
+    if (/כוח|חזק|פאוור|powerlift/i.test(g))            return 'strength';
+    if (/חיטוב|ירידה|שומן|הרזי|לרדת|דיאטה|מיצוק/.test(g)) return 'cut';
+    if (/מסה|היפרטרופ|בניית שריר|לעלות|עלייה|נפח/.test(g)) return 'mass';
+    return 'base';
+  }
+
+  function applyGoal(tid, silent) {
+    var t = tById(tid); if (!t) return { changed: 0 };
+    var key = goalKey(t), rx = RX[key];
+    var changed = 0, kept = 0;
+
+    (((t.program || {}).days) || []).forEach(function (d) {
+      (d.exercises || []).forEach(function (e) {
+        var nm = String(e.name || '').trim();
+        var lib = EBEx.ALL.filter(function (x) { return x.n === nm; })[0];
+        if (lib && KEEP[lib.m]) { kept++; return; }
+        /* תרגיל שאינו בספרייה עדיין מקבל מרשם — הוא בדרך כלל תרגיל
+           משקולות שהמאמן הקליד בעצמו. */
+        var set = COMPOUND.test(nm) ? rx.comp : rx.iso;
+        if (e.sets !== set[0] || e.reps !== set[1] || e.rest !== set[2]) changed++;
+        e.sets = set[0]; e.reps = set[1]; e.rest = set[2];
+      });
+    });
+    if (!silent && changed) { save(); render(); }
+    return { changed: changed, kept: kept, goal: rx.n, key: key };
+  }
+
+  function applyGoalAll() {
+    var list = (window.S.trainees || []).filter(function (t) { return t.status !== 'archived'; });
+    if (!list.length) { toast('אין מתאמנים'); return; }
+    if (!confirm('להתאים סטים, חזרות ומנוחה למטרה של ' + list.length + ' מתאמנים?\n'
+               + 'המספרים הקיימים יוחלפו. השינוי לא הפיך.')) return;
+
+    var rows = list.map(function (t) {
+      var r = applyGoal(t.id, true);
+      r.name = t.name;
+      r.raw  = String(t.goal || '').trim() || '(אין מטרה)';
+      return r;
+    });
+    save(); render();
+
+    var h = '<div class="mh"><h3>התאמה למטרה</h3>'
+      + '<button class="iconbtn" onclick="closeModal()">✕</button></div><div class="mb">';
+    rows.forEach(function (r) {
+      var rx = RX[r.key];
+      h += '<div style="padding:10px 0;border-top:1px solid var(--line)">'
+        + '<div class="row" style="align-items:baseline;gap:8px">'
+        + '<span style="flex:1;font-size:14px;font-weight:500">' + esc(r.name) + '</span>'
+        + '<span class="pill" style="color:var(--or)">' + esc(r.goal) + '</span></div>'
+        + '<div class="muted" style="font-size:11.5px;margin-top:4px">'
+        + esc(r.raw.slice(0, 60)) + '</div>'
+        + '<div class="muted" style="font-size:11.5px;margin-top:4px">'
+        + 'בסיס ' + rx.comp[0] + '×' + rx.comp[1] + ' · מנוחה ' + rx.comp[2]
+        + '  ·  בידוד ' + rx.iso[0] + '×' + rx.iso[1] + ' · מנוחה ' + rx.iso[2]
+        + '</div>'
+        + '<div class="muted" style="font-size:11.5px;margin-top:3px">'
+        + r.changed + ' תרגילים עודכנו'
+        + (r.kept ? ' · ' + r.kept + ' נשארו (ליבה, אירובי, גמישות)' : '')
+        + '</div></div>';
+    });
+    h += '</div><div class="mf"><button class="btn ghost" onclick="closeModal()">סגירה</button></div>';
+    openModal(h, true);
+  }
+
   window.EBExUI = { open: open, close: close,
-                    fillTrainee: fillTrainee, fillAll: fillAll, fillDay: fillDay, search: search, setMuscle: setMuscle, setEquip: setEquip, add: add };
+                    fillTrainee: fillTrainee, fillAll: fillAll, fillDay: fillDay,
+                    applyGoal: applyGoal, applyGoalAll: applyGoalAll, goalKey: goalKey, search: search, setMuscle: setMuscle, setEquip: setEquip, add: add };
 })();
