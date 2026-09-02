@@ -306,8 +306,8 @@ tbody tr:hover{background:var(--panel)}
 <div id="toast"></div>
 
 <!-- ספריית Supabase מקומית (לא מ-CDN) כדי שהאפליקציה תעבוד גם בלי רשת -->
-<script src="vendor/supabase.js?v=v50"></script>
-<script src="config.js?v=v50"></script>
+<script src="vendor/supabase.js?v=v51"></script>
+<script src="config.js?v=v51"></script>
 
 <script>
 /* =======================================================================
@@ -342,7 +342,7 @@ function age(b){ if(!b) return null; const d=new Date(b), t=new Date(); let a=t.
 
 /* ---------------- אחסון ---------------- */
 const KEY='ebfit_v1';
-const EB_VERSION='v50';   // חייב להתאים ל-VERSION ב-sw.js
+const EB_VERSION='v51';   // חייב להתאים ל-VERSION ב-sw.js
 let mem=null, canStore=true;
 function load(){
   try{ const r=localStorage.getItem(KEY); return r?JSON.parse(r):null; }
@@ -829,7 +829,8 @@ function tabProgram(t){
      +'<span class="daychev"></span></div>'
      +'<div class="daybody">'
      +'<div class="row noprint" style="padding:0 14px 10px;gap:6px">'
-     +'<button class="btn sm ghost" onclick="addEx(\''+t.id+'\','+di+')">+ תרגיל</button>'
+     +'<button class="btn sm" onclick="EBExUI.open(\''+t.id+'\','+di+')">📚 מהספרייה</button>'
+     +'<button class="btn sm ghost" onclick="addEx(\''+t.id+'\','+di+')">+ תרגיל ריק</button>'
      +'<div style="flex:1"></div>'
      +'<button class="iconbtn" onclick="delDay(\''+t.id+'\','+di+')">🗑</button></div>'
      +'<div style="overflow-x:auto;padding:0 14px 12px">'
@@ -1593,19 +1594,21 @@ if (location.protocol === 'file:') {
 }
 </script>
 
-<script src="intake.js?v=v50"></script>
-<script src="files.js?v=v50"></script>
-<script src="builder.js?v=v50"></script>
-<script src="import-program.js?v=v50"></script>
-<script src="tracking.js?v=v50"></script>
-<script src="metrics.js?v=v50"></script>
-<script src="meal-library.js?v=v50"></script>
-<script src="library-ui.js?v=v50"></script>
-<script src="export-plan.js?v=v50"></script>
-<script src="cardio.js?v=v50"></script>
-<script src="cardio-ui.js?v=v50"></script>
-<script src="meals.js?v=v50"></script>
-<script src="sync.js?v=v50"></script>
+<script src="intake.js?v=v51"></script>
+<script src="files.js?v=v51"></script>
+<script src="builder.js?v=v51"></script>
+<script src="import-program.js?v=v51"></script>
+<script src="tracking.js?v=v51"></script>
+<script src="metrics.js?v=v51"></script>
+<script src="meal-library.js?v=v51"></script>
+<script src="library-ui.js?v=v51"></script>
+<script src="export-plan.js?v=v51"></script>
+<script src="cardio.js?v=v51"></script>
+<script src="cardio-ui.js?v=v51"></script>
+<script src="exercise-library.js?v=v51"></script>
+<script src="exercise-ui.js?v=v51"></script>
+<script src="meals.js?v=v51"></script>
+<script src="sync.js?v=v51"></script>
 <script>
 /* =================== חיבור הסנכרון לאפליקציה =================== */
 
@@ -1889,7 +1892,7 @@ async function toggleAccess(id,active){
         metrics נשאר בגרסה ישנה כי לא הופיע ברשימה קבועה.
      2. הרשימה — תופסת מודול שלא נטען כלל ולכן גם לא הספיק להירשם. */
   const stale  = Object.keys(got).filter(k => got[k] !== EB_VERSION);
-  const need   = ['files','intake','builder','import','sync','tracking','metrics','meals','library','libraryUi','exportPlan','cardio','cardioUi'];
+  const need   = ['files','intake','builder','import','sync','tracking','metrics','meals','library','libraryUi','exportPlan','cardio','cardioUi','exLibrary','exUi'];
   const absent = need.filter(k => got[k] === undefined);
   const bad    = stale.concat(absent);
   if(!bad.length) return;
