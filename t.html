@@ -61,6 +61,30 @@ button{cursor:pointer}
 }
 .days button.on{background:var(--or-soft);border-color:var(--or);color:var(--or);font-weight:700}
 
+/* ---- יום אימון כתיקייה ---- */
+.dayc{background:var(--card);border:1px solid var(--line);border-radius:var(--r);margin-bottom:10px;overflow:hidden}
+.dayc.on{border-color:var(--line2)}
+.dayc.full{border-color:rgba(188,224,91,.4)}
+.dayh{width:100%;background:none;border:0;padding:13px 14px;display:flex;align-items:center;gap:12px;text-align:right}
+.daynum{
+  width:30px;height:30px;flex:none;border-radius:50%;display:grid;place-items:center;
+  font-family:'Heebo';font-weight:800;font-size:13px;
+  background:var(--or-soft);color:var(--or);border:1px solid rgba(143,168,79,.32);
+}
+.dayc.on .daynum{background:var(--or);color:#141A06;border-color:var(--or)}
+.dayc.full .daynum{background:var(--ok);color:#0D1503;border-color:var(--ok)}
+.dayt{flex:1;min-width:0}
+.dayn{display:block;font-family:'Frank Ruhl Libre',Georgia,serif;font-weight:700;font-size:16px;line-height:1.25}
+.daym{display:block;color:var(--dim);font-size:12px;margin-top:3px}
+.daym em{font-style:normal;color:var(--or);font-weight:700}
+.daychev{
+  width:8px;height:8px;flex:none;transform:rotate(45deg);transition:transform .22s;
+  border-right:2px solid var(--dim);border-bottom:2px solid var(--dim);
+}
+.dayc.on .daychev{transform:rotate(-135deg)}
+.dayb{display:none;padding:0 12px 4px}
+.dayc.on .dayb{display:block}
+
 .ex{border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px;background:var(--card);transition:border-color .15s}
 .ex.done{border-color:rgba(188,224,91,.45);background:rgba(188,224,91,.05)}
 .ex .hd{display:flex;align-items:flex-start;gap:11px}
@@ -123,10 +147,10 @@ button{cursor:pointer}
 
 <div id="toast"></div>
 
-<script src="vendor/supabase.js?v=v49"></script>
-<script src="config.js?v=v49"></script>
-<script src="meal-library.js?v=v49"></script>
-<script src="progress.js?v=v49"></script>
+<script src="vendor/supabase.js?v=v50"></script>
+<script src="config.js?v=v50"></script>
+<script src="meal-library.js?v=v50"></script>
+<script src="progress.js?v=v50"></script>
 <script>
 (function () {
   'use strict';
@@ -615,73 +639,175 @@ button{cursor:pointer}
     const days  = (DATA.program && DATA.program.days) || [];
     const files = DATA.files || [];
 
-    // תוכנית שהיא קובץ בלבד, בלי תרגילים מוקלדים
-    if (!days.length) {
-      const onlyMeals = mealsBlock(DATA.meals) + myMealsBlock();
-      if (files.length || onlyMeals) { screen(progBlock() + goalsBlock(DATA) + libButton() + onlyMeals + filesBlock(files)); return; }
-      screen(progBlock() + goalsBlock(DATA) + libButton());
-      return;
-    }
-    if (DAY >= days.length) DAY = 0;
-    const ex = days[DAY].exercises || [];
-
-    let h = progBlock() + goalsBlock(DATA) + libButton() + mealsBlock(DATA.meals) + myMealsBlock() + filesBlock(files) + '<div class="days">' + days.map((d, i) =>
-      '<button class="' + (i === DAY ? 'on' : '') + '" data-day="' + i + '">' +
-      esc(d.name || ('יום ' + (i + 1))) + '</button>').join('') + '</div>';
-
-    h += ex.length
-      ? ex.map((e, i) => exCard(e, i)).join('')
-      : '<div class="card" style="text-align:center;color:var(--mut)">אין תרגילים ליום הזה</div>';
-
-    h += (localStorage.getItem('ebfit_t_token')
-      ? '<div style="text-align:center;margin:18px 0 4px"><button class="btn ghost" '
-        + 'style="font-size:13px;padding:8px 18px" onclick="__ebLogout()">יציאה</button></div>'
-      : '');
-    h += '<div class="card"><label style="font-size:13px;color:var(--mut)">איך היה?</label>'
-       + '<div class="feel">' + ['קל', 'בסדר', 'קשה'].map(f =>
-           '<button data-feel="' + f + '"' + (FEEL === f ? ' class="on"' : '') + '>' + f + '</button>').join('')
-       + '</div></div>';
-
-    screen(h);
+    screen(
+        openerBlock(days)
+      + targetsBlock()
+      + progBlock()
+      + planBlock(days)
+      + mealsBlock(DATA.meals)
+      + myMealsBlock()
+      + libButton()
+      + filesBlock(files)
+      + footerBlock()
+    );
     bar();
   }
 
-  function exCard(e, i) {
-    const st = STATE[DAY + ':' + i] || {};
+  /* פתיח: משפט אחד שאומר מה יש כאן. בלעדיו הדף נפתח באמצע עניין
+     ולא ברור אם זו התוכנית המלאה או קטע ממנה. */
+  function openerBlock(days) {
+    const first = (DATA.name || '').trim().split(/\s+/)[0] || '';
+    const ex    = days.reduce((a, d) => a + ((d.exercises || []).length), 0);
+    const meals = (DATA.meals || []).length;
+    const t     = (DATA.program && DATA.program.targets) || null;
+
+    const bits = [];
+    if (days.length) bits.push(days.length + ' ימי אימון');
+    if (ex)          bits.push(ex + ' תרגילים');
+    if (meals)       bits.push(meals + ' ארוחות בתפריט');
+    if (t && t.kcal) bits.push('יעד של ' + t.kcal.toLocaleString('en-US') + ' קק״ל ביום');
+    if (!bits.length) return '';
+
+    return '<div class="card" style="margin-bottom:12px;background:transparent;border:0;padding:4px 2px 0">'
+      + '<div style="font-family:Frank Ruhl Libre,serif;font-weight:700;font-size:19px;line-height:1.35">'
+      + (first ? esc(first) + ', זו התוכנית שלך' : 'זו התוכנית שלך') + '</div>'
+      + '<div class="mt" style="font-size:13.5px;margin-top:6px;line-height:1.6">'
+      + bits.join(' · ') + '.</div></div>';
+  }
+
+  /* היעדים המחושבים. מגיעים בתוך התוכנית כי הם נגזרים ממדידות
+     שהמאמן לקח, ואין להם מקום משלהם בשליפה. */
+  function targetsBlock() {
+    const t = (DATA.program && DATA.program.targets) || null;
+    if (!t || !t.kcal) return '';
+    const n = v => (v == null || v === '') ? null : v;
+    const cell = (label, val, unit) => !n(val) ? '' :
+      '<div style="flex:1;min-width:74px">'
+      + '<div style="font-family:Heebo;font-weight:700;font-size:19px;line-height:1;'
+      + 'font-variant-numeric:tabular-nums">' + val
+      + (unit ? '<span style="font-size:11px;font-weight:400;color:var(--mut)"> ' + unit + '</span>' : '')
+      + '</div><div class="mt" style="font-size:11px;margin-top:3px">' + label + '</div></div>';
+
+    return '<div class="card" style="margin-bottom:12px">'
+      + '<div style="font-family:Frank Ruhl Libre,serif;font-weight:700;font-size:15px;margin-bottom:11px">'
+      + 'היעדים היומיים שלך</div>'
+      + '<div style="display:flex;gap:12px;flex-wrap:wrap">'
+      + cell('קלוריות', t.kcal && t.kcal.toLocaleString('en-US'), '')
+      + cell('חלבון', t.protein, 'ג׳')
+      + cell('פחמימות', t.carbs, 'ג׳')
+      + cell('שומן', t.fat, 'ג׳')
+      + cell('מים', t.water, 'ליטר')
+      + cell('צח״מ', t.vo2, '')
+      + '</div></div>';
+  }
+
+  /* כל הימים פרושים כתיקיות, ולא רצועת לשוניות שמראה יום אחד. כך
+     נראית התוכנית כולה במבט אחד, ואפשר לפתוח את מה שמתאמנים היום. */
+  function planBlock(days) {
+    if (!days.length) return '';
+    let h = '<div style="font-family:Frank Ruhl Libre,serif;font-weight:700;font-size:15px;'
+      + 'margin:18px 0 10px">התוכנית השבועית</div>';
+
+    days.forEach((d, i) => {
+      const ex   = d.exercises || [];
+      const open = DAY === i;
+      const done = ex.filter((_, j) => (STATE[i + ':' + j] || {}).done).length;
+      const full = ex.length > 0 && done === ex.length;
+
+      h += '<div class="dayc' + (open ? ' on' : '') + (full ? ' full' : '') + '" data-d="' + i + '">'
+        + '<button class="dayh" data-day="' + i + '">'
+        + '<span class="daynum">' + (i + 1) + '</span>'
+        + '<span class="dayt"><span class="dayn">' + esc(d.name || ('יום ' + (i + 1))) + '</span>'
+        + '<span class="daym">' + (done ? '<em>' + done + '</em>/' : '') + ex.length + ' תרגילים</span></span>'
+        + '<span class="daychev"></span></button>'
+        + '<div class="dayb">';
+
+      h += ex.length
+        ? ex.map((e, j) => exCard(e, j, i)).join('')
+        : '<div class="mt" style="text-align:center;padding:14px;font-size:13.5px">אין תרגילים ליום הזה</div>';
+
+      if (ex.length) {
+        h += '<div class="card" style="margin:4px 0 10px;background:var(--ink)">'
+          + '<label style="font-size:13px;color:var(--mut)">איך היה?</label>'
+          + '<div class="feel">' + ['קל', 'בסדר', 'קשה'].map(f =>
+              '<button data-feel="' + f + '"' + (FEEL === f ? ' class="on"' : '') + '>' + f + '</button>'
+            ).join('') + '</div>'
+          + '<button class="btn" data-fin="' + i + '" style="width:100%;margin-top:10px"'
+          + (done ? '' : ' disabled') + '>סיימתי את האימון הזה</button></div>';
+      }
+      h += '</div></div>';
+    });
+    return h;
+  }
+
+  function footerBlock() {
+    if (!localStorage.getItem('ebfit_t_token')) return '';
+    return '<div style="text-align:center;margin:22px 0 6px">'
+      + '<button class="btn ghost" style="font-size:13px;padding:8px 18px" '
+      + 'onclick="__ebLogout()">יציאה</button></div>';
+  }
+
+  function exCard(e, i, dayIdx) {
+    const d  = (dayIdx == null ? DAY : dayIdx);
+    const st = STATE[d + ':' + i] || {};
     const meta = [e.sets && e.sets + ' סטים', e.reps && e.reps + ' חזרות',
                   e.rest && 'מנוחה ' + e.rest + 'שנ'].filter(Boolean).join(' · ');
-    return '<div class="ex' + (st.done ? ' done' : '') + '" data-ex="' + i + '">'
-      + '<div class="hd"><button class="chk" data-chk="' + i + '">✓</button>'
+    return '<div class="ex' + (st.done ? ' done' : '') + '" data-ex="' + i + '" data-exd="' + d + '">'
+      + '<div class="hd"><button class="chk" data-chk="' + i + '" data-chkd="' + d + '">✓</button>'
       + '<div style="flex:1;min-width:0"><div class="nm">' + esc(e.name || 'תרגיל') + '</div>'
       + (meta ? '<div class="meta">' + esc(meta) + '</div>' : '')
       + (e.note ? '<div class="note">' + esc(e.note) + '</div>' : '')
       + '</div></div>'
       + '<div class="logs">'
-      + '<input data-f="weight" data-i="' + i + '" inputmode="decimal" placeholder="משקל" value="' + esc(st.weight != null ? st.weight : (e.weight || '')) + '">'
-      + '<input data-f="reps" data-i="' + i + '" inputmode="numeric" placeholder="חזרות" value="' + esc(st.reps != null ? st.reps : '') + '">'
+      + '<input data-f="weight" data-i="' + i + '" data-d="' + d + '" inputmode="decimal" placeholder="משקל" value="' + esc(st.weight != null ? st.weight : (e.weight || '')) + '">'
+      + '<input data-f="reps" data-i="' + i + '" data-d="' + d + '" inputmode="numeric" placeholder="חזרות" value="' + esc(st.reps != null ? st.reps : '') + '">'
       + '</div></div>';
   }
 
+  /* הסרגל מסכם את כל השבוע. כפתור השליחה עבר לתוך היום עצמו — עם כל
+     הימים פרושים, כפתור אחד למטה לא היה יודע איזה יום התכוונת לשדר. */
   function bar() {
-    const ex = ((DATA.program.days[DAY] || {}).exercises) || [];
-    const done = ex.filter((_, i) => (STATE[DAY + ':' + i] || {}).done).length;
+    const days = (DATA.program && DATA.program.days) || [];
+    let tot = 0, done = 0;
+    days.forEach((d, i) => {
+      const ex = d.exercises || [];
+      tot += ex.length;
+      done += ex.filter((_, j) => (STATE[i + ':' + j] || {}).done).length;
+    });
     let b = document.querySelector('.bar');
+    if (!tot) { if (b) b.remove(); return; }
     if (!b) { b = document.createElement('div'); b.className = 'bar'; document.body.appendChild(b); }
-    b.innerHTML = '<div class="prog"><b>' + done + '</b> מתוך <b>' + ex.length + '</b> תרגילים</div>'
-      + '<button class="btn" id="finish"' + (done ? '' : ' disabled') + '>סיימתי אימון</button>';
+    const pct = Math.round(done / tot * 100);
+    b.innerHTML =
+        '<div class="prog"><b>' + done + '</b> מתוך <b>' + tot + '</b> תרגילים השבוע</div>'
+      + '<div style="flex:none;width:74px;height:5px;border-radius:20px;background:var(--card);overflow:hidden">'
+      + '<div style="height:100%;width:' + pct + '%;border-radius:20px;background:var(--or)"></div></div>'
+      + '<b style="font-family:Heebo;font-size:14px;min-width:34px;text-align:left">' + pct + '%</b>';
   }
 
   /* ---------- אינטראקציה ---------- */
   document.addEventListener('click', e => {
+    /* פתיחה וסגירה במקום, בלי ציור מחדש — ציור מלא מחזיר את הגלילה
+       לראש הדף, ומי שפתח את יום ד' נזרק חזרה ליום א'. */
     const day = e.target.closest('[data-day]');
-    if (day) { DAY = +day.dataset.day; paint(); return; }
+    if (day) {
+      const card = day.closest('.dayc');
+      const i = +day.dataset.day;
+      const wasOpen = card.classList.contains('on');
+      document.querySelectorAll('.dayc.on').forEach(c => c.classList.remove('on'));
+      if (!wasOpen) { card.classList.add('on'); DAY = i; }
+      bar();
+      return;
+    }
 
     const chk = e.target.closest('[data-chk]');
     if (chk) {
-      const k = DAY + ':' + chk.dataset.chk;
+      const d = chk.dataset.chkd != null ? chk.dataset.chkd : DAY;
+      const k = d + ':' + chk.dataset.chk;
       STATE[k] = STATE[k] || {};
       STATE[k].done = !STATE[k].done;
       chk.closest('.ex').classList.toggle('done', STATE[k].done);
+      dayMeta(+d);
       bar();
       return;
     }
@@ -709,39 +835,61 @@ button{cursor:pointer}
       return;
     }
 
-    if (e.target.id === 'finish') finish();
+    const fin = e.target.closest('[data-fin]');
+    if (fin) { finish(+fin.dataset.fin, fin); return; }
+
+    if (e.target.id === 'finish') finish(DAY);
   });
 
   document.addEventListener('input', e => {
     const f = e.target.dataset && e.target.dataset.f;
     if (!f) return;
-    const k = DAY + ':' + e.target.dataset.i;
+    const d = e.target.dataset.d != null ? e.target.dataset.d : DAY;
+    const k = d + ':' + e.target.dataset.i;
     STATE[k] = STATE[k] || {};
     STATE[k][f] = e.target.value;
   });
 
   /* ---------- שליחת דיווח ---------- */
-  async function finish() {
-    const btn = $('#finish'); if (btn) { btn.disabled = true; btn.textContent = 'שולח…'; }
-    const day = DATA.program.days[DAY] || {};
-    const entries = (day.exercises || []).map((e, i) => {
-      const st = STATE[DAY + ':' + i] || {};
+  async function finish(dayIdx, btn) {
+    const i = (dayIdx == null ? DAY : dayIdx);
+    btn = btn || $('#finish');
+    if (btn) { btn.disabled = true; btn.textContent = 'שולח…'; }
+    const day = (DATA.program.days || [])[i] || {};
+    const entries = (day.exercises || []).map((e, j) => {
+      const st = STATE[i + ':' + j] || {};
       return { ex: e.name || '', done: !!st.done, weight: st.weight || '', reps: st.reps || '' };
     });
     try {
       const { error } = await sb.rpc('trainee_log', {
-        p_token: TOKEN, p_day_index: DAY,
-        p_day_name: day.name || ('יום ' + (DAY + 1)),
+        p_token: TOKEN, p_day_index: i,
+        p_day_name: day.name || ('יום ' + (i + 1)),
         p_entries: entries, p_feel: FEEL, p_note: null
       });
       if (error) throw error;
       toast('נשלח למאמן. כל הכבוד! 💪');
-      if (window.EBProg) EBProg.logWorkout();   // נספר לשבוע הנוכחי בכרטיס ההתקדמות
-      STATE = {}; FEEL = null; paint();
+      if (window.EBProg) EBProg.logWorkout();
+      /* מנקים רק את היום ששודר. מי שסימן מראש תרגילים ביום אחר
+         לא אמור לאבד אותם רק כי סיים אימון. */
+      Object.keys(STATE).forEach(k => { if (k.indexOf(i + ':') === 0) delete STATE[k]; });
+      FEEL = null; paint();
     } catch (err) {
       toast('לא הצלחנו לשלוח — נסה שוב כשתהיה רשת');
-      if (btn) { btn.disabled = false; btn.textContent = 'סיימתי אימון'; }
+      if (btn) { btn.disabled = false; btn.textContent = 'סיימתי את האימון הזה'; }
     }
+  }
+
+  /* מונה התרגילים בכותרת היום, בלי לצייר מחדש */
+  function dayMeta(i) {
+    const card = document.querySelector('.dayc[data-d="' + i + '"]');
+    if (!card) return;
+    const ex = ((DATA.program.days || [])[i] || {}).exercises || [];
+    const done = ex.filter((_, j) => (STATE[i + ':' + j] || {}).done).length;
+    const meta = card.querySelector('.daym');
+    if (meta) meta.innerHTML = (done ? '<em>' + done + '</em>/' : '') + ex.length + ' תרגילים';
+    card.classList.toggle('full', ex.length > 0 && done === ex.length);
+    const fin = card.querySelector('[data-fin]');
+    if (fin) fin.disabled = !done;
   }
 
   boot();
