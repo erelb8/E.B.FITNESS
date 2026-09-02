@@ -20,7 +20,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['metrics'] = 'v56';
+  (window.EB_MOD = window.EB_MOD || {})['metrics'] = 'v57';
 
   var r1 = function (x) { return Math.round(x * 10) / 10; };
   var r2 = function (x) { return Math.round(x * 100) / 100; };

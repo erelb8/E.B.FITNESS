@@ -8,7 +8,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['exUi'] = 'v56';
+  (window.EB_MOD = window.EB_MOD || {})['exUi'] = 'v57';
 
   var Q = '', MUS = 'all', EQ = 'all', FOR = null, DAY = 0, TARGET = null;
 
@@ -172,5 +172,123 @@
     if (q) { setEquip(q.dataset.exe); return; }
   });
 
-  window.EBExUI = { open: open, close: close, search: search, setMuscle: setMuscle, setEquip: setEquip, add: add };
+  /* ══════════ השלמה למספר תרגילים אחיד ══════════
+     היום מזוהה לפי מה שכבר בו ולפי שמו, וההשלמה נלקחת מאותן קבוצות
+     שריר. יום דחיפה לא יקבל פתאום כפיפת מרפקים.
+
+     רק מוסיפים ולעולם לא מוחקים: יום עם אחד-עשר תרגילים הוא בחירה
+     של המאמן, ולא משהו שכלי אוטומטי אמור לקצץ. */
+
+  var NAME_HINTS = [
+    [/דחיפ|חזה|כתפ|טרייספס|יד אחורית/, ['chest','shoulders','triceps']],
+    [/משיכ|גב|ביספס|יד קדמית/,          ['back','biceps']],
+    [/רגל|רגליים|תחתון|סקוואט|דדליפט/,   ['quads','hams','glutes','calves']],
+    [/עליון/,                            ['chest','back','shoulders','triceps','biceps']],
+    [/בטן|ליבה|core/i,                   ['core']],
+    [/אירובי|ריצה|קרדיו/,                ['cardio']],
+    [/גמישות|מתיח/,                      ['flex']],
+    [/ניידות|מוביל/,                     ['mob']],
+    [/גוף מלא|פונקציונ/,                 ['full','core']]
+  ];
+
+  /* גם מה שכבר ביום וגם הרמז שבשמו. יום "דחיפה" שיש בו רק לחיצת חזה
+     אמור לקבל גם כתפיים ויד אחורית — לא עוד שבעה תרגילי חזה. */
+  function dayMuscles(day) {
+    var have = {}, order = [];
+    (day.exercises || []).forEach(function (e) {
+      var x = EBEx.ALL.filter(function (y) { return y.n === String(e.name || '').trim(); })[0];
+      if (x && !have[x.m]) { have[x.m] = 1; order.push(x.m); }
+    });
+
+    var nm = String(day.name || '');
+    for (var i = 0; i < NAME_HINTS.length; i++) {
+      if (NAME_HINTS[i][0].test(nm)) {
+        NAME_HINTS[i][1].forEach(function (m) { if (!have[m]) { have[m] = 1; order.push(m); } });
+        break;
+      }
+    }
+    if (order.length) return order;
+    return ['chest','back','quads','shoulders','core'];   // יום בלי שם ובלי תרגילים
+  }
+
+  function fillDay(t, day, n) {
+    day.exercises = day.exercises || [];
+    var missing = n - day.exercises.length;
+    if (missing <= 0) return 0;
+
+    var taken = {};
+    day.exercises.forEach(function (e) { taken[String(e.name || '').trim()] = 1; });
+    /* גם מה שכבר קיים בימים אחרים נדחה לסוף, כדי שהתוכנית לא תחזור
+       על עצמה בכל יום. */
+    var elsewhere = {};
+    (((t.program || {}).days) || []).forEach(function (d) {
+      if (d === day) return;
+      (d.exercises || []).forEach(function (e) { elsewhere[String(e.name || '').trim()] = 1; });
+    });
+
+    var muscles = dayMuscles(day);
+    /* סבב בין השרירים ולא מיצוי אחד אחרי השני: אחרת יום דחיפה מקבל
+       תשעה תרגילי חזה רק כי chest ראשון ברשימה. */
+    var byM = {}, maxLen = 0;
+    muscles.forEach(function (m) {
+      byM[m] = EBEx.ALL.filter(function (x) { return x.m === m && !taken[x.n]; });
+      if (byM[m].length > maxLen) maxLen = byM[m].length;
+    });
+    var pool = [];
+    for (var r = 0; r < maxLen; r++) {
+      muscles.forEach(function (m) { if (byM[m][r]) pool.push(byM[m][r]); });
+    }
+    /* עדיפות למה שלא מופיע במקום אחר, ואחר כך גיוון בציוד */
+    var usedEquip = {};
+    day.exercises.forEach(function (e) {
+      var x = EBEx.ALL.filter(function (y) { return y.n === String(e.name || '').trim(); })[0];
+      if (x) usedEquip[x.e] = (usedEquip[x.e] || 0) + 1;
+    });
+    pool.sort(function (a, b) {
+      var ea = elsewhere[a.n] ? 1 : 0, eb = elsewhere[b.n] ? 1 : 0;
+      if (ea !== eb) return ea - eb;
+      return (usedEquip[a.e] || 0) - (usedEquip[b.e] || 0);
+    });
+
+    var added = 0;
+    for (var i = 0; i < pool.length && added < missing; i++) {
+      var x = pool[i];
+      if (taken[x.n]) continue;
+      taken[x.n] = 1;
+      usedEquip[x.e] = (usedEquip[x.e] || 0) + 1;
+      day.exercises.push({ name: x.n, sets: x.s, reps: x.r,
+                           weight: '', rest: '', note: x.note || '' });
+      added++;
+    }
+    return added;
+  }
+
+  function fillTrainee(tid, n) {
+    var t = tById(tid); if (!t) return 0;
+    n = n || 9;
+    var days = ((t.program || {}).days) || [];
+    var total = 0;
+    days.forEach(function (d) { total += fillDay(t, d, n); });
+    if (total) { save(); render(); }
+    toast(total ? (total + ' תרגילים נוספו') : 'כל הימים כבר מלאים');
+    return total;
+  }
+
+  function fillAll(n) {
+    n = n || 9;
+    var list = (window.S.trainees || []).filter(function (t) { return t.status !== 'archived'; });
+    if (!confirm('להשלים כל יום אימון ל-' + n + ' תרגילים אצל ' + list.length + ' מתאמנים?')) return;
+    var total = 0, touched = 0;
+    list.forEach(function (t) {
+      var before = total;
+      (((t.program || {}).days) || []).forEach(function (d) { total += fillDay(t, d, n); });
+      if (total > before) touched++;
+    });
+    save(); render();
+    toast(total ? (total + ' תרגילים נוספו אצל ' + touched + ' מתאמנים')
+                : 'כל התוכניות כבר מלאות');
+  }
+
+  window.EBExUI = { open: open, close: close,
+                    fillTrainee: fillTrainee, fillAll: fillAll, fillDay: fillDay, search: search, setMuscle: setMuscle, setEquip: setEquip, add: add };
 })();
