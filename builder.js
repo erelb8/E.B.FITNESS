@@ -14,7 +14,7 @@
   'use strict';
 
   // חותמת גרסה — index.html משווה אליה כדי לזהות קובץ ישן במטמון
-  (window.EB_MOD = window.EB_MOD || {})['builder'] = 'v54';
+  (window.EB_MOD = window.EB_MOD || {})['builder'] = 'v55';
 
   /* ---------- דפוסי תנועה ----------
      החלוקה לפי דפוס ולא לפי שריר, כי כך בונים פיצולים מאוזנים
@@ -352,14 +352,21 @@
     DRAFT.days.forEach(function (d, i) {
       h += '<div class="card" style="margin-bottom:10px;padding:12px">'
         + '<div style="font-family:Heebo;font-weight:700;margin-bottom:8px">' + esc(d.name) + '</div>';
-      d.exercises.forEach(function (e) {
+      d.exercises.forEach(function (e, j) {
         h += '<div class="line-item" style="padding:5px 0">'
           + '<span style="flex:1;font-size:14px">' + esc(e.name) + '</span>'
           + '<span class="muted" style="font-size:12.5px">' + esc(e.sets) + '×' + esc(e.reps) + '</span>'
+          + (e.weight ? '<span class="muted" style="font-size:12px">' + esc(e.weight) + '</span>' : '')
           + '<span class="muted" style="font-size:12px;width:56px;text-align:left">' + esc(e.rest) + ' שנ׳</span>'
+          + '<button class="iconbtn" style="width:24px;height:24px;font-size:12px" '
+          + 'onclick="EBBuild.drop(' + i + ',' + j + ')">✕</button>'
           + '</div>';
       });
-      h += '</div>';
+      /* הוספה לטיוטה ולא לתוכנית: הבחירה בין החלפה להוספה עדיין
+         לפני המאמן, וזו הנקודה שבה הוא מכוונן את מה שהבוט הציע. */
+      h += '<button class="btn sm ghost" style="margin-top:8px" '
+        + 'onclick="EBBuild.fromLib(' + i + ')">📚 הוספה מהספרייה</button>'
+        + '</div>';
     });
 
     var has = ((t.program && t.program.days) || []).length;
@@ -389,5 +396,22 @@
     toast('התוכנית נבנתה — אפשר לערוך כל שדה');
   }
 
-  window.EBBuild = { open: open, gen: gen, apply: apply, build: build, learn: learn };
+  /* פתיחת הספרייה על יום בטיוטה. אחרי כל הוספה מציירים מחדש את
+     התצוגה המקדימה שמאחור, כך שהיא נשארת נכונה גם בלי לסגור. */
+  function fromLib(dayIndex) {
+    if (!DRAFT || !DRAFT.days[dayIndex]) return;
+    EBExUI.open(FOR, dayIndex, {
+      day:   function () { return DRAFT.days[dayIndex]; },
+      after: function () { },
+      back:  function () { preview(); }
+    });
+  }
+  function drop(dayIndex, exIndex) {
+    if (!DRAFT || !DRAFT.days[dayIndex]) return;
+    DRAFT.days[dayIndex].exercises.splice(exIndex, 1);
+    preview();
+  }
+
+  window.EBBuild = { open: open, gen: gen, apply: apply, build: build,
+                     learn: learn, fromLib: fromLib, drop: drop };
 })();
