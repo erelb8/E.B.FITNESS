@@ -15,7 +15,7 @@
   'use strict';
 
   // חותמת גרסה — index.html משווה אליה כדי לזהות קובץ ישן במטמון
-  (window.EB_MOD = window.EB_MOD || {})['sync'] = 'v61';
+  (window.EB_MOD = window.EB_MOD || {})['sync'] = 'v62';
 
   const CFG      = window.EBFIT_CONFIG || { URL: '', ANON: '' };
   const SNAP_KEY = 'ebfit_sync_v1';
@@ -37,7 +37,7 @@
   // מתאמן: name/goal/program משותפים עם המתאמן, כל השאר ב-private.
   /* mealsSelf נקרא מהשרת ולעולם לא נדחף אליו — המתאמן כותב אותו
      דרך RPC משלו, ודחיפה מכאן הייתה מוחקת מה שהוא הוסיף. */
-  const SHARED = ['id', 'name', 'goal', 'program', 'status', 'files', 'meals', 'mealsSelf'];
+  const SHARED = ['id', 'name', 'goal', 'program', 'status', 'files', 'meals', 'mealsSelf', 'exercisesSelf'];
 
   function traineeToRow(t) {
     const priv = {};
@@ -68,6 +68,7 @@
       files: r.files || [],
       meals: r.meals || [],
       mealsSelf: r.meals_self || [],
+      exercisesSelf: r.exercises_self || [],
       status: r.status,
       _token: r.access_token,
       _tokenActive: r.access_active,

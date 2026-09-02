@@ -317,8 +317,8 @@ tbody tr:hover{background:var(--panel)}
 <div id="toast"></div>
 
 <!-- ספריית Supabase מקומית (לא מ-CDN) כדי שהאפליקציה תעבוד גם בלי רשת -->
-<script src="vendor/supabase.js?v=v61"></script>
-<script src="config.js?v=v61"></script>
+<script src="vendor/supabase.js?v=v62"></script>
+<script src="config.js?v=v62"></script>
 
 <script>
 /* =======================================================================
@@ -353,7 +353,7 @@ function age(b){ if(!b) return null; const d=new Date(b), t=new Date(); let a=t.
 
 /* ---------------- אחסון ---------------- */
 const KEY='ebfit_v1';
-const EB_VERSION='v61';   // חייב להתאים ל-VERSION ב-sw.js
+const EB_VERSION='v62';   // חייב להתאים ל-VERSION ב-sw.js
 let mem=null, canStore=true;
 function load(){
   try{ const r=localStorage.getItem(KEY); return r?JSON.parse(r):null; }
@@ -821,6 +821,28 @@ function openFolder(k){
   render();
 }
 
+/* מה שהמתאמן הוסיף לעצמו מהספרייה. בנפרד מהתוכנית שבנית — זו
+   אינפורמציה על מה שהוא בוחר לעשות, לא הוראה שנתת. */
+function selfExBlock(t){
+  const mine = t.exercisesSelf || [];
+  if(!mine.length || typeof EBEx === 'undefined') return '';
+  const rows = mine.map(x => EBEx.byId(x.exId)).filter(Boolean);
+  if(!rows.length) return '';
+  let h='<div class="card" style="margin-bottom:14px;border-color:var(--line2)">'
+   +'<div class="row" style="align-items:baseline;margin-bottom:8px">'
+   +'<h3 style="flex:1;font-size:14.5px">'+esc(t.name.split(' ')[0])+' הוסיף לעצמו</h3>'
+   +'<span class="muted" style="font-size:12px">'+rows.length+' תרגילים</span></div>';
+  rows.forEach(x=>{
+    h+='<div class="row" style="padding:7px 0;border-top:1px solid var(--line);font-size:13px">'
+     +'<span style="flex:1;min-width:0">'+esc(x.n)+'</span>'
+     +'<span class="muted" style="font-size:11.5px">'+esc(EBEx.MUSCLES[x.m])+'</span>'
+     +'<span style="font-family:Heebo;font-weight:700;min-width:56px;text-align:left">'
+     +esc(x.s)+'×'+esc(x.r)+'</span></div>';
+  });
+  return h+'<div class="muted" style="font-size:11.5px;margin-top:9px">'
+   +'אפשר להוסיף אותם לתוכנית הרשמית או לדבר איתו עליהם.</div></div>';
+}
+
 function tabProgram(t){
   const p=t.program||{days:[]};
   let h='<div class="row noprint" style="margin-bottom:12px"><button class="btn sm" onclick="EBBuild.open(\''+t.id+'\')">🤖 בניית תוכנית</button>'
@@ -835,6 +857,8 @@ function tabProgram(t){
   /* גם בלי תוכנית מוקלדת מציגים את כרטיס הקבצים — זה בדיוק המקרה
      שבו רוצים לצרף תוכנית מוכנה כ-PDF במקום להקליד אותה. */
   if(!p.days.length) return h+'<div class="empty"><div class="big">🏋</div>אין עדיין תוכנית מוקלדת. אפשר לפתוח יום אימון ראשון (A), או לצרף תוכנית מוכנה כקובץ למטה.</div>'+EBFiles.card(t);
+  h+=selfExBlock(t);
+
   /* כל יום הוא תיקייה שנפתחת בלחיצה. תוכנית של 13 ימים פרושה בבת אחת
      היא גלילה בלתי נגמרת, וקשה למצוא בה יום מסוים. הראשון פתוח כדי
      שלא ייפתח מסך של כותרות בלבד; בהדפסה כולם נפתחים. */
@@ -1618,21 +1642,21 @@ if (location.protocol === 'file:') {
 }
 </script>
 
-<script src="intake.js?v=v61"></script>
-<script src="files.js?v=v61"></script>
-<script src="builder.js?v=v61"></script>
-<script src="import-program.js?v=v61"></script>
-<script src="tracking.js?v=v61"></script>
-<script src="metrics.js?v=v61"></script>
-<script src="meal-library.js?v=v61"></script>
-<script src="library-ui.js?v=v61"></script>
-<script src="export-plan.js?v=v61"></script>
-<script src="cardio.js?v=v61"></script>
-<script src="cardio-ui.js?v=v61"></script>
-<script src="exercise-library.js?v=v61"></script>
-<script src="exercise-ui.js?v=v61"></script>
-<script src="meals.js?v=v61"></script>
-<script src="sync.js?v=v61"></script>
+<script src="intake.js?v=v62"></script>
+<script src="files.js?v=v62"></script>
+<script src="builder.js?v=v62"></script>
+<script src="import-program.js?v=v62"></script>
+<script src="tracking.js?v=v62"></script>
+<script src="metrics.js?v=v62"></script>
+<script src="meal-library.js?v=v62"></script>
+<script src="library-ui.js?v=v62"></script>
+<script src="export-plan.js?v=v62"></script>
+<script src="cardio.js?v=v62"></script>
+<script src="cardio-ui.js?v=v62"></script>
+<script src="exercise-library.js?v=v62"></script>
+<script src="exercise-ui.js?v=v62"></script>
+<script src="meals.js?v=v62"></script>
+<script src="sync.js?v=v62"></script>
 <script>
 /* =================== חיבור הסנכרון לאפליקציה =================== */
 

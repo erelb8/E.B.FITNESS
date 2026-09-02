@@ -150,10 +150,11 @@ button{cursor:pointer}
 
 <div id="toast"></div>
 
-<script src="vendor/supabase.js?v=v61"></script>
-<script src="config.js?v=v61"></script>
-<script src="meal-library.js?v=v61"></script>
-<script src="progress.js?v=v61"></script>
+<script src="vendor/supabase.js?v=v62"></script>
+<script src="config.js?v=v62"></script>
+<script src="meal-library.js?v=v62"></script>
+<script src="exercise-library.js?v=v62"></script>
+<script src="progress.js?v=v62"></script>
 <script>
 (function () {
   'use strict';
@@ -170,6 +171,14 @@ button{cursor:pointer}
   /* הארוחות שהמתאמן בחר לעצמו. נשמרות גם במכשיר וגם בשרת: המכשיר
      כדי שההוספה תהיה מיידית וגם בלי רשת, והשרת כדי שהמאמן יראה. */
   let MY_MEALS = [];
+
+  /* התרגילים שהמתאמן בחר לעצמו. נשמרים במכשיר ובשרת, כמו הארוחות —
+     המכשיר לתגובה מיידית וגם בלי רשת, השרת כדי שהמאמן יראה. */
+  let MY_EX = [], EX_OPEN = false, EX_Q = '', EX_MUS = 'all';
+  const exKey = () => 'ebfit_myex_' + String(TOKEN || '').slice(0, 12);
+  function readEx() { try { return JSON.parse(localStorage.getItem(exKey())) || []; } catch (e) { return []; } }
+  function writeEx() { try { localStorage.setItem(exKey(), JSON.stringify(MY_EX)); } catch (e) {} }
+  const inEx = id => MY_EX.some(x => x.exId === id);
   const myKey = () => 'ebfit_my_' + String(TOKEN || '').slice(0, 12);
   function readMy() { try { return JSON.parse(localStorage.getItem(myKey())) || []; } catch (e) { return []; } }
   function writeMy() { try { localStorage.setItem(myKey(), JSON.stringify(MY_MEALS)); } catch (e) {} }
@@ -198,6 +207,7 @@ button{cursor:pointer}
     if (window.EBProg) EBProg.load(TOKEN);
     MY_MEALS = readMy();
     BUILD = readBuild();
+    MY_EX = readEx();
 
     // קודם מהמטמון — כדי שהתוכנית תיפתח מיד גם בלי רשת
     const cached = readCache();
@@ -212,6 +222,7 @@ button{cursor:pointer}
       }
       DATA = data[0];
       mergeMy(DATA.meals_self);
+      mergeEx(DATA.exercises_self);
       writeCache(DATA);
       paint();
     } catch (e) {
@@ -263,10 +274,12 @@ button{cursor:pointer}
     if (window.EBProg) EBProg.load(TOKEN);
     MY_MEALS = readMy();
     BUILD = readBuild();
+    MY_EX = readEx();
       try { localStorage.setItem('ebfit_t_token', TOKEN); } catch (e) {}
 
       DATA = d;
       mergeMy(d.meals_self);
+      mergeEx(d.exercises_self);
       writeCache(d);
       paint();
     } catch (e) {
@@ -639,6 +652,133 @@ button{cursor:pointer}
     return h + '</tbody></table></div>';
   }
 
+  function mergeEx(fromServer) {
+    if (!Array.isArray(fromServer)) return;   // העמודה עוד לא קיימת בשרת
+    MY_EX = fromServer;
+    writeEx();
+  }
+
+  async function exAdd(id) {
+    const x = EBEx.byId(id);
+    if (!x || inEx(id)) return;
+    MY_EX.push({ exId: id, name: x.n, at: todayStr() });
+    writeEx(); refreshEx(id);
+    toast(x.n + ' נוסף לאימון שלך');
+    try {
+      const { data, error } = await sb.rpc('trainee_add_exercise',
+        { p_token: TOKEN, p_ex_id: id, p_name: x.n });
+      if (error) throw error;
+      mergeEx(data);
+    } catch (e) {
+      toast('נשמר במכשיר. המאמן יראה אחרי שיסיים את ההגדרה.');
+    }
+  }
+
+  async function exRemove(id) {
+    MY_EX = MY_EX.filter(x => x.exId !== id);
+    writeEx(); refreshEx(id);
+    try {
+      const { data, error } = await sb.rpc('trainee_remove_exercise',
+        { p_token: TOKEN, p_ex_id: id });
+      if (error) throw error;
+      mergeEx(data);
+    } catch (e) {}
+  }
+
+  /* כרטיס אחד ולא ציור מחדש — הגלילה לא זזה */
+  function refreshEx(id) {
+    const b = document.querySelector('[data-exadd="' + id + '"]');
+    if (b) {
+      const on = inEx(id);
+      b.textContent = on ? '✓ באימון שלי' : '+ הוספה לאימון שלי';
+      b.style.background  = on ? 'var(--or-soft)' : 'transparent';
+      b.style.color       = on ? 'var(--or)' : 'var(--mut)';
+      b.style.borderColor = on ? 'var(--or)' : 'var(--line2)';
+    }
+    const c = document.getElementById('exCount');
+    if (c) c.textContent = MY_EX.length;
+  }
+
+  function exButton() {
+    if (typeof EBEx === 'undefined') return '';
+    return '<button class="btn ghost" style="width:100%;margin-bottom:12px;font-size:14px" '
+      + 'onclick="__exOpen()">ספריית התרגילים · ' + EBEx.count
+      + (MY_EX.length ? ' · <b style="color:var(--or)">' + MY_EX.length + ' שלי</b>' : '')
+      + '</button>';
+  }
+
+  function exScreen() {
+    const items = EBEx.search(EX_Q, EX_MUS, 'all');
+    const byM = EBEx.byMuscle();
+    let h = '<button class="btn ghost" style="margin-bottom:12px" onclick="__exClose()">‹ חזרה לתוכנית</button>'
+      + '<input id="exq" placeholder="חיפוש לפי שם, שריר או ציוד" value="' + esc(EX_Q) + '" '
+      + 'oninput="__exSearch(this.value)" style="width:100%;background:var(--card);'
+      + 'border:1px solid var(--line);border-radius:10px;padding:11px;font-size:15px;margin-bottom:10px">'
+      + '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">'
+      + exTag('all', 'הכול', EBEx.count);
+    Object.keys(EBEx.MUSCLES).forEach(k => {
+      if (byM[k]) h += exTag(k, EBEx.MUSCLES[k], byM[k].length);
+    });
+    h += '</div><div style="color:var(--mut);font-size:12.5px;margin-bottom:10px">'
+      + items.length + ' תרגילים</div>';
+
+    if (!items.length) return h + '<div class="msg">לא נמצא תרגיל מתאים.</div>';
+
+    items.forEach(x => {
+      const on = inEx(x.id);
+      h += '<div class="card" style="margin-bottom:9px;padding:12px">'
+        + '<div style="font-family:Heebo;font-weight:700;font-size:15px;line-height:1.3">'
+        + esc(x.n) + '</div>'
+        + '<div style="display:flex;gap:6px;margin-top:7px;flex-wrap:wrap">'
+        + tag(EBEx.MUSCLES[x.m]) + tag(EBEx.EQUIP[x.e] || 'אחר')
+        + tag(x.s + '×' + x.r, 1) + '</div>'
+        + (x.note ? '<div style="font-size:12px;color:var(--or);margin-top:7px;line-height:1.5">'
+                    + esc(x.note) + '</div>' : '')
+        + '<button data-exadd="' + esc(x.id) + '" style="font-size:12.5px;padding:7px 14px;'
+        + 'margin-top:10px;border-radius:9px;cursor:pointer;'
+        + 'border:1px solid ' + (on ? 'var(--or)' : 'var(--line2)') + ';'
+        + 'background:' + (on ? 'var(--or-soft)' : 'transparent') + ';'
+        + 'color:' + (on ? 'var(--or)' : 'var(--mut)') + '">'
+        + (on ? '✓ באימון שלי' : '+ הוספה לאימון שלי') + '</button></div>';
+    });
+    return h;
+  }
+
+  function exTag(k, label, n) {
+    const on = EX_MUS === k;
+    return '<button data-exmus="' + k + '" style="font-size:12.5px;padding:6px 12px;'
+      + 'border-radius:20px;cursor:pointer;white-space:nowrap;'
+      + 'border:1px solid ' + (on ? 'var(--or)' : 'var(--line)') + ';'
+      + 'background:' + (on ? 'var(--or-soft)' : 'var(--card)') + ';'
+      + 'color:' + (on ? 'var(--or)' : 'var(--mut)') + '">'
+      + esc(label) + ' <span style="opacity:.6">' + n + '</span></button>';
+  }
+
+  /* מוצג בנפרד מהתוכנית של המאמן, כדי שלא ייווצר רושם שהוא רשם את זה */
+  function myExBlock() {
+    if (typeof EBEx === 'undefined' || !MY_EX.length) return '';
+    const rows = MY_EX.map(x => EBEx.byId(x.exId)).filter(Boolean);
+    if (!rows.length) return '';
+    let h = '<div class="card" style="margin-bottom:12px;border-color:var(--line2)">'
+      + '<div style="display:flex;align-items:baseline;gap:8px;margin-bottom:10px">'
+      + '<div style="flex:1;font-family:Frank Ruhl Libre,serif;font-weight:700;font-size:15px">'
+      + 'תרגילים שהוספתי</div>'
+      + '<span class="mt" style="font-size:12px">' + rows.length + '</span></div>';
+    rows.forEach(x => {
+      h += '<div style="display:flex;align-items:center;gap:10px;padding:9px 0;'
+        + 'border-top:1px solid var(--line)">'
+        + '<div style="flex:1;min-width:0">'
+        + '<div style="font-size:14px;font-weight:500">' + esc(x.n) + '</div>'
+        + '<div class="mt" style="font-size:11.5px;margin-top:2px">'
+        + esc(EBEx.MUSCLES[x.m]) + ' · ' + esc(EBEx.EQUIP[x.e] || 'אחר') + '</div></div>'
+        + '<span style="font-family:Heebo;font-weight:700;font-size:13px;white-space:nowrap">'
+        + esc(x.s) + '×' + esc(x.r) + '</span>'
+        + '<button data-exrm="' + esc(x.id) + '" style="background:none;border:0;color:var(--dim);'
+        + 'font-size:17px;cursor:pointer;padding:0 4px;line-height:1">✕</button></div>';
+    });
+    return h + '</div>';
+  }
+
   function libCard(m) {
     const c = EBLib.calc(m.items), t = c.total, open = !!LIB_ROW[m.id];
     let h = '<div class="card" style="margin-bottom:10px" data-mid="' + esc(m.id) + '">'
@@ -678,6 +818,12 @@ button{cursor:pointer}
   function lth(x,a){ return '<th style="text-align:'+(a||'left')+';padding:5px 4px;border-bottom:1px solid var(--line);font-size:11px;color:var(--mut);font-weight:500;white-space:nowrap">'+x+'</th>'; }
   function ltd(x,a){ return '<td style="text-align:'+(a||'left')+';padding:5px 4px;border-bottom:1px solid var(--line);white-space:nowrap;font-variant-numeric:tabular-nums">'+x+'</td>'; }
 
+  window.__exOpen   = () => { EX_OPEN = true; EX_Q=''; EX_MUS='all'; screen(exScreen()); window.scrollTo(0,0); };
+  window.__exClose  = () => { EX_OPEN = false; if (DATA) paint(); else loginScreen(); window.scrollTo(0,0); };
+  window.__exSearch = v => { EX_Q = v; screen(exScreen());
+                             const el = document.getElementById('exq');
+                             if (el) { el.focus(); el.setSelectionRange(v.length, v.length); } };
+
   window.__libOpen   = () => { LIB_OPEN = true; LIB_TAB = 'meals'; screen(libScreen()); window.scrollTo(0,0); };
   /* בלי תוכנית טעונה אין למה לחזור — paint() קורא מ-DATA ונופל.
      קורה אם הטוקן בוטל או שהמטמון נוקה בזמן שהספרייה פתוחה. */
@@ -706,6 +852,13 @@ button{cursor:pointer}
     if (brm) { BUILD.splice(+brm.dataset.brm, 1); writeBuild(); screen(libScreen()); return; }
     if (e.target.closest('[data-bclear]')) { BUILD = []; writeBuild(); screen(libScreen()); return; }
     if (e.target.closest('[data-bsave]')) { saveBuild(); return; }
+
+    const ea = e.target.closest('[data-exadd]');
+    if (ea) { const id = ea.dataset.exadd; inEx(id) ? exRemove(id) : exAdd(id); return; }
+    const er = e.target.closest('[data-exrm]');
+    if (er) { exRemove(er.dataset.exrm); paint(); return; }
+    const em = e.target.closest('[data-exmus]');
+    if (em) { EX_MUS = em.dataset.exmus; screen(exScreen()); window.scrollTo(0,0); return; }
 
     const lt = e.target.closest('[data-libtab]');
     if (lt) { LIB_TAB = lt.dataset.libtab; screen(libScreen()); window.scrollTo(0,0); return; }
@@ -744,6 +897,10 @@ button{cursor:pointer}
 
   /* ---------- היעדים ---------- */
   /* עוטף: אם progress.js לא נטען משום סיבה, הדף ממשיך לעבוד בלעדיו */
+  function exBlockSafe() {
+    try { return myExBlock(); } catch (e) { return ''; }
+  }
+
   function progBlock() {
     try { return window.EBProg ? EBProg.block(DATA) : ''; }
     catch (e) { return ''; }
@@ -807,7 +964,9 @@ button{cursor:pointer}
       + planBlock(days)
       + mealsBlock(DATA.meals)
       + myMealsBlock()
+      + exBlockSafe()
       + libButton()
+      + exButton()
       + filesBlock(files)
       + footerBlock()
     );
