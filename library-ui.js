@@ -11,9 +11,9 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['libraryUi'] = 'v51';
+  (window.EB_MOD = window.EB_MOD || {})['libraryUi'] = 'v52';
 
-  var Q = '', TYPE = 'all', OPEN = {};
+  var Q = '', TYPE = 'all', OPEN = {}, TAB = 'meals';
 
   var r1 = function (x) { return Math.round(x * 10) / 10; };
 
@@ -101,9 +101,38 @@
     });
   }
 
+  /* ---------- מוצרים בודדים ----------
+     לפעמים לא מחפשים ארוחה שלמה אלא רק כמה חלבון יש בקוטג׳. הטבלה
+     היא אותו מסד שממנו מחושבות כל הארוחות, ולכן היא תמיד מסונכרנת
+     איתן — אין כאן רשימה שנייה שיכולה להתיישן. */
+  function products() {
+    var q = Q.trim();
+    var names = Object.keys(EBLib.DB).filter(function (n) {
+      return !q || n.indexOf(q) > -1;
+    }).sort(function (a, b) { return a.localeCompare(b, 'he'); });
+
+    var h = '<div class="muted" style="font-size:12.5px;margin-bottom:8px">'
+      + names.length + ' מוצרים · הערכים ל-100 גרם</div>';
+
+    if (!names.length) return h + '<div class="empty">לא נמצא מוצר מתאים.</div>';
+
+    h += '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12.5px">'
+      + '<thead><tr>'
+      + th('מוצר','right') + th('קק״ל') + th('חלבון') + th('פחמ׳') + th('שומן')
+      + '</tr></thead><tbody>';
+    names.forEach(function (n) {
+      var v = EBLib.DB[n];
+      h += '<tr>'
+        + td(esc(n),'right')
+        + td('<b>' + v[0] + '</b>') + td(r1(v[1])) + td(r1(v[2])) + td(r1(v[3]))
+        + '</tr>';
+    });
+    return h + '</tbody></table></div>';
+  }
+
   /* ---------- המסך אצל המאמן ---------- */
   function browse(traineeId) {
-    Q = ''; TYPE = 'all'; OPEN = {};
+    Q = ''; TYPE = 'all'; OPEN = {}; TAB = 'meals';
     paint(traineeId);
   }
   function paint(traineeId) {
@@ -114,9 +143,25 @@
     var h = '<div class="mh"><h3>ספריית הארוחות</h3>'
       + '<button class="iconbtn" onclick="closeModal()">✕</button></div><div class="mb">'
       + '<div class="search" style="margin-bottom:10px"><span>⌕</span>'
-      + '<input id="lib_q" placeholder="חיפוש לפי שם ארוחה או מרכיב" value="' + esc(Q) + '" '
+      + '<input id="lib_q" placeholder="' + (TAB === 'prod' ? 'חיפוש מוצר' : 'חיפוש לפי שם ארוחה או מרכיב') + '" value="' + esc(Q) + '" '
       + 'oninput="EBLibUI.search(this.value,\'' + (traineeId||'') + '\')"></div>'
-      + filters()
+      + '<div class="row" style="gap:6px;margin-bottom:12px">'
+      + '<button class="btn sm ' + (TAB === 'meals' ? '' : 'ghost') + '" data-libtab="meals">'
+      + 'ארוחות <span style="opacity:.6">' + EBLib.MEALS.length + '</span></button>'
+      + '<button class="btn sm ' + (TAB === 'prod' ? '' : 'ghost') + '" data-libtab="prod">'
+      + 'מוצרים בודדים <span style="opacity:.6">' + Object.keys(EBLib.DB).length + '</span></button>'
+      + '</div>';
+
+    if (TAB === 'prod') {
+      h += products() + '</div><div class="mf">'
+        + '<button class="btn ghost" onclick="closeModal()">סגירה</button></div>';
+      openModal(h, true);
+      var pq = document.getElementById('lib_q');
+      if (pq && Q) { pq.focus(); pq.setSelectionRange(Q.length, Q.length); }
+      return;
+    }
+
+    h += filters()
       + '<div class="muted" style="font-size:12.5px;margin-bottom:10px">' + items.length + ' ארוחות</div>';
 
     if (!items.length) h += '<div class="empty">לא נמצאה ארוחה מתאימה.</div>';
@@ -138,6 +183,12 @@
   }
 
   function search(v, tid) { Q = v; paint(tid || null); }
+  function setTab(k) { TAB = k; paint(currentTid()); }
+
+  document.addEventListener('click', function (e) {
+    var t = e.target.closest('[data-libtab]');
+    if (t) setTab(t.dataset.libtab);
+  });
   function setType(k)     { TYPE = k; paint(currentTid()); }
   /* פתיחת פירוט משנה כרטיס אחד. ציור מחדש של כל הרשימה החזיר את
      הגלילה לראש המסך — אחרי ארוחה עשרים זה אומר לגלול הכול שוב.
@@ -178,6 +229,6 @@
     toast(m.name + ' נוספה');
   }
 
-  window.EBLibUI = { browse:browse, search:search, setType:setType, toggle:toggle,
+  window.EBLibUI = { browse:browse, setTab:setTab, products:products, search:search, setType:setType, toggle:toggle,
                      add:add, card:card, table:table, list:list, filters:filters };
 })();
