@@ -306,8 +306,8 @@ tbody tr:hover{background:var(--panel)}
 <div id="toast"></div>
 
 <!-- ספריית Supabase מקומית (לא מ-CDN) כדי שהאפליקציה תעבוד גם בלי רשת -->
-<script src="vendor/supabase.js?v=v57"></script>
-<script src="config.js?v=v57"></script>
+<script src="vendor/supabase.js?v=v58"></script>
+<script src="config.js?v=v58"></script>
 
 <script>
 /* =======================================================================
@@ -342,7 +342,7 @@ function age(b){ if(!b) return null; const d=new Date(b), t=new Date(); let a=t.
 
 /* ---------------- אחסון ---------------- */
 const KEY='ebfit_v1';
-const EB_VERSION='v57';   // חייב להתאים ל-VERSION ב-sw.js
+const EB_VERSION='v58';   // חייב להתאים ל-VERSION ב-sw.js
 let mem=null, canStore=true;
 function load(){
   try{ const r=localStorage.getItem(KEY); return r?JSON.parse(r):null; }
@@ -553,6 +553,7 @@ function vTrainees(){
   let h=head('מתאמנים','ניהול תיקים אישיים, כרטיסיות ותוכניות אימון',
     '<button class="btn ghost" onclick="bulkLogins()">הפעלת כניסה לכולם</button>'
    +'<button class="btn ghost" onclick="EBExUI.fillAll(9)">השלמה ל-9 תרגילים לכולם</button>'
+   +'<button class="btn ghost" onclick="EBImport.fromAttached(9)">📄 ייבוא מהקבצים המצורפים</button>'
    +'<label class="btn ghost" style="cursor:pointer">ייבוא מתאמן<input type="file" accept="application/json,.json" hidden onchange="importTrainee(event)"></label>'
    +'<button class="btn ghost" onclick="EBIntake.open()">קליטה משאלון</button>'
    +'<button class="btn" onclick="editTrainee()">+ מתאמן חדש</button>');
@@ -1596,21 +1597,21 @@ if (location.protocol === 'file:') {
 }
 </script>
 
-<script src="intake.js?v=v57"></script>
-<script src="files.js?v=v57"></script>
-<script src="builder.js?v=v57"></script>
-<script src="import-program.js?v=v57"></script>
-<script src="tracking.js?v=v57"></script>
-<script src="metrics.js?v=v57"></script>
-<script src="meal-library.js?v=v57"></script>
-<script src="library-ui.js?v=v57"></script>
-<script src="export-plan.js?v=v57"></script>
-<script src="cardio.js?v=v57"></script>
-<script src="cardio-ui.js?v=v57"></script>
-<script src="exercise-library.js?v=v57"></script>
-<script src="exercise-ui.js?v=v57"></script>
-<script src="meals.js?v=v57"></script>
-<script src="sync.js?v=v57"></script>
+<script src="intake.js?v=v58"></script>
+<script src="files.js?v=v58"></script>
+<script src="builder.js?v=v58"></script>
+<script src="import-program.js?v=v58"></script>
+<script src="tracking.js?v=v58"></script>
+<script src="metrics.js?v=v58"></script>
+<script src="meal-library.js?v=v58"></script>
+<script src="library-ui.js?v=v58"></script>
+<script src="export-plan.js?v=v58"></script>
+<script src="cardio.js?v=v58"></script>
+<script src="cardio-ui.js?v=v58"></script>
+<script src="exercise-library.js?v=v58"></script>
+<script src="exercise-ui.js?v=v58"></script>
+<script src="meals.js?v=v58"></script>
+<script src="sync.js?v=v58"></script>
 <script>
 /* =================== חיבור הסנכרון לאפליקציה =================== */
 

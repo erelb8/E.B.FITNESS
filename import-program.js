@@ -19,7 +19,7 @@
   'use strict';
 
   // חותמת גרסה — index.html משווה אליה כדי לזהות קובץ ישן במטמון
-  (window.EB_MOD = window.EB_MOD || {})['import'] = 'v57';
+  (window.EB_MOD = window.EB_MOD || {})['import'] = 'v58';
 
   var FOR = null, DRAFT = null;
 
@@ -668,5 +668,91 @@
     handle(src, fname || 'קובץ');
   }
 
-  window.EBImport = { open: open, apply: apply, parse: parse, fromText: fromText };
+  /* ══════════ ייבוא מהקובץ המצורף ══════════
+     לכל מתאמן כבר מצורף קובץ התוכנית שלו. במקום לפתוח כל תיק, לבחור
+     קובץ ולאשר — קוראים אותו ישירות מהאחסון ומחילים.
+
+     הקובץ הוא מקור האמת: אם הוא נקרא בהצלחה הוא מחליף את התוכנית
+     ולא מתווסף אליה, אחרת ריצה שנייה הייתה מכפילה הכול. */
+
+  function htmlFileOf(t) {
+    var list = (t.files || []).filter(function (f) {
+      return /\.(html?|htm)$/i.test(String(f.name || '')) && f.url;
+    });
+    if (!list.length) return null;
+    /* האחרון שהועלה — הוא בדרך כלל המעודכן */
+    return list.sort(function (a, b) {
+      return String(b.at || '').localeCompare(String(a.at || ''));
+    })[0];
+  }
+
+  async function readOne(t) {
+    var f = htmlFileOf(t);
+    if (!f) return { t: t, ok: false, why: 'אין קובץ HTML מצורף' };
+    try {
+      var res = await fetch(f.url, { cache: 'no-store' });
+      if (!res.ok) return { t: t, ok: false, why: 'הקובץ לא נגיש (' + res.status + ')' };
+      var txt = await res.text();
+      var r = parse(txt);
+      if (!r.days.length) return { t: t, ok: false, why: 'לא זוהו תרגילים בקובץ', file: f.name };
+      return { t: t, ok: true, days: r.days, file: f.name,
+               total: r.days.reduce(function (a, d) { return a + (d.exercises || []).length; }, 0) };
+    } catch (e) {
+      return { t: t, ok: false, why: (e && e.message) || 'שגיאת רשת' };
+    }
+  }
+
+  async function fromAttached(fill) {
+    var list = (window.S.trainees || []).filter(function (t) { return t.status !== 'archived'; });
+    var withFile = list.filter(htmlFileOf);
+    if (!withFile.length) { toast('לאף מתאמן אין קובץ HTML מצורף'); return; }
+
+    if (!confirm('לקרוא את הקובץ המצורף של ' + withFile.length + ' מתאמנים '
+               + 'ולהחליף את התוכנית שלהם?' + (fill ? '\nכל יום יושלם ל-' + fill + ' תרגילים.' : '')
+               + '\nהשינוי לא הפיך.')) return;
+
+    toast('קורא ' + withFile.length + ' קבצים…');
+    var results = [];
+    for (var i = 0; i < withFile.length; i++) {
+      results.push(await readOne(withFile[i]));
+    }
+
+    var applied = 0, added = 0;
+    results.forEach(function (r) {
+      if (!r.ok) return;
+      r.t.program = r.t.program || { days: [] };
+      r.t.program.days = r.days;
+      applied++;
+      if (fill && window.EBExUI) {
+        r.days.forEach(function (d) { added += EBExUI.fillDay(r.t, d, fill); });
+      }
+    });
+    save(); render();
+    report(results, applied, added, fill);
+  }
+
+  function report(results, applied, added, fill) {
+    var h = '<div class="mh"><h3>ייבוא מהקבצים המצורפים</h3>'
+      + '<button class="iconbtn" onclick="closeModal()">✕</button></div><div class="mb">'
+      + '<div class="row" style="gap:8px;flex-wrap:wrap;margin-bottom:14px">'
+      + '<span class="pill">' + applied + ' תוכניות הוחלפו</span>'
+      + (fill ? '<span class="pill">' + added + ' תרגילים הושלמו</span>' : '')
+      + '</div>';
+
+    results.forEach(function (r) {
+      var okCls = r.ok ? 'var(--ok)' : 'var(--amber)';
+      h += '<div class="row" style="padding:9px 0;border-top:1px solid var(--line);gap:9px">'
+        + '<span style="width:16px;color:' + okCls + '">' + (r.ok ? '✓' : '!') + '</span>'
+        + '<div style="flex:1;min-width:0">'
+        + '<div style="font-size:14px;font-weight:500">' + esc(r.t.name) + '</div>'
+        + '<div class="muted" style="font-size:11.5px;margin-top:2px">'
+        + esc(r.ok ? (r.file + ' · ' + r.days.length + ' ימים · ' + r.total + ' תרגילים')
+                   : r.why) + '</div></div></div>';
+    });
+
+    h += '</div><div class="mf"><button class="btn ghost" onclick="closeModal()">סגירה</button></div>';
+    openModal(h, true);
+  }
+
+  window.EBImport = { open: open, fromAttached: fromAttached, readOne: readOne, apply: apply, parse: parse, fromText: fromText };
 })();
