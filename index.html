@@ -306,8 +306,8 @@ tbody tr:hover{background:var(--panel)}
 <div id="toast"></div>
 
 <!-- ספריית Supabase מקומית (לא מ-CDN) כדי שהאפליקציה תעבוד גם בלי רשת -->
-<script src="vendor/supabase.js?v=v59"></script>
-<script src="config.js?v=v59"></script>
+<script src="vendor/supabase.js?v=v60"></script>
+<script src="config.js?v=v60"></script>
 
 <script>
 /* =======================================================================
@@ -342,7 +342,7 @@ function age(b){ if(!b) return null; const d=new Date(b), t=new Date(); let a=t.
 
 /* ---------------- אחסון ---------------- */
 const KEY='ebfit_v1';
-const EB_VERSION='v59';   // חייב להתאים ל-VERSION ב-sw.js
+const EB_VERSION='v60';   // חייב להתאים ל-VERSION ב-sw.js
 let mem=null, canStore=true;
 function load(){
   try{ const r=localStorage.getItem(KEY); return r?JSON.parse(r):null; }
@@ -560,7 +560,7 @@ function vTrainees(){
    +'<button class="btn" onclick="editTrainee()">+ מתאמן חדש</button>');
   h+='<div class="row" style="margin-bottom:16px">'
    +'<div class="search"><span>⌕</span><input placeholder="חיפוש לפי שם, טלפון או מטרה" value="'+esc(Q)+'" oninput="Q=this.value;render();this.focus()"></div>'
-   +filtBtn('all','הכול')+filtBtn('active','פעילים')+filtBtn('low','כרטיסייה נגמרת')+filtBtn('archived','ארכיון')+'</div>';
+   +filtBtn('all','הכול')+filtBtn('active','פעילים')+(activeTrainees().some(x=>x.pkgTotal>0)?filtBtn('low','כרטיסייה נגמרת'):'')+filtBtn('archived','ארכיון')+'</div>';
   if(!list.length) return h+'<div class="empty"><div class="big">👥</div>אין כאן מתאמנים עדיין.<br><button class="btn" style="margin-top:12px" onclick="editTrainee()">הוספת המתאמן הראשון</button></div>';
   h+='<div class="grid g3">'+list.map(tCard).join('')+'</div>';
   return h;
@@ -576,8 +576,14 @@ function tCard(t){
    +'<div class="hd"><div class="av" style="background:'+tColor(t)+'">'+esc(initials(t.name))+'</div>'
    +'<div style="flex:1;min-width:0"><div class="nm">'+esc(t.name)+'</div><div class="gl">'+esc(t.goal||'ללא מטרה מוגדרת')+'</div></div>'
    +(t.status==='paused'?'<span class="pill warn">בהקפאה</span>':(lf<=2?'<span class="pill bad">'+lf+' נותרו</span>':''))+'</div>'
-   +'<div class="plates">'+plates+'</div>'
-   +'<div class="plates-lbl"><span>כרטיסייה: <b>'+used+'/'+tot+'</b></span><span>'+(lastM&&lastM.weight?'משקל אחרון: <b>'+lastM.weight+' ק״ג</b>':esc(t.level||'')) +'</span></div>'
+   +(tot>0 ? '<div class="plates">'+plates+'</div>'
+       +'<div class="plates-lbl"><span>כרטיסייה: <b>'+used+'/'+tot+'</b></span>'
+       +'<span>'+(lastM&&lastM.weight?'משקל אחרון: <b>'+lastM.weight+' ק״ג</b>':esc(t.level||''))+'</span></div>'
+     : (lastM&&lastM.weight||t.level
+         ? '<div class="plates-lbl" style="margin-top:10px"><span>'
+           +(lastM&&lastM.weight?'משקל אחרון: <b>'+lastM.weight+' ק״ג</b>':'')+'</span>'
+           +'<span>'+esc(t.level||'')+'</span></div>'
+         : ''))
    +'</div>';
 }
 
@@ -654,8 +660,10 @@ function vTrainee(){
    +'<button class="btn sm ghost" onclick="editSession(null,\''+t.id+'\')">+ אימון</button>'
    +'<button class="btn sm" onclick="editTrainee(\''+t.id+'\')">עריכה</button></div></div>';
 
+  /* הכרטיסייה מוצגת רק למי שיש לו אחת. "0 מתוך 0" תופס רבע מהשורה
+     ולא אומר כלום, ומי שמוכר מנוי חודשי לא צריך אותה בכלל. */
   h+='<div class="grid g4" style="margin-top:14px">'
-   +stat('נותרו בכרטיסייה',left(t),'מתוך '+(t.pkgTotal||0))
+   +(t.pkgTotal>0 ? stat('נותרו בכרטיסייה',left(t),'מתוך '+t.pkgTotal) : '')
    +stat('אימונים שבוצעו',done,'סה״כ')
    +stat('שולם',money(paid),S.payments.filter(p=>p.traineeId===t.id).length+' תשלומים')
    +stat('הצטרף',fmtDate(t.joined),t.joined?(Math.round((Date.now()-new Date(t.joined))/86400000/7))+' שבועות':'')
@@ -1599,21 +1607,21 @@ if (location.protocol === 'file:') {
 }
 </script>
 
-<script src="intake.js?v=v59"></script>
-<script src="files.js?v=v59"></script>
-<script src="builder.js?v=v59"></script>
-<script src="import-program.js?v=v59"></script>
-<script src="tracking.js?v=v59"></script>
-<script src="metrics.js?v=v59"></script>
-<script src="meal-library.js?v=v59"></script>
-<script src="library-ui.js?v=v59"></script>
-<script src="export-plan.js?v=v59"></script>
-<script src="cardio.js?v=v59"></script>
-<script src="cardio-ui.js?v=v59"></script>
-<script src="exercise-library.js?v=v59"></script>
-<script src="exercise-ui.js?v=v59"></script>
-<script src="meals.js?v=v59"></script>
-<script src="sync.js?v=v59"></script>
+<script src="intake.js?v=v60"></script>
+<script src="files.js?v=v60"></script>
+<script src="builder.js?v=v60"></script>
+<script src="import-program.js?v=v60"></script>
+<script src="tracking.js?v=v60"></script>
+<script src="metrics.js?v=v60"></script>
+<script src="meal-library.js?v=v60"></script>
+<script src="library-ui.js?v=v60"></script>
+<script src="export-plan.js?v=v60"></script>
+<script src="cardio.js?v=v60"></script>
+<script src="cardio-ui.js?v=v60"></script>
+<script src="exercise-library.js?v=v60"></script>
+<script src="exercise-ui.js?v=v60"></script>
+<script src="meals.js?v=v60"></script>
+<script src="sync.js?v=v60"></script>
 <script>
 /* =================== חיבור הסנכרון לאפליקציה =================== */
 
