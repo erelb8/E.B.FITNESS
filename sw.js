@@ -2,7 +2,7 @@
    נותן לאפליקציה לעבוד לגמרי בלי אינטרנט אחרי הפתיחה הראשונה.
    כשמעדכנים את האפליקציה — מעלים את המספר ב-VERSION. */
 
-const VERSION = 'ebfit-v53';
+const VERSION = 'ebfit-v54';
 const SHELL   = VERSION + '-shell';
 const FONTS   = VERSION + '-fonts';
 
@@ -11,24 +11,24 @@ const SHELL_FILES = [
   './index.html',
   './manifest.json',
   './t.html',
-  './config.js?v=v53',
-  './sync.js?v=v53',
-  './intake.js?v=v53',
-  './files.js?v=v53',
-  './builder.js?v=v53',
-  './import-program.js?v=v53',
-  './tracking.js?v=v53',
-  './metrics.js?v=v53',
-  './meals.js?v=v53',
-  './meal-library.js?v=v53',
-  './progress.js?v=v53',
-  './library-ui.js?v=v53',
-  './export-plan.js?v=v53',
-  './cardio.js?v=v53',
-  './cardio-ui.js?v=v53',
-  './exercise-library.js?v=v53',
-  './exercise-ui.js?v=v53',
-  './vendor/supabase.js?v=v53',
+  './config.js?v=v54',
+  './sync.js?v=v54',
+  './intake.js?v=v54',
+  './files.js?v=v54',
+  './builder.js?v=v54',
+  './import-program.js?v=v54',
+  './tracking.js?v=v54',
+  './metrics.js?v=v54',
+  './meals.js?v=v54',
+  './meal-library.js?v=v54',
+  './progress.js?v=v54',
+  './library-ui.js?v=v54',
+  './export-plan.js?v=v54',
+  './cardio.js?v=v54',
+  './cardio-ui.js?v=v54',
+  './exercise-library.js?v=v54',
+  './exercise-ui.js?v=v54',
+  './vendor/supabase.js?v=v54',
   './icons/icon-180.png',
   './icons/icon-192.png',
   './icons/icon-256.png',
