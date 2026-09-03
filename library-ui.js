@@ -11,7 +11,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['libraryUi'] = 'v64';
+  (window.EB_MOD = window.EB_MOD || {})['libraryUi'] = 'v65';
 
   var Q = '', TYPE = 'all', OPEN = {}, TAB = 'meals';
 
@@ -62,6 +62,9 @@
       + '<div class="row" style="gap:6px;margin-top:9px;flex-wrap:wrap">'
       + pill('חלבון ' + r1(t.p)) + pill('פחמימות ' + r1(t.c)) + pill('שומן ' + r1(t.f))
       + '</div>'
+      + (EBLib.kosherOf(m) !== 'ok'
+          ? '<div style="font-size:11.5px;color:var(--bad);margin-top:8px;font-weight:600">⚠ '
+            + esc(EBLib.kosherLabel(EBLib.kosherOf(m))) + '</div>' : '')
       + (m.note ? '<div style="font-size:12px;color:var(--amber);margin-top:8px;line-height:1.5">' + esc(m.note) + '</div>' : '')
       + '<div class="row" style="margin-top:10px">'
       + '<button class="btn sm ghost" data-mbtn onclick="EBLibUI.toggle(\'' + m.id + '\')">'
@@ -84,17 +87,28 @@
         + (n ? ' <span style="opacity:.6">' + n + '</span>' : '') + '</button>';
     };
     var h = '<div class="row" style="gap:6px;flex-wrap:wrap;margin-bottom:12px">'
-      + btn('all', 'הכול', EBLib.MEALS.length);
+      + btn('all', 'הכול', EBLib.MEALS.filter(function (m) {
+          return EBLib.kosherOf(m) === 'ok'; }).length);
     ['breakfast','pre','post','lunch','snack','dinner'].forEach(function (k) {
       if (counts[k]) h += btn(k, EBLib.TYPES[k], counts[k].length);
     });
+    var nk = EBLib.MEALS.filter(function (m) { return EBLib.kosherOf(m) !== 'ok'; }).length;
+    if (nk) h += btn('nonkosher', 'לא כשר', nk);
     return h + '</div>';
   }
 
+  /* אוכל לא כשר לא מופיע ברשימה הרגילה — רק בקטגוריה שלו. מי שלא
+     מחפש אותו לא צריך לדלג עליו, ומי שכן — יודע בדיוק לאן ללכת. */
   function list() {
     var q = Q.trim();
+    var only = (TYPE === 'nonkosher');
     return EBLib.MEALS.filter(function (m) {
-      if (TYPE !== 'all' && m.type !== TYPE) return false;
+      var k = EBLib.kosherOf(m);
+      if (only) { if (k === 'ok') return false; }
+      else {
+        if (k !== 'ok') return false;
+        if (TYPE !== 'all' && m.type !== TYPE) return false;
+      }
       if (!q) return true;
       if (m.name.indexOf(q) > -1) return true;
       return m.items.some(function (p) { return p[0].indexOf(q) > -1; });
@@ -107,7 +121,10 @@
      איתן — אין כאן רשימה שנייה שיכולה להתיישן. */
   function products() {
     var q = Q.trim();
+    var only = (TYPE === 'nonkosher');
     var names = Object.keys(EBLib.DB).filter(function (n) {
+      var bad = EBLib.NONKOSHER.indexOf(n) > -1;
+      if (only ? !bad : bad) return false;
       return !q || n.indexOf(q) > -1;
     }).sort(function (a, b) { return a.localeCompare(b, 'he'); });
 
@@ -122,8 +139,9 @@
       + '</tr></thead><tbody>';
     names.forEach(function (n) {
       var v = EBLib.DB[n];
+      var bad = EBLib.NONKOSHER.indexOf(n) > -1;
       h += '<tr>'
-        + td(esc(n),'right')
+        + td((bad ? '<span style="color:var(--bad)">⚠ </span>' : '') + esc(n), 'right')
         + td('<b>' + v[0] + '</b>') + td(r1(v[1])) + td(r1(v[2])) + td(r1(v[3]))
         + '</tr>';
     });
@@ -153,6 +171,13 @@
       + '</div>';
 
     if (TAB === 'prod') {
+      var nkp = EBLib.NONKOSHER.filter(function (n) { return EBLib.DB[n]; }).length;
+      h += '<div class="row" style="gap:6px;flex-wrap:wrap;margin-bottom:12px">'
+        + '<button class="btn sm ' + (TYPE === 'nonkosher' ? 'ghost' : '') + '" '
+        + 'onclick="EBLibUI.setType(\'all\')">כשר</button>'
+        + '<button class="btn sm ' + (TYPE === 'nonkosher' ? '' : 'ghost') + '" '
+        + 'onclick="EBLibUI.setType(\'nonkosher\')">לא כשר <span style="opacity:.6">'
+        + nkp + '</span></button></div>';
       h += products() + '</div><div class="mf">'
         + '<button class="btn ghost" onclick="closeModal()">סגירה</button></div>';
       openModal(h, true);
