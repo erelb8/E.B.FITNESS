@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>E.B FIT — סרטון לעוקבים</title>
+
+<!-- =====================================================================
+     סרטון שיווק למתאמנים ולעוקבים.
+
+     נבנה כדף מתנגן ולא כווידאו מקודד: אין ffmpeg במחשב, ודף מתנגן
+     נותן שליטה מלאה — אפשר לעצור, להריץ מחדש, לשנות טקסט ולהקליט שוב
+     בלי לרנדר הכל מאפס.
+
+     היחס 9:16 מכוון לרילס ולסטוריז. להקלטה: Win+G או הקלטת מסך בטלפון.
+     ===================================================================== -->
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@500;700;900&family=Heebo:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --u:min(1vw, 0.5625vh);
+  --ink:#221A12; --panel:#2B2119; --card:#34281E; --line:#48392B; --line2:#5F4C39;
+  --tx:#F2E8D8; --mut:#B3A48E; --dim:#7E7060;
+  --or:#8FA84F; --or-soft:rgba(143,168,79,.15);
+  --cop:#D19A55; --ok:#A8C75E; --bad:#D9605A;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:#0B0906}
+body{
+  display:grid;place-items:center;
+  font-family:'Heebo',system-ui,sans-serif;color:var(--tx);
+  overflow:hidden;
+}
+
+/* ── במה 9:16 ── */
+#stage{
+  position:relative;width:min(100vw,calc(100vh*9/16));height:min(100vh,calc(100vw*16/9));
+  background:var(--ink);overflow:hidden;
+  background-image:
+    radial-gradient(70% 45% at 88% -8%, rgba(143,168,79,.13), transparent 62%),
+    radial-gradient(60% 40% at 6% 104%, rgba(209,154,85,.10), transparent 60%);
+}
+
+/* ── סצנה ── */
+.sc{
+  position:absolute;inset:0;display:flex;flex-direction:column;
+  justify-content:center;padding:0 7.5%;
+  opacity:0;visibility:hidden;transition:opacity .5s ease;
+}
+.sc.on{opacity:1;visibility:visible}
+
+/* ── טיפוגרפיה ── */
+.eyebrow{
+  font-weight:800;font-size:calc(2.6 * var(--u));letter-spacing:.22em;color:var(--or);
+  margin-bottom:calc(2.4 * var(--u));
+}
+h1{
+  font-family:'Frank Ruhl Libre',Georgia,serif;font-weight:900;
+  font-size:calc(9.4 * var(--u));line-height:1.06;letter-spacing:-.02em;text-wrap:balance;
+}
+h2{
+  font-family:'Frank Ruhl Libre',Georgia,serif;font-weight:700;
+  font-size:calc(6.4 * var(--u));line-height:1.14;letter-spacing:-.015em;text-wrap:balance;
+}
+.sub{font-size:calc(3.5 * var(--u));color:var(--mut);line-height:1.55;margin-top:calc(2.6 * var(--u));max-width:34ch}
+.kicker{font-size:calc(3.1 * var(--u));color:var(--cop);font-weight:700;margin-top:calc(3.4 * var(--u))}
+
+/* ── הופעה מדורגת ── */
+.up{opacity:0;transform:translateY(calc(2.4 * var(--u)))}
+.sc.on .up{animation:up .62s cubic-bezier(.2,.7,.3,1) forwards}
+.sc.on .d1{animation-delay:.10s}
+.sc.on .d2{animation-delay:.24s}
+.sc.on .d3{animation-delay:.38s}
+.sc.on .d4{animation-delay:.52s}
+.sc.on .d5{animation-delay:.66s}
+.sc.on .d6{animation-delay:.80s}
+@keyframes up{to{opacity:1;transform:none}}
+
+/* ── רכיבי האפליקציה ── */
+.card{
+  background:var(--card);border:1px solid var(--line);border-radius:calc(2.2 * var(--u));
+  padding:calc(3.2 * var(--u));
+}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:calc(1.6 * var(--u));margin-top:calc(3 * var(--u))}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:calc(1.8 * var(--u));padding:calc(2.4 * var(--u)) calc(1.8 * var(--u))}
+.stat .k{font-size:calc(2.2 * var(--u));color:var(--dim)}
+.stat .v{
+  font-weight:900;font-size:calc(5.4 * var(--u));line-height:1;margin-top:calc(.8 * var(--u));color:var(--cop);
+  font-variant-numeric:tabular-nums;
+}
+.stat .u{font-size:calc(2 * var(--u));color:var(--dim);margin-top:calc(.5 * var(--u))}
+
+.day{background:var(--card);border:1px solid var(--line);border-radius:calc(2 * var(--u));margin-bottom:calc(1.8 * var(--u));overflow:hidden}
+.dh{display:flex;align-items:center;gap:calc(2.4 * var(--u));padding:calc(2.6 * var(--u)) calc(2.8 * var(--u))}
+.nu{
+  width:calc(6.4 * var(--u));height:calc(6.4 * var(--u));flex:none;border-radius:50%;display:grid;place-items:center;
+  font-weight:900;font-size:calc(2.7 * var(--u));background:var(--or-soft);color:var(--or);
+  border:1px solid rgba(143,168,79,.34);
+}
+.day.on .nu{background:var(--or);color:#141A06;border-color:var(--or)}
+.dn{flex:1;min-width:0;font-family:'Frank Ruhl Libre',serif;font-weight:700;font-size:calc(3.3 * var(--u))}
+.dc{font-size:calc(2.4 * var(--u));color:var(--dim);white-space:nowrap}
+.ex{padding:0 calc(2.8 * var(--u)) calc(2.4 * var(--u))}
+.exr{display:flex;align-items:center;gap:calc(2.2 * var(--u));padding:calc(1.7 * var(--u)) 0;border-top:1px solid var(--line)}
+.dot{width:calc(4.2 * var(--u));height:calc(4.2 * var(--u));flex:none;border-radius:50%;border:calc(.5 * var(--u)) solid var(--line2)}
+.dot.on{background:var(--ok);border-color:var(--ok)}
+.en{flex:1;min-width:0;font-size:calc(2.9 * var(--u))}
+.sp{
+  font-weight:700;font-size:calc(2.5 * var(--u));padding:calc(.5 * var(--u)) calc(1.6 * var(--u));border-radius:calc(1.2 * var(--u));
+  background:var(--ink);border:1px solid var(--line);white-space:nowrap;
+  direction:ltr;font-variant-numeric:tabular-nums;color:var(--cop);
+}
+
+.pills{display:flex;gap:calc(1.4 * var(--u));flex-wrap:wrap;margin-top:calc(2.6 * var(--u))}
+.pill{
+  font-size:calc(2.5 * var(--u));padding:calc(1 * var(--u)) calc(2.4 * var(--u));border-radius:20px;
+  background:var(--or-soft);color:var(--or);border:1px solid rgba(143,168,79,.34);
+  white-space:nowrap;
+}
+
+/* ── מונה עולה ── */
+.big{
+  font-family:'Heebo';font-weight:900;font-size:calc(17 * var(--u));line-height:.92;color:var(--or);
+  font-variant-numeric:tabular-nums;direction:ltr;
+}
+.biglbl{font-size:calc(3.4 * var(--u));color:var(--mut);margin-top:calc(1 * var(--u))}
+
+.three{display:flex;gap:calc(3 * var(--u));justify-content:space-between;margin-top:calc(4 * var(--u))}
+.three .c{flex:1;text-align:center}
+.three .n{
+  font-weight:900;font-size:calc(9.6 * var(--u));line-height:1;color:var(--cop);
+  font-variant-numeric:tabular-nums;direction:ltr;
+}
+.three .l{font-size:calc(2.6 * var(--u));color:var(--mut);margin-top:calc(1.2 * var(--u))}
+
+/* ── גרף התקדמות ── */
+.prog{display:flex;align-items:center;gap:calc(3 * var(--u))}
+.delta{font-weight:900;font-size:calc(8 * var(--u));color:var(--ok);line-height:1;direction:ltr}
+.deltal{font-size:calc(2.4 * var(--u));color:var(--dim);margin-top:calc(.8 * var(--u))}
+svg.spark{flex:1;height:calc(14 * var(--u))}
+.spark polyline{
+  fill:none;stroke:var(--or);stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;
+  stroke-dasharray:300;stroke-dashoffset:300;
+}
+.sc.on .spark polyline{animation:draw 1.4s .5s ease forwards}
+@keyframes draw{to{stroke-dashoffset:0}}
+.spark circle{opacity:0}
+.sc.on .spark circle{animation:pop .3s 1.7s forwards}
+@keyframes pop{to{opacity:1}}
+
+/* ── לוגו ── */
+.logo{
+  font-weight:900;font-size:calc(3.4 * var(--u));letter-spacing:.16em;color:var(--tx);
+  display:flex;align-items:center;gap:calc(1 * var(--u));justify-content:center;
+}
+.logo{direction:ltr}
+.logo i{width:calc(1.5 * var(--u));height:calc(1.5 * var(--u));border-radius:50%;background:var(--or);font-style:normal}
+.brandline{
+  position:absolute;top:calc(5 * var(--u));right:0;left:0;text-align:center;
+  font-weight:800;font-size:calc(2.3 * var(--u));letter-spacing:.2em;color:var(--dim);
+  opacity:0;transition:opacity .5s .3s;
+}
+#stage.started .brandline{opacity:1}
+
+/* ── פס התקדמות ── */
+#bar{position:absolute;top:0;right:0;left:0;height:calc(.6 * var(--u));background:rgba(255,255,255,.07);z-index:5}
+#bar i{display:block;height:100%;width:0;background:var(--or)}
+
+/* ── שליטה ── */
+#ctl{
+  position:fixed;bottom:calc(2 * var(--u));right:50%;transform:translateX(50%);
+  display:flex;gap:calc(1.2 * var(--u));z-index:20;opacity:.28;transition:opacity .2s;
+}
+#ctl:hover{opacity:1}
+#ctl button{
+  font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;
+  background:#1a1410;color:#F2E8D8;border:1px solid #48392B;
+  border-radius:20px;padding:8px 16px;
+}
+#ctl button:hover{border-color:var(--or);color:var(--or)}
+@media print{#ctl{display:none}}
+</style>
+</head>
+<body>
+
+<div id="stage">
+  <div id="bar"><i></i></div>
+  <div class="brandline">E.B FIT</div>
+
+  <!-- 1 · פתיח -->
+  <section class="sc" data-t="3600">
+    <div class="eyebrow up d1">אימון אישי</div>
+    <h1 class="up d2">אתה לא מקבל<br>דף מודפס.</h1>
+    <div class="sub up d3">אתה מקבל מערכת שלמה — בטלפון, כל הזמן, מעודכנת אליך.</div>
+  </section>
+
+  <!-- 2 · התוכנית -->
+  <section class="sc" data-t="4200">
+    <div class="eyebrow up d1">התוכנית שלך</div>
+    <h2 class="up d2">כל אימון פתוח<br>בלחיצה אחת</h2>
+    <div style="margin-top:calc(4 * var(--u))">
+      <div class="day on up d3">
+        <div class="dh"><div class="nu">1</div>
+          <div class="dn">מחזור 1 · דחיפה</div><div class="dc">9 תרגילים</div></div>
+        <div class="ex">
+          <div class="exr"><div class="dot on"></div><div class="en">לחיצת חזה במוט</div><div class="sp">4×10-12</div></div>
+          <div class="exr"><div class="dot on"></div><div class="en">לחיצת כתפיים</div><div class="sp">3×12</div></div>
+          <div class="exr"><div class="dot"></div><div class="en">פרפר בכבלים</div><div class="sp">3×15</div></div>
+        </div>
+      </div>
+      <div class="day up d4"><div class="dh"><div class="nu">2</div>
+        <div class="dn">מחזור 1 · תחתון</div><div class="dc">9 תרגילים</div></div></div>
+      <div class="day up d5"><div class="dh"><div class="nu">3</div>
+        <div class="dn">מחזור 1 · משיכה</div><div class="dc">9 תרגילים</div></div></div>
+    </div>
+    <div class="kicker up d6">מסמן תוך כדי. אני רואה בזמן אמת.</div>
+  </section>
+
+  <!-- 3 · היעדים -->
+  <section class="sc" data-t="4000">
+    <div class="eyebrow up d1">היעדים שלך</div>
+    <h2 class="up d2">מחושבים ממך.<br>לא מטבלה.</h2>
+    <div class="stats up d3">
+      <div class="stat"><div class="k">קלוריות</div><div class="v" data-count="2813">0</div><div class="u">ליום</div></div>
+      <div class="stat"><div class="k">חלבון</div><div class="v" data-count="125">0</div><div class="u">גרם</div></div>
+      <div class="stat"><div class="k">שומן</div><div class="v" data-count="70">0</div><div class="u">גרם</div></div>
+    </div>
+    <div class="sub up d4">גובה, משקל, גיל, היקפים ודופק מנוחה — הכל נכנס לחישוב.</div>
+  </section>
+
+  <!-- 4 · ההתקדמות -->
+  <section class="sc" data-t="4200">
+    <div class="eyebrow up d1">השיפור שלך</div>
+    <h2 class="up d2">רואה בדיוק<br>אם אתה מתקדם</h2>
+    <div class="card up d3" style="margin-top:calc(4 * var(--u))">
+      <div class="prog">
+        <div><div class="delta">▼ 0.5</div><div class="deltal">ק״ג מהשבוע שעבר</div></div>
+        <svg class="spark" viewBox="0 0 200 46" aria-hidden="true">
+          <polyline points="6,8 44,15 82,21 120,26 158,32 194,38"/>
+          <circle cx="194" cy="38" r="4" fill="var(--or)"/>
+        </svg>
+      </div>
+      <div style="font-size:calc(2.7 * var(--u));color:var(--ok);font-weight:600;margin-top:calc(2.4 * var(--u))">בכיוון הנכון</div>
+    </div>
+    <div class="sub up d4">נמדד מול <b style="color:var(--tx)">המטרה שלך</b> — ירידה של חצי קילו
+      היא הצלחה בחיטוב, ולא בבניית מסה.</div>
+  </section>
+
+  <!-- 5 · המספרים -->
+  <section class="sc" data-t="4400">
+    <div class="eyebrow up d1">מה יש בפנים</div>
+    <h2 class="up d2">ספרייה שלמה.<br>בלי לחפש בגוגל</h2>
+    <div class="three up d3">
+      <div class="c"><div class="n" data-count="200" data-plus="1">0</div><div class="l">ארוחות</div></div>
+      <div class="c"><div class="n" data-count="200" data-plus="1">0</div><div class="l">מוצרים</div></div>
+      <div class="c"><div class="n" data-count="200" data-plus="1">0</div><div class="l">תרגילים</div></div>
+    </div>
+    <div class="pills up d4">
+      <span class="pill">פירוק לגרם</span><span class="pill">קלוריות ומאקרו</span>
+      <span class="pill">מחשבון ארוחה</span><span class="pill">קטגוריית כשרות</span>
+    </div>
+    <div class="sub up d5">רוצה לדעת כמה חלבון בקוטג׳? מקליד ומקבל.</div>
+  </section>
+
+  <!-- 6 · אישי -->
+  <section class="sc" data-t="4000">
+    <div class="eyebrow up d1">וזה לא נגמר שם</div>
+    <h2 class="up d2">אתה מוסיף<br>מה שמתאים לך</h2>
+    <div class="pills up d3" style="margin-top:calc(3.6 * var(--u))">
+      <span class="pill">ארוחות משלך</span><span class="pill">תרגילים משלך</span>
+      <span class="pill">שקילה שבועית</span><span class="pill">הקבצים שלך</span>
+    </div>
+    <div class="sub up d4">ואני רואה הכל — כדי שנוכל לדבר על מה שבאמת קורה,
+      ולא על מה שאמור היה לקרות.</div>
+  </section>
+
+  <!-- 7 · סיום -->
+  <section class="sc" data-t="4200" style="align-items:center;text-align:center">
+    <div class="logo up d1" style="margin-bottom:calc(4 * var(--u))">E.B<i></i>FIT</div>
+    <h1 class="up d2">יחס אישי.<br>בלי לוותר<br>על שום פרט.</h1>
+    <div class="sub up d3" style="max-width:26ch">מקום פנוי לחודש הקרוב.<br>שלח הודעה.</div>
+    <div class="kicker up d4">אראל באואר · 054-268-7313</div>
+  </section>
+</div>
+
+<div id="ctl">
+  <button id="pp">עצירה</button>
+  <button id="rs">מהתחלה</button>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  var stage = document.getElementById('stage');
+  var scenes = [].slice.call(document.querySelectorAll('.sc'));
+  var fill = document.querySelector('#bar i');
+  var i = -1, timer = null, raf = null, paused = false, t0 = 0, dur = 0;
+
+  /* המונים עולים מאפס בכל פעם שהסצנה נכנסת — הנפשה שמתאפסת חייבת
+     לרוץ מחדש ולא רק להיות מוגדרת פעם אחת. */
+  function count(sc) {
+    sc.querySelectorAll('[data-count]').forEach(function (el) {
+      var to = +el.dataset.count, t = 0, steps = 34;
+      clearInterval(el._iv);
+      el._iv = setInterval(function () {
+        t++;
+        var p = t / steps, e = 1 - Math.pow(1 - p, 3);
+        var plus = el.dataset.plus ? '+' : '';
+        el.textContent = Math.round(to * e).toLocaleString('en-US') + plus;
+        if (t >= steps) { clearInterval(el._iv); el.textContent = to.toLocaleString('en-US') + plus; }
+      }, 26);
+    });
+  }
+
+  function show(n) {
+    if (i >= 0) scenes[i].classList.remove('on');
+    i = n;
+    var sc = scenes[i];
+    /* איפוס ההנפשות: הסרה והוספה מחדש של המחלקה לא מספיקה בלי
+       reflow, והסצנה השנייה בלולאה הייתה מופיעה בלי תנועה. */
+    sc.querySelectorAll('.up, .spark polyline, .spark circle').forEach(function (el) {
+      el.style.animation = 'none'; void el.offsetWidth; el.style.animation = '';
+    });
+    sc.classList.add('on');
+    count(sc);
+    dur = +sc.dataset.t || 4000;
+    t0 = performance.now();
+    clearTimeout(timer);
+    timer = setTimeout(next, dur);
+    tick();
+  }
+  function next() { show((i + 1) % scenes.length); }
+
+  function tick() {
+    cancelAnimationFrame(raf);
+    (function loop(now) {
+      if (paused) return;
+      var p = Math.min(1, (performance.now() - t0) / dur);
+      fill.style.width = ((i + p) / scenes.length * 100) + '%';
+      if (p < 1) raf = requestAnimationFrame(loop);
+    })();
+  }
+
+  var pp = document.getElementById('pp');
+  pp.addEventListener('click', function () {
+    paused = !paused;
+    if (paused) { clearTimeout(timer); cancelAnimationFrame(raf); pp.textContent = 'המשך'; }
+    else {
+      pp.textContent = 'עצירה';
+      var left = Math.max(200, dur - (performance.now() - t0));
+      t0 = performance.now() - (dur - left);
+      timer = setTimeout(next, left); tick();
+    }
+  });
+  document.getElementById('rs').addEventListener('click', function () {
+    clearTimeout(timer); paused = false; pp.textContent = 'עצירה'; show(0);
+  });
+  /* רווח עוצר ומריץ — נוח בזמן הקלטה */
+  document.addEventListener('keydown', function (e) {
+    if (e.code === 'Space') { e.preventDefault(); pp.click(); }
+    if (e.key === 'r' || e.key === 'ר') document.getElementById('rs').click();
+  });
+
+  stage.classList.add('started');
+  show(0);
+})();
+</script>
+</body>
+</html>

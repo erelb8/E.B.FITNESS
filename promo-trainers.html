@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>E.B FIT — סרטון למאמנים</title>
+
+<!-- =====================================================================
+     סרטון מכירה למאמנים אחרים.
+
+     הזווית שונה מהסרטון לעוקבים: שם מוכרים יחס אישי, כאן מוכרים זמן.
+     מאמן לא קונה "עוד אפליקציה" — הוא קונה את השעתיים שהוא מבזבז
+     כל שבוע על אקסלים וקבצי וורד.
+
+     9:16 לרילס. להקלטה: Win+G או הקלטת מסך בטלפון.
+     ===================================================================== -->
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@500;700;900&family=Heebo:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --u:min(1vw, 0.5625vh);
+  --ink:#221A12; --panel:#2B2119; --card:#34281E; --line:#48392B; --line2:#5F4C39;
+  --tx:#F2E8D8; --mut:#B3A48E; --dim:#7E7060;
+  --or:#8FA84F; --or-soft:rgba(143,168,79,.15);
+  --cop:#D19A55; --ok:#A8C75E; --bad:#D9605A;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:#0B0906}
+body{display:grid;place-items:center;font-family:'Heebo',system-ui,sans-serif;color:var(--tx);overflow:hidden}
+
+#stage{
+  position:relative;width:min(100vw,calc(100vh*9/16));height:min(100vh,calc(100vw*16/9));
+  background:var(--ink);overflow:hidden;
+  background-image:
+    radial-gradient(70% 45% at 88% -8%, rgba(143,168,79,.13), transparent 62%),
+    radial-gradient(60% 40% at 6% 104%, rgba(209,154,85,.10), transparent 60%);
+}
+.sc{
+  position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;
+  padding:0 7.5%;opacity:0;visibility:hidden;transition:opacity .5s ease;
+}
+.sc.on{opacity:1;visibility:visible}
+
+.eyebrow{font-weight:800;font-size:calc(2.6 * var(--u));letter-spacing:.22em;color:var(--or);margin-bottom:calc(2.4 * var(--u))}
+h1{font-family:'Frank Ruhl Libre',Georgia,serif;font-weight:900;font-size:calc(9.2 * var(--u));line-height:1.06;letter-spacing:-.02em;text-wrap:balance}
+h2{font-family:'Frank Ruhl Libre',Georgia,serif;font-weight:700;font-size:calc(6.2 * var(--u));line-height:1.14;letter-spacing:-.015em;text-wrap:balance}
+.sub{font-size:calc(3.4 * var(--u));color:var(--mut);line-height:1.55;margin-top:calc(2.6 * var(--u));max-width:34ch}
+.kicker{font-size:calc(3 * var(--u));color:var(--cop);font-weight:700;margin-top:calc(3.2 * var(--u))}
+
+.up{opacity:0;transform:translateY(calc(2.4 * var(--u)))}
+.sc.on .up{animation:up .62s cubic-bezier(.2,.7,.3,1) forwards}
+.sc.on .d1{animation-delay:.10s} .sc.on .d2{animation-delay:.24s}
+.sc.on .d3{animation-delay:.38s} .sc.on .d4{animation-delay:.52s}
+.sc.on .d5{animation-delay:.66s} .sc.on .d6{animation-delay:.80s}
+@keyframes up{to{opacity:1;transform:none}}
+
+.card{background:var(--card);border:1px solid var(--line);border-radius:calc(2.2 * var(--u));padding:calc(3 * var(--u))}
+
+/* ── לפני ואחרי ── */
+.ba{display:flex;gap:calc(2.4 * var(--u));margin-top:calc(4 * var(--u))}
+.ba > div{flex:1;border-radius:calc(2 * var(--u));padding:calc(3 * var(--u)) calc(2.4 * var(--u));border:1px solid var(--line)}
+.ba .before{background:rgba(217,96,90,.07);border-color:rgba(217,96,90,.3)}
+.ba .after{background:var(--or-soft);border-color:rgba(143,168,79,.4)}
+.ba .lbl{font-size:calc(2.3 * var(--u));font-weight:800;letter-spacing:.1em;margin-bottom:calc(1.6 * var(--u))}
+.ba .before .lbl{color:var(--bad)} .ba .after .lbl{color:var(--or)}
+.ba .t{font-weight:900;font-size:calc(7.4 * var(--u));line-height:1;font-variant-numeric:tabular-nums;direction:ltr}
+.ba .before .t{color:var(--bad)} .ba .after .t{color:var(--or)}
+.ba .u{font-size:calc(2.4 * var(--u));color:var(--mut);margin-top:calc(1 * var(--u))}
+
+/* ── שורות תכונה ── */
+.feat{display:flex;align-items:flex-start;gap:calc(2.4 * var(--u));padding:calc(2.2 * var(--u)) 0;border-top:1px solid var(--line)}
+.feat:first-child{border-top:0}
+.feat .ic{
+  width:calc(6.6 * var(--u));height:calc(6.6 * var(--u));flex:none;border-radius:calc(1.6 * var(--u));display:grid;place-items:center;
+  background:var(--or-soft);border:1px solid rgba(143,168,79,.34);font-size:calc(3.2 * var(--u));
+}
+.feat .tt{font-weight:700;font-size:calc(3.2 * var(--u));line-height:1.3}
+.feat .dd{font-size:calc(2.5 * var(--u));color:var(--mut);margin-top:calc(.7 * var(--u));line-height:1.45}
+
+/* ── מונים ── */
+.three{display:flex;gap:calc(2.6 * var(--u));justify-content:space-between;margin-top:calc(4 * var(--u))}
+.three .c{flex:1;text-align:center}
+.three .n{font-weight:900;font-size:calc(9.4 * var(--u));line-height:1;color:var(--cop);font-variant-numeric:tabular-nums;direction:ltr}
+.three .l{font-size:calc(2.5 * var(--u));color:var(--mut);margin-top:calc(1.2 * var(--u))}
+
+.pills{display:flex;gap:calc(1.4 * var(--u));flex-wrap:wrap;margin-top:calc(2.8 * var(--u))}
+.pill{
+  font-size:calc(2.5 * var(--u));padding:calc(1 * var(--u)) calc(2.4 * var(--u));border-radius:20px;
+  background:var(--or-soft);color:var(--or);border:1px solid rgba(143,168,79,.34);white-space:nowrap;
+}
+
+/* ── מסך המתאמן ── */
+.phone{
+  margin:calc(3.6 * var(--u)) auto 0;width:62%;border-radius:calc(3 * var(--u));overflow:hidden;
+  border:1px solid var(--line2);background:var(--card);
+}
+.ph-top{padding:calc(2 * var(--u)) calc(2.4 * var(--u));border-bottom:1px solid var(--line);font-size:calc(2.2 * var(--u));color:var(--dim);font-weight:800;letter-spacing:.14em}
+.ph-b{padding:calc(2.4 * var(--u))}
+.ph-n{font-family:'Frank Ruhl Libre',serif;font-weight:700;font-size:calc(3.6 * var(--u))}
+.ph-g{display:inline-block;margin-top:calc(1.2 * var(--u));font-size:calc(2.2 * var(--u));padding:calc(.7 * var(--u)) calc(1.8 * var(--u));border-radius:20px;background:var(--or-soft);color:var(--or)}
+.ph-r{display:flex;gap:calc(1.4 * var(--u));margin-top:calc(2.4 * var(--u))}
+.ph-s{flex:1;background:var(--ink);border:1px solid var(--line);border-radius:calc(1.4 * var(--u));padding:calc(1.6 * var(--u)) calc(1.2 * var(--u));text-align:center}
+.ph-s .v{font-weight:900;font-size:calc(3.4 * var(--u));color:var(--cop);font-variant-numeric:tabular-nums}
+.ph-s .k{font-size:calc(1.9 * var(--u));color:var(--dim);margin-top:calc(.4 * var(--u))}
+
+.logo{font-weight:900;font-size:calc(3.4 * var(--u));letter-spacing:.16em;display:flex;align-items:center;gap:calc(1 * var(--u));justify-content:center}
+.logo{direction:ltr}
+.logo i{width:calc(1.5 * var(--u));height:calc(1.5 * var(--u));border-radius:50%;background:var(--or);font-style:normal}
+.brandline{
+  position:absolute;top:calc(5 * var(--u));right:0;left:0;text-align:center;
+  font-weight:800;font-size:calc(2.3 * var(--u));letter-spacing:.2em;color:var(--dim);
+  opacity:0;transition:opacity .5s .3s;
+}
+#stage.started .brandline{opacity:1}
+
+#bar{position:absolute;top:0;right:0;left:0;height:calc(.6 * var(--u));background:rgba(255,255,255,.07);z-index:5}
+#bar i{display:block;height:100%;width:0;background:var(--or)}
+
+#ctl{position:fixed;bottom:calc(2 * var(--u));right:50%;transform:translateX(50%);display:flex;gap:calc(1.2 * var(--u));z-index:20;opacity:.28;transition:opacity .2s}
+#ctl:hover{opacity:1}
+#ctl button{
+  font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;
+  background:#1a1410;color:#F2E8D8;border:1px solid #48392B;border-radius:20px;padding:8px 16px;
+}
+#ctl button:hover{border-color:var(--or);color:var(--or)}
+</style>
+</head>
+<body>
+
+<div id="stage">
+  <div id="bar"><i></i></div>
+  <div class="brandline">E.B FIT</div>
+
+  <!-- 1 · הכאב -->
+  <section class="sc" data-t="3800">
+    <div class="eyebrow up d1">למאמנים</div>
+    <h1 class="up d2">כמה זמן לוקח לך<br>לבנות תוכנית?</h1>
+    <div class="sub up d3">אקסל, וורד, וואטסאפ, ועוד קובץ שאף אחד לא מוצא.
+      ואז אותו דבר שוב, למתאמן הבא.</div>
+  </section>
+
+  <!-- 2 · לפני ואחרי -->
+  <section class="sc" data-t="4200">
+    <div class="eyebrow up d1">ההבדל</div>
+    <h2 class="up d2">אותה תוכנית.<br>זמן אחר לגמרי.</h2>
+    <div class="ba up d3">
+      <div class="before"><div class="lbl">קודם</div>
+        <div class="t">45</div><div class="u">דקות למתאמן</div></div>
+      <div class="after"><div class="lbl">עכשיו</div>
+        <div class="t">90</div><div class="u">שניות</div></div>
+    </div>
+    <div class="sub up d4">מעלה את הקובץ הישן, המערכת קוראת אותו,
+      בונה את התוכנית ומשלימה כל יום לתשעה תרגילים.</div>
+  </section>
+
+  <!-- 3 · הספריות -->
+  <section class="sc" data-t="4400">
+    <div class="eyebrow up d1">מה יש בפנים</div>
+    <h2 class="up d2">מוכן מראש.<br>לא תבנה מאפס.</h2>
+    <div class="three up d3">
+      <div class="c"><div class="n" data-count="400">0</div><div class="l">תרגילים</div></div>
+      <div class="c"><div class="n" data-count="400">0</div><div class="l">ארוחות</div></div>
+      <div class="c"><div class="n" data-count="400">0</div><div class="l">מוצרים</div></div>
+    </div>
+    <div class="pills up d4">
+      <span class="pill">סינון לפי שריר וציוד</span><span class="pill">סטים וחזרות מוכנים</span>
+      <span class="pill">ערכים לגרם</span><span class="pill">קטגוריית כשרות</span>
+    </div>
+  </section>
+
+  <!-- 4 · האוטומציה -->
+  <section class="sc" data-t="5000">
+    <div class="eyebrow up d1">מה שהיא עושה בשבילך</div>
+    <h2 class="up d2">העבודה השחורה,<br>בלחיצה</h2>
+    <div class="card up d3" style="margin-top:calc(3.6 * var(--u))">
+      <div class="feat"><div class="ic">📄</div><div>
+        <div class="tt">ייבוא מקובץ קיים</div>
+        <div class="dd">קורא תוכניות שכבר כתבת ומכניס אותן פנימה</div></div></div>
+      <div class="feat"><div class="ic">🎯</div><div>
+        <div class="tt">מרשם לפי מטרה</div>
+        <div class="dd">כוח 5×3-5, מסה 4×8-10, חיטוב 4×10-12 — אוטומטית</div></div></div>
+      <div class="feat"><div class="ic">🧮</div><div>
+        <div class="tt">יעדים מחושבים</div>
+        <div class="dd">קלוריות, חלבון, צח״מ ואזורי דופק — לכל מתאמן</div></div></div>
+    </div>
+  </section>
+
+  <!-- 5 · צד המתאמן -->
+  <section class="sc" data-t="4600">
+    <div class="eyebrow up d1">ומה הוא רואה</div>
+    <h2 class="up d2">קישור אחד.<br>בלי להתקין כלום.</h2>
+    <div class="phone up d3">
+      <div class="ph-top">E.B FIT</div>
+      <div class="ph-b">
+        <div class="ph-n">אור שריקי</div>
+        <span class="ph-g">חיטוב ומיצוק</span>
+        <div class="ph-r">
+          <div class="ph-s"><div class="v">2,813</div><div class="k">קק״ל</div></div>
+          <div class="ph-s"><div class="v">125</div><div class="k">חלבון</div></div>
+          <div class="ph-s"><div class="v">13</div><div class="k">ימים</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="sub up d4">מסמן תרגילים, שוקל את עצמו, מוסיף ארוחות —
+      ואתה רואה הכל אצלך.</div>
+  </section>
+
+  <!-- 6 · למי זה -->
+  <section class="sc" data-t="4200">
+    <div class="eyebrow up d1">למי זה מתאים</div>
+    <h2 class="up d2">מאמן אחד.<br>או חמישים מתאמנים.</h2>
+    <div class="card up d3" style="margin-top:calc(3.6 * var(--u))">
+      <div class="feat"><div class="ic">📱</div><div>
+        <div class="tt">עובד מהטלפון</div>
+        <div class="dd">נוסף למסך הבית, עובד גם בלי רשת במכון</div></div></div>
+      <div class="feat"><div class="ic">🔒</div><div>
+        <div class="tt">כל מתאמן רואה רק את עצמו</div>
+        <div class="dd">שם משתמש וסיסמה, או קישור אישי</div></div></div>
+      <div class="feat"><div class="ic">💾</div><div>
+        <div class="tt">הכל מסונכרן</div>
+        <div class="dd">מחליף טלפון — הנתונים ממשיכים איתך</div></div></div>
+    </div>
+  </section>
+
+  <!-- 7 · סיום -->
+  <section class="sc" data-t="4400" style="align-items:center;text-align:center">
+    <div class="logo up d1" style="margin-bottom:calc(4 * var(--u))">E.B<i></i>FIT</div>
+    <h1 class="up d2">תפסיק לבנות<br>תוכניות בוורד.</h1>
+    <div class="sub up d3" style="max-width:26ch">מעוניין לראות איך זה עובד?<br>שלח הודעה ואראה לך.</div>
+    <div class="kicker up d4">אראל באואר · 054-268-7313</div>
+  </section>
+</div>
+
+<div id="ctl">
+  <button id="pp">עצירה</button>
+  <button id="rs">מהתחלה</button>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  var stage = document.getElementById('stage');
+  var scenes = [].slice.call(document.querySelectorAll('.sc'));
+  var fill = document.querySelector('#bar i');
+  var i = -1, timer = null, raf = null, paused = false, t0 = 0, dur = 0;
+
+  function count(sc) {
+    sc.querySelectorAll('[data-count]').forEach(function (el) {
+      var to = +el.dataset.count, t = 0, steps = 34;
+      clearInterval(el._iv);
+      el._iv = setInterval(function () {
+        t++;
+        var p = t / steps, e = 1 - Math.pow(1 - p, 3);
+        el.textContent = Math.round(to * e).toLocaleString('en-US');
+        if (t >= steps) { clearInterval(el._iv); el.textContent = to.toLocaleString('en-US'); }
+      }, 26);
+    });
+  }
+
+  function show(n) {
+    if (i >= 0) scenes[i].classList.remove('on');
+    i = n;
+    var sc = scenes[i];
+    /* איפוס ההנפשות לפני הצגה — בלי reflow הסצנה בסיבוב השני
+       מופיעה בלי תנועה. */
+    sc.querySelectorAll('.up').forEach(function (el) {
+      el.style.animation = 'none'; void el.offsetWidth; el.style.animation = '';
+    });
+    sc.classList.add('on');
+    count(sc);
+    dur = +sc.dataset.t || 4000;
+    t0 = performance.now();
+    clearTimeout(timer);
+    timer = setTimeout(next, dur);
+    tick();
+  }
+  function next() { show((i + 1) % scenes.length); }
+
+  function tick() {
+    cancelAnimationFrame(raf);
+    (function loop() {
+      if (paused) return;
+      var p = Math.min(1, (performance.now() - t0) / dur);
+      fill.style.width = ((i + p) / scenes.length * 100) + '%';
+      if (p < 1) raf = requestAnimationFrame(loop);
+    })();
+  }
+
+  var pp = document.getElementById('pp');
+  pp.addEventListener('click', function () {
+    paused = !paused;
+    if (paused) { clearTimeout(timer); cancelAnimationFrame(raf); pp.textContent = 'המשך'; }
+    else {
+      pp.textContent = 'עצירה';
+      var left = Math.max(200, dur - (performance.now() - t0));
+      t0 = performance.now() - (dur - left);
+      timer = setTimeout(next, left); tick();
+    }
+  });
+  document.getElementById('rs').addEventListener('click', function () {
+    clearTimeout(timer); paused = false; pp.textContent = 'עצירה'; show(0);
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.code === 'Space') { e.preventDefault(); pp.click(); }
+    if (e.key === 'r' || e.key === 'ר') document.getElementById('rs').click();
+  });
+
+  stage.classList.add('started');
+  show(0);
+})();
+</script>
+</body>
+</html>
