@@ -317,8 +317,8 @@ tbody tr:hover{background:var(--panel)}
 <div id="toast"></div>
 
 <!-- ספריית Supabase מקומית (לא מ-CDN) כדי שהאפליקציה תעבוד גם בלי רשת -->
-<script src="vendor/supabase.js?v=v66"></script>
-<script src="config.js?v=v66"></script>
+<script src="vendor/supabase.js?v=v67"></script>
+<script src="config.js?v=v67"></script>
 
 <script>
 /* =======================================================================
@@ -353,7 +353,7 @@ function age(b){ if(!b) return null; const d=new Date(b), t=new Date(); let a=t.
 
 /* ---------------- אחסון ---------------- */
 const KEY='ebfit_v1';
-const EB_VERSION='v66';   // חייב להתאים ל-VERSION ב-sw.js
+const EB_VERSION='v67';   // חייב להתאים ל-VERSION ב-sw.js
 let mem=null, canStore=true;
 function load(){
   try{ const r=localStorage.getItem(KEY); return r?JSON.parse(r):null; }
@@ -1607,16 +1607,38 @@ window.addEventListener('beforeunload',()=>{ if(!canStore) return; save(); });
    עובד רק ב-https:// או ב-localhost. בפתיחה מקובץ (file://) פשוט מדולג. */
 if ('serviceWorker' in navigator && location.protocol !== 'file:') {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js').then(reg => {
-      // גרסה חדשה עלתה לשרת — מודיעים למאמן
-      reg.addEventListener('updatefound', () => {
-        const nw = reg.installing;
-        if (!nw) return;
+    /* updateViaCache:'none' — בלעדיו הדפדפן מגיש את sw.js עצמו
+       מהמטמון, וגרסה חדשה לא מתגלה כלל. */
+    navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(reg => {
+
+      /* בקשת בדיקה יזומה. באפליקציה מותקנת בטלפון הדף כמעט לעולם
+         לא נטען מחדש, ולכן בלי זה הדפדפן פשוט לא בודק. */
+      const check = () => { try { reg.update(); } catch (e) {} };
+      check();
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') check();
+      });
+
+      /* גרסה חדשה שהותקנה — מפעילים אותה וטוענים מחדש.
+         קודם הופיעה כאן הודעה "סגור ופתח את האפליקציה", ואיש לא
+         סוגר אפליקציה בטלפון באמת, ולכן העדכון נשאר תלוי לנצח. */
+      const activate = nw => {
         nw.addEventListener('statechange', () => {
-          if (nw.state === 'installed' && navigator.serviceWorker.controller) {
-            if (typeof toast === 'function') toast('גרסה חדשה מוכנה — סגור ופתח את האפליקציה');
-          }
+          if (nw.state !== 'installed' || !navigator.serviceWorker.controller) return;
+          if (typeof toast === 'function') toast('גרסה חדשה — מרענן');
+          nw.postMessage('skipWaiting');
         });
+      };
+      if (reg.waiting && navigator.serviceWorker.controller) reg.waiting.postMessage('skipWaiting');
+      reg.addEventListener('updatefound', () => { if (reg.installing) activate(reg.installing); });
+
+      /* טעינה מחדש פעם אחת בלבד לכל פתיחה, כדי שלא ניכנס ללולאה
+         אם משהו בהפעלה נכשל. */
+      let reloaded = false;
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (reloaded) return;
+        reloaded = true;
+        location.reload();
       });
     }).catch(() => {});
   });
@@ -1633,24 +1655,24 @@ if (location.protocol === 'file:') {
 }
 </script>
 
-<script src="health.js?v=v66"></script>
-<script src="analysis.js?v=v66"></script>
-<script src="business.js?v=v66"></script>
-<script src="intake.js?v=v66"></script>
-<script src="files.js?v=v66"></script>
-<script src="builder.js?v=v66"></script>
-<script src="import-program.js?v=v66"></script>
-<script src="tracking.js?v=v66"></script>
-<script src="metrics.js?v=v66"></script>
-<script src="meal-library.js?v=v66"></script>
-<script src="library-ui.js?v=v66"></script>
-<script src="export-plan.js?v=v66"></script>
-<script src="cardio.js?v=v66"></script>
-<script src="cardio-ui.js?v=v66"></script>
-<script src="exercise-library.js?v=v66"></script>
-<script src="exercise-ui.js?v=v66"></script>
-<script src="meals.js?v=v66"></script>
-<script src="sync.js?v=v66"></script>
+<script src="health.js?v=v67"></script>
+<script src="analysis.js?v=v67"></script>
+<script src="business.js?v=v67"></script>
+<script src="intake.js?v=v67"></script>
+<script src="files.js?v=v67"></script>
+<script src="builder.js?v=v67"></script>
+<script src="import-program.js?v=v67"></script>
+<script src="tracking.js?v=v67"></script>
+<script src="metrics.js?v=v67"></script>
+<script src="meal-library.js?v=v67"></script>
+<script src="library-ui.js?v=v67"></script>
+<script src="export-plan.js?v=v67"></script>
+<script src="cardio.js?v=v67"></script>
+<script src="cardio-ui.js?v=v67"></script>
+<script src="exercise-library.js?v=v67"></script>
+<script src="exercise-ui.js?v=v67"></script>
+<script src="meals.js?v=v67"></script>
+<script src="sync.js?v=v67"></script>
 <script>
 /* =================== חיבור הסנכרון לאפליקציה =================== */
 
