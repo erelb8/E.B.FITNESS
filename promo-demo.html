@@ -6,18 +6,18 @@
 <title>FIT THE FIT — הדמיה</title>
 
 <!-- =====================================================================
-     FIT THE FIT — סרטון הדמיה למכירת המערכת למאמנים.
+     FIT THE FIT — הדמיית מוצר למכירת המערכת למאמנים.
 
-     המנוע כאן שונה מהסרטונים האחרים בפרויקט, ובכוונה: במקום סצנות
-     נפרדות שכל אחת מציירת מסך מחדש, יש טלפון אחד שנשאר על הבמה לכל
-     אורך הסרטון, והמסכים מתחלפים בתוכו. הרציפות הזאת היא כל ההבדל
-     בין מה שנראה כמו הקלטת מסך אמיתית לבין מה שנראה כמו מצגת.
+     טלפון אחד נשאר על הבמה לכל האורך והמסכים מתחלפים בתוכו בסיבוב
+     תלת-ממדי. הרציפות היא ההבדל בין מה שנראה כמו מכשיר שמישהו מפעיל
+     לבין מה שנראה כמו מצגת שקופיות.
 
-     הקרס הוא ההשוואה בתוך הטלפון עצמו: קודם הבלגן שכל מאמן מכיר —
-     שרשור וואטסאפ עם "איזה מהם? שלחת שלושה" — ומיד אחריו אותו מתאמן
-     כשהוא מסודר. מאמן עוצר על זה כי הוא מזהה את עצמו בפריים הראשון.
+     בתוך המסך רצים הצבעים האמיתיים של האפליקציה — 221A12 על 34281E
+     עם זית 8FA84F. מסך בהיר כאן היה הופך את ההדמיה להמצאה.
 
-     תשע עשרה שניות. קצר בכוונה: מעל זה שיעור ההשלמה נופל בחדות.
+     אחד עשר מסכים בשתי שניות כל אחד: ניהול, תוכנית, ספריות, מרשם,
+     תזונה, כשרות, צד המתאמן, מעקב, בריאות, וניתוח העסק. הקצב מהיר
+     בכוונה — המסר הוא ההיקף, וכל מסך צריך רק להספיק להיקרא.
 
      9:16, מתנגן לבד ובלולאה, להקלטת מסך.
      ===================================================================== -->
@@ -29,10 +29,8 @@
 <style>
 :root{
   --u:min(1vw, 0.5625vh);
-  --bone:#F2E9DA; --card:#FBF6EC; --ink:#1E170F;
-  --mut:#6B5B47; --dim:#94826B; --line:#DFD2BC; --line2:#C9B99C;
-  --olive:#5E7A2E; --cop:#9A5F1E; --red:#A33B33;
-  --olive-soft:rgba(94,122,46,.12);
+  --bone:#F2E9DA; --ink:#1E170F; --mut:#6B5B47; --dim:#94826B; --line:#DFD2BC;
+  --olive:#5E7A2E; --cop:#9A5F1E;
   --spring:linear(0,.006,.025 2.8%,.101 6.1%,.539 18.9%,.721 25.3%,.849 31.5%,
            .937 38.1%,.968 41.8%,.991 45.7%,1.006 50.1%,1.015 55%,1.017 63.9%,1.001 100%);
   --ease:cubic-bezier(.2,.8,.2,1);
@@ -46,10 +44,10 @@ body{display:grid;place-items:center;overflow:hidden;font-family:'Heebo',system-
   width:min(100vw, calc(100vh * 9 / 16));
   height:min(100vh, calc(100vw * 16 / 9));
   background:var(--bone);overflow:hidden;
-  display:flex;flex-direction:column;align-items:center;
+  perspective:calc(160 * var(--u));      /* עומק לסיבובי המכשיר */
   background-image:
-    radial-gradient(60% 38% at 92% -6%, rgba(94,122,46,.17), transparent 62%),
-    radial-gradient(54% 34% at 4% 106%, rgba(154,95,30,.14), transparent 60%);
+    radial-gradient(58% 36% at 92% -6%, rgba(94,122,46,.18), transparent 62%),
+    radial-gradient(52% 32% at 4% 106%, rgba(154,95,30,.15), transparent 60%);
 }
 #stage::after{
   content:'';position:absolute;inset:0;pointer-events:none;opacity:.5;z-index:9;
@@ -57,155 +55,170 @@ body{display:grid;place-items:center;overflow:hidden;font-family:'Heebo',system-
   mix-blend-mode:multiply;
 }
 
-/* ── הכתובית: אזור בגובה קבוע, כדי שהטלפון לא יקפוץ בין סצנות ── */
-#cap{
-  position:relative;z-index:4;width:100%;height:calc(34 * var(--u));
-  padding:0 8% calc(2.6 * var(--u));
-}
-.cap{position:absolute;inset:auto 8% calc(2.6 * var(--u));opacity:0;visibility:hidden}
+/* ── כתובית ── */
+#cap{position:absolute;z-index:6;top:calc(7 * var(--u));right:8%;left:8%;height:calc(22 * var(--u))}
+.cap{position:absolute;inset:auto 0 0;opacity:0;visibility:hidden}
 .cap.on{opacity:1;visibility:visible}
-.eyebrow{font-weight:800;font-size:calc(2.3 * var(--u));letter-spacing:.22em;color:var(--olive);margin-bottom:calc(1.3 * var(--u))}
+.eyebrow{font-weight:800;font-size:calc(2.2 * var(--u));letter-spacing:.24em;color:var(--olive);margin-bottom:calc(1 * var(--u))}
 .cap h2{font-family:'Frank Ruhl Libre',Georgia,serif;font-weight:900;
-        font-size:calc(6.4 * var(--u));line-height:1.08;letter-spacing:-.022em;text-wrap:balance}
-.cap .sub{font-size:calc(3 * var(--u));color:var(--mut);line-height:1.5;margin-top:calc(1.2 * var(--u))}
+        font-size:calc(6.6 * var(--u));line-height:1.06;letter-spacing:-.024em}
 .hl{color:var(--cop)}
-
-.up{opacity:0;transform:translateY(calc(1.8 * var(--u)))}
-.cap.on .up{animation:up .5s var(--spring) forwards}
+.up{opacity:0;transform:translateY(calc(1.6 * var(--u)))}
+.cap.on .up{animation:up .44s var(--spring) forwards}
 @keyframes up{to{opacity:1;transform:none}}
-.d1{animation-delay:.03s} .d2{animation-delay:.12s} .d3{animation-delay:.22s}
-/* הפריים הראשון כבר נושא טענה — בלי אנימציית כניסה */
+.d1{animation-delay:.02s} .d2{animation-delay:.10s}
 .cap.first .up{animation:none;opacity:1;transform:none}
-
-.word{display:inline-block;opacity:0;transform:translateY(calc(1.2 * var(--u)))}
-.cap.on .word{animation:up .42s var(--spring) forwards}
+.word{display:inline-block;opacity:0;transform:translateY(calc(1 * var(--u)))}
+.cap.on .word{animation:up .38s var(--spring) forwards}
 .cap.first .word{animation:none;opacity:1;transform:none}
 
-/* ── הטלפון: נשאר על המסך לכל אורך הסרטון ── */
+/* ── אייפון ── */
 #dev{
-  position:absolute;z-index:3;top:calc(35.5 * var(--u));left:14%;right:14%;
-  bottom:calc(-20 * var(--u));
-  border-radius:calc(6 * var(--u));padding:calc(1.1 * var(--u));
-  background:linear-gradient(160deg,#5F4C39,#2B2119 62%);
-  box-shadow:0 calc(2 * var(--u)) calc(6 * var(--u)) rgba(30,23,15,.28);
-  animation:rise .8s var(--spring) both;
+  position:absolute;z-index:3;top:calc(31 * var(--u));left:15%;right:15%;
+  bottom:calc(-16 * var(--u));
+  border-radius:calc(7.5 * var(--u));padding:calc(.9 * var(--u));
+  background:linear-gradient(155deg,#8B7A63 0%,#3A2E22 26%,#241C14 60%,#6B5B47 100%);
+  box-shadow:0 calc(2.4 * var(--u)) calc(7 * var(--u)) rgba(30,23,15,.34);
+  transform-style:preserve-3d;
+  animation:enter 1s var(--spring) both;
 }
-@keyframes rise{from{opacity:0;transform:translateY(calc(6 * var(--u))) scale(.94)}to{opacity:1;transform:none}}
-/* בתוך המסך רצים הצבעים האמיתיים של האפליקציה ולא צבעי הסרטון.
-   הגרסה הראשונה הציגה כאן מסך בהיר, וזו לא הייתה הדמיה אלא המצאה —
-   האפליקציה כהה. המסגרת נשארת בהירה, וזה גם מייצר את הניגודיות
-   שגורמת למסך להיקרא כמסך דולק. */
+@keyframes enter{
+  from{opacity:0;transform:translateY(calc(8 * var(--u))) rotateY(-22deg) rotateX(6deg) scale(.9)}
+  to{opacity:1;transform:none}
+}
+/* סיבוב בכל החלפת מסך, לסירוגין לשני הכיוונים */
+#dev.spinA{animation:spinA .9s var(--ease)}
+#dev.spinB{animation:spinB .9s var(--ease)}
+@keyframes spinA{
+  0%{transform:rotateY(0) rotateX(0)}
+  45%{transform:rotateY(-13deg) rotateX(3deg) translateZ(calc(-4 * var(--u)))}
+  100%{transform:rotateY(0) rotateX(0)}
+}
+@keyframes spinB{
+  0%{transform:rotateY(0) rotateX(0)}
+  45%{transform:rotateY(13deg) rotateX(-3deg) translateZ(calc(-4 * var(--u)))}
+  100%{transform:rotateY(0) rotateX(0)}
+}
+/* כפתורי צד — הפרט שהופך מסגרת למכשיר */
+#dev::before,#dev::after{
+  content:'';position:absolute;right:calc(-.55 * var(--u));width:calc(.55 * var(--u));
+  border-radius:0 3px 3px 0;background:linear-gradient(#6B5B47,#3A2E22);
+}
+#dev::before{top:calc(13 * var(--u));height:calc(6 * var(--u))}
+#dev::after{top:calc(21 * var(--u));height:calc(10 * var(--u))}
+
 #glass{
-  position:relative;width:100%;height:100%;border-radius:calc(5 * var(--u));
+  position:relative;width:100%;height:100%;border-radius:calc(6.7 * var(--u));
   overflow:hidden;
 
-  --bone:#2B2119;          /* רקע משני בתוך המסך */
-  --card:#221A12;          /* רקע המסך עצמו */
-  --line:#48392B;
-  --line2:#5F4C39;
-  --ink:#F2E8D8;           /* טקסט ראשי */
-  --mut:#B3A48E;
-  --dim:#7E7060;
-  --olive:#8FA84F;
-  --cop:#D19A55;
-  --olive-soft:rgba(143,168,79,.15);
-
+  /* הצבעים האמיתיים של האפליקציה */
+  --bone:#2B2119; --card:#221A12; --line:#48392B; --line2:#5F4C39;
+  --ink:#F2E8D8; --mut:#B3A48E; --dim:#7E7060;
+  --olive:#8FA84F; --cop:#D19A55; --olive-soft:rgba(143,168,79,.15);
   background:#221A12;color:#F2E8D8;
 }
-/* האי הדינמי — פרט קטן שגורם למסגרת להיקרא כטלפון ולא כמלבן */
+/* האי הדינמי */
 #glass::before{
   content:'';position:absolute;top:calc(1.3 * var(--u));left:50%;transform:translateX(-50%);
-  width:calc(15 * var(--u));height:calc(3.2 * var(--u));border-radius:20px;background:#0B0906;z-index:5;
+  width:calc(14 * var(--u));height:calc(3.1 * var(--u));border-radius:20px;background:#000;z-index:6;
+}
+/* השתקפות זכוכית */
+#glass::after{
+  content:'';position:absolute;inset:0;pointer-events:none;z-index:5;
+  background:linear-gradient(118deg,rgba(255,255,255,.10) 0%,transparent 32%,transparent 70%,rgba(255,255,255,.05) 100%);
 }
 
-.scr{position:absolute;inset:0;padding:calc(6.2 * var(--u)) calc(2.8 * var(--u)) calc(2.8 * var(--u));
+.scr{position:absolute;inset:0;padding:calc(6 * var(--u)) calc(2.6 * var(--u)) calc(2.6 * var(--u));
      opacity:0;visibility:hidden;overflow:hidden}
 .scr.on{opacity:1;visibility:visible}
 
-.hd{font-size:calc(1.95 * var(--u));color:var(--dim);font-weight:800;letter-spacing:.12em;
-    padding-bottom:calc(1.3 * var(--u));border-bottom:1px solid var(--line);margin-bottom:calc(1.6 * var(--u));
-    display:flex;align-items:center;gap:calc(.9 * var(--u))}
-.hd i{width:calc(1.2 * var(--u));height:calc(1.2 * var(--u));border-radius:50%;background:var(--olive);font-style:normal}
+.hd{font-size:calc(1.85 * var(--u));color:var(--dim);font-weight:800;letter-spacing:.12em;
+    padding-bottom:calc(1.2 * var(--u));border-bottom:1px solid var(--line);margin-bottom:calc(1.5 * var(--u));
+    display:flex;align-items:center;gap:calc(.8 * var(--u))}
+.hd i{width:calc(1.1 * var(--u));height:calc(1.1 * var(--u));border-radius:50%;background:var(--olive);font-style:normal}
+.hd b{margin-inline-start:auto;color:var(--cop);font-size:calc(1.75 * var(--u))}
 
-/* ── מסך 1: הבלגן ── */
-.chat{display:flex;flex-direction:column;gap:calc(1.2 * var(--u))}
-.bub{background:#2B2119;border:1px solid var(--line);border-radius:calc(1.8 * var(--u));
-     padding:calc(1.4 * var(--u)) calc(1.6 * var(--u));font-size:calc(2.1 * var(--u));
-     line-height:1.45;color:var(--mut);max-width:88%}
-.bub.me{align-self:flex-start;background:rgba(143,168,79,.16);border-color:rgba(143,168,79,.34);color:var(--ink)}
-.file{display:flex;align-items:center;gap:calc(1.2 * var(--u));background:#2B2119;
-      border:1px solid var(--line);border-radius:calc(1.4 * var(--u));padding:calc(1.2 * var(--u));max-width:90%}
-.file span{font-size:calc(2.4 * var(--u));flex:none}
-.file b{font-size:calc(1.95 * var(--u));font-weight:700;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.file small{display:block;font-size:calc(1.7 * var(--u));color:var(--dim);direction:ltr}
-
-/* ── שורות ── */
-.row{display:flex;align-items:center;gap:calc(1.4 * var(--u));padding:calc(1.25 * var(--u)) 0;
+/* שורה כללית */
+.row{display:flex;align-items:center;gap:calc(1.3 * var(--u));padding:calc(1.15 * var(--u)) 0;
      border-top:1px solid var(--line);opacity:0}
-.scr.on .row{animation:up .38s var(--spring) forwards}
-.dot{width:calc(2.7 * var(--u));height:calc(2.7 * var(--u));flex:none;border-radius:50%;
-     border:calc(.35 * var(--u)) solid var(--line2)}
+.scr.on .row{animation:up .34s var(--spring) forwards}
+.dot{width:calc(2.5 * var(--u));height:calc(2.5 * var(--u));flex:none;border-radius:50%;
+     border:calc(.32 * var(--u)) solid var(--line2)}
 .dot.on{background:var(--olive);border-color:var(--olive)}
-.nm{flex:1;min-width:0;font-size:calc(2.2 * var(--u));white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.sp{font-weight:800;font-size:calc(1.9 * var(--u));padding:calc(.3 * var(--u)) calc(1 * var(--u));
-    border-radius:calc(.85 * var(--u));background:var(--bone);border:1px solid var(--line);
+.av{width:calc(4.6 * var(--u));height:calc(4.6 * var(--u));flex:none;border-radius:calc(1.3 * var(--u));
+    display:grid;place-items:center;font-weight:800;font-size:calc(1.8 * var(--u));color:#141A06}
+.nm{flex:1;min-width:0;font-size:calc(2.05 * var(--u));white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nm small{display:block;font-size:calc(1.6 * var(--u));color:var(--dim);margin-top:calc(.15 * var(--u))}
+.sp{font-weight:800;font-size:calc(1.75 * var(--u));padding:calc(.25 * var(--u)) calc(.95 * var(--u));
+    border-radius:calc(.8 * var(--u));background:var(--bone);border:1px solid var(--line);
     white-space:nowrap;direction:ltr;font-variant-numeric:tabular-nums;color:var(--cop)}
+.sp.g{color:var(--olive);border-color:rgba(143,168,79,.35);background:var(--olive-soft)}
+.sp.r{color:#D9605A;border-color:rgba(217,96,90,.4);background:rgba(217,96,90,.12)}
 
-/* ── מרשם לפי מטרה ── */
-.rx{display:flex;align-items:center;gap:calc(1.2 * var(--u));background:var(--bone);
-    border:1px solid var(--line);border-radius:calc(1.3 * var(--u));
-    padding:calc(1.4 * var(--u)) calc(1.5 * var(--u));margin-bottom:calc(1 * var(--u))}
-.scr.on .rx{animation:lite 2s var(--ease) forwards}
-.scr.on .rx:nth-of-type(1){animation-delay:.15s}
-.scr.on .rx:nth-of-type(2){animation-delay:.68s}
-.scr.on .rx:nth-of-type(3){animation-delay:1.2s}
+/* צ'יפים */
+.chips{display:flex;flex-wrap:wrap;gap:calc(.7 * var(--u));margin-top:calc(1.2 * var(--u))}
+.chip{font-size:calc(1.6 * var(--u));font-weight:700;padding:calc(.4 * var(--u)) calc(1.1 * var(--u));
+      border-radius:20px;background:var(--bone);border:1px solid var(--line);color:var(--mut);opacity:0}
+.scr.on .chip{animation:up .3s var(--spring) forwards}
+.chip.on{background:var(--olive-soft);color:var(--olive);border-color:rgba(143,168,79,.35)}
+
+/* מרשם */
+.rx{display:flex;align-items:center;gap:calc(1.1 * var(--u));background:var(--bone);
+    border:1px solid var(--line);border-radius:calc(1.2 * var(--u));
+    padding:calc(1.25 * var(--u)) calc(1.4 * var(--u));margin-bottom:calc(.9 * var(--u))}
+.scr.on .rx{animation:lite 1.7s var(--ease) forwards}
+.scr.on .rx:nth-of-type(1){animation-delay:.1s}
+.scr.on .rx:nth-of-type(2){animation-delay:.5s}
+.scr.on .rx:nth-of-type(3){animation-delay:.9s}
 @keyframes lite{
   0%{background:var(--bone);border-color:var(--line)}
-  10%{background:rgba(94,122,46,.16);border-color:rgba(94,122,46,.6)}
-  45%{background:rgba(94,122,46,.16);border-color:rgba(94,122,46,.6)}
+  12%{background:rgba(143,168,79,.2);border-color:rgba(143,168,79,.7)}
+  50%{background:rgba(143,168,79,.2);border-color:rgba(143,168,79,.7)}
   100%{background:var(--bone);border-color:var(--line)}
 }
-.rxg{flex:none;font-weight:800;font-size:calc(1.95 * var(--u));color:var(--olive);
-     background:var(--olive-soft);border:1px solid rgba(94,122,46,.3);
-     border-radius:calc(.85 * var(--u));padding:calc(.4 * var(--u)) calc(1.1 * var(--u));
-     min-width:calc(11 * var(--u));text-align:center}
-.rxv{flex:1;font-weight:800;font-size:calc(2.5 * var(--u));direction:ltr;text-align:left;font-variant-numeric:tabular-nums}
-.rxs{flex:none;font-size:calc(1.85 * var(--u));color:var(--cop);font-weight:700}
+.rxg{flex:none;font-weight:800;font-size:calc(1.8 * var(--u));color:var(--olive);
+     background:var(--olive-soft);border:1px solid rgba(143,168,79,.3);
+     border-radius:calc(.8 * var(--u));padding:calc(.35 * var(--u)) calc(1 * var(--u));
+     min-width:calc(10 * var(--u));text-align:center}
+.rxv{flex:1;font-weight:800;font-size:calc(2.3 * var(--u));direction:ltr;text-align:left;font-variant-numeric:tabular-nums}
+.rxs{flex:none;font-size:calc(1.7 * var(--u));color:var(--cop);font-weight:700}
 
-/* ── יעדים ── */
-.tri{display:grid;grid-template-columns:repeat(3,1fr);gap:calc(1.1 * var(--u))}
-.tile{background:var(--bone);border:1px solid var(--line);border-radius:calc(1.2 * var(--u));
-      padding:calc(1.6 * var(--u)) calc(.6 * var(--u));text-align:center}
-.tile .k{font-size:calc(1.7 * var(--u));color:var(--dim);font-weight:700}
-.tile .v{font-weight:900;font-size:calc(3.8 * var(--u));line-height:1;margin-top:calc(.4 * var(--u));
+/* אריחים */
+.tri{display:grid;grid-template-columns:repeat(3,1fr);gap:calc(1 * var(--u))}
+.tile{background:var(--bone);border:1px solid var(--line);border-radius:calc(1.1 * var(--u));
+      padding:calc(1.5 * var(--u)) calc(.5 * var(--u));text-align:center}
+.tile .k{font-size:calc(1.6 * var(--u));color:var(--dim);font-weight:700}
+.tile .v{font-weight:900;font-size:calc(3.6 * var(--u));line-height:1;margin-top:calc(.35 * var(--u));
          color:var(--cop);font-variant-numeric:tabular-nums;direction:ltr}
-.tile .u{font-size:calc(1.55 * var(--u));color:var(--dim)}
+.tile .u{font-size:calc(1.45 * var(--u));color:var(--dim)}
 
-/* ── פסק הבוט ── */
-.vd{background:var(--bone);border:1px solid rgba(94,122,46,.42);border-radius:calc(1.5 * var(--u));
-    padding:calc(1.7 * var(--u));display:flex;align-items:center;gap:calc(1.4 * var(--u))}
-.vn{font-weight:900;font-size:calc(5.2 * var(--u));line-height:1;color:var(--olive);direction:ltr;font-variant-numeric:tabular-nums}
-.vl{font-size:calc(1.7 * var(--u));color:var(--mut);margin-top:calc(.2 * var(--u))}
-.vt{display:inline-block;margin-top:calc(.7 * var(--u));font-size:calc(1.65 * var(--u));font-weight:800;
-    color:var(--olive);background:var(--olive-soft);border:1px solid rgba(94,122,46,.3);
-    border-radius:20px;padding:calc(.3 * var(--u)) calc(1.1 * var(--u))}
-svg.spark{flex:1;height:calc(9 * var(--u))}
-.spark polyline{fill:none;stroke:var(--olive);stroke-width:3;stroke-linecap:round;stroke-linejoin:round;
+/* פסק */
+.vd{background:var(--bone);border:1px solid rgba(143,168,79,.42);border-radius:calc(1.4 * var(--u));
+    padding:calc(1.5 * var(--u));display:flex;align-items:center;gap:calc(1.3 * var(--u))}
+.vn{font-weight:900;font-size:calc(4.8 * var(--u));line-height:1;color:var(--olive);direction:ltr;font-variant-numeric:tabular-nums}
+.vl{font-size:calc(1.6 * var(--u));color:var(--mut)}
+svg.spark{flex:1;height:calc(8 * var(--u))}
+.spark polyline{fill:none;stroke:var(--olive);stroke-width:3.2;stroke-linecap:round;stroke-linejoin:round;
                 stroke-dasharray:320;stroke-dashoffset:320}
-.scr.on .spark polyline{animation:draw 1s .2s var(--ease) forwards}
+.scr.on .spark polyline{animation:draw .9s .15s var(--ease) forwards}
 @keyframes draw{to{stroke-dashoffset:0}}
 
-/* ── מסך הסיום בתוך הטלפון ── */
-.end{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;
-     text-align:center;gap:calc(2.2 * var(--u))}
-.mark{font-family:'Frank Ruhl Libre',serif;font-weight:900;direction:ltr;line-height:.95;
-      font-size:calc(8 * var(--u));letter-spacing:-.02em}
-.mark em{font-style:normal;color:var(--olive)}
-.endl{font-size:calc(2 * var(--u));color:var(--mut);line-height:1.6}
+/* מד ציון */
+.score{text-align:center;padding:calc(1.4 * var(--u)) 0}
+.score b{display:block;font-weight:900;font-size:calc(9 * var(--u));line-height:1;color:var(--olive);
+         direction:ltr;font-variant-numeric:tabular-nums}
+.score span{font-size:calc(1.7 * var(--u));color:var(--mut)}
 
-/* ── מד סטורי ── */
-#bar{position:absolute;top:calc(1.5 * var(--u));right:5%;left:5%;display:flex;gap:calc(.6 * var(--u));z-index:8}
-#bar span{flex:1;height:calc(.45 * var(--u));border-radius:2px;background:rgba(30,23,15,.14);overflow:hidden}
+/* סיום */
+.end{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;
+     text-align:center;gap:calc(2 * var(--u))}
+.mark{font-family:'Frank Ruhl Libre',serif;font-weight:900;direction:ltr;line-height:.95;
+      font-size:calc(8.4 * var(--u));letter-spacing:-.02em}
+.mark em{font-style:normal;color:var(--olive)}
+.endl{font-size:calc(1.95 * var(--u));color:var(--mut);line-height:1.65}
+
+#bar{position:absolute;top:calc(1.4 * var(--u));right:5%;left:5%;display:flex;gap:calc(.5 * var(--u));z-index:8}
+#bar span{flex:1;height:calc(.42 * var(--u));border-radius:2px;background:rgba(30,23,15,.14);overflow:hidden}
 #bar span i{display:block;height:100%;width:0;background:var(--ink);opacity:.55}
 
 #ctl{position:fixed;bottom:12px;right:50%;transform:translateX(50%);display:flex;gap:8px;z-index:20;opacity:.25;transition:opacity .2s}
@@ -221,87 +234,79 @@ svg.spark{flex:1;height:calc(9 * var(--u))}
 <div id="stage">
   <div id="bar"></div>
 
-  <!-- ===== כתוביות ===== -->
   <div id="cap">
-    <div class="cap first" data-t="2600">
-      <div class="eyebrow up">מוכר לך?</div>
-      <h2 class="up">ככה נראית<br>התוכנית שלך.</h2>
-    </div>
-    <div class="cap" data-t="2300">
-      <div class="eyebrow up d1">תשעים שניות אחר כך</div>
-      <h2 class="up d2">וככה היא<br>נראית אצלי.</h2>
-    </div>
-    <div class="cap" data-t="2400">
-      <div class="eyebrow up d1">התוצר</div>
-      <h2 class="up d2">תשעה תרגילים,<br>לכל יום</h2>
-    </div>
-    <div class="cap" data-t="2800">
-      <div class="eyebrow up d1">מה שחוסך את השעות</div>
-      <h2 class="up d2">בוחר מטרה —<br>והמרשם נגזר</h2>
-    </div>
-    <div class="cap" data-t="2300">
-      <div class="eyebrow up d1">ובמקביל</div>
-      <h2 class="up d2">הקלוריות<br>מחשבות את עצמן</h2>
-    </div>
-    <div class="cap" data-t="2400">
-      <div class="eyebrow up d1">ואחרי שבוע</div>
-      <h2 class="up d2">המערכת אומרת<br>אם זה עובד</h2>
-    </div>
-    <div class="cap" data-t="3400">
-      <div class="eyebrow up d1">בלי התחייבות</div>
-      <h2 class="up d2">שלח תוכנית ישנה.<br>אבנה אותה מולך.</h2>
-      <div class="sub up d3"><b class="hl">054-268-7313</b></div>
-    </div>
+    <div class="cap first" data-t="2300"><div class="eyebrow up">מוכר לך?</div><h2 class="up">ככה נראית<br>התוכנית שלך.</h2></div>
+    <div class="cap" data-t="2000"><div class="eyebrow up d1">כל המתאמנים</div><h2 class="up d2">במקום אחד</h2></div>
+    <div class="cap" data-t="2000"><div class="eyebrow up d1">התוכנית</div><h2 class="up d2">בנויה בתיקיות</h2></div>
+    <div class="cap" data-t="2000"><div class="eyebrow up d1">‏400 תרגילים</div><h2 class="up d2">מסונן לשרירים<br>ולציוד</h2></div>
+    <div class="cap" data-t="2200"><div class="eyebrow up d1">מה שחוסך שעות</div><h2 class="up d2">המרשם נגזר<br>מהמטרה</h2></div>
+    <div class="cap" data-t="2000"><div class="eyebrow up d1">תזונה</div><h2 class="up d2">היעדים מחשבים<br>את עצמם</h2></div>
+    <div class="cap" data-t="2000"><div class="eyebrow up d1">‏400 ארוחות</div><h2 class="up d2">עם כשרות<br>ומגבלות</h2></div>
+    <div class="cap" data-t="2000"><div class="eyebrow up d1">אצל המתאמן</div><h2 class="up d2">קישור אחד.<br>בלי התקנה.</h2></div>
+    <div class="cap" data-t="2100"><div class="eyebrow up d1">הבוט</div><h2 class="up d2">אומר לך<br>אם זה עובד</h2></div>
+    <div class="cap" data-t="2000"><div class="eyebrow up d1">בטיחות</div><h2 class="up d2">מי צריך<br>אישור רופא</h2></div>
+    <div class="cap" data-t="2000"><div class="eyebrow up d1">והעסק עצמו</div><h2 class="up d2">ציון ופעולות<br>לפי סדר</h2></div>
+    <div class="cap" data-t="3200"><div class="eyebrow up d1">בלי התחייבות</div><h2 class="up d2">שלח תוכנית ישנה.<br><span class="hl">054-268-7313</span></h2></div>
   </div>
 
-  <!-- ===== הטלפון ===== -->
   <div id="dev"><div id="glass">
 
-    <!-- 1 · הבלגן שכל מאמן מכיר -->
+    <!-- 1 · הבלגן -->
     <div class="scr">
       <div class="hd" style="letter-spacing:.05em">‏WhatsApp · דניאל</div>
-      <div class="chat">
-        <div class="bub me">היי, שלחת לי את התוכנית?</div>
-        <div class="bub">רגע, מחפש</div>
-        <div class="file"><span>📄</span><div style="min-width:0"><b>תוכנית_דניאל_סופי2.docx</b><small>48 KB</small></div></div>
-        <div class="bub me">איזה מהם? שלחת שלושה</div>
-        <div class="bub">וכמה חזרות בסקוואט?</div>
+      <div class="row" style="animation-delay:.05s;border-top:0"><div class="nm">היי, שלחת לי את התוכנית?</div></div>
+      <div class="row" style="animation-delay:.15s"><div class="nm" style="color:var(--mut)">רגע, מחפש</div></div>
+      <div class="row" style="animation-delay:.25s"><span class="sp">📄</span><div class="nm">תוכנית_דניאל_סופי2.docx<small>48 KB</small></div></div>
+      <div class="row" style="animation-delay:.35s"><div class="nm">איזה מהם? שלחת שלושה</div></div>
+      <div class="row" style="animation-delay:.45s"><div class="nm" style="color:var(--mut)">וכמה חזרות בסקוואט?</div></div>
+    </div>
+
+    <!-- 2 · מתאמנים -->
+    <div class="scr">
+      <div class="hd"><i></i>מתאמנים<b>14 פעילים</b></div>
+      <div class="row" style="animation-delay:.05s;border-top:0"><span class="av" style="background:#8FA84F">דכ</span><div class="nm">דניאל כהן<small>חיטוב ושמירה</small></div><span class="sp g">בכיוון</span></div>
+      <div class="row" style="animation-delay:.14s"><span class="av" style="background:#D19A55">מל</span><div class="nm">מאיה לוי<small>חיזוק וכוח</small></div><span class="sp g">בכיוון</span></div>
+      <div class="row" style="animation-delay:.23s"><span class="av" style="background:#A8C75E">אש</span><div class="nm">אורי שריקי<small>מסת שריר</small></div><span class="sp">נתקע</span></div>
+      <div class="row" style="animation-delay:.32s"><span class="av" style="background:#B3A48E">נב</span><div class="nm">נועה בר<small>ירידה במשקל</small></div><span class="sp g">בכיוון</span></div>
+      <div class="row" style="animation-delay:.41s"><span class="av" style="background:#8FA84F">יג</span><div class="nm">יואב גל<small>שמירה</small></div><span class="sp g">בכיוון</span></div>
+      <div class="row" style="animation-delay:.50s"><span class="av" style="background:#D19A55">רא</span><div class="nm">רון אבני<small>כוח</small></div><span class="sp">חדש</span></div>
+    </div>
+
+    <!-- 3 · תוכנית בתיקיות -->
+    <div class="scr">
+      <div class="hd"><i></i>דניאל כהן · תוכנית</div>
+      <div class="row" style="animation-delay:.05s;border-top:0"><span class="dot on"></span><div class="nm">יום א · חזה וכתפיים</div><span class="sp">4×8-10</span></div>
+      <div class="row" style="animation-delay:.14s"><span class="dot on"></span><div class="nm">לחיצת חזה במוט</div><span class="sp">4×8-10</span></div>
+      <div class="row" style="animation-delay:.23s"><span class="dot on"></span><div class="nm">לחיצת חזה בשיפוע</div><span class="sp">4×8-10</span></div>
+      <div class="row" style="animation-delay:.32s"><span class="dot"></span><div class="nm">הרחקת כתף בצדדים</div><span class="sp">3×12</span></div>
+      <div class="row" style="animation-delay:.41s"><span class="dot"></span><div class="nm">יום ב · גב ותאומים</div></div>
+      <div class="row" style="animation-delay:.50s"><span class="dot"></span><div class="nm">יום ג · רגליים ובטן</div></div>
+    </div>
+
+    <!-- 4 · ספריית תרגילים -->
+    <div class="scr">
+      <div class="hd"><i></i>ספריית תרגילים<b>400</b></div>
+      <div class="chips">
+        <span class="chip on" style="animation-delay:.05s">חזה</span><span class="chip" style="animation-delay:.10s">גב</span>
+        <span class="chip" style="animation-delay:.15s">רגליים</span><span class="chip" style="animation-delay:.20s">כתפיים</span>
+        <span class="chip" style="animation-delay:.25s">ליבה</span><span class="chip on" style="animation-delay:.30s">מוביליות</span>
+        <span class="chip" style="animation-delay:.35s">גמישות</span><span class="chip" style="animation-delay:.40s">משקל גוף</span>
       </div>
+      <div class="row" style="animation-delay:.5s"><span class="dot on"></span><div class="nm">לחיצת חזה במוט<small>מוט · מורכב</small></div><span class="sp">+</span></div>
+      <div class="row" style="animation-delay:.58s"><span class="dot on"></span><div class="nm">פרפר בכבלים<small>כבלים · בידוד</small></div><span class="sp">+</span></div>
+      <div class="row" style="animation-delay:.66s"><span class="dot"></span><div class="nm">מקבילים בתמיכה<small>משקל גוף</small></div><span class="sp">+</span></div>
     </div>
 
-    <!-- 2 · אותו מתאמן, מסודר -->
-    <div class="scr">
-      <div class="hd"><i></i>דניאל כהן · חיטוב</div>
-      <div class="row" style="animation-delay:.08s;border-top:0"><span class="dot on"></span><span class="nm">יום א · חזה וכתפיים</span><span class="sp">9</span></div>
-      <div class="row" style="animation-delay:.22s"><span class="dot on"></span><span class="nm">יום ב · גב ותאומים</span><span class="sp">9</span></div>
-      <div class="row" style="animation-delay:.36s"><span class="dot"></span><span class="nm">יום ג · רגליים ובטן</span><span class="sp">9</span></div>
-      <div class="row" style="animation-delay:.50s"><span class="dot"></span><span class="nm">יום ד · ידיים וליבה</span><span class="sp">9</span></div>
-      <div class="row" style="animation-delay:.68s"><span class="dot on"></span><span class="nm">יעדים · 2,813 קק״ל</span></div>
-      <div class="row" style="animation-delay:.82s"><span class="dot on"></span><span class="nm">קישור אישי · בלי התקנה</span></div>
-    </div>
-
-    <!-- 3 · יום פתוח -->
-    <div class="scr">
-      <div class="hd"><i></i>יום א · חזה וכתפיים</div>
-      <div class="row" style="animation-delay:.08s;border-top:0"><span class="dot on"></span><span class="nm">לחיצת חזה במוט</span><span class="sp">4×8-10</span></div>
-      <div class="row" style="animation-delay:.19s"><span class="dot on"></span><span class="nm">לחיצת חזה בשיפוע</span><span class="sp">4×8-10</span></div>
-      <div class="row" style="animation-delay:.30s"><span class="dot on"></span><span class="nm">לחיצת כתפיים</span><span class="sp">4×8-10</span></div>
-      <div class="row" style="animation-delay:.41s"><span class="dot"></span><span class="nm">הרחקת כתף בצדדים</span><span class="sp">3×12</span></div>
-      <div class="row" style="animation-delay:.52s"><span class="dot"></span><span class="nm">פרפר בכבלים</span><span class="sp">3×15</span></div>
-      <div class="row" style="animation-delay:.63s"><span class="dot"></span><span class="nm">מקבילים בתמיכה</span><span class="sp">3×12</span></div>
-      <div class="row" style="animation-delay:.74s"><span class="dot"></span><span class="nm">פשיטת מרפק בפולי</span><span class="sp">3×12</span></div>
-    </div>
-
-    <!-- 4 · המרשם נגזר מהמטרה -->
+    <!-- 5 · מרשם לפי מטרה -->
     <div class="scr">
       <div class="hd"><i></i>מרשם אוטומטי</div>
       <div class="rx"><span class="rxg">כוח</span><span class="rxv">5×3-5</span><span class="rxs">180 שנ׳</span></div>
       <div class="rx"><span class="rxg">מסה</span><span class="rxv">4×8-10</span><span class="rxs">90 שנ׳</span></div>
       <div class="rx"><span class="rxg">חיטוב</span><span class="rxv">4×10-12</span><span class="rxs">60 שנ׳</span></div>
-      <div class="row" style="animation-delay:1.6s"><span class="dot on"></span><span class="nm">הוחל על כל המתאמנים</span></div>
+      <div class="row" style="animation-delay:1.3s"><span class="dot on"></span><div class="nm">הוחל על כל המתאמנים</div></div>
     </div>
 
-    <!-- 5 · היעדים -->
+    <!-- 6 · יעדי תזונה -->
     <div class="scr">
       <div class="hd"><i></i>יעדים יומיים</div>
       <div class="tri">
@@ -309,27 +314,66 @@ svg.spark{flex:1;height:calc(9 * var(--u))}
         <div class="tile"><div class="k">חלבון</div><div class="v" data-count="125">0</div><div class="u">גרם</div></div>
         <div class="tile"><div class="k">קלוריות</div><div class="v" data-count="2813">0</div><div class="u">ליום</div></div>
       </div>
-      <div class="row" style="animation-delay:.8s;margin-top:calc(1.4 * var(--u))"><span class="dot on"></span><span class="nm">ממשקל, גובה, גיל ומטרה</span></div>
-      <div class="row" style="animation-delay:.95s"><span class="dot on"></span><span class="nm">‏400 ארוחות בספרייה</span></div>
-      <div class="row" style="animation-delay:1.10s"><span class="dot on"></span><span class="nm">מסונן לפי כשרות ומגבלות</span></div>
+      <div class="row" style="animation-delay:.6s;margin-top:calc(1.2 * var(--u))"><span class="dot on"></span><div class="nm">ממשקל, גובה, גיל ומטרה</div></div>
+      <div class="row" style="animation-delay:.72s"><span class="dot on"></span><div class="nm">מתעדכן כשהוא משתנה</div></div>
     </div>
 
-    <!-- 6 · הפסק -->
+    <!-- 7 · ספריית ארוחות -->
     <div class="scr">
-      <div class="hd"><i></i>מעקב שבועי</div>
-      <div class="vd">
-        <div style="flex:none;text-align:center">
-          <div class="vn">−0.6</div><div class="vl">ק״ג לשבוע</div><div class="vt">בקצב תקין</div>
-        </div>
-        <svg class="spark" viewBox="0 0 120 42" preserveAspectRatio="none" aria-hidden="true">
-          <polyline points="4,9 30,13 56,18 82,25 112,32"/>
-        </svg>
+      <div class="hd"><i></i>ארוחות ומוצרים<b>400 · 400</b></div>
+      <div class="chips">
+        <span class="chip on" style="animation-delay:.05s">בוקר</span><span class="chip" style="animation-delay:.10s">צהריים</span>
+        <span class="chip" style="animation-delay:.15s">ערב</span><span class="chip" style="animation-delay:.20s">ביניים</span>
+        <span class="chip on" style="animation-delay:.25s">כשרות</span><span class="chip" style="animation-delay:.30s">צמחוני</span>
       </div>
-      <div class="row" style="animation-delay:.9s;margin-top:calc(1.2 * var(--u))"><span class="dot on"></span><span class="nm">נמדד מול המטרה שלו</span></div>
-      <div class="row" style="animation-delay:1.05s"><span class="dot on"></span><span class="nm">שבועי · חודשי · שנתי</span></div>
+      <div class="row" style="animation-delay:.42s"><span class="dot on"></span><div class="nm">חביתה, קוטג׳ וטוסט<small>‏412 קק״ל · חלבון 31</small></div></div>
+      <div class="row" style="animation-delay:.52s"><span class="dot on"></span><div class="nm">אורז, חזה עוף וסלט<small>‏598 קק״ל · חלבון 46</small></div></div>
+      <div class="row" style="animation-delay:.62s"><span class="dot"></span><div class="nm">שרימפס מוקפץ<small>לא כשר · לא מומלץ</small></div><span class="sp r">חסום</span></div>
     </div>
 
-    <!-- 7 · הסיום -->
+    <!-- 8 · צד המתאמן -->
+    <div class="scr">
+      <div class="hd"><i></i>הקישור של דניאל</div>
+      <div class="row" style="animation-delay:.05s;border-top:0"><span class="dot on"></span><div class="nm">לחיצת חזה במוט</div><span class="sp">4×10-12</span></div>
+      <div class="row" style="animation-delay:.14s"><span class="dot on"></span><div class="nm">חתירה בפולי</div><span class="sp">4×10-12</span></div>
+      <div class="row" style="animation-delay:.23s"><span class="dot"></span><div class="nm">פרפר בכבלים</div><span class="sp">3×15</span></div>
+      <div class="row" style="animation-delay:.34s"><span class="dot on"></span><div class="nm">שקילה שבועית<small>‏84.2 ק״ג · נשלח</small></div></div>
+      <div class="row" style="animation-delay:.44s"><span class="dot on"></span><div class="nm">הוסיף ארוחה לעצמו</div></div>
+      <div class="row" style="animation-delay:.54s"><span class="dot on"></span><div class="nm">הצהרת בריאות חתומה</div></div>
+    </div>
+
+    <!-- 9 · הבוט -->
+    <div class="scr">
+      <div class="hd"><i></i>ניתוח התקדמות</div>
+      <div class="vd">
+        <div style="flex:none;text-align:center"><div class="vn">−0.6</div><div class="vl">ק״ג לשבוע</div></div>
+        <svg class="spark" viewBox="0 0 120 42" preserveAspectRatio="none" aria-hidden="true"><polyline points="4,9 30,13 56,18 82,25 112,32"/></svg>
+      </div>
+      <div class="row" style="animation-delay:.6s"><span class="dot on"></span><div class="nm">שבועי · קצב תקין</div><span class="sp g">בכיוון</span></div>
+      <div class="row" style="animation-delay:.7s"><span class="dot on"></span><div class="nm">חודשי · 0.61% לשבוע</div><span class="sp g">בכיוון</span></div>
+      <div class="row" style="animation-delay:.8s"><span class="dot on"></span><div class="nm">שנתי · −11 ק״ג</div><span class="sp g">בכיוון</span></div>
+    </div>
+
+    <!-- 10 · סינון בריאות -->
+    <div class="scr">
+      <div class="hd"><i></i>סינון בריאות</div>
+      <div class="row" style="animation-delay:.05s;border-top:0"><span class="dot on"></span><div class="nm">דניאל כהן<small>הצהרה חתומה</small></div><span class="sp g">תקין</span></div>
+      <div class="row" style="animation-delay:.15s"><span class="dot"></span><div class="nm">מאיה לוי<small>כאב בחזה במאמץ</small></div><span class="sp r">אישור רופא</span></div>
+      <div class="row" style="animation-delay:.25s"><span class="dot"></span><div class="nm">רון אבני<small>יתר לחץ דם</small></div><span class="sp">התאמות</span></div>
+      <div class="row" style="animation-delay:.35s"><span class="dot"></span><div class="nm">נועה בר<small>טרם מילאה</small></div><span class="sp">חסר מידע</span></div>
+    </div>
+
+    <!-- 11 · ניתוח העסק -->
+    <div class="scr">
+      <div class="hd"><i></i>ניתוח העסק</div>
+      <div class="score"><b data-count="78">0</b><span>מתוך 100 · טוב</span></div>
+      <div class="row" style="animation-delay:.5s"><span class="dot on"></span><div class="nm">שימור</div><span class="sp g">100</span></div>
+      <div class="row" style="animation-delay:.6s"><span class="dot on"></span><div class="nm">הכנסות</div><span class="sp g">86</span></div>
+      <div class="row" style="animation-delay:.7s"><span class="dot"></span><div class="nm">איכות הליווי</div><span class="sp">64</span></div>
+      <div class="row" style="animation-delay:.8s"><span class="dot"></span><div class="nm">לטפל השבוע · 3 מתאמנים</div></div>
+    </div>
+
+    <!-- 12 · סיום -->
     <div class="scr">
       <div class="end">
         <div class="mark">FIT<br><em>THE</em><br>FIT</div>
@@ -348,10 +392,9 @@ svg.spark{flex:1;height:calc(9 * var(--u))}
 <script>
 (function () {
   'use strict';
-  /* שני מערכים מקבילים: כתובית ומסך. הטלפון עצמו לעולם לא מצויר
-     מחדש, ולכן המעבר בין סצנות נראה כמו החלפת מסך ולא כמו שקופית. */
   var caps  = [].slice.call(document.querySelectorAll('.cap'));
   var scrs  = [].slice.call(document.querySelectorAll('.scr'));
+  var dev   = document.getElementById('dev');
   var barEl = document.getElementById('bar');
   var i = -1, timer = null, raf = null, paused = false, t0 = 0, dur = 0;
 
@@ -365,26 +408,27 @@ svg.spark{flex:1;height:calc(9 * var(--u))}
   caps.forEach(function (c) {
     c.querySelectorAll('h2').forEach(function (h) {
       var n = 0;
-      h.innerHTML = h.innerHTML.split(/(<br\s*\/?>)/i).map(function (part) {
-        if (/^<br/i.test(part)) return part;
-        return part.split(/\s+/).filter(Boolean).map(function (w) {
-          var d = (0.10 + n * 0.06).toFixed(3); n++;
+      h.innerHTML = h.innerHTML.replace(/([^<>]+)(?=<|$)/g, function (txt) {
+        if (!txt.trim()) return txt;
+        return txt.split(/(\s+)/).map(function (w) {
+          if (!w.trim()) return w;
+          var d = (0.08 + n * 0.05).toFixed(3); n++;
           return '<span class="word" style="animation-delay:' + d + 's">' + w + '</span>';
-        }).join(' ');
-      }).join('');
+        }).join('');
+      });
     });
   });
 
   function count(el) {
     el.querySelectorAll('[data-count]').forEach(function (e) {
-      var to = +e.dataset.count, t = 0, steps = 26;
+      var to = +e.dataset.count, t = 0, steps = 22;
       clearInterval(e._iv);
       e._iv = setInterval(function () {
         t++;
         var p = t / steps, k = 1 - Math.pow(1 - p, 3);
         e.textContent = Math.round(to * k).toLocaleString('en-US');
         if (t >= steps) { clearInterval(e._iv); e.textContent = to.toLocaleString('en-US'); }
-      }, 22);
+      }, 20);
     });
   }
 
@@ -405,9 +449,15 @@ svg.spark{flex:1;height:calc(9 * var(--u))}
     caps[i].classList.add('on');
     scrs[i].classList.add('on');
     count(scrs[i]);
+
+    /* סיבוב לסירוגין בכל החלפה — מכשיר שזז נקרא כמכשיר שמישהו מחזיק */
+    dev.classList.remove('spinA', 'spinB');
+    void dev.offsetWidth;
+    dev.classList.add(i % 2 ? 'spinB' : 'spinA');
+
     segs.forEach(function (f, k) { f.style.width = k < i ? '100%' : '0'; });
 
-    dur = +caps[i].dataset.t || 2400;
+    dur = +caps[i].dataset.t || 2000;
     t0 = performance.now();
     clearTimeout(timer);
     timer = setTimeout(next, dur);
