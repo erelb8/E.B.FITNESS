@@ -317,8 +317,8 @@ tbody tr:hover{background:var(--panel)}
 <div id="toast"></div>
 
 <!-- ספריית Supabase מקומית (לא מ-CDN) כדי שהאפליקציה תעבוד גם בלי רשת -->
-<script src="vendor/supabase.js?v=v65"></script>
-<script src="config.js?v=v65"></script>
+<script src="vendor/supabase.js?v=v66"></script>
+<script src="config.js?v=v66"></script>
 
 <script>
 /* =======================================================================
@@ -353,7 +353,7 @@ function age(b){ if(!b) return null; const d=new Date(b), t=new Date(); let a=t.
 
 /* ---------------- אחסון ---------------- */
 const KEY='ebfit_v1';
-const EB_VERSION='v65';   // חייב להתאים ל-VERSION ב-sw.js
+const EB_VERSION='v66';   // חייב להתאים ל-VERSION ב-sw.js
 let mem=null, canStore=true;
 function load(){
   try{ const r=localStorage.getItem(KEY); return r?JSON.parse(r):null; }
@@ -446,6 +446,7 @@ const NAV=[
   {id:'schedule',ic:'🗓', t:'יומן אימונים'},
   {id:'money',  ic:'₪', t:'תשלומים'},
   {id:'progress',ic:'📈', t:'התקדמות'},
+  {id:'health', ic:'🩺', t:'סינון בריאות'},
   {id:'lab',    ic:'✦', t:'פיצ׳רים ובוט'},
   {id:'settings',ic:'⚙', t:'הגדרות'}
 ];
@@ -453,18 +454,19 @@ function go(v, arg){ VIEW=v; ARG=arg||null; if(v!=='trainee') SUBTAB='details'; 
 
 function renderNav(){
   let h='<div class="grp">ניהול</div>';
-  NAV.slice(0,5).forEach(n=>{
+  NAV.slice(0,6).forEach(n=>{
     let c='';
     if(n.id==='trainees') c='<span class="cnt">'+activeTrainees().length+'</span>';
+    if(n.id==='health'){ const n3=(window.EBHealth?EBHealth.needCount():0); if(n3) c='<span class="cnt">'+n3+'</span>'; }
     if(n.id==='schedule'){ const n2=S.sessions.filter(s=>s.date===todayISO()&&s.status==='scheduled').length; if(n2) c='<span class="cnt">'+n2+'</span>'; }
     h+=navBtn(n,c);
   });
   h+='<div class="grp">התאמה אישית</div>';
-  h+=navBtn(NAV[5],'');
+  h+=navBtn(NAV[6],'');
   S.custom.forEach(c=>{
     h+='<button class="nav'+(VIEW==='custom'&&ARG===c.id?' on':'')+'" onclick="go(\'custom\',\''+c.id+'\')"><i>'+esc(c.icon||'✧')+'</i>'+esc(c.title)+'</button>';
   });
-  h+='<div class="grp">מערכת</div>'+navBtn(NAV[6],'');
+  h+='<div class="grp">מערכת</div>'+navBtn(NAV[7],'');
   $('#rail').innerHTML=h;
 
   const mob=['dash','trainees','schedule','money','lab'];
@@ -476,7 +478,8 @@ function navBtn(n,c){ return '<button class="nav'+(VIEW===n.id?' on':'')+'" oncl
 function render(){
   renderNav();
   const v={dash:vDash,trainees:vTrainees,trainee:vTrainee,schedule:vSchedule,money:vMoney,
-           progress:vProgress,lab:vLab,settings:vSettings,custom:vCustom}[VIEW]||vDash;
+           progress:vProgress,lab:vLab,settings:vSettings,custom:vCustom,
+           health:()=>EBHealth.view()}[VIEW]||vDash;
   $('#view').innerHTML = v();
   if(VIEW==='custom') mountCustom();
   if(VIEW==='lab') scrollChat();
@@ -688,9 +691,10 @@ function vTrainee(){
   tabs.push(['cardio','אירובי ולב']);
   tabs.push(['metrics','מדדים']);
   tabs.push(['track','מעקב יומי']);
+  tabs.push(['health','בריאות']);
   if(t.intake) tabs.push(['intake','שאלון']);   // רק למי שנקלט משאלון
   h+=folderNav(tabs);
-  const TABFN={details:tabDetails,program:tabProgram,measures:tabMeasures,history:tabHistory,pay:tabPay,prs:tabPRs,photos:tabPhotos,nutri:tabNutri,intake:(x)=>EBIntake.tab(x), track:(x)=>EBTrack.tab(x),metrics:(x)=>EBMetrics.tab(x),meals:(x)=>EBMeals.tab(x),cardio:(x)=>EBCardioUI.tab(x)};
+  const TABFN={details:tabDetails,program:tabProgram,measures:tabMeasures,history:tabHistory,pay:tabPay,prs:tabPRs,photos:tabPhotos,nutri:tabNutri,health:(x)=>EBHealth.tab(x), intake:(x)=>EBIntake.tab(x), track:(x)=>EBTrack.tab(x),metrics:(x)=>EBMetrics.tab(x),meals:(x)=>EBMeals.tab(x),cardio:(x)=>EBCardioUI.tab(x)};
   h+=(TABFN[SUBTAB]||tabDetails)(t);
   return h;
 }
@@ -781,7 +785,7 @@ const FOLDERS=[
   {k:'body',  ic:'📐', name:'גוף',    of:['measures','metrics','photos']},
   {k:'food',  ic:'🥗', name:'תזונה',  of:['meals','nutri']},
   {k:'follow',ic:'📅', name:'מעקב',   of:['track','history']},
-  {k:'admin', ic:'📋', name:'מנהלה',  of:['details','intake','pay']}
+  {k:'admin', ic:'📋', name:'מנהלה',  of:['details','health','intake','pay']}
 ];
 function folderOf(key){
   const f=FOLDERS.find(x=>x.of.includes(key));
@@ -1642,21 +1646,22 @@ if (location.protocol === 'file:') {
 }
 </script>
 
-<script src="intake.js?v=v65"></script>
-<script src="files.js?v=v65"></script>
-<script src="builder.js?v=v65"></script>
-<script src="import-program.js?v=v65"></script>
-<script src="tracking.js?v=v65"></script>
-<script src="metrics.js?v=v65"></script>
-<script src="meal-library.js?v=v65"></script>
-<script src="library-ui.js?v=v65"></script>
-<script src="export-plan.js?v=v65"></script>
-<script src="cardio.js?v=v65"></script>
-<script src="cardio-ui.js?v=v65"></script>
-<script src="exercise-library.js?v=v65"></script>
-<script src="exercise-ui.js?v=v65"></script>
-<script src="meals.js?v=v65"></script>
-<script src="sync.js?v=v65"></script>
+<script src="health.js?v=v66"></script>
+<script src="intake.js?v=v66"></script>
+<script src="files.js?v=v66"></script>
+<script src="builder.js?v=v66"></script>
+<script src="import-program.js?v=v66"></script>
+<script src="tracking.js?v=v66"></script>
+<script src="metrics.js?v=v66"></script>
+<script src="meal-library.js?v=v66"></script>
+<script src="library-ui.js?v=v66"></script>
+<script src="export-plan.js?v=v66"></script>
+<script src="cardio.js?v=v66"></script>
+<script src="cardio-ui.js?v=v66"></script>
+<script src="exercise-library.js?v=v66"></script>
+<script src="exercise-ui.js?v=v66"></script>
+<script src="meals.js?v=v66"></script>
+<script src="sync.js?v=v66"></script>
 <script>
 /* =================== חיבור הסנכרון לאפליקציה =================== */
 
