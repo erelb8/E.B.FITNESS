@@ -86,19 +86,36 @@ body{display:grid;place-items:center;overflow:hidden;font-family:'Heebo',system-
   position:absolute;z-index:3;top:calc(35.5 * var(--u));left:14%;right:14%;
   bottom:calc(-20 * var(--u));
   border-radius:calc(6 * var(--u));padding:calc(1.1 * var(--u));
-  background:linear-gradient(160deg,#3A2E22,#1E170F 60%);
+  background:linear-gradient(160deg,#5F4C39,#2B2119 62%);
   box-shadow:0 calc(2 * var(--u)) calc(6 * var(--u)) rgba(30,23,15,.28);
   animation:rise .8s var(--spring) both;
 }
 @keyframes rise{from{opacity:0;transform:translateY(calc(6 * var(--u))) scale(.94)}to{opacity:1;transform:none}}
+/* בתוך המסך רצים הצבעים האמיתיים של האפליקציה ולא צבעי הסרטון.
+   הגרסה הראשונה הציגה כאן מסך בהיר, וזו לא הייתה הדמיה אלא המצאה —
+   האפליקציה כהה. המסגרת נשארת בהירה, וזה גם מייצר את הניגודיות
+   שגורמת למסך להיקרא כמסך דולק. */
 #glass{
   position:relative;width:100%;height:100%;border-radius:calc(5 * var(--u));
-  overflow:hidden;background:var(--card);
+  overflow:hidden;
+
+  --bone:#2B2119;          /* רקע משני בתוך המסך */
+  --card:#221A12;          /* רקע המסך עצמו */
+  --line:#48392B;
+  --line2:#5F4C39;
+  --ink:#F2E8D8;           /* טקסט ראשי */
+  --mut:#B3A48E;
+  --dim:#7E7060;
+  --olive:#8FA84F;
+  --cop:#D19A55;
+  --olive-soft:rgba(143,168,79,.15);
+
+  background:#221A12;color:#F2E8D8;
 }
 /* האי הדינמי — פרט קטן שגורם למסגרת להיקרא כטלפון ולא כמלבן */
 #glass::before{
   content:'';position:absolute;top:calc(1.3 * var(--u));left:50%;transform:translateX(-50%);
-  width:calc(15 * var(--u));height:calc(3.2 * var(--u));border-radius:20px;background:#1E170F;z-index:5;
+  width:calc(15 * var(--u));height:calc(3.2 * var(--u));border-radius:20px;background:#0B0906;z-index:5;
 }
 
 .scr{position:absolute;inset:0;padding:calc(6.2 * var(--u)) calc(2.8 * var(--u)) calc(2.8 * var(--u));
@@ -112,11 +129,11 @@ body{display:grid;place-items:center;overflow:hidden;font-family:'Heebo',system-
 
 /* ── מסך 1: הבלגן ── */
 .chat{display:flex;flex-direction:column;gap:calc(1.2 * var(--u))}
-.bub{background:#EDE4D4;border:1px solid var(--line);border-radius:calc(1.8 * var(--u));
+.bub{background:#2B2119;border:1px solid var(--line);border-radius:calc(1.8 * var(--u));
      padding:calc(1.4 * var(--u)) calc(1.6 * var(--u));font-size:calc(2.1 * var(--u));
      line-height:1.45;color:var(--mut);max-width:88%}
-.bub.me{align-self:flex-start;background:rgba(94,122,46,.10);border-color:rgba(94,122,46,.25);color:var(--ink)}
-.file{display:flex;align-items:center;gap:calc(1.2 * var(--u));background:#EDE4D4;
+.bub.me{align-self:flex-start;background:rgba(143,168,79,.16);border-color:rgba(143,168,79,.34);color:var(--ink)}
+.file{display:flex;align-items:center;gap:calc(1.2 * var(--u));background:#2B2119;
       border:1px solid var(--line);border-radius:calc(1.4 * var(--u));padding:calc(1.2 * var(--u));max-width:90%}
 .file span{font-size:calc(2.4 * var(--u));flex:none}
 .file b{font-size:calc(1.95 * var(--u));font-weight:700;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
