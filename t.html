@@ -842,7 +842,11 @@ button{cursor:pointer}
                              const el = document.getElementById('exq');
                              if (el) { el.focus(); el.setSelectionRange(v.length, v.length); } };
 
-  window.__libOpen   = () => { LIB_OPEN = true; LIB_TAB = 'meals'; screen(libScreen()); window.scrollTo(0,0); };
+  window.__libOpen   = (type) => { LIB_OPEN = true; LIB_TAB = 'meals';
+    /* נפתחת מסוננת לתא שממנו נלחצה — מתאמן שלחץ 'הוספה לבוקר'
+       לא צריך לחפש שוב בין 400 ארוחות. */
+    LIB_TYPE = (typeof type === 'string' && type && type !== 'other') ? type : 'all';
+    screen(libScreen()); window.scrollTo(0,0); };
   /* בלי תוכנית טעונה אין למה לחזור — paint() קורא מ-DATA ונופל.
      קורה אם הטוקן בוטל או שהמטמון נוקה בזמן שהספרייה פתוחה. */
   window.__libClose  = () => {
@@ -858,6 +862,8 @@ button{cursor:pointer}
   document.addEventListener('click', e => {
     const t = e.target.closest('[data-lt]');
     if (t) { LIB_TYPE = t.dataset.lt; screen(libScreen()); return; }
+    var sl = e.target.closest('[data-slot]');
+    if (sl) { var i = +sl.dataset.slot; SLOT = (SLOT === i ? -1 : i); paint(); return; }
     const ba = e.target.closest('[data-badd]');
     if (ba) {
       const n = ba.dataset.badd;
@@ -977,16 +983,16 @@ button{cursor:pointer}
 
     screen(
         openerBlock(days)
-      + healthBlock()
+      + healthAlert()
       + targetsBlock()
       + progBlock()
       + planBlock(days)
-      + mealsBlock(DATA.meals)
-      + myMealsBlock()
+      + nutritionPlan()
       + exBlockSafe()
       + libButton()
       + exButton()
       + filesBlock(files)
+      + healthFolder()
       + footerBlock()
     );
     bar();
@@ -1091,25 +1097,161 @@ button{cursor:pointer}
     try { return JSON.parse(localStorage.getItem(hKey()) || 'null'); } catch (e) { return null; }
   }
 
+
+  /* ההצהרה יושבת בתיקייה בתחתית, ולא תופסת מקום בתוכנית עצמה.
+     היוצא מן הכלל: מי שעדיין לא חתם מקבל שורה אחת דקה למעלה —
+     בלי זה הוא פשוט לא ימלא לעולם. */
+  let HOPEN = false;
+
+  function healthAlert() {
+    if (typeof EBHealth === 'undefined') return '';
+    HEALTH = HEALTH || hLoad();
+    if (HEALTH && HEALTH.signedAt) return '';
+    return '<button onclick="EBT.hJump()" style="width:100%;margin-bottom:12px;cursor:pointer;'
+      + 'background:rgba(209,154,85,.10);border:1px solid rgba(209,154,85,.45);border-radius:12px;'
+      + 'padding:10px 13px;font-family:inherit;font-size:13px;color:var(--cop);font-weight:600;'
+      + 'text-align:right">חסרה הצהרת בריאות — דקה אחת, ואפשר להתחיל</button>';
+  }
+
+  function healthFolder() {
+    if (typeof EBHealth === 'undefined') return '';
+    HEALTH = HEALTH || hLoad();
+    const signed = !!(HEALTH && HEALTH.signedAt);
+    const sub = signed
+      ? 'נחתמה ' + esc(String(HEALTH.signedAt).split('-').reverse().join('.'))
+      : 'טרם מולאה';
+
+    return '<div class="dayc' + (HOPEN ? ' on' : '') + '" id="hbox" style="margin-top:12px">'
+      + '<button class="dayh" onclick="EBT.hToggle()">'
+      + '<span class="daynum" style="font-size:13px">' + (signed ? '✓' : '!') + '</span>'
+      + '<span class="dayt"><span class="dayn">הצהרת בריאות</span>'
+      + '<span class="daym">' + sub + '</span></span>'
+      + '<span class="daychev"></span></button>'
+      + '<div class="dayb">' + healthBlock() + '</div></div>';
+  }
+
+
+  /* ---------- אישור רפואי מצולם ----------
+     התמונה נדחסת במכשיר ונשמרת עם ההצהרה. אין כאן קריאה אוטומטית
+     של הכתוב בצילום: OCR היה מחייב מפתח API על מכשיר המתאמן, והמפתח
+     הזה גלוי לכל מי שפותח את הקישור. לכן המערכת מסמנת "התקבל, ממתין
+     לאימות", והמאמן מאשר בעין. */
+
+  function healthFiles() {
+    var f = (HEALTH && HEALTH.files) || [];
+    var h = '<div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--line)">'
+      + '<div style="font-size:13px;color:var(--mut);line-height:1.6;margin-bottom:9px">'
+      + 'יש לך אישור רופא או הצהרה חתומה? צלם או צרף כאן.</div>';
+
+    f.forEach(function (x, i) {
+      h += '<div style="display:flex;align-items:center;gap:9px;padding:8px 0;border-top:1px solid var(--line)">'
+        + (x.url && x.url.indexOf('image') > -1
+            ? '<img src="' + esc(x.url) + '" alt="" style="width:42px;height:42px;object-fit:cover;'
+              + 'border-radius:8px;flex:none;background:var(--ink)">'
+            : '<span style="width:42px;height:42px;border-radius:8px;flex:none;display:grid;'
+              + 'place-items:center;background:var(--ink);font-size:17px">📄</span>')
+        + '<div style="flex:1;min-width:0">'
+        + '<div style="font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'
+        + esc(x.name || 'קובץ') + '</div>'
+        + '<div class="mt" style="font-size:11.5px">התקבל · ממתין לאימות המאמן</div></div>'
+        + '<button onclick="EBT.hFileRm(' + i + ')" style="background:none;border:0;color:var(--dim);'
+        + 'font-size:17px;cursor:pointer;padding:0 4px;line-height:1">✕</button></div>';
+    });
+
+    return h + '<label class="btn ghost" style="display:block;width:100%;margin-top:8px;'
+      + 'font-size:13.5px;text-align:center;cursor:pointer">'
+      + (f.length ? 'הוספת קובץ נוסף' : 'צילום או צירוף קובץ')
+      + '<input type="file" accept="image/*,.pdf" onchange="EBT.hFile(this)" style="display:none"></label>'
+      + '</div>';
+  }
+
+  /* דחיסה במכשיר: צילום מטלפון הוא 3-8 מגה, וזה כבד מכדי להישמר
+     ברשומה. 1400 פיקסל ברוחב מספיק כדי לקרוא מסמך מצולם. */
+  function shrink(file) {
+    return new Promise(function (res, rej) {
+      if (!/^image\//.test(file.type)) {
+        var fr0 = new FileReader();
+        fr0.onload = function () { res(fr0.result); };
+        fr0.onerror = rej;
+        fr0.readAsDataURL(file);
+        return;
+      }
+      var fr = new FileReader();
+      fr.onload = function () {
+        var img = new Image();
+        img.onload = function () {
+          var max = 1400, w = img.width, h = img.height;
+          if (w > max || h > max) { var r = Math.min(max / w, max / h); w = Math.round(w * r); h = Math.round(h * r); }
+          var cv = document.createElement('canvas');
+          cv.width = w; cv.height = h;
+          cv.getContext('2d').drawImage(img, 0, 0, w, h);
+          res(cv.toDataURL('image/jpeg', 0.72));
+        };
+        img.onerror = rej;
+        img.src = fr.result;
+      };
+      fr.onerror = rej;
+      fr.readAsDataURL(file);
+    });
+  }
+
+  async function hFile(input) {
+    var file = input.files && input.files[0];
+    input.value = '';
+    if (!file) return;
+    if (file.size > 12 * 1024 * 1024) { toast('הקובץ גדול מדי (מעל 12 מגה)'); return; }
+
+    toast('מעלה...');
+    var url;
+    try { url = await shrink(file); }
+    catch (e) { toast('לא הצלחתי לקרוא את הקובץ'); return; }
+
+    if (url.length > 1400000) { toast('הקובץ עדיין גדול מדי. נסה צילום קרוב יותר.'); return; }
+
+    HEALTH = HEALTH || { answers: {} };
+    HEALTH.files = HEALTH.files || [];
+    HEALTH.files.push({ name: file.name || 'צילום', url: url, at: new Date().toISOString().slice(0, 10) });
+    try { localStorage.setItem(hKey(), JSON.stringify(HEALTH)); } catch (e) {}
+    paint();
+    toast('הקובץ התקבל. המאמן יאמת אותו.');
+    hPush();
+  }
+
+  function hFileRm(i) {
+    if (!HEALTH || !HEALTH.files) return;
+    HEALTH.files.splice(i, 1);
+    try { localStorage.setItem(hKey(), JSON.stringify(HEALTH)); } catch (e) {}
+    paint();
+    hPush();
+  }
+
+  async function hPush() {
+    try {
+      var r = await sb.rpc('trainee_health', { p_token: TOKEN, p_health: HEALTH });
+      if (r.error) throw r.error;
+    } catch (e) {
+      toast('נשמר במכשיר. יגיע למאמן אחרי שיסיים את ההגדרה.');
+    }
+  }
+
   function healthBlock() {
     if (typeof EBHealth === 'undefined') return '';
     HEALTH = HEALTH || hLoad();
 
     if (HEALTH && HEALTH.signedAt && !HFORM) {
-      return '<div class="card" style="margin-bottom:12px;border-color:rgba(143,168,79,.4)">'
-        + '<div style="font-size:13px;color:var(--mut)">הצהרת הבריאות שלך נחתמה ב-'
-        + esc(String(HEALTH.signedAt).split('-').reverse().join('.')) + '. '
-        + '<a href="#" onclick="EBT.hOpen();return false" style="color:var(--or)">עדכון</a></div></div>';
+      return '<div style="padding:4px 2px 10px">'
+        + '<div style="font-size:13px;color:var(--mut);line-height:1.6">'
+        + 'ההצהרה נשלחה למאמן. אם משהו השתנה במצב הבריאותי שלך — '
+        + '<a href="#" onclick="EBT.hOpen();return false" style="color:var(--or)">לעדכון</a>.</div>'
+        + healthFiles() + '</div>';
     }
 
     if (!HFORM) {
-      return '<div class="card" style="margin-bottom:12px;border-color:rgba(209,154,85,.55);background:rgba(209,154,85,.07)">'
-        + '<div style="font-family:Frank Ruhl Libre,serif;font-weight:700;font-size:16px;margin-bottom:6px">'
-        + 'הצהרת בריאות</div>'
+      return '<div style="padding:4px 2px 10px">'
         + '<div style="font-size:13.5px;color:var(--mut);line-height:1.6;margin-bottom:12px">'
-        + 'לפני שמתחילים להתאמן צריך למלא הצהרה קצרה — שבע שאלות, פחות מדקה. '
-        + 'זה מה שמאפשר לי לבנות לך תוכנית בטוחה.</div>'
-        + '<button class="btn" onclick="EBT.hOpen()" style="font-weight:700">למילוי ההצהרה</button></div>';
+        + 'שבע שאלות, פחות מדקה. זה מה שמאפשר לי לבנות לך תוכנית בטוחה.</div>'
+        + '<button class="btn" onclick="EBT.hOpen()" style="font-weight:700">למילוי ההצהרה</button>'
+        + healthFiles() + '</div>';
     }
 
     var h = '<div class="card" style="margin-bottom:12px">'
@@ -1150,6 +1292,7 @@ button{cursor:pointer}
       + '<div style="display:flex;gap:8px">'
       + '<button class="btn" onclick="EBT.hSave()" style="font-weight:700">שליחה</button>'
       + '<button class="btn ghost" onclick="EBT.hCancel()">ביטול</button></div>'
+      + healthFiles()
       + '</div>';
     return h;
   }
@@ -1208,7 +1351,154 @@ button{cursor:pointer}
   }
 
   window.EBT = Object.assign(window.EBT || {},
-    { hOpen: hOpen, hCancel: hCancel, hPick: hPick, hSave: hSave });
+    { hOpen: hOpen, hCancel: hCancel, hPick: hPick, hSave: hSave,
+      hToggle: function () { HOPEN = !HOPEN; paint(); },
+      hJump: function () {
+        HOPEN = true; HFORM = true; HEALTH = HEALTH || { answers: {} }; paint();
+        var b = document.getElementById('hbox');
+        if (b) b.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      },
+      hFile: hFile, hFileRm: hFileRm });
+
+
+  /* ---------- תוכנית התזונה ----------
+     קודם היו כאן שני בלוקים נפרדים: התפריט שהמאמן בנה, ומתחתיו רשימה
+     של מה שהמתאמן הוסיף לעצמו. זה תיאר את מבנה הנתונים ולא את מה
+     שהמתאמן צריך — הוא רוצה לדעת מה לאכול בבוקר, לא מי הזין את זה.
+
+     עכשיו הכל תוכנית אחת, באותו מבנה תיקיות כמו תוכנית האימון:
+     כל ארוחה ביום פותחת ונסגרת, ומה שהמתאמן הוסיף מסומן בתוכה. */
+
+  var SLOT_ORDER = ['breakfast', 'snack', 'pre', 'lunch', 'post', 'dinner', 'other'];
+  var SLOT_HE = { breakfast:'בוקר', snack:'ביניים', pre:'לפני אימון',
+                  post:'אחרי אימון', lunch:'צהריים', dinner:'ערב', other:'נוספות' };
+  let SLOT = 0;
+
+  function nz(v) { var x = Number(v); return isFinite(x) && x > 0 ? x : 0; }
+
+  /* אוסף את כל הארוחות לתאים, משני המקורות */
+  function slots() {
+    var by = {};
+    SLOT_ORDER.forEach(function (k) { by[k] = []; });
+
+    (DATA.meals || []).forEach(function (m) {
+      var k = SLOT_HE[m.type] ? m.type : 'other';
+      by[k].push({
+        name: m.name || 'ארוחה', desc: m.desc || '', photo: m.photo || '',
+        k: nz(m.kcal), p: nz(m.protein), c: nz(m.carbs), f: nz(m.fat), mine: false
+      });
+    });
+
+    if (typeof EBLib !== 'undefined') {
+      (MY_MEALS || []).forEach(function (x) {
+        if (x.custom) {
+          by.other.push({ name: x.name, desc: 'בניתי בעצמי', mine: true, key: x.name,
+                          k: nz(x.k), p: nz(x.p), c: nz(x.c), f: nz(x.f) });
+          return;
+        }
+        var m = EBLib.byId(x.libId);
+        if (!m) return;
+        var t = EBLib.calc(m.items).total;
+        var k = SLOT_HE[m.type] ? m.type : 'other';
+        by[k].push({ name: m.name, desc: (m.items || []).join(', '), mine: true, key: m.id,
+                     k: nz(t.k), p: nz(t.p), c: nz(t.c), f: nz(t.f) });
+      });
+    }
+    return by;
+  }
+
+  function nutritionPlan() {
+    var by = slots();
+    var any = SLOT_ORDER.some(function (k) { return by[k].length; });
+    var lib = (typeof EBLib !== 'undefined');
+    if (!any && !lib) return '';
+
+    /* סיכום היום מול היעדים */
+    var tot = { k:0, p:0, c:0, f:0 }, cnt = 0;
+    SLOT_ORDER.forEach(function (s) {
+      by[s].forEach(function (m) { tot.k += m.k; tot.p += m.p; tot.c += m.c; tot.f += m.f; cnt++; });
+    });
+    var tg = (DATA.program && DATA.program.targets) || {};
+
+    var h = '<div style="font-family:Frank Ruhl Libre,serif;font-weight:700;font-size:15px;'
+      + 'margin:18px 0 10px">תוכנית התזונה</div>';
+
+    if (cnt) {
+      h += '<div class="card" style="margin-bottom:12px">'
+        + '<div style="display:flex;gap:14px;flex-wrap:wrap;font-size:13px">'
+        + macro('קק״ל', Math.round(tot.k), tg.kcal)
+        + macro('חלבון', Math.round(tot.p), tg.protein)
+        + macro('פחמימות', Math.round(tot.c), tg.carbs)
+        + macro('שומן', Math.round(tot.f), tg.fat)
+        + '</div>'
+        + '<div class="mt" style="font-size:11.5px;margin-top:8px">'
+        + cnt + ' ארוחות בתוכנית</div></div>';
+    }
+
+    SLOT_ORDER.forEach(function (key, i) {
+      var g = by[key];
+      /* תא ריק מוצג רק אם אפשר להוסיף אליו — אחרת הוא רק רעש */
+      if (!g.length && (!lib || key === 'other')) return;
+      var open = SLOT === i;
+      var sk = g.reduce(function (a, m) { return a + m.k; }, 0);
+
+      h += '<div class="dayc' + (open ? ' on' : '') + '">'
+        + '<button class="dayh" data-slot="' + i + '">'
+        + '<span class="daynum" style="font-size:11px">' + esc(SLOT_HE[key].slice(0, 4)) + '</span>'
+        + '<span class="dayt"><span class="dayn">' + esc(SLOT_HE[key]) + '</span>'
+        + '<span class="daym">' + (g.length ? g.length + ' ארוחות · ' + Math.round(sk) + ' קק״ל' : 'ריק')
+        + '</span></span><span class="daychev"></span></button>'
+        + '<div class="dayb">';
+
+      g.forEach(function (m) {
+        h += '<div class="card" style="padding:0;overflow:hidden;margin:0 0 8px">'
+          + (m.photo ? '<img src="' + esc(m.photo) + '" alt="" loading="lazy" '
+              + 'style="width:100%;aspect-ratio:16/10;object-fit:cover;display:block;background:var(--ink)">' : '')
+          + '<div style="padding:12px">'
+          + '<div style="display:flex;align-items:flex-start;gap:8px">'
+          + '<div style="flex:1;min-width:0">'
+          + '<div style="font-family:Heebo;font-weight:700;font-size:15px;line-height:1.3">'
+          + esc(m.name)
+          + (m.mine ? '<span style="font-size:10.5px;font-weight:700;color:var(--or);'
+              + 'background:rgba(143,168,79,.15);border-radius:20px;padding:2px 7px;margin-right:6px">שלי</span>' : '')
+          + '</div>'
+          + (m.desc ? '<div style="color:var(--mut);font-size:13px;margin-top:4px;line-height:1.5;'
+              + 'white-space:pre-wrap">' + esc(m.desc) + '</div>' : '')
+          + '</div>'
+          + (m.mine ? '<button data-myrm="' + esc(m.key) + '" style="background:none;border:0;'
+              + 'color:var(--dim);font-size:17px;cursor:pointer;padding:0 4px;line-height:1">✕</button>' : '')
+          + '</div>'
+          + (m.k || m.p || m.c || m.f
+              ? '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:9px">'
+                + (m.k ? tag(Math.round(m.k) + ' קק״ל', 1) : '')
+                + (m.p ? tag('חלבון ' + Math.round(m.p)) : '')
+                + (m.c ? tag('פחמימות ' + Math.round(m.c)) : '')
+                + (m.f ? tag('שומן ' + Math.round(m.f)) : '')
+                + '</div>' : '')
+          + '</div></div>';
+      });
+
+      if (!g.length) {
+        h += '<div class="mt" style="text-align:center;padding:10px;font-size:13px">'
+          + 'עוד אין כאן ארוחה</div>';
+      }
+      if (lib) {
+        h += '<button class="btn ghost" style="width:100%;margin:4px 0 8px;font-size:13.5px" '
+          + 'onclick="__libOpen(\'' + key + '\')">הוספת ארוחה ל' + esc(SLOT_HE[key]) + '</button>';
+      }
+      h += '</div></div>';
+    });
+
+    return h;
+  }
+
+  /* ערך מול יעד — בלי יעד מוצג המספר בלבד */
+  function macro(label, val, target) {
+    var t = Number(target);
+    var pctTxt = (isFinite(t) && t > 0) ? ' <span class="mt" style="font-size:11.5px">/ ' + Math.round(t) + '</span>' : '';
+    return '<span><b style="font-family:Heebo;color:var(--or)">' + val + '</b>' + pctTxt
+      + ' <span class="mt">' + label + '</span></span>';
+  }
 
   function footerBlock() {
     if (!localStorage.getItem('ebfit_t_token')) return '';

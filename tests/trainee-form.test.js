@@ -32,7 +32,7 @@ function t(name, got, want) {
 function render(health, formOpen, data) {
   const ctx = {
     EBHealth, esc, TOKEN: 'tok',
-    HEALTH: health, HFORM: formOpen, DATA: data || { name: 'ישראל ישראלי' },
+    HEALTH: health, HFORM: formOpen, HOPEN: true, FOLDER: false, DATA: data || { name: 'ישראל ישראלי' },
     localStorage: { getItem: () => null, setItem: () => {} },
     document: { getElementById: () => null }
   };
@@ -40,11 +40,14 @@ function render(health, formOpen, data) {
     let HEALTH = __H, HFORM = __F;
     ${grab('hKey')}
     ${grab('hLoad')}
+    ${grab('healthFiles')}
     ${grab('healthBlock')}
+    ${grab('healthFolder')}
     ${grab('hBtn')}
-    return healthBlock();
+    return ctx.FOLDER ? healthFolder() : healthBlock();
   `.replace('__H', 'ctx.HEALTH').replace('__F', 'ctx.HFORM');
-  const fn = new Function('ctx', 'EBHealth', 'esc', 'TOKEN', 'DATA', 'localStorage', 'document', body);
+  body2 = 'let HOPEN = ctx.HOPEN;' + body;
+  const fn = new Function('ctx', 'EBHealth', 'esc', 'TOKEN', 'DATA', 'localStorage', 'document', body2);
   return fn(ctx, ctx.EBHealth, ctx.esc, ctx.TOKEN, ctx.DATA, ctx.localStorage, ctx.document);
 }
 
@@ -67,7 +70,7 @@ EBHealth.PARQ.forEach(function (q, i) {
 
 console.log('=== מצב 3: נחתמה ===');
 const c = render({ signedAt: '2026-09-01', answers: { q1: 'no' } }, false);
-t('מציג תאריך',   /01\.09\.2026/.test(c), true);
+t('מאשר שנשלח',  /ההצהרה נשלחה למאמן/.test(c), true);
 t('מציע עדכון',   /hOpen/.test(c), true);
 t('לא מציג טופס', /h_sign/.test(c), false);
 
