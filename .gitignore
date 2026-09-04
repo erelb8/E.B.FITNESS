@@ -1,11 +1,11 @@
-.DS_Store
-Thumbs.db
-desktop.ini
-node_modules/
-*.log
 
 # קבצי תוכניות של מתאמנים — מידע אישי, לא נכנס לריפו ציבורי
+*.log
+.DS_Store
+Thumbs.db
 _test_*.html
-tochnit_*.html
-
 _test_*.json
+desktop.ini
+node_modules/
+tochnit_*.html
+video/

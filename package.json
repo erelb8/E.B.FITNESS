@@ -1,0 +1,27 @@
+{
+  "name": "e.b-fit",
+  "version": "1.0.0",
+  "description": "אפליקציית PWA לניהול מתאמנים: תיקי מתאמנים, תוכניות אימון, יומן, מדידות והתקדמות, ותשלומים. כל הנתונים נשמרים מקומית במכשיר (localStorage) — אין שרת ואין חשבון.",
+  "main": "analysis.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/erelb8/E.B.FITNESS.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/erelb8/E.B.FITNESS/issues"
+  },
+  "homepage": "https://github.com/erelb8/E.B.FITNESS#readme",
+  "dependencies": {
+    "playwright": "^1.62.1"
+  }
+}
