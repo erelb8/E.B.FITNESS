@@ -14,6 +14,7 @@ const SHELL_FILES = [
   './config.js?v=v66',
   './sync.js?v=v66',
   './health.js?v=v66',
+  './analysis.js?v=v66',
   './intake.js?v=v66',
   './files.js?v=v66',
   './builder.js?v=v66',

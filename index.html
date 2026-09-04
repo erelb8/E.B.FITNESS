@@ -694,7 +694,7 @@ function vTrainee(){
   tabs.push(['health','בריאות']);
   if(t.intake) tabs.push(['intake','שאלון']);   // רק למי שנקלט משאלון
   h+=folderNav(tabs);
-  const TABFN={details:tabDetails,program:tabProgram,measures:tabMeasures,history:tabHistory,pay:tabPay,prs:tabPRs,photos:tabPhotos,nutri:tabNutri,health:(x)=>EBHealth.tab(x), intake:(x)=>EBIntake.tab(x), track:(x)=>EBTrack.tab(x),metrics:(x)=>EBMetrics.tab(x),meals:(x)=>EBMeals.tab(x),cardio:(x)=>EBCardioUI.tab(x)};
+  const TABFN={details:tabDetails,program:tabProgram,measures:tabMeasures,history:tabHistory,pay:tabPay,prs:tabPRs,photos:tabPhotos,nutri:tabNutri,health:(x)=>EBHealth.tab(x), intake:(x)=>EBIntake.tab(x), track:(x)=>EBTrack.tab(x),metrics:(x)=>(window.EBAnalyze?EBAnalyze.tab(x):'')+EBMetrics.tab(x),meals:(x)=>EBMeals.tab(x),cardio:(x)=>EBCardioUI.tab(x)};
   h+=(TABFN[SUBTAB]||tabDetails)(t);
   return h;
 }
@@ -1228,8 +1228,10 @@ function savePay(){
 /* =================== התקדמות כללית =================== */
 function vProgress(){
   const act=activeTrainees();
-  let h=head('התקדמות','תמונת מצב משווה של כל המתאמנים','');
+  let h=head('התקדמות','הבוט מנתח כל מתאמן מול המטרה שלו — שבועי, חודשי ושנתי','');
   if(!act.length) return h+'<div class="empty"><div class="big">📈</div>אין נתונים להצגה.</div>';
+  if(window.EBAnalyze) h+=EBAnalyze.view();
+  h+='<h3 style="font-size:15px;margin:22px 0 10px">טבלה משווה</h3>';
   const rows=act.map(t=>{
     const ms=S.measures.filter(m=>m.traineeId===t.id).sort((a,b)=>a.date.localeCompare(b.date));
     const f=ms[0], l=ms[ms.length-1];
@@ -1647,6 +1649,7 @@ if (location.protocol === 'file:') {
 </script>
 
 <script src="health.js?v=v66"></script>
+<script src="analysis.js?v=v66"></script>
 <script src="intake.js?v=v66"></script>
 <script src="files.js?v=v66"></script>
 <script src="builder.js?v=v66"></script>
