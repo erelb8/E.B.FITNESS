@@ -82,5 +82,52 @@ t('שנתי תקין',        YR.yearly.ok, true);
 t('סה"כ ירידה 11',    YR.yearly.total, -11);
 t('שנתי בכיוון',      YR.yearly.state, 'good');
 
+
+/* ===== שדרוג: המדד נבחר לפי המטרה ===== */
+console.log('\n=== כוח נמדד בעומס, לא במאזניים ===');
+global.S.prs = [];
+function mkPR(goal, lifts) {
+  const id = 'p' + Math.random().toString(36).slice(2);
+  S.measures = [];
+  S.prs = [];
+  lifts.forEach(([ex, vals]) => vals.forEach((v, i) =>
+    S.prs.push({ traineeId: id, exercise: ex, date: iso((vals.length - 1 - i) * 21), value: v })));
+  return A.analyze({ id, goal, intake: { answers: { goal } } });
+}
+const up = mkPR('חיזוק וכוח', [['סקוואט', [80, 90, 100]], ['לחיצת חזה', [60, 65, 70]]]);
+t('עומסים עולים = בכיוון', up.verdict, 'ontrack');
+t('נמדד לפי עומס',        up.basis, 'עומס');
+const flatPR = mkPR('חיזוק וכוח', [['סקוואט', [80, 80, 80]], ['לחיצת חזה', [60, 60, 60]]]);
+t('עומסים עומדים = נתקע', flatPR.verdict, 'stalled');
+const downPR = mkPR('חיזוק וכוח', [['סקוואט', [100, 92, 85]], ['לחיצת חזה', [70, 65, 60]]]);
+t('עומסים יורדים = אחורה', downPR.verdict, 'offtrack');
+t('בלי שיאים = אין נתונים', mkPR('כוח', []).verdict, 'nodata');
+
+console.log('=== רה-קומפוזיציה נמדדת בהרכב גוף ===');
+function mkComp(goal, rows) {
+  const id = 'c' + Math.random().toString(36).slice(2);
+  S.prs = [];
+  S.measures = rows.map(([w, f, wa], i) => ({
+    traineeId: id, date: iso((rows.length - 1 - i) * 14), weight: w, fat: f, waist: wa }));
+  return A.analyze({ id, goal, intake: { answers: { goal } } });
+}
+/* משקל עומד במקום, שומן יורד — זו הצלחה, לא קיפאון */
+const rc = mkComp('ירידה באחוז שומן ועלייה במסת שריר', [[80, 24, 90], [80.2, 22, 88], [79.9, 20, 86]]);
+t('שומן יורד במשקל קבוע = בכיוון', rc.verdict, 'ontrack');
+t('נמדד לפי הרכב גוף',             rc.basis, 'הרכב גוף');
+t('מסומן כרה-קומפוזיציה',          rc.recomp, true);
+const rcBad = mkComp('ירידה באחוז שומן ועלייה במסת שריר', [[80, 20, 86], [80.1, 22, 88], [80, 24, 90]]);
+t('שומן עולה = אחורה', rcBad.verdict, 'offtrack');
+
+console.log('=== חיטוב: הרכב הגוף סותר את המאזניים ===');
+const stuck = mkComp('חיטוב', [[80, 26, 95], [80.1, 24, 92], [79.9, 22, 89]]);
+t('המשקל תקוע אבל השומן יורד', /הרכב הגוף משתפר/.test(stuck.note || ''), true);
+
+console.log('=== מטרת המתאמן עצמו ===');
+S.measures = []; S.prs = [];
+const own = A.analyze({ id: 'o1', goal: 'חיטוב',
+  intake: { answers: { goal: 'חיטוב', success3m: 'להיכנס לחליפה של החתונה' } } });
+t('נשלפת מהשאלון', own.ownGoal, 'להיכנס לחליפה של החתונה');
+
 console.log('\n' + (fail ? '### נכשלו: ' + fail : 'הכל עבר') + '  |  עברו: ' + pass);
 process.exit(fail ? 1 : 0);

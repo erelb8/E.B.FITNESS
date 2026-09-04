@@ -68,14 +68,16 @@
 
     ((t && t.weighins) || []).forEach(function (m) {
       if (m && m.date && num(m.weight)) {
-        seen[m.date] = { date: m.date, w: num(m.weight), fat: num(m.fat), self: true };
+        seen[m.date] = { date: m.date, w: num(m.weight), fat: num(m.fat),
+                         waist: num(m.waist), self: true };
       }
     });
 
     var src = (typeof S !== 'undefined' && S.measures) ? S.measures : [];
     src.filter(function (m) { return m.traineeId === id && num(m.weight); })
        .forEach(function (m) {
-         seen[m.date] = { date: m.date, w: num(m.weight), fat: num(m.fat) };
+         seen[m.date] = { date: m.date, w: num(m.weight), fat: num(m.fat),
+                          waist: num(m.waist) };
        });
 
     var out = [];
@@ -237,6 +239,79 @@
     return out;
   }
 
+  /* ---------- כוח: התקדמות בעומס ----------
+     מתאמן שמטרתו כוח לא נשפט במאזניים. המדד שלו הוא מה שהוא מרים,
+     והנתון הזה כבר יושב במערכת תחת השיאים — הבוט פשוט לא הסתכל עליו. */
+  function strength(traineeId) {
+    var src = (typeof S !== 'undefined' && S.prs) ? S.prs : [];
+    var mine = src.filter(function (p) { return p.traineeId === traineeId && num(p.value); });
+    if (mine.length < 2) return { ok: false, txt: 'צריך לפחות שני שיאים רשומים' };
+
+    var byEx = {};
+    mine.forEach(function (p) {
+      (byEx[p.exercise] = byEx[p.exercise] || []).push({ d: p.date, v: num(p.value) });
+    });
+
+    var up = 0, flat = 0, down = 0, best = null, lifts = [];
+    Object.keys(byEx).forEach(function (k) {
+      var a = byEx[k].sort(function (x, y) { return String(x.d).localeCompare(String(y.d)); });
+      if (a.length < 2) return;
+      var first = a[0].v, last = a[a.length - 1].v;
+      var g = last - first;
+      var gp = first > 0 ? g / first * 100 : 0;
+      lifts.push({ ex: k, from: first, to: last, gain: r1(g), pct: r1(gp) });
+      if (gp > 2) up++; else if (gp < -2) down++; else flat++;
+      if (!best || gp > best.pct) best = { ex: k, pct: r1(gp), gain: r1(g) };
+    });
+
+    if (!lifts.length) return { ok: false, txt: 'אין תרגיל עם שתי מדידות או יותר' };
+
+    var out = { ok: true, lifts: lifts, up: up, flat: flat, down: down, best: best };
+    if (down > up) {
+      out.state = 'bad';
+      out.txt = down + ' תרגילים ירדו בעומס מול ' + up + ' שעלו';
+    } else if (up === 0) {
+      out.state = 'warn';
+      out.txt = 'העומסים עומדים במקום בכל ' + lifts.length + ' התרגילים';
+    } else {
+      out.state = 'good';
+      out.txt = up + ' מתוך ' + lifts.length + ' תרגילים עלו בעומס'
+              + (best ? ' — ' + best.ex + ' ' + (best.gain > 0 ? '+' : '') + best.gain + ' ק״ג' : '');
+    }
+    return out;
+  }
+
+  /* ---------- הרכב גוף ----------
+     במטרת חיטוב או רה-קומפוזיציה המשקל הוא מדד גרוע: אפשר לרדת
+     באחוז שומן ולעלות בשריר, והמאזניים לא יזוזו. אחוז השומן והיקף
+     המותן נאספים כבר במערכת, ולכן כשהם קיימים הם המדד העדיף. */
+  function composition(pts, dir) {
+    var f = pts.filter(function (p) { return p.fat != null; });
+    var wl = pts.filter(function (p) { return p.waist != null; });
+    if (f.length < 2 && wl.length < 2) return { ok: false, txt: 'אין מספיק מדידות שומן או היקף' };
+
+    var out = { ok: true }, parts = [];
+    if (f.length >= 2) {
+      out.fatDelta = r1(f[f.length - 1].fat - f[0].fat);
+      parts.push('אחוז שומן ' + (out.fatDelta > 0 ? '+' : '') + out.fatDelta);
+    }
+    if (wl.length >= 2) {
+      out.waistDelta = r1(wl[wl.length - 1].waist - wl[0].waist);
+      parts.push('היקף מותן ' + (out.waistDelta > 0 ? '+' : '') + out.waistDelta + ' ס״מ');
+    }
+    out.txt = parts.join(' · ');
+
+    var moved = (out.fatDelta != null ? out.fatDelta : 0) + (out.waistDelta != null ? out.waistDelta : 0);
+    if (dir === 'up') {
+      out.state = moved <= 1 ? 'good' : 'warn';
+      if (moved > 1) out.txt += ' — עלייה בשומן לצד המסה';
+    } else {
+      out.state = moved < -0.4 ? 'good' : (moved > 0.4 ? 'bad' : 'warn');
+      if (out.state === 'warn') out.txt += ' — כמעט ללא שינוי';
+    }
+    return out;
+  }
+
   /* ---------- הניתוח המלא למתאמן ---------- */
   function analyze(t) {
     var ans = (t.intake && t.intake.answers) || {};
@@ -244,12 +319,37 @@
     var pts = series(t);
 
     var w = weekly(pts, dir), m = monthly(pts, dir), y = yearly(pts, dir);
+    var st = strength(t.id);
+    var comp = composition(pts, dir);
 
-    /* הפסק הכולל נשען על החודשי — הוא הרזולוציה שבה קצב נמדד באמת. */
-    var verdict, why;
+    /* המדד הראשי נבחר לפי המטרה, ולא תמיד המשקל:
+
+       כוח            -> העומס בשיאים
+       רה-קומפוזיציה  -> הרכב הגוף, כי המשקל אמור לעמוד במקום
+       חיטוב          -> משקל, אבל אם יש נתוני שומן הם גוברים
+       מסה            -> משקל
+
+       זה ההבדל בין בוט שמסתכל על מספר לבין בוט שמבין מה המטרה. */
+    var verdict, why, basis = 'משקל';
+
+    /* רה-קומפוזיציה: 'keep' שנוצר מצירוף של ירידה ועלייה במטרה */
+    var g = String(t.goal || ans.goal || '') + ' ' + String(ans.goal2 || '');
+    var recomp = has(g, DOWN) && has(g, UP);
+
     if (dir === 'strength') {
-      verdict = 'unknown';
-      why = 'המטרה היא כוח. משקל הגוף אינו המדד הנכון כאן — ההתקדמות נמדדת בעומס שהוא מרים.';
+      basis = 'עומס';
+      if (st.ok) {
+        verdict = st.state === 'good' ? 'ontrack' : (st.state === 'bad' ? 'offtrack' : 'stalled');
+        why = st.txt;
+      } else {
+        verdict = 'nodata';
+        why = 'המטרה היא כוח, וההתקדמות נמדדת בעומס — ' + st.txt;
+      }
+    } else if (recomp && comp.ok) {
+      basis = 'הרכב גוף';
+      verdict = comp.state === 'good' ? 'ontrack' : (comp.state === 'bad' ? 'offtrack' : 'stalled');
+      why = 'רה-קומפוזיציה: ' + comp.txt
+          + (m.ok ? '. המשקל ' + (Math.abs(m.perWeek) < 0.15 ? 'יציב כמצופה' : 'זז ' + r1(Math.abs(m.perWeek)) + ' ק״ג לשבוע') : '');
     } else if (!dir) {
       verdict = 'unknown';
       why = 'אין מטרה מוגדרת בשאלון, ולכן אי אפשר לקבוע אם הכיוון נכון';
@@ -271,13 +371,29 @@
     var lastAt = pts.length ? pts[pts.length - 1].date : null;
     var since = lastAt ? days(lastAt, new Date().toISOString().slice(0, 10)) : null;
 
+    /* חיטוב עם נתוני שומן: המשקל קבע את הפסק, אבל אם הרכב הגוף
+       מספר סיפור אחר — זה חייב להיאמר, כי הוא המדד הנכון יותר. */
+    var note = null;
+    if (!recomp && dir === 'down' && comp.ok) {
+      if (comp.state === 'good' && verdict !== 'ontrack') {
+        note = 'לפי המאזניים זה נראה תקוע, אבל הרכב הגוף משתפר: ' + comp.txt
+             + '. במקרה כזה המשקל הוא המדד הפחות נכון.';
+      } else if (comp.state === 'bad' && verdict === 'ontrack') {
+        note = 'המשקל יורד, אבל ' + comp.txt + ' — ייתכן שהירידה באה ממסת שריר.';
+      }
+    }
+
     return {
       dir: dir, dirName: dir ? DIR_HE[dir] : null,
       goal: t.goal || ans.goal || '',
+      /* מה המתאמן עצמו הגדיר כהצלחה — נשאל בשאלון ולא הוצג מעולם */
+      ownGoal: ans.success3m || '',
+      recomp: recomp, basis: basis,
       count: pts.length, lastAt: lastAt, daysSince: since,
       silent: since != null && since > 14,
       weekly: w, monthly: m, yearly: y,
-      verdict: verdict, why: why
+      strength: st, composition: comp,
+      verdict: verdict, why: why, note: note
     };
   }
 
@@ -335,11 +451,17 @@
       + '<div class="row" style="margin-bottom:8px"><h3 style="flex:1;font-size:15px">ניתוח התקדמות</h3>'
       + '<span style="font-weight:800;font-size:13px;color:' + V.c + '">' + V.t + '</span></div>'
       + '<div style="font-size:14px;margin-bottom:4px">' + esc(a.why) + '</div>'
-      + '<div class="muted" style="font-size:12.5px">'
+      + (a.note ? '<div style="font-size:13px;margin-top:6px;padding:8px 10px;border-radius:8px;'
+          + 'background:rgba(154,95,30,.10);border:1px solid rgba(154,95,30,.3)">'
+          + esc(a.note) + '</div>' : '')
+      + '<div class="muted" style="font-size:12.5px;margin-top:6px">'
       + (a.dirName ? 'מטרה: ' + esc(a.dirName) : 'לא הוגדרה מטרה בשאלון')
+      + ' · נמדד לפי ' + esc(a.basis)
       + ' · ' + a.count + ' שקילות'
       + (a.lastAt ? ' · אחרונה לפני ' + a.daysSince + ' ימים' : '')
-      + '</div>';
+      + '</div>'
+      + (a.ownGoal ? '<div class="muted" style="font-size:12.5px;margin-top:5px">'
+          + 'הוא הגדיר הצלחה כ: ' + esc(a.ownGoal) + '</div>' : '');
     if (a.silent) {
       h += '<div style="margin-top:8px;font-weight:700;font-size:13px;color:#B9770E">'
          + 'לא נשקל ' + a.daysSince + ' ימים — זה הסימן הראשון לנטישה.</div>';
@@ -349,13 +471,17 @@
     h += '<div class="card">'
       + row('שבועי', a.weekly)
       + row('חודשי', a.monthly)
-      + row('שנתי', a.yearly);
+      + row('שנתי', a.yearly)
+      + row('עומס', a.strength)
+      + row('הרכב גוף', a.composition);
     if (a.yearly && a.yearly.note) {
       h += '<div class="muted" style="font-size:12.5px;margin-top:8px">' + esc(a.yearly.note) + '</div>';
     }
     h += '<div class="muted" style="font-size:11.5px;margin-top:10px;line-height:1.6">'
       + 'הקצב החודשי נמדד בשיפוע רגרסיה על כל השקילות בחודש האחרון, ולא כהפרש בין שתי נקודות — '
-      + 'כך ששקילה חריגה אחת לא הופכת את המסקנה.</div>';
+      + 'כך ששקילה חריגה אחת לא הופכת את המסקנה. '
+      + 'המדד הראשי נבחר לפי המטרה: כוח נמדד בעומס, רה-קומפוזיציה בהרכב הגוף, '
+      + 'והשאר במשקל.</div>';
     return h + '</div>';
   }
 
@@ -398,7 +524,8 @@
     rows.forEach(function (x) {
       var V = A.VERDICT[x.a.verdict] || A.VERDICT.nodata;
       h += '<tr><td><b>' + esc(x.t.name) + '</b></td>'
-        + '<td class="muted" style="font-size:12.5px">' + esc(x.a.dirName || '—') + '</td>'
+        + '<td class="muted" style="font-size:12.5px">' + esc(x.a.dirName || '—')
+        + '<div style="font-size:11px;color:var(--dim)">' + esc(x.a.basis) + '</div></td>'
         + '<td><b style="font-size:12.5px;color:' + V.c + '">' + V.t + '</b></td>'
         + '<td style="font-size:12.5px">' + esc(x.a.monthly.ok ? x.a.monthly.txt : '—') + '</td>'
         + '<td class="muted" style="font-size:12.5px">'
