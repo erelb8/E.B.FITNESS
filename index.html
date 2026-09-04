@@ -447,6 +447,7 @@ const NAV=[
   {id:'money',  ic:'₪', t:'תשלומים'},
   {id:'progress',ic:'📈', t:'התקדמות'},
   {id:'health', ic:'🩺', t:'סינון בריאות'},
+  {id:'biz',    ic:'📊', t:'ניתוח העסק'},
   {id:'lab',    ic:'✦', t:'פיצ׳רים ובוט'},
   {id:'settings',ic:'⚙', t:'הגדרות'}
 ];
@@ -454,7 +455,7 @@ function go(v, arg){ VIEW=v; ARG=arg||null; if(v!=='trainee') SUBTAB='details'; 
 
 function renderNav(){
   let h='<div class="grp">ניהול</div>';
-  NAV.slice(0,6).forEach(n=>{
+  NAV.slice(0,7).forEach(n=>{
     let c='';
     if(n.id==='trainees') c='<span class="cnt">'+activeTrainees().length+'</span>';
     if(n.id==='health'){ const n3=(window.EBHealth?EBHealth.needCount():0); if(n3) c='<span class="cnt">'+n3+'</span>'; }
@@ -462,11 +463,11 @@ function renderNav(){
     h+=navBtn(n,c);
   });
   h+='<div class="grp">התאמה אישית</div>';
-  h+=navBtn(NAV[6],'');
+  h+=navBtn(NAV[7],'');
   S.custom.forEach(c=>{
     h+='<button class="nav'+(VIEW==='custom'&&ARG===c.id?' on':'')+'" onclick="go(\'custom\',\''+c.id+'\')"><i>'+esc(c.icon||'✧')+'</i>'+esc(c.title)+'</button>';
   });
-  h+='<div class="grp">מערכת</div>'+navBtn(NAV[7],'');
+  h+='<div class="grp">מערכת</div>'+navBtn(NAV[8],'');
   $('#rail').innerHTML=h;
 
   const mob=['dash','trainees','schedule','money','lab'];
@@ -479,7 +480,7 @@ function render(){
   renderNav();
   const v={dash:vDash,trainees:vTrainees,trainee:vTrainee,schedule:vSchedule,money:vMoney,
            progress:vProgress,lab:vLab,settings:vSettings,custom:vCustom,
-           health:()=>EBHealth.view()}[VIEW]||vDash;
+           health:()=>EBHealth.view(), biz:()=>EBBiz.view()}[VIEW]||vDash;
   $('#view').innerHTML = v();
   if(VIEW==='custom') mountCustom();
   if(VIEW==='lab') scrollChat();
@@ -1650,6 +1651,7 @@ if (location.protocol === 'file:') {
 
 <script src="health.js?v=v66"></script>
 <script src="analysis.js?v=v66"></script>
+<script src="business.js?v=v66"></script>
 <script src="intake.js?v=v66"></script>
 <script src="files.js?v=v66"></script>
 <script src="builder.js?v=v66"></script>
