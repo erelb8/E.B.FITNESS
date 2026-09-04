@@ -1805,14 +1805,18 @@ function slugName(name){
     }).join('');
   };
   let s = String(name||'').trim().split(/\s+/).map(word).filter(Boolean).join('.');
-  s = s.replace(/[^a-z0-9._-]/g,'').replace(/\.+/g,'.').replace(/^\.|\.$/g,'');
+  /* בלי ספרות — הן מתבלבלות עם אותיות ומחייבות החלפת מקלדת */
+  s = s.replace(/[^a-z._-]/g,'').replace(/\.+/g,'.').replace(/^\.|\.$/g,'');
   return s.slice(0,20) || 'user';
 }
-/* סיסמה קריאה: בלי תווים שמתבלבלים ביניהם (0/O, 1/l/I) */
+/* סיסמה קריאה: אותיות קטנות בלבד, בלי תווים שמתבלבלים ביניהם.
+   הספרות ירדו לבקשת המאמן — מתאמנים התבלבלו בין 0 ל-O ובין 1 ל-l,
+   וגם החלפת מקלדת לספרות בטלפון היא חיכוך מיותר.
+   שמונה אותיות מתוך 21 הן כ-38 מיליארד צירופים — חזק יותר
+   מארבע אותיות וארבע ספרות שהיו כאן קודם. */
 function genPass(){
-  const A='abcdefghjkmnpqrstuvwxyz', N='23456789';
-  let p=''; for(let i=0;i<4;i++) p+=A[Math.floor(Math.random()*A.length)];
-  for(let i=0;i<4;i++) p+=N[Math.floor(Math.random()*N.length)];
+  const A='abcdefghjkmnpqrstuvwxyz';
+  let p=''; for(let i=0;i<8;i++) p+=A[Math.floor(Math.random()*A.length)];
   return p;
 }
 
@@ -1845,13 +1849,15 @@ async function bulkLogins(){
   for(const t of list){
     let u = t._username || slugName(t.name);
     if(!t._username){
-      let base=u, n=2;
-      while(taken.has(u)){ u = base+n; n++; }
+      /* בעבר הוסף מספר לשם כפול. עכשיו אות, כדי שהשם יישאר נקי מספרות. */
+      let base=u, n=0;
+      while(taken.has(u)){ u = base + '.' + 'abcdefghijklmnopqrstuvwxyz'[n]; n++; }
     }
     taken.add(u);
     const p = genPass();
     toast('מגדיר ל'+t.name+'…');
-    try{ await EBSync.setLogin(t.id, u, p); done.push({t, u, p}); }
+    /* הנרמול עצמו יושב ב-EBSync.setLogin, נקודה אחת לכל המסלולים */
+    try{ await EBSync.setLogin(t.id, u, p); done.push({t, u: u.toLowerCase(), p}); }
     catch(e){ failed.push({name:t.name, err:(e&&e.message)||'שגיאה'}); }
   }
   rawSave();

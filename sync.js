@@ -329,12 +329,27 @@
   // ומוצפנת בשרת; היא לא נשמרת אצלנו בשום מקום.
   async function setLogin(traineeId, username, password) {
     if (!sb || !user) throw new Error('לא מחובר');
+
+    /* נקודת החנק היחידה שכל מסלולי ההגדרה עוברים דרכה — ההגדרה
+       הקבוצתית והידנית כאחד. קודם כל אחת נרמלה בנפרד, ולכן סיסמה
+       שהוגדרה ידנית עם אות גדולה לא התאימה למה שהמתאמן הקליד.
+
+       אותיות קטנות בשני הצדדים: מקלדת הטלפון מגדילה את האות הראשונה
+       בשדה סיסמה, וזה היה הכשל הנפוץ ביותר בכניסה.
+       ספרות יורדות משם המשתמש בלבד — הורדתן מסיסמה שהמאמן הקליד
+       ידנית הייתה משנה בשקט את מה שהוא כבר מסר למתאמן. */
+    const u = username == null ? null
+      : String(username).toLowerCase().trim().replace(/[0-9]/g, '');
+    const p = password ? String(password).toLowerCase() : null;
+
+    if (username != null && !u) throw new Error('שם המשתמש ריק אחרי הסרת הספרות');
+
     const { error } = await sb.rpc('set_trainee_login', {
-      p_trainee_id: traineeId, p_username: username || null, p_password: password || null
+      p_trainee_id: traineeId, p_username: u || null, p_password: p
     });
     if (error) throw error;
     const t = (window.S.trainees || []).find(x => x.id === traineeId);
-    if (t) t._username = (username || '').toLowerCase().trim();
+    if (t) t._username = u || '';
   }
 
   // מה המתאמן דיווח שביצע

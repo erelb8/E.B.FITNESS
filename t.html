@@ -245,7 +245,7 @@ button{cursor:pointer}
       + 'style="width:100%;background:var(--ink);border:1px solid var(--line);border-radius:10px;'
       + 'padding:12px;margin:6px 0 12px;font-size:16px;direction:ltr;text-align:left">'
       + '<label style="font-size:13px;color:var(--mut)">סיסמה</label>'
-      + '<input id="lg_p" type="password" '
+      + '<input id="lg_p" type="password" autocapitalize="none" autocorrect="off" spellcheck="false" '
       + 'style="width:100%;background:var(--ink);border:1px solid var(--line);border-radius:10px;'
       + 'padding:12px;margin:6px 0 4px;font-size:16px;direction:ltr;text-align:left">'
       + (err ? '<div style="color:#D9605A;font-size:13px;margin-top:8px">' + esc(err) + '</div>' : '')
@@ -265,7 +265,11 @@ button{cursor:pointer}
     var btn = document.getElementById('lg_go');
     if (btn) { btn.disabled = true; btn.textContent = 'בודק…'; }
     try {
-      var r = await sb.rpc('trainee_login', { p_username: u.trim(), p_password: p });
+      /* מקלדת הטלפון מגדילה את האות הראשונה בשדה סיסמה, וזה היה
+         הכשל הנפוץ ביותר בכניסה. הפרטים נוצרים באותיות קטנות בלבד,
+         ולכן הורדה לאותיות קטנות כאן מיישרת את שני הצדדים. */
+      var r = await sb.rpc('trainee_login',
+        { p_username: u.trim().toLowerCase(), p_password: String(p).toLowerCase() });
       if (r.error) throw r.error;
       var d = r.data && r.data[0];
       if (!d) throw new Error('שם משתמש או סיסמה שגויים');
