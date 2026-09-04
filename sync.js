@@ -35,9 +35,11 @@
 
   /* ---------- המרה בין מבנה האפליקציה למבנה השרת ---------- */
   // מתאמן: name/goal/program משותפים עם המתאמן, כל השאר ב-private.
-  /* mealsSelf נקרא מהשרת ולעולם לא נדחף אליו — המתאמן כותב אותו
-     דרך RPC משלו, ודחיפה מכאן הייתה מוחקת מה שהוא הוסיף. */
-  const SHARED = ['id', 'name', 'goal', 'program', 'status', 'files', 'meals', 'mealsSelf', 'exercisesSelf'];
+  /* mealsSelf, health ו-weighins נקראים מהשרת ולעולם לא נדחפים אליו —
+     המתאמן כותב אותם דרך RPC משלו, ודחיפה מכאן הייתה מוחקת
+     את ההצהרה ואת השקילות שהוא הזין. */
+  const SHARED = ['id', 'name', 'goal', 'program', 'status', 'files', 'meals', 'mealsSelf',
+                  'exercisesSelf', 'health', 'weighins'];
 
   function traineeToRow(t) {
     const priv = {};
@@ -69,6 +71,8 @@
       meals: r.meals || [],
       mealsSelf: r.meals_self || [],
       exercisesSelf: r.exercises_self || [],
+      health: r.health || null,
+      weighins: r.weighins || [],
       status: r.status,
       _token: r.access_token,
       _tokenActive: r.access_active,

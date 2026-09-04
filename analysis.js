@@ -57,15 +57,28 @@
   function r2(x) { return Math.round(x * 100) / 100; }
   function days(a, b) { return Math.round((new Date(b) - new Date(a)) / 86400000); }
 
-  /* שקילות של מתאמן, ממוינות, בלי כפילויות באותו יום */
-  function series(traineeId) {
+  /* שקילות של מתאמן, ממוינות, בלי כפילויות באותו יום.
+
+     שני מקורות: מדידות שהמאמן רשם (S.measures) ושקילות שהמתאמן הזין
+     בעצמו בקישור שלו (t.weighins). כשיש שתיהן באותו יום, זו של המאמן
+     גוברת — הוא שקל במשקל אחד קבוע, והמתאמן במאזניים של הבית. */
+  function series(t) {
+    var id = (t && t.id) || t;
+    var seen = {};
+
+    ((t && t.weighins) || []).forEach(function (m) {
+      if (m && m.date && num(m.weight)) {
+        seen[m.date] = { date: m.date, w: num(m.weight), fat: num(m.fat), self: true };
+      }
+    });
+
     var src = (typeof S !== 'undefined' && S.measures) ? S.measures : [];
-    var seen = {}, out = [];
-    src.filter(function (m) { return m.traineeId === traineeId && num(m.weight); })
-       .sort(function (a, b) { return String(a.date).localeCompare(String(b.date)); })
+    src.filter(function (m) { return m.traineeId === id && num(m.weight); })
        .forEach(function (m) {
          seen[m.date] = { date: m.date, w: num(m.weight), fat: num(m.fat) };
        });
+
+    var out = [];
     Object.keys(seen).sort().forEach(function (k) { out.push(seen[k]); });
     return out;
   }
@@ -228,7 +241,7 @@
   function analyze(t) {
     var ans = (t.intake && t.intake.answers) || {};
     var dir = direction(t.goal || ans.goal, ans.goal2);
-    var pts = series(t.id);
+    var pts = series(t);
 
     var w = weekly(pts, dir), m = monthly(pts, dir), y = yearly(pts, dir);
 

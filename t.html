@@ -155,6 +155,7 @@ button{cursor:pointer}
 <script src="meal-library.js?v=v66"></script>
 <script src="exercise-library.js?v=v66"></script>
 <script src="progress.js?v=v66"></script>
+<script src="health.js?v=v66"></script>
 <script>
 (function () {
   'use strict';
@@ -976,6 +977,7 @@ button{cursor:pointer}
 
     screen(
         openerBlock(days)
+      + healthBlock()
       + targetsBlock()
       + progBlock()
       + planBlock(days)
@@ -1076,6 +1078,137 @@ button{cursor:pointer}
     });
     return h;
   }
+
+
+  /* ---------- הצהרת בריאות ----------
+     שבע שאלות הסינון מגיעות מ-health.js, אותו מקור שהמאמן קורא ממנו,
+     כדי שלא ייווצר מצב ששני הצדדים שואלים שאלות שונות. */
+  let HEALTH = null, HFORM = false;
+
+  function hKey() { return 'eb_health_' + (TOKEN || 'x'); }
+  function hLoad() {
+    if (DATA && DATA.health) return DATA.health;
+    try { return JSON.parse(localStorage.getItem(hKey()) || 'null'); } catch (e) { return null; }
+  }
+
+  function healthBlock() {
+    if (typeof EBHealth === 'undefined') return '';
+    HEALTH = HEALTH || hLoad();
+
+    if (HEALTH && HEALTH.signedAt && !HFORM) {
+      return '<div class="card" style="margin-bottom:12px;border-color:rgba(143,168,79,.4)">'
+        + '<div style="font-size:13px;color:var(--mut)">הצהרת הבריאות שלך נחתמה ב-'
+        + esc(String(HEALTH.signedAt).split('-').reverse().join('.')) + '. '
+        + '<a href="#" onclick="EBT.hOpen();return false" style="color:var(--or)">עדכון</a></div></div>';
+    }
+
+    if (!HFORM) {
+      return '<div class="card" style="margin-bottom:12px;border-color:rgba(209,154,85,.55);background:rgba(209,154,85,.07)">'
+        + '<div style="font-family:Frank Ruhl Libre,serif;font-weight:700;font-size:16px;margin-bottom:6px">'
+        + 'הצהרת בריאות</div>'
+        + '<div style="font-size:13.5px;color:var(--mut);line-height:1.6;margin-bottom:12px">'
+        + 'לפני שמתחילים להתאמן צריך למלא הצהרה קצרה — שבע שאלות, פחות מדקה. '
+        + 'זה מה שמאפשר לי לבנות לך תוכנית בטוחה.</div>'
+        + '<button class="btn" onclick="EBT.hOpen()" style="font-weight:700">למילוי ההצהרה</button></div>';
+    }
+
+    var h = '<div class="card" style="margin-bottom:12px">'
+      + '<div style="font-family:Frank Ruhl Libre,serif;font-weight:700;font-size:16px;margin-bottom:4px">'
+      + 'הצהרת בריאות</div>'
+      + '<div style="font-size:12.5px;color:var(--mut);line-height:1.6;margin-bottom:14px">'
+      + 'ענה בכנות. תשובת כן לא מונעת ממך להתאמן — היא רק אומרת שנצטרך '
+      + 'אישור רופא לפני שמתחילים.</div>';
+
+    EBHealth.PARQ.forEach(function (q, i) {
+      var cur = (HEALTH && HEALTH.answers) ? HEALTH.answers[q.k] : null;
+      h += '<div style="padding:11px 0;border-top:1px solid var(--line)">'
+        + '<div style="font-size:13.5px;line-height:1.5;margin-bottom:8px">'
+        + (i + 1) + '. ' + esc(q.q) + '</div>'
+        + '<div style="display:flex;gap:8px">'
+        + hBtn(q.k, 'no', 'לא', cur === 'no')
+        + hBtn(q.k, 'yes', 'כן', cur === 'yes')
+        + '</div></div>';
+    });
+
+    h += '<div style="padding:12px 0 0;border-top:1px solid var(--line)">'
+      + '<div style="font-size:13px;color:var(--mut);margin-bottom:6px">'
+      + 'משהו נוסף שכדאי שאדע? (לא חובה)</div>'
+      + '<textarea id="h_notes" rows="2" style="width:100%;background:var(--ink);color:var(--tx);'
+      + 'border:1px solid var(--line);border-radius:10px;padding:9px;font-family:inherit;font-size:13px" '
+      + 'placeholder="פציעות, תרופות, כל דבר רלוונטי">' + esc((HEALTH && HEALTH.notes) || '') + '</textarea></div>'
+
+      + '<div style="padding:12px 0 0">'
+      + '<div style="font-size:13px;color:var(--mut);margin-bottom:6px">שם מלא כחתימה</div>'
+      + '<input id="h_sign" value="' + esc((HEALTH && HEALTH.signature) || (DATA && DATA.name) || '') + '" '
+      + 'style="width:100%;background:var(--ink);color:var(--tx);border:1px solid var(--line);'
+      + 'border-radius:10px;padding:9px;font-family:inherit;font-size:14px"></div>'
+
+      + '<div style="font-size:11.5px;color:var(--dim);line-height:1.6;margin:12px 0">'
+      + 'ההצהרה נשמרת אצל המאמן שלך בלבד ומשמשת להתאמת האימון. '
+      + 'היא אינה מחליפה בדיקה או ייעוץ רפואי.</div>'
+
+      + '<div style="display:flex;gap:8px">'
+      + '<button class="btn" onclick="EBT.hSave()" style="font-weight:700">שליחה</button>'
+      + '<button class="btn ghost" onclick="EBT.hCancel()">ביטול</button></div>'
+      + '</div>';
+    return h;
+  }
+
+  function hBtn(k, val, label, on) {
+    var bg = on ? (val === 'yes' ? 'rgba(217,96,90,.18)' : 'rgba(143,168,79,.18)') : 'var(--ink)';
+    var fg = on ? (val === 'yes' ? '#D9605A' : 'var(--or)') : 'var(--mut)';
+    var bd = on ? (val === 'yes' ? '#D9605A66' : 'rgba(143,168,79,.5)') : 'var(--line)';
+    return '<button onclick="EBT.hPick(\'' + k + '\',\'' + val + '\')" '
+      + 'style="flex:1;padding:9px;border-radius:10px;cursor:pointer;font-family:inherit;font-size:13.5px;'
+      + 'font-weight:' + (on ? '800' : '400') + ';background:' + bg + ';color:' + fg + ';border:1px solid ' + bd + '">'
+      + label + '</button>';
+  }
+
+  function hOpen() { HFORM = true; HEALTH = HEALTH || { answers: {} }; paint(); }
+  function hCancel() { HFORM = false; paint(); }
+
+  function hPick(k, v) {
+    HEALTH = HEALTH || { answers: {} };
+    HEALTH.answers = HEALTH.answers || {};
+    HEALTH.answers[k] = v;
+    hKeepText();
+    paint();
+  }
+
+  /* שומר את מה שהוקלד לפני ציור מחדש — אחרת ההערות והחתימה נמחקות
+     בכל לחיצה על כן/לא. */
+  function hKeepText() {
+    var n = document.getElementById('h_notes'), g = document.getElementById('h_sign');
+    if (n) HEALTH.notes = n.value;
+    if (g) HEALTH.signature = g.value;
+  }
+
+  async function hSave() {
+    hKeepText();
+    var miss = EBHealth.PARQ.filter(function (q) { return !HEALTH.answers || !HEALTH.answers[q.k]; });
+    if (miss.length) { toast('נשארו ' + miss.length + ' שאלות ללא תשובה'); return; }
+    if (!String(HEALTH.signature || '').trim()) { toast('חסרה חתימה'); return; }
+
+    HEALTH.signedAt = new Date().toISOString().slice(0, 10);
+    try { localStorage.setItem(hKey(), JSON.stringify(HEALTH)); } catch (e) {}
+    HFORM = false;
+    paint();
+
+    var anyYes = EBHealth.PARQ.some(function (q) { return HEALTH.answers[q.k] === 'yes'; });
+    toast(anyYes ? 'נשלח. נצטרך אישור רופא לפני שמתחילים.' : 'ההצהרה נשלחה, תודה.');
+
+    try {
+      var r = await sb.rpc('trainee_health', { p_token: TOKEN, p_health: HEALTH });
+      if (r.error) throw r.error;
+    } catch (e) {
+      /* בלי הפונקציה בשרת ההצהרה נשמרת במכשיר. המתאמן סיים את שלו,
+         ולכן הודעה אחת ולא כישלון. */
+      toast('נשמר במכשיר. יגיע למאמן אחרי שיסיים את ההגדרה.');
+    }
+  }
+
+  window.EBT = Object.assign(window.EBT || {},
+    { hOpen: hOpen, hCancel: hCancel, hPick: hPick, hSave: hSave });
 
   function footerBlock() {
     if (!localStorage.getItem('ebfit_t_token')) return '';
