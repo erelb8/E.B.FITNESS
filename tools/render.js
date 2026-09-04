@@ -62,32 +62,43 @@ const W = 1080, H = 1920;
 
   /* שעון מזויף — מוזרק לפני כל סקריפט בדף */
   await page.addInitScript(() => {
-    let now = 0;
-    const raf = [], timers = [];
+    let now = 0, seq = 0;
+    const raf = [];
+    /* מפה ולא מערך. הגרסה הראשונה השתמשה באינדקס במערך כמזהה טיימר,
+       והמערך עובר splice בכל הפעלה — כך שהמזהים הוסטו ו-clearInterval
+       של מונה אחד הרג מונה אחר. התוצאה הייתה מונה שנתקע על אפס
+       בקובץ המוגמר, בלי שום שגיאה. */
+    const timers = new Map();
+
     window.__clock = {
       set: t => { now = t; },
       flush: () => {
-        raf.splice(0).forEach(fn => { try { fn(now); } catch (e) {} });
-        for (let i = timers.length - 1; i >= 0; i--) {
-          if (timers[i] && timers[i].at <= now) {
-            const fn = timers[i].fn; timers.splice(i, 1);
-            try { fn(); } catch (e) {}
+        for (let guard = 0; guard < 200; guard++) {
+          raf.splice(0).forEach(fn => { try { fn(now); } catch (e) {} });
+          let fired = false;
+          for (const [id, t] of [...timers]) {
+            if (t.at > now) continue;
+            fired = true;
+            if (t.every == null) timers.delete(id);
+            else t.at = now + t.every;
+            try { t.fn(); } catch (e) {}
           }
+          if (!fired && !raf.length) break;
         }
       }
     };
     performance.now = () => now;
     Date.now = () => now;
-    window.requestAnimationFrame = fn => { raf.push(fn); return raf.length; };
+    window.requestAnimationFrame = fn => { raf.push(fn); return ++seq; };
     window.cancelAnimationFrame = () => {};
-    window.setTimeout = (fn, ms) => { timers.push({ fn, at: now + (ms || 0) }); return timers.length; };
-    window.clearTimeout = id => { if (timers[id - 1]) timers[id - 1] = null; };
-    window.setInterval = (fn, ms) => {
-      const step = { fn: null, at: now + (ms || 0) };
-      step.fn = () => { try { fn(); } catch (e) {} step.at = now + (ms || 0); timers.push(step); };
-      timers.push(step); return timers.length;
+    window.setTimeout = (fn, ms) => {
+      const id = ++seq; timers.set(id, { fn, at: now + (ms || 0), every: null }); return id;
     };
-    window.clearInterval = window.clearTimeout;
+    window.setInterval = (fn, ms) => {
+      const id = ++seq; timers.set(id, { fn, at: now + (ms || 0), every: ms || 1 }); return id;
+    };
+    window.clearTimeout = id => timers.delete(id);
+    window.clearInterval = id => timers.delete(id);
   });
 
   await page.goto('file:///' + src.replace(/\\/g, '/'));
