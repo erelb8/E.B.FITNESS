@@ -56,7 +56,7 @@
     var trend = prev30 > 0 ? (last30 - prev30) / prev30 : null;
     if (trend !== null && trend < -0.15) {
       f.push(act('bad', 'ההכנסה ירדה ' + Math.round(-trend * 100) + '% מול החודש הקודם ('
-        + money(last30) + ' מול ' + money(prev30) + ')', 'לבדוק מי הפסיק לשלם ולחדש כרטיסיות'));
+        + money(last30) + ' מול ' + money(prev30) + ')', 'לבדוק מי הפסיק לשלם'));
     } else if (trend !== null && trend > 0.15) {
       f.push(act('good', 'ההכנסה עלתה ' + Math.round(trend * 100) + '% מול החודש הקודם', ''));
     } else {
@@ -95,8 +95,6 @@
       var d = lastDone[t.id];
       if (!d) noSess.push(t);
       else if (since(d) > 14) silent.push({ t: t, d: since(d) });
-      var left = n0(t.pkgTotal) - n0(t.pkgUsed);
-      if (n0(t.pkgTotal) > 0 && left <= 2) lowPack.push({ t: t, left: left });
     });
 
     var f = [];
@@ -104,11 +102,6 @@
       f.push(act('bad', silent.length + ' מתאמנים לא סימנו אימון מעל שבועיים: '
         + silent.slice(0, 4).map(function (x) { return x.t.name + ' (' + x.d + ' ימים)'; }).join(', '),
         'לשלוח הודעה היום. מתאמן ששותק שבועיים כבר בדרך החוצה'));
-    }
-    if (lowPack.length) {
-      f.push(act('warn', lowPack.length + ' כרטיסיות עומדות להיגמר: '
-        + lowPack.slice(0, 4).map(function (x) { return x.t.name + ' (' + x.left + ')'; }).join(', '),
-        'לפתוח שיחת חידוש לפני האימון האחרון, לא אחריו'));
     }
     if (noSess.length) {
       f.push(act('warn', noSess.length + ' מתאמנים בלי אף אימון שבוצע',
