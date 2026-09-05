@@ -177,10 +177,27 @@ main{flex:1;min-width:0;padding:22px 24px 90px}
 /* מספר אי-זוגי של כרטיסים משאיר את האחרון לבד עם חור לצידו.
    הוא נמתח על השורה במקום להיתלות. */
 @media(max-width:520px){ .stats-auto > :last-child:nth-child(odd){grid-column:1 / -1} }
-.stat .lbl{font-size:11px;color:var(--mut);letter-spacing:.08em}
-.stat .val{font-family:'Heebo';font-weight:900;font-size:30px;line-height:1.1;margin-top:4px;
-  font-variant-numeric:tabular-nums;color:var(--cop)}
-.stat .sub{font-size:12px;color:var(--dim);margin-top:2px}
+/* כרטיס הנתון: צ'יפ אייקון למעלה, מספר גדול מתחתיו, ואז התווית.
+   הסדר הזה נותן לעין נקודת עגינה לפני המספר, במקום שתיפול ישר
+   על ספרה בלי הקשר. */
+.stat{padding:16px 15px;border-radius:16px}
+.stat .ic{
+  width:42px;height:42px;border-radius:13px;display:grid;place-items:center;
+  font-size:19px;line-height:1;margin-bottom:13px;
+  background:var(--or-soft);border:1px solid rgba(143,168,79,.28);
+  color:var(--or);
+}
+.stat .lbl{font-size:12.5px;color:var(--mut);letter-spacing:0;order:3;margin-top:5px}
+.stat .val{font-family:'Heebo';font-weight:900;font-size:33px;line-height:1.05;
+  font-variant-numeric:tabular-nums;color:var(--tx);order:2}
+.stat .sub{font-size:11.5px;color:var(--dim);margin-top:3px;order:4}
+.stat{display:flex;flex-direction:column;align-items:flex-start}
+.stat .ic{order:1}
+@media(max-width:520px){
+  .stat{padding:15px 13px}
+  .stat .val{font-size:29px}
+  .stat .ic{width:38px;height:38px;font-size:17px;margin-bottom:11px}
+}
 .pill{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;padding:3px 9px;border-radius:20px;border:1px solid var(--line2);color:var(--mut)}
 .pill.ok{color:var(--ok);border-color:rgba(168,199,94,.35);background:rgba(168,199,94,.08)}
 .pill.warn{color:var(--warn);border-color:rgba(255,197,61,.35);background:rgba(255,197,61,.08)}
@@ -317,8 +334,8 @@ tbody tr:hover{background:var(--panel)}
 <div id="toast"></div>
 
 <!-- ספריית Supabase מקומית (לא מ-CDN) כדי שהאפליקציה תעבוד גם בלי רשת -->
-<script src="vendor/supabase.js?v=v71"></script>
-<script src="config.js?v=v71"></script>
+<script src="vendor/supabase.js?v=v73"></script>
+<script src="config.js?v=v73"></script>
 
 <script>
 /* =======================================================================
@@ -353,7 +370,7 @@ function age(b){ if(!b) return null; const d=new Date(b), t=new Date(); let a=t.
 
 /* ---------------- אחסון ---------------- */
 const KEY='ebfit_v1';
-const EB_VERSION='v71';   // חייב להתאים ל-VERSION ב-sw.js
+const EB_VERSION='v73';   // חייב להתאים ל-VERSION ב-sw.js
 let mem=null, canStore=true;
 function load(){
   try{ const r=localStorage.getItem(KEY); return r?JSON.parse(r):null; }
@@ -500,10 +517,10 @@ function vDash(){
     '<button class="btn" onclick="editTrainee()">+ מתאמן חדש</button><button class="btn ghost" onclick="editSession()">+ אימון</button>');
 
   h+='<div class="grid g4">'
-   + stat('מתאמנים פעילים', act.length, act.filter(x=>x.status==='active').length+' בסטטוס פעיל')
-   + stat('אימונים היום', today.length, today.filter(s=>s.status==='done').length+' בוצעו')
-   + stat('אימונים ב־7 ימים', week, 'הושלמו')
-   + stat('הכנסות החודש', money(income), S.payments.filter(p=>(p.date||'').slice(0,7)===mon).length+' תשלומים')
+   + stat('מתאמנים פעילים', act.length, act.filter(x=>x.status==='active').length+' סך הכול', ICO.users)
+   + stat('אימונים היום', today.length, today.filter(s=>s.status==='done').length+' בוצעו', ICO.check)
+   + stat('אימונים ב־7 ימים', week, 'הושלמו', ICO.cal)
+   + stat('הכנסות החודש', money(income), S.payments.filter(p=>(p.date||'').slice(0,7)===mon).length+' תשלומים', ICO.wallet)
    + '</div>';
 
   h+='<div class="grid g2" style="margin-top:14px">';
@@ -530,7 +547,36 @@ function vDash(){
 function head(t,sub,actions){
   return '<div class="page-head"><div><h1>'+t+'</h1><p>'+sub+'</p></div><div class="spacer"></div><div class="row noprint">'+(actions||'')+'</div></div>';
 }
-function stat(l,v,s){ return '<div class="card stat"><div class="lbl">'+l+'</div><div class="val">'+v+'</div><div class="sub">'+(s||'')+'</div></div>'; }
+/* אייקוני קו. אימוג'י נושא צבע משלו ושובר את הגוון האחיד
+   של הכרטיסים; SVG יורש currentColor ונשאר בזית. */
+const ICO = (function(){
+  const w = d => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" '
+    + 'stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" '
+    + 'style="width:21px;height:21px;display:block">' + d + '</svg>';
+  return {
+    users: w('<path d="M16 20v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>'
+            +'<circle cx="9" cy="7" r="3.2"/><path d="M22 20v-2a4 4 0 0 0-3-3.9"/>'
+            +'<path d="M16 3.3a4 4 0 0 1 0 7.4"/>'),
+    check: w('<rect x="3" y="4.5" width="18" height="16.5" rx="2.5"/>'
+            +'<path d="M3 9.5h18M8 2.5v4M16 2.5v4"/><path d="M9 15l2 2 4-4"/>'),
+    cal:   w('<rect x="3" y="4.5" width="18" height="16.5" rx="2.5"/>'
+            +'<path d="M3 9.5h18M8 2.5v4M16 2.5v4"/>'
+            +'<circle cx="8" cy="14" r="1"/><circle cx="12" cy="14" r="1"/>'
+            +'<circle cx="16" cy="14" r="1"/><circle cx="8" cy="18" r="1"/>'),
+    wallet:w('<path d="M3 8.5A2.5 2.5 0 0 1 5.5 6H19a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5.5A2.5 2.5 0 0 1 3 16.5z"/>'
+            +'<path d="M3 8.5V7a2 2 0 0 1 2-2h11"/><circle cx="17" cy="12.5" r="1.3"/>'),
+    key:   w('<circle cx="8" cy="15" r="4"/><path d="M11 12l8-8M17 6l2 2M15 8l2 2"/>'),
+  };
+})();
+
+/* האייקון אופציונלי — קריאות ישנות בלעדיו ממשיכות לעבוד בלי שינוי. */
+function stat(l,v,s,ic){
+  return '<div class="card stat">'
+    + (ic ? '<div class="ic">'+ic+'</div>' : '')
+    + '<div class="val">'+v+'</div>'
+    + '<div class="lbl">'+l+'</div>'
+    + '<div class="sub">'+(s||'')+'</div></div>';
+}
 function alertRow(ic,txt,btn,fn){
   return '<div class="line-item"><span style="font-size:16px">'+ic+'</span><span style="flex:1;font-size:13.5px">'+txt+'</span><button class="btn sm ghost" onclick="'+fn+'">'+btn+'</button></div>';
 }
@@ -1658,28 +1704,28 @@ if (location.protocol === 'file:') {
 }
 </script>
 
-<script src="health.js?v=v71"></script>
-<script src="privacy.js?v=v71"></script>
-<script src="backup.js?v=v71"></script>
-<script src="reorder.js?v=v71"></script>
-<script src="access.js?v=v71"></script>
-<script src="analysis.js?v=v71"></script>
-<script src="business.js?v=v71"></script>
-<script src="intake.js?v=v71"></script>
-<script src="files.js?v=v71"></script>
-<script src="builder.js?v=v71"></script>
-<script src="import-program.js?v=v71"></script>
-<script src="tracking.js?v=v71"></script>
-<script src="metrics.js?v=v71"></script>
-<script src="meal-library.js?v=v71"></script>
-<script src="library-ui.js?v=v71"></script>
-<script src="export-plan.js?v=v71"></script>
-<script src="cardio.js?v=v71"></script>
-<script src="cardio-ui.js?v=v71"></script>
-<script src="exercise-library.js?v=v71"></script>
-<script src="exercise-ui.js?v=v71"></script>
-<script src="meals.js?v=v71"></script>
-<script src="sync.js?v=v71"></script>
+<script src="health.js?v=v73"></script>
+<script src="privacy.js?v=v73"></script>
+<script src="backup.js?v=v73"></script>
+<script src="reorder.js?v=v73"></script>
+<script src="access.js?v=v73"></script>
+<script src="analysis.js?v=v73"></script>
+<script src="business.js?v=v73"></script>
+<script src="intake.js?v=v73"></script>
+<script src="files.js?v=v73"></script>
+<script src="builder.js?v=v73"></script>
+<script src="import-program.js?v=v73"></script>
+<script src="tracking.js?v=v73"></script>
+<script src="metrics.js?v=v73"></script>
+<script src="meal-library.js?v=v73"></script>
+<script src="library-ui.js?v=v73"></script>
+<script src="export-plan.js?v=v73"></script>
+<script src="cardio.js?v=v73"></script>
+<script src="cardio-ui.js?v=v73"></script>
+<script src="exercise-library.js?v=v73"></script>
+<script src="exercise-ui.js?v=v73"></script>
+<script src="meals.js?v=v73"></script>
+<script src="sync.js?v=v73"></script>
 <script>
 /* =================== חיבור הסנכרון לאפליקציה =================== */
 
