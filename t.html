@@ -25,7 +25,7 @@
   --ink:#221A12; --card:#34281E; --line:#48392B; --line2:#5F4C39;
   --tx:#F2E8D8; --mut:#B3A48E; --dim:#7E7060;
   --or:#8FA84F; --or-soft:rgba(143,168,79,.15);
-  --cop:#D19A55;
+  --cop:#D19A55; --gold:#E7B873; --glow:rgba(143,168,79,.18);
   --ok:#A8C75E; --r:10px;
 }
 *{box-sizing:border-box}
@@ -35,8 +35,9 @@ body{
   font-family:'Heebo',system-ui,sans-serif; font-size:15px; line-height:1.5;
   -webkit-font-smoothing:antialiased;
   background-image:
-    radial-gradient(860px 480px at 88% -12%, rgba(143,168,79,.11), transparent 62%),
-    radial-gradient(720px 440px at 6% 104%, rgba(209,154,85,.08), transparent 60%);
+    radial-gradient(900px 500px at 92% -8%, rgba(143,168,79,.16), transparent 62%),
+    radial-gradient(760px 480px at 0% 42%, rgba(209,154,85,.08), transparent 64%),
+    linear-gradient(155deg, rgba(255,255,255,.025), transparent 32%);
   background-attachment:fixed;
   padding-bottom:calc(96px + env(safe-area-inset-bottom));
 }
@@ -53,9 +54,24 @@ button{cursor:pointer}
 .brand .dot{width:6px;height:6px;border-radius:50%;background:var(--or);display:inline-block}
 .top h1{font-size:22px;margin-top:3px}
 .top .sub{color:var(--mut);font-size:13px;margin-top:2px}
+.top:after{content:'';display:block;position:absolute;right:0;left:0;bottom:-1px;height:1px;background:linear-gradient(90deg,transparent,var(--or),transparent);opacity:.45}
 
 .wrap{padding:16px 14px 0;max-width:640px;margin:0 auto}
 .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px;margin-bottom:12px}
+.hero{position:relative;overflow:hidden;padding:24px 20px 20px;margin-bottom:16px;border-color:var(--line2);background:linear-gradient(135deg,rgba(52,40,30,.98),rgba(43,33,25,.93));box-shadow:0 18px 44px rgba(0,0,0,.22)}
+.hero:before{content:'';position:absolute;width:210px;height:210px;border:1px solid rgba(231,184,115,.18);border-radius:50%;left:-92px;top:-112px;box-shadow:0 0 0 18px rgba(231,184,115,.025),0 0 0 38px rgba(231,184,115,.018)}
+.hero-kicker{position:relative;color:var(--gold);font-size:11px;letter-spacing:.16em;font-weight:700;margin-bottom:8px}
+.hero h2{position:relative;font-size:28px;line-height:1.15;max-width:420px}
+.hero p{position:relative;color:var(--mut);margin:8px 0 0;font-size:14px;max-width:470px}
+.hero-meta{position:relative;display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}
+.hero-chip{border:1px solid rgba(231,184,115,.28);background:rgba(231,184,115,.08);border-radius:20px;padding:5px 10px;color:#EFD7B5;font-size:12px}
+.overview{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
+.overview-card{background:rgba(52,40,30,.78);border:1px solid var(--line);border-radius:var(--r);padding:12px}
+.overview-card strong{display:block;font-family:Heebo;font-size:22px;color:var(--or);line-height:1.1}
+.overview-card span{display:block;color:var(--mut);font-size:11.5px;margin-top:4px}
+.section-head{display:flex;align-items:baseline;gap:8px;margin:20px 2px 9px}
+.section-head h3{font-size:17px;flex:1}
+.section-head span{color:var(--dim);font-size:12px}
 
 .days{display:flex;gap:8px;overflow-x:auto;padding:2px 0 10px;-webkit-overflow-scrolling:touch}
 .days button{
@@ -68,6 +84,8 @@ button{cursor:pointer}
 .dayc{background:var(--card);border:1px solid var(--line);border-radius:var(--r);margin-bottom:10px;overflow:hidden}
 .dayc.on{border-color:var(--line2)}
 .dayc.full{border-color:rgba(168,199,94,.4)}
+.dayc.today{box-shadow:0 0 0 1px rgba(231,184,115,.28),0 12px 30px rgba(0,0,0,.15)}
+.dayc.today .dayh:after{content:'היום';color:var(--gold);font-size:11px;border:1px solid rgba(231,184,115,.32);border-radius:20px;padding:3px 8px}
 .dayh{width:100%;background:none;border:0;padding:13px 14px;display:flex;align-items:center;gap:12px;text-align:right}
 .daynum{
   width:30px;height:30px;flex:none;border-radius:50%;display:grid;place-items:center;
@@ -114,9 +132,19 @@ button{cursor:pointer}
 }
 .bar .prog{flex:1;font-size:13px;color:var(--mut)}
 .bar .prog b{color:var(--tx);font-family:'Heebo'}
+.bar .bar-title{font-size:11px;color:var(--gold);letter-spacing:.08em;margin-bottom:1px}
+.bar .bar-copy{font-size:13px;color:var(--mut)}
 .btn{background:var(--or);color:#141A06;border:0;border-radius:10px;padding:12px 20px;font-weight:700;font-family:'Heebo';font-size:15px}
 .btn:disabled{opacity:.4}
 .btn.ghost{background:var(--card);color:var(--tx);border:1px solid var(--line)}
+.login-shell{max-width:470px;margin:7vh auto 0}
+.login-brand{color:var(--gold);font-size:11px;letter-spacing:.18em;font-weight:800;margin-bottom:9px}
+.login-shell .card{padding:24px 20px;box-shadow:0 20px 50px rgba(0,0,0,.2)}
+.login-shell h2{font-size:27px;line-height:1.15}
+.login-shell .login-intro{color:var(--mut);font-size:14px;margin:8px 0 20px}
+.login-shell label{display:block;color:var(--mut);font-size:13px;margin-top:12px}
+.login-shell input{margin-top:6px}
+.login-shell .login-mark{width:58px;height:58px;border-radius:18px;display:grid;place-items:center;background:var(--or-soft);border:1px solid rgba(143,168,79,.35);color:var(--or);font-size:25px;margin-bottom:16px}
 
 .mt{color:var(--mut)}
 .mt b{color:var(--tx);font-family:'Heebo'}
@@ -134,6 +162,20 @@ button{cursor:pointer}
 }
 #toast.on{opacity:1;transform:translate(50%,0)}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+.category-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-bottom:18px}
+.category-tile{appearance:none;text-align:center;background:linear-gradient(145deg,rgba(52,40,30,.98),rgba(43,33,25,.9));border:1px solid var(--line);border-radius:var(--r);padding:16px 10px;color:var(--tx);min-height:142px;transition:.18s;box-shadow:0 8px 22px rgba(0,0,0,.12)}
+.category-tile:hover,.category-tile:focus-visible{border-color:var(--or);transform:translateY(-2px);box-shadow:0 12px 28px rgba(0,0,0,.2)}
+.category-icon{display:grid;place-items:center;width:58px;height:58px;margin:0 auto 10px;border:0;border-radius:0;background:transparent;color:var(--or);font-size:44px;line-height:1;box-shadow:none}
+.category-icon svg{display:block;width:100%;height:100%}
+.category-tile strong{display:block;font-size:14px}.category-tile span{display:block;color:var(--mut);font-size:11px;margin-top:2px}
+.category-modal{position:fixed;inset:0;z-index:90;background:rgba(18,13,9,.78);backdrop-filter:blur(12px);display:flex;align-items:flex-end;justify-content:center;padding:18px}
+.category-dialog{width:min(720px,100%);max-height:min(88vh,820px);overflow:auto;background:var(--ink);border:1px solid var(--line2);border-radius:18px 18px 8px 8px;box-shadow:0 24px 70px rgba(0,0,0,.48);padding:18px 16px 28px;animation:modalIn .2s ease-out}
+.category-dialog-head{display:flex;align-items:center;gap:10px;padding-bottom:13px;margin-bottom:4px;border-bottom:1px solid var(--line)}
+.category-dialog-head h2{font-size:22px;flex:1}.category-dialog-head p{margin:2px 0 0;color:var(--mut);font-size:12px}
+.category-close{width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:var(--card);color:var(--tx);font-size:18px}
+@keyframes modalIn{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+@media(min-width:700px){.category-modal{align-items:center}.category-dialog{border-radius:18px}}
+@media(max-width:520px){.hero{padding:21px 16px 17px}.hero h2{font-size:24px}.overview-card{text-align:center;padding:10px 5px}.overview-card strong{font-size:19px}.overview-card span{font-size:10.5px}.category-tile{min-height:116px;padding:11px 6px}.category-icon{width:48px;height:48px;font-size:38px;margin-bottom:7px}.category-tile strong{font-size:13px}.category-tile span{font-size:10px}}
 </style>
 </head>
 <body>
@@ -150,13 +192,13 @@ button{cursor:pointer}
 
 <div id="toast"></div>
 
-<script src="vendor/supabase.js?v=v73"></script>
-<script src="config.js?v=v73"></script>
-<script src="meal-library.js?v=v73"></script>
-<script src="exercise-library.js?v=v73"></script>
-<script src="progress.js?v=v73"></script>
-<script src="health.js?v=v73"></script>
-<script src="privacy.js?v=v73"></script>
+<script src="vendor/supabase.js?v=v74"></script>
+<script src="config.js?v=v74"></script>
+<script src="meal-library.js?v=v74"></script>
+<script src="exercise-library.js?v=v74"></script>
+<script src="progress.js?v=v74"></script>
+<script src="health.js?v=v74"></script>
+<script src="privacy.js?v=v74"></script>
 <script>
 (function () {
   'use strict';
@@ -238,9 +280,9 @@ button{cursor:pointer}
   /* ---------- כניסה עם שם משתמש ---------- */
   function loginScreen(err) {
     DATA = null;
-    screen('<div class="card" style="margin-top:24px">'
-      + '<h2 style="font-size:19px;margin-bottom:4px">הכניסה שלך</h2>'
-      + '<p style="color:var(--mut);font-size:13px;margin:0 0 16px">הפרטים שקיבלת מהמאמן.</p>'
+    screen('<div class="login-shell"><div class="login-brand">E.B FIT · PERSONAL COACHING</div><div class="card">'
+      + '<div class="login-mark">✦</div><h2>המרחב האישי שלך</h2>'
+      + '<p class="login-intro">התחבר כדי לפתוח את התוכנית, לעקוב אחרי האימונים ולראות את היעדים שלך.</p>'
       + '<label style="font-size:13px;color:var(--mut)">שם משתמש</label>'
       + '<input id="lg_u" autocapitalize="none" autocorrect="off" spellcheck="false" '
       + 'style="width:100%;background:var(--ink);border:1px solid var(--line);border-radius:10px;'
@@ -250,8 +292,9 @@ button{cursor:pointer}
       + 'style="width:100%;background:var(--ink);border:1px solid var(--line);border-radius:10px;'
       + 'padding:12px;margin:6px 0 4px;font-size:16px;direction:ltr;text-align:left">'
       + (err ? '<div style="color:#D9605A;font-size:13px;margin-top:8px">' + esc(err) + '</div>' : '')
-      + '<button class="btn" id="lg_go" style="width:100%;margin-top:14px">כניסה</button>'
-      + '</div>');
+      + '<button class="btn" id="lg_go" style="width:100%;margin-top:14px">כניסה למרחב שלי</button>'
+      + '<div style="text-align:center;color:var(--dim);font-size:12px;margin-top:13px">הפרטים שקיבלת מהמאמן נשמרים באופן פרטי.</div>'
+      + '</div></div>');
     var go = document.getElementById('lg_go');
     go.onclick = doLogin;
     document.getElementById('lg_p').addEventListener('keydown', function (e) {
@@ -1012,20 +1055,43 @@ button{cursor:pointer}
 
     screen(
         openerBlock(days)
-      + healthAlert()
-      + targetsBlock()
-      + progBlock()
-      + planBlock(days)
-      + nutritionPlan()
-      + exBlockSafe()
-      + libButton()
-      + exButton()
-      + filesBlock(files)
-      + healthFolder()
+      + categoryBlock()
+      + statsBlock(days)
       + footerBlock()
     );
     bar();
   }
+
+  function categoryContent(key) {
+    const days=(DATA.program&&DATA.program.days)||[], files=DATA.files||[];
+    if(key==='workout') return planBlock(days)+exBlockSafe()+exButton();
+    if(key==='food') return targetsBlock()+nutritionPlan()+libButton();
+    if(key==='body') return bodyMetricsBlock()+targetsBlock()+healthAlert()+healthFolder()+filesBlock(files);
+    return progBlock()+historyBlock(days);
+  }
+  function historyBlock(days) {
+    const done=days.reduce((n,d,i)=>n+(d.exercises||[]).filter((_,j)=>(STATE[i+':'+j]||{}).done).length,0);
+    return '<div class="card"><div style="font-size:13px;color:var(--mut);margin-bottom:8px">מעקב כללי</div>'
+      +'<div style="display:flex;gap:12px;flex-wrap:wrap;font-size:13px">'
+      +'<span>ימי תוכנית <b>'+days.length+'</b></span><span>תרגילים שבוצעו <b>'+done+'</b></span>'
+      +'</div></div>';
+  }
+  function bodyMetricsBlock() {
+    const bmi=bodyBmi();
+    if(!bmi && !DATA.height && !DATA.weight) return '';
+    return '<div class="card" style="border-color:var(--line2)"><div style="font-size:13px;color:var(--mut);margin-bottom:10px">מדד מסת הגוף</div>'
+      +(bmi?'<div style="display:flex;align-items:baseline;gap:9px"><strong style="font-family:Heebo;font-size:32px;color:var(--or)">'+bmi.value+'</strong><span style="font-size:14px">BMI · '+bmi.label+'</span></div><div class="mt" style="font-size:12px;margin-top:6px">מחושב לפי משקל וגובה עדכניים: '+DATA.weight+' ק״ג · '+DATA.height+' ס״מ</div>'
+          :'<div style="font-size:13px;color:var(--mut)">נדרש משקל וגובה כדי לחשב BMI.</div>')+'</div>';
+  }
+  function openCategory(key) {
+    const labels={workout:['אימון','התוכנית והביצוע'],food:['תזונה','התפריט והיעדים שלך'],body:['גוף','מדדים, בריאות וקבצים'],follow:['מעקב','ההתקדמות שלך']};
+    const item=labels[key]||labels.workout;
+    closeCategory();
+    const modal=document.createElement('div'); modal.className='category-modal'; modal.id='categoryModal';
+    modal.innerHTML='<div class="category-dialog" role="dialog" aria-modal="true"><div class="category-dialog-head"><div style="flex:1"><h2>'+item[0]+'</h2><p>'+item[1]+'</p></div><button class="category-close" data-category-close aria-label="סגירה">×</button></div><div class="category-dialog-body">'+categoryContent(key)+'</div></div>';
+    document.body.appendChild(modal); document.body.style.overflow='hidden';
+  }
+  function closeCategory(){ const modal=document.getElementById('categoryModal'); if(modal) modal.remove(); document.body.style.overflow=''; }
 
   /* פתיח: משפט אחד שאומר מה יש כאן. בלעדיו הדף נפתח באמצע עניין
      ולא ברור אם זו התוכנית המלאה או קטע ממנה. */
@@ -1034,19 +1100,58 @@ button{cursor:pointer}
     const ex    = days.reduce((a, d) => a + ((d.exercises || []).length), 0);
     const meals = (DATA.meals || []).length;
     const t     = (DATA.program && DATA.program.targets) || null;
+    const done = days.reduce((a, d, i) => a + (d.exercises || []).filter((_, j) => (STATE[i + ':' + j] || {}).done).length, 0);
+    const pct = ex ? Math.round(done / ex * 100) : 0;
+    const chips = [];
+    if (DATA.goal) chips.push('<span class="hero-chip">' + esc(DATA.goal) + '</span>');
+    if (t && t.kcal) chips.push('<span class="hero-chip">' + Number(t.kcal).toLocaleString('en-US') + ' קק״ל ביום</span>');
+    const hour=new Date().getHours();
+    const greeting=hour<5?'לילה טוב':hour<12?'בוקר טוב':hour<18?'צהריים טובים':'ערב טוב';
+    return '<section class="hero">'
+      + '<div class="hero-kicker">המרחב האישי שלך · E.B FIT</div>'
+      + '<h2>' + (first ? greeting + ', ' + esc(first) : 'התוכנית שלך מוכנה') + '</h2>'
+      + '<p>' + (pct ? 'המשכת קדימה. כל ביצוע קטן מצטבר לתוצאה גדולה.' : 'כאן נמצאים האימונים, היעדים והכלים שלך במקום אחד.') + '</p>'
+      + '<div class="hero-meta">' + chips.join('') + (pct ? '<span class="hero-chip">' + pct + '% מהשבוע הושלם</span>' : '') + '</div>'
+      + '</section>';
+  }
 
-    const bits = [];
-    if (days.length) bits.push(days.length + ' ימי אימון');
-    if (ex)          bits.push(ex + ' תרגילים');
-    if (meals)       bits.push(meals + ' ארוחות בתפריט');
-    if (t && t.kcal) bits.push('יעד של ' + t.kcal.toLocaleString('en-US') + ' קק״ל ביום');
-    if (!bits.length) return '';
-
-    return '<div class="card" style="margin-bottom:12px;background:transparent;border:0;padding:4px 2px 0">'
-      + '<div style="font-family:Frank Ruhl Libre,serif;font-weight:700;font-size:19px;line-height:1.35">'
-      + (first ? esc(first) + ', זו התוכנית שלך' : 'זו התוכנית שלך') + '</div>'
-      + '<div class="mt" style="font-size:13.5px;margin-top:6px;line-height:1.6">'
-      + bits.join(' · ') + '.</div></div>';
+  function categoryBlock() {
+    return '<div class="section-head"><h3>המרחב שלך</h3><span>בחר קטגוריה</span></div>'
+      + '<div class="category-grid">'
+      + categoryTile('workout','אימון','התוכנית והביצוע')
+      + categoryTile('food','תזונה','ארוחות ויעדים')
+      + categoryTile('body','גוף','מדדים ובריאות')
+      + categoryTile('follow','מעקב','התקדמות והרגלים')
+      + '</div>';
+  }
+  function categoryIcon(key) {
+    const paths={
+      workout:'<path d="M6 8v8M10 6v12M14 6v12M18 8v8M3 10h18M3 14h18"/>',
+      food:'<path d="M5 3v8M8 3v8M5 7h3M6.5 11v10M15 3v18M15 3c3 2 4 5 4 8h-4"/>',
+      body:'<circle cx="12" cy="5" r="2.5"/><path d="M8 21l1.5-7L7 11l2-3 3 2 3-2 2 3-2.5 3 1.5 7M9.5 14h5"/>',
+      follow:'<circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3.5 2M8.5 3.5l-2-2M15.5 3.5l2-2"/>'
+    };
+    return '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">'+paths[key]+'</g></svg>';
+  }
+  function categoryTile(key, title, sub) {
+    return '<button class="category-tile" data-category="'+key+'"><span class="category-icon">'+categoryIcon(key)+'</span><strong>'+title+'</strong><span>'+sub+'</span></button>';
+  }
+  function statsBlock(days) {
+    const exercises=days.reduce((n,d)=>n+(d.exercises||[]).length,0);
+    const done=days.reduce((n,d,i)=>n+(d.exercises||[]).filter((_,j)=>(STATE[i+':'+j]||{}).done).length,0);
+    const meals=(DATA.meals||[]).length;
+    const pct=exercises?Math.round(done/exercises*100):0;
+    const bmi=bodyBmi();
+    return '<div class="section-head"><h3>הסטטיסטיקות שלך</h3><span>תמונת מצב</span></div><div class="overview">'
+      +'<div class="overview-card"><strong>'+pct+'%</strong><span>השלמת התוכנית</span></div>'
+      +'<div class="overview-card"><strong>'+done+'</strong><span>תרגילים שבוצעו</span></div>'
+      +'<div class="overview-card"><strong>'+(bmi?bmi.value:'—')+'</strong><span>'+(bmi?'BMI · '+bmi.label:'BMI ללא נתונים')+'</span></div></div>';
+  }
+  function bodyBmi() {
+    const h=Number(DATA.height), w=Number(DATA.weight);
+    if(!(h>0&&w>0)) return null;
+    const value=Math.round((w/Math.pow(h/100,2))*10)/10;
+    return {value:value,label:value<18.5?'תת-משקל':value<25?'תקין':value<30?'עודף משקל':value<35?'השמנה דרגה 1':value<40?'השמנה דרגה 2':'השמנה דרגה 3'};
   }
 
   /* היעדים המחושבים. מגיעים בתוך התוכנית כי הם נגזרים ממדידות
@@ -1079,8 +1184,7 @@ button{cursor:pointer}
      נראית התוכנית כולה במבט אחד, ואפשר לפתוח את מה שמתאמנים היום. */
   function planBlock(days) {
     if (!days.length) return '';
-    let h = '<div style="font-family:Frank Ruhl Libre,serif;font-weight:700;font-size:15px;'
-      + 'margin:18px 0 10px">התוכנית השבועית</div>';
+    let h = '<div class="section-head"><h3>תוכנית האימון</h3><span>' + days.length + ' ימים · ' + days.reduce((n, d) => n + (d.exercises || []).length, 0) + ' תרגילים</span></div>';
 
     days.forEach((d, i) => {
       const ex   = d.exercises || [];
@@ -1088,7 +1192,7 @@ button{cursor:pointer}
       const done = ex.filter((_, j) => (STATE[i + ':' + j] || {}).done).length;
       const full = ex.length > 0 && done === ex.length;
 
-      h += '<div class="dayc' + (open ? ' on' : '') + (full ? ' full' : '') + '" data-d="' + i + '">'
+      h += '<div class="dayc' + (open ? ' on' : '') + (full ? ' full' : '') + (i === DAY ? ' today' : '') + '" data-d="' + i + '">'
         + '<button class="dayh" data-day="' + i + '">'
         + '<span class="daynum">' + (i + 1) + '</span>'
         + '<span class="dayt"><span class="dayn">' + esc(d.name || ('יום ' + (i + 1))) + '</span>'
@@ -1577,7 +1681,7 @@ button{cursor:pointer}
     if (!b) { b = document.createElement('div'); b.className = 'bar'; document.body.appendChild(b); }
     const pct = Math.round(done / tot * 100);
     b.innerHTML =
-        '<div class="prog"><b>' + done + '</b> מתוך <b>' + tot + '</b> תרגילים השבוע</div>'
+      '<div class="prog"><div class="bar-title">ההתקדמות שלך</div><div class="bar-copy"><b>' + done + '</b> מתוך <b>' + tot + '</b> תרגילים השבוע</div></div>'
       + '<div style="flex:none;width:74px;height:5px;border-radius:20px;background:var(--card);overflow:hidden">'
       + '<div style="height:100%;width:' + pct + '%;border-radius:20px;background:var(--or)"></div></div>'
       + '<b style="font-family:Heebo;font-size:14px;min-width:34px;text-align:left">' + pct + '%</b>';
@@ -1585,6 +1689,11 @@ button{cursor:pointer}
 
   /* ---------- אינטראקציה ---------- */
   document.addEventListener('click', e => {
+    const category = e.target.closest('[data-category]');
+    if (category) { openCategory(category.dataset.category); return; }
+    if (e.target.closest('[data-category-close]') || (e.target.id === 'categoryModal' && !e.target.closest('.category-dialog'))) {
+      closeCategory(); return;
+    }
     /* פתיחה וסגירה במקום, בלי ציור מחדש — ציור מלא מחזיר את הגלילה
        לראש הדף, ומי שפתח את יום ד' נזרק חזרה ליום א'. */
     const day = e.target.closest('[data-day]');
@@ -1638,6 +1747,7 @@ button{cursor:pointer}
 
     if (e.target.id === 'finish') finish(DAY);
   });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeCategory(); });
 
   document.addEventListener('input', e => {
     /* עדכון הסיכום בלבד. ציור מחדש בכל הקלדה היה מוציא את הסמן

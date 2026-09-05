@@ -15,7 +15,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['business'] = 'v73';
+  (window.EB_MOD = window.EB_MOD || {})['business'] = 'v74';
 
   var DAY = 86400000;
   function iso(d) { return new Date(d).toISOString().slice(0, 10); }
@@ -291,21 +291,110 @@
 
   function col(s) { return s >= 85 ? '#1E8449' : s >= 70 ? '#5E7A2E' : s >= 55 ? '#B9770E' : '#C0392B'; }
   var LC = { bad: '#C0392B', warn: '#B9770E', ok: '#6B5B47', good: '#1E8449' };
+  function num(v) { var x = Number(v); return isFinite(x) ? x : 0; }
+  function moneyLabel(v) { return '₪' + Math.round(v).toLocaleString('en-US'); }
+  function daysAgo(n) { var d = new Date(Date.now() - n * 86400000); return d.toISOString().slice(0, 10); }
+
+  function monthTrend(S) {
+    var out = [], now = new Date();
+    for (var i = 5; i >= 0; i--) {
+      var d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      var key = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+      var total = (S.payments || []).filter(function (p) { return String(p.date || '').slice(0, 7) === key; })
+        .reduce(function (sum, p) { return sum + num(p.amount); }, 0);
+      out.push({ label: d.toLocaleDateString('he-IL', { month: 'short' }), value: total });
+    }
+    return out;
+  }
+
+  function analyticsKpis(S) {
+    var active = (S.trainees || []).filter(function (t) { return t.status !== 'archived'; });
+    var d30 = daysAgo(30);
+    var revenue = (S.payments || []).filter(function (p) { return (p.date || '') >= d30; })
+      .reduce(function (sum, p) { return sum + num(p.amount); }, 0);
+    var sessions = (S.sessions || []).filter(function (s) { return (s.date || '') >= d30; });
+    var done = sessions.filter(function (s) { return s.status === 'done'; }).length;
+    var scheduled = sessions.filter(function (s) { return s.status === 'scheduled'; }).length;
+    var debt = active.reduce(function (sum, t) { return sum + num(t.balanceDue); }, 0);
+    return { active: active.length, revenue: revenue, done: done, scheduled: scheduled, debt: debt,
+      attendance: sessions.length ? Math.round(done / sessions.length * 100) : 0 };
+  }
+
+  function analyticsCharts(S) {
+    var trend = monthTrend(S), max = Math.max(1, ...trend.map(function (x) { return x.value; }));
+    var k = analyticsKpis(S);
+    var active = (S.trainees || []).filter(function (t) { return t.status !== 'archived'; });
+    var status = { active: 0, paused: 0 };
+    active.forEach(function (t) { status[t.status === 'paused' ? 'paused' : 'active']++; });
+    var bar = '<div class="card analytics-chart"><div class="analytics-head"><h3>הכנסות לאורך זמן</h3><span>6 חודשים אחרונים</span></div><div class="revenue-chart">';
+    trend.forEach(function (x) {
+      var height = Math.max(5, Math.round(x.value / max * 100));
+      bar += '<div class="revenue-col"><b>' + (x.value ? moneyLabel(x.value) : '') + '</b><i style="height:' + height + '%"></i><span>' + x.label + '</span></div>';
+    });
+    bar += '</div></div>';
+    var total = Math.max(1, status.active + status.paused);
+    var donut = '<div class="card analytics-chart"><div class="analytics-head"><h3>מצב מתאמנים</h3><span>' + active.length + ' פעילים במערכת</span></div>'
+      + '<div class="status-chart"><div class="donut" style="--active:' + Math.round(status.active / total * 100) + '%"><strong>' + Math.round(status.active / total * 100) + '%</strong></div>'
+      + '<div class="status-legend"><span><i class="dot active"></i>פעילים <b>' + status.active + '</b></span><span><i class="dot paused"></i>בהקפאה <b>' + status.paused + '</b></span></div></div></div>';
+    var funnel = '<div class="card analytics-chart"><div class="analytics-head"><h3>ביצועי החודש</h3><span>30 יום אחרונים</span></div>'
+      + '<div class="metric-bars"><div><span>בוצעו</span><b>' + k.done + '</b><i style="width:' + Math.min(100, k.done * 4) + '%"></i></div>'
+      + '<div><span>מתוכננים</span><b>' + k.scheduled + '</b><i style="width:' + Math.min(100, k.scheduled * 4) + '%"></i></div>'
+      + '<div><span>נוכחות</span><b>' + k.attendance + '%</b><i style="width:' + k.attendance + '%"></i></div></div></div>';
+    return '<div class="analytics-kpis">'
+      + '<div class="analytics-kpi"><span>הכנסות החודש</span><strong>' + moneyLabel(k.revenue) + '</strong><small>30 יום אחרונים</small></div>'
+      + '<div class="analytics-kpi"><span>אימונים שבוצעו</span><strong>' + k.done + '</strong><small>בחודש האחרון</small></div>'
+      + '<div class="analytics-kpi"><span>שיעור נוכחות</span><strong>' + k.attendance + '%</strong><small>מתוך האימונים</small></div>'
+      + '<div class="analytics-kpi"><span>חוב פתוח</span><strong>' + moneyLabel(k.debt) + '</strong><small>לגבייה</small></div></div>'
+      + '<div class="analytics-grid">' + bar + donut + funnel + '</div>';
+  }
+
+  function traineeAnalytics(S) {
+    var rows = (S.trainees || []).filter(function (t) { return t.status !== 'archived'; }).map(function (t) {
+      var sessions = (S.sessions || []).filter(function (s) { return s.traineeId === t.id; });
+      var completed = sessions.filter(function (s) { return s.status === 'done'; });
+      var attended = sessions.filter(function (s) { return s.status === 'done' || s.status === 'noshow'; });
+      var last = completed.map(function (s) { return s.date; }).sort().pop() || '';
+      var days = (t.program && t.program.days) || [];
+      var exercises = days.reduce(function (n, d) { return n + (d.exercises || []).length; }, 0);
+      var coverage = exercises ? Math.min(100, Math.round(days.filter(function (d) { return (d.exercises || []).length; }).length / days.length * 100)) : 0;
+      return { t: t, completed: completed.length, attendance: attended.length ? Math.round(completed.length / attended.length * 100) : 0,
+        last: last, exercises: exercises, coverage: coverage, debt: num(t.balanceDue) };
+    }).sort(function (a, b) { return b.completed - a.completed; });
+    var h = '<div class="analytics-section-head"><div><h2>תמונת מצב לפי מתאמן</h2><p>כל מתאמן, הפעילות שלו והנקודה שדורשת תשומת לב.</p></div><span>' + rows.length + ' מתאמנים</span></div>';
+    h += '<div class="trainee-analytics">';
+    rows.forEach(function (r) {
+      var lastText = r.last ? new Date(r.last + 'T00:00').toLocaleDateString('he-IL', { day: 'numeric', month: 'short' }) : 'אין עדיין';
+      var state = r.t.status === 'paused' ? 'בהקפאה' : r.attendance < 60 && r.completed > 0 ? 'דורש תשומת לב' : 'במסלול';
+      h += '<div class="trainee-analytics-row">'
+        + '<div class="trainee-identity"><span class="analytics-avatar">' + esc(String(r.t.name || '?').trim().slice(0, 1)) + '</span><div><strong>' + esc(r.t.name || 'ללא שם') + '</strong><small>' + esc(state) + '</small></div></div>'
+        + '<div class="trainee-metric"><span>הושלמו</span><b>' + r.completed + '</b></div>'
+        + '<div class="trainee-metric"><span>נוכחות</span><b>' + r.attendance + '%</b><i><em style="width:' + r.attendance + '%"></em></i></div>'
+        + '<div class="trainee-metric"><span>תרגילים</span><b>' + r.exercises + '</b></div>'
+        + '<div class="trainee-metric"><span>אימון אחרון</span><b>' + lastText + '</b></div>'
+        + '<div class="trainee-metric"><span>חוב</span><b>' + (r.debt ? moneyLabel(r.debt) : '—') + '</b></div>'
+        + '</div>';
+    });
+    return h + '</div>';
+  }
 
   function view() {
     var r = EBBiz.analyze();
     var h = head('ניתוח העסק', 'ציון בשישה תחומים, וכל ממצא מתורגם לפעולה אחת', '');
 
     if (r.score == null) {
-      return h + '<div class="empty"><div class="big">📊</div>אין מספיק נתונים לניתוח.<br>'
-        + '<span class="muted" style="font-size:13px">צריך מתאמנים, אימונים מסומנים ותשלומים רשומים.</span></div>';
+      var lowData = typeof S !== 'undefined' ? S : { trainees: [], sessions: [], payments: [] };
+      return h + analyticsCharts(lowData) + traineeAnalytics(lowData)
+        + '<div class="empty"><div class="big">📊</div>אין מספיק נתונים לציון העסק.<br>'
+        + '<span class="muted" style="font-size:13px">צריך תשלומים ואימונים מסומנים כדי לחשב ציון משוקלל.</span></div>';
     }
 
-    h += '<div class="card" style="text-align:center;border-color:' + col(r.score) + '55;background:' + col(r.score) + '0D">'
+    h += analyticsCharts(typeof S !== 'undefined' ? S : { trainees: [], sessions: [], payments: [] });
+
+    var urgent = r.grade === 'דורש טיפול';
+    h += '<div class="analytics-grade ' + (urgent ? 'urgent' : '') + '" style="--grade:' + col(r.score) + '">'
+      + '<div class="grade-copy"><span class="grade-kicker">' + (urgent ? 'עדיפות ניהולית' : 'מדד בריאות העסק') + '</span><h2>' + (urgent ? 'דורש טיפול' : r.grade) + '</h2><p>' + (urgent ? 'יש כמה נקודות שמומלץ לטפל בהן עכשיו כדי למנוע פגיעה בהכנסות ובשימור.' : 'תמונת מצב משוקללת של הפעילות העסקית שלך.') + '</p></div>'
       + '<div style="font-weight:900;font-size:56px;line-height:1;color:' + col(r.score) + ';direction:ltr;'
-      + 'font-variant-numeric:tabular-nums">' + r.score + '</div>'
-      + '<div style="font-weight:800;font-size:16px;margin-top:6px">' + r.grade + '</div>'
-      + '<div class="muted" style="font-size:12.5px;margin-top:6px">מתוך 100 · '
+      + 'font-variant-numeric:tabular-nums">' + r.score + '</div><div class="grade-foot">מתוך 100 · '
       + r.scored.length + ' תחומים נמדדו'
       + (r.skipped.length ? ' · ' + r.skipped.length + ' ללא נתונים' : '') + '</div></div>';
 
@@ -333,6 +422,8 @@
       });
       h += '</div>';
     }
+
+    h += traineeAnalytics(typeof S !== 'undefined' ? S : { trainees: [], sessions: [] });
 
     /* פירוט לפי תחום */
     r.scored.forEach(function (s) {

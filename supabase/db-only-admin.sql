@@ -35,10 +35,10 @@ as $$
   join public.admins a on a.user_id = s.admin_id
   where a.active
     and s.expires_at > now()
-    and extensions.crypt(
+    and encode(extensions.digest(
       coalesce((current_setting('request.headers', true)::json ->> 'x-admin-token'), ''),
-      s.token_hash
-    ) = s.token_hash
+      'sha256'
+    ), 'hex') = s.token_hash
   limit 1;
 $$;
 
@@ -72,7 +72,7 @@ begin
 
   insert into public.admin_sessions(token_hash, admin_id, expires_at)
   values (
-    extensions.crypt(v_token, extensions.gen_salt('bf', 10)),
+    encode(extensions.digest(v_token, 'sha256'), 'hex'),
     r.user_id,
     now() + interval '12 hours'
   );
@@ -110,6 +110,7 @@ revoke all on function public.admin_logout() from public, anon, authenticated;
 grant execute on function public.admin_login(text, text) to anon, authenticated;
 grant execute on function public.admin_session() to anon, authenticated;
 grant execute on function public.admin_logout() to anon, authenticated;
+grant execute on function public.admin_request_id() to anon, authenticated;
 
 do $$
 declare t text;

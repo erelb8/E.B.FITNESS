@@ -15,7 +15,7 @@
   'use strict';
 
   // חותמת גרסה — index.html משווה אליה כדי לזהות קובץ ישן במטמון
-  (window.EB_MOD = window.EB_MOD || {})['sync'] = 'v73';
+  (window.EB_MOD = window.EB_MOD || {})['sync'] = 'v74';
 
   const CFG      = window.EBFIT_CONFIG || { URL: '', ANON: '' };
   const SNAP_KEY = 'ebfit_sync_v1';
@@ -40,7 +40,12 @@
     if (DEBUG && window.console) console.log.apply(console, ['[EBSync]'].concat([].slice.call(arguments)));
   }
   function logError() {
-    if (DEBUG && window.console) console.error.apply(console, ['[EBSync]'].concat([].slice.call(arguments)));
+    if (!DEBUG || !window.console) return;
+    const args = [].slice.call(arguments).map(value => {
+      if (!value || typeof value !== 'object') return value;
+      return { code: value.code, message: value.message, details: value.details, hint: value.hint };
+    });
+    console.error.apply(console, ['[EBSync]'].concat(args));
   }
 
   const enabled = () => !!(CFG.URL && CFG.ANON);
@@ -190,12 +195,20 @@
     document.addEventListener('visibilitychange', () => {
       if (!document.hidden) schedule(1500);
     });
+
+    /* רענון תקופתי בזמן שהמאמן צופה בתיק מתאמן. המתאמן כותב לשרת
+       דרך RPC משלו — שקילות, ארוחות, הצהרות ודיווחי ביצוע — ובלי
+       משיכה יזומה המאמן היה רואה נתון ישן עד לרענון ידני. */
+    setInterval(() => {
+      if (document.hidden || !user) return;
+      if (typeof window.VIEW !== 'undefined' && window.VIEW === 'trainee') schedule(0);
+    }, 45000);
     return true;
   }
 
   /* ---------- אימות ---------- */
   async function signIn(email, pass) {
-    log('signIn started', { email: email ? String(email).trim().toLowerCase() : '' });
+    log('signIn started', { email: email ? String(email).trim().toLowerCase() : '', passwordLength: String(pass || '').length });
     if (!init()) throw new Error(lastError || 'הסנכרון לא מוגדר');
     const { data, error } = await sb.rpc('admin_login', { p_email: email, p_password: pass });
     if (error) { logError('database admin login failed', error); throw error; }
