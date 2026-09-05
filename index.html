@@ -317,8 +317,8 @@ tbody tr:hover{background:var(--panel)}
 <div id="toast"></div>
 
 <!-- ספריית Supabase מקומית (לא מ-CDN) כדי שהאפליקציה תעבוד גם בלי רשת -->
-<script src="vendor/supabase.js?v=v68"></script>
-<script src="config.js?v=v68"></script>
+<script src="vendor/supabase.js?v=v69"></script>
+<script src="config.js?v=v69"></script>
 
 <script>
 /* =======================================================================
@@ -353,7 +353,7 @@ function age(b){ if(!b) return null; const d=new Date(b), t=new Date(); let a=t.
 
 /* ---------------- אחסון ---------------- */
 const KEY='ebfit_v1';
-const EB_VERSION='v68';   // חייב להתאים ל-VERSION ב-sw.js
+const EB_VERSION='v69';   // חייב להתאים ל-VERSION ב-sw.js
 let mem=null, canStore=true;
 function load(){
   try{ const r=localStorage.getItem(KEY); return r?JSON.parse(r):null; }
@@ -1465,7 +1465,8 @@ function vSettings(){
 
   h+='<div class="card"><h3 style="font-size:15px;margin-bottom:12px">גיבוי ושחזור</h3>'
    +'<p class="muted" style="font-size:13px;margin:0 0 12px">כל המידע נשמר בדפדפן הזה בלבד. כדאי לייצא גיבוי מדי פעם, וגם כדי לעבור בין מכשירים.</p>'
-   +'<div class="row"><button class="btn ghost" onclick="exportJSON()">ייצוא גיבוי</button>'
+   +(window.EBBackup?EBBackup.card():'')
+   +'<div class="row"><button class="btn ghost" onclick="exportJSON()">ייצוא מקומי בלבד</button>'
    +'<label class="btn ghost">ייבוא גיבוי<input type="file" accept="application/json" hidden onchange="importJSON(event)"></label>'
    +'<button class="btn ghost" onclick="seedDemo()">טעינת נתוני דוגמה</button>'
    +'<button class="btn danger" onclick="wipe()">מחיקת הכול</button></div>'
@@ -1655,25 +1656,26 @@ if (location.protocol === 'file:') {
 }
 </script>
 
-<script src="health.js?v=v68"></script>
-<script src="privacy.js?v=v68"></script>
-<script src="analysis.js?v=v68"></script>
-<script src="business.js?v=v68"></script>
-<script src="intake.js?v=v68"></script>
-<script src="files.js?v=v68"></script>
-<script src="builder.js?v=v68"></script>
-<script src="import-program.js?v=v68"></script>
-<script src="tracking.js?v=v68"></script>
-<script src="metrics.js?v=v68"></script>
-<script src="meal-library.js?v=v68"></script>
-<script src="library-ui.js?v=v68"></script>
-<script src="export-plan.js?v=v68"></script>
-<script src="cardio.js?v=v68"></script>
-<script src="cardio-ui.js?v=v68"></script>
-<script src="exercise-library.js?v=v68"></script>
-<script src="exercise-ui.js?v=v68"></script>
-<script src="meals.js?v=v68"></script>
-<script src="sync.js?v=v68"></script>
+<script src="health.js?v=v69"></script>
+<script src="privacy.js?v=v69"></script>
+<script src="backup.js?v=v69"></script>
+<script src="analysis.js?v=v69"></script>
+<script src="business.js?v=v69"></script>
+<script src="intake.js?v=v69"></script>
+<script src="files.js?v=v69"></script>
+<script src="builder.js?v=v69"></script>
+<script src="import-program.js?v=v69"></script>
+<script src="tracking.js?v=v69"></script>
+<script src="metrics.js?v=v69"></script>
+<script src="meal-library.js?v=v69"></script>
+<script src="library-ui.js?v=v69"></script>
+<script src="export-plan.js?v=v69"></script>
+<script src="cardio.js?v=v69"></script>
+<script src="cardio-ui.js?v=v69"></script>
+<script src="exercise-library.js?v=v69"></script>
+<script src="exercise-ui.js?v=v69"></script>
+<script src="meals.js?v=v69"></script>
+<script src="sync.js?v=v69"></script>
 <script>
 /* =================== חיבור הסנכרון לאפליקציה =================== */
 
