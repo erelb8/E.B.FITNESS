@@ -42,9 +42,13 @@ drop policy if exists programs_insert on storage.objects;
 drop policy if exists programs_update on storage.objects;
 drop policy if exists programs_delete on storage.objects;
 
--- קריאה: פתוחה. הנתיב האקראי הוא ההגנה.
+-- קריאה ורשימה: למאמן המחובר בלבד.
+-- הגרסה הראשונה כאן התירה select ל-anon בהנחה שהנתיב האקראי מגן.
+-- ההנחה שגויה: select על storage.objects הוא הרשאת *רשימה*, ומי
+-- שמקבל את הרשימה לא צריך לנחש דבר. הדלי נשאר public ולכן קישורי
+-- ההורדה הישירים של המתאמנים ממשיכים לעבוד.
 create policy programs_read on storage.objects
-  for select to anon, authenticated
+  for select to authenticated
   using (bucket_id = 'programs');
 
 create policy programs_insert on storage.objects
