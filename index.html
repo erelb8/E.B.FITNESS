@@ -317,8 +317,8 @@ tbody tr:hover{background:var(--panel)}
 <div id="toast"></div>
 
 <!-- ספריית Supabase מקומית (לא מ-CDN) כדי שהאפליקציה תעבוד גם בלי רשת -->
-<script src="vendor/supabase.js?v=v69"></script>
-<script src="config.js?v=v69"></script>
+<script src="vendor/supabase.js?v=v70"></script>
+<script src="config.js?v=v70"></script>
 
 <script>
 /* =======================================================================
@@ -353,7 +353,7 @@ function age(b){ if(!b) return null; const d=new Date(b), t=new Date(); let a=t.
 
 /* ---------------- אחסון ---------------- */
 const KEY='ebfit_v1';
-const EB_VERSION='v69';   // חייב להתאים ל-VERSION ב-sw.js
+const EB_VERSION='v70';   // חייב להתאים ל-VERSION ב-sw.js
 let mem=null, canStore=true;
 function load(){
   try{ const r=localStorage.getItem(KEY); return r?JSON.parse(r):null; }
@@ -842,7 +842,7 @@ function tabProgram(t){
    +'<button class="btn sm ghost" onclick="EBExUI.fillTrainee(\''+t.id+'\',9)">השלמה ל-9 בכל יום</button>'
    +'<button class="btn sm ghost" onclick="EBExUI.applyGoal(\''+t.id+'\')">🎯 התאמה למטרה</button>'
    +'<button class="btn sm ghost" onclick="window.print()">הדפסה</button><div class="spacer" style="flex:1"></div>'
-   +'<span class="muted" style="font-size:12.5px">לחיצה על שדה מאפשרת עריכה ישירה</span></div>';
+   +'<span class="muted" style="font-size:12.5px">לחיצה על שדה לעריכה · לחיצה ארוכה על שורה כדי להזיז תרגיל</span></div>';
   /* גם בלי תוכנית מוקלדת מציגים את כרטיס הקבצים — זה בדיוק המקרה
      שבו רוצים לצרף תוכנית מוכנה כ-PDF במקום להקליד אותה. */
   if(!p.days.length) return h+'<div class="empty"><div class="big">🏋</div>אין עדיין תוכנית מוקלדת. אפשר לפתוח יום אימון ראשון (A), או לצרף תוכנית מוכנה כקובץ למטה.</div>'+EBFiles.card(t);
@@ -873,7 +873,7 @@ function tabProgram(t){
      +'<div style="overflow-x:auto;padding:0 14px 12px">'
      +'<table><thead><tr><th style="width:34%">תרגיל</th><th>סטים</th><th>חזרות</th><th>משקל</th><th>מנוחה</th><th>הערה</th><th class="noprint"></th></tr></thead><tbody>';
     ex.forEach((e,ei)=>{
-      h+='<tr>'+exCell(t.id,di,ei,'name',e.name,'שם התרגיל')+exCell(t.id,di,ei,'sets',e.sets)+exCell(t.id,di,ei,'reps',e.reps)
+      h+='<tr data-tid="'+t.id+'" data-di="'+di+'" data-ei="'+ei+'">'+exCell(t.id,di,ei,'name',e.name,'שם התרגיל')+exCell(t.id,di,ei,'sets',e.sets)+exCell(t.id,di,ei,'reps',e.reps)
        +exCell(t.id,di,ei,'weight',e.weight)+exCell(t.id,di,ei,'rest',e.rest)+exCell(t.id,di,ei,'note',e.note)
        +'<td class="noprint"><button class="iconbtn" style="width:28px;height:28px" onclick="delEx(\''+t.id+'\','+di+','+ei+')">✕</button></td></tr>';
     });
@@ -1656,26 +1656,27 @@ if (location.protocol === 'file:') {
 }
 </script>
 
-<script src="health.js?v=v69"></script>
-<script src="privacy.js?v=v69"></script>
-<script src="backup.js?v=v69"></script>
-<script src="analysis.js?v=v69"></script>
-<script src="business.js?v=v69"></script>
-<script src="intake.js?v=v69"></script>
-<script src="files.js?v=v69"></script>
-<script src="builder.js?v=v69"></script>
-<script src="import-program.js?v=v69"></script>
-<script src="tracking.js?v=v69"></script>
-<script src="metrics.js?v=v69"></script>
-<script src="meal-library.js?v=v69"></script>
-<script src="library-ui.js?v=v69"></script>
-<script src="export-plan.js?v=v69"></script>
-<script src="cardio.js?v=v69"></script>
-<script src="cardio-ui.js?v=v69"></script>
-<script src="exercise-library.js?v=v69"></script>
-<script src="exercise-ui.js?v=v69"></script>
-<script src="meals.js?v=v69"></script>
-<script src="sync.js?v=v69"></script>
+<script src="health.js?v=v70"></script>
+<script src="privacy.js?v=v70"></script>
+<script src="backup.js?v=v70"></script>
+<script src="reorder.js?v=v70"></script>
+<script src="analysis.js?v=v70"></script>
+<script src="business.js?v=v70"></script>
+<script src="intake.js?v=v70"></script>
+<script src="files.js?v=v70"></script>
+<script src="builder.js?v=v70"></script>
+<script src="import-program.js?v=v70"></script>
+<script src="tracking.js?v=v70"></script>
+<script src="metrics.js?v=v70"></script>
+<script src="meal-library.js?v=v70"></script>
+<script src="library-ui.js?v=v70"></script>
+<script src="export-plan.js?v=v70"></script>
+<script src="cardio.js?v=v70"></script>
+<script src="cardio-ui.js?v=v70"></script>
+<script src="exercise-library.js?v=v70"></script>
+<script src="exercise-ui.js?v=v70"></script>
+<script src="meals.js?v=v70"></script>
+<script src="sync.js?v=v70"></script>
 <script>
 /* =================== חיבור הסנכרון לאפליקציה =================== */
 
