@@ -150,13 +150,13 @@ button{cursor:pointer}
 
 <div id="toast"></div>
 
-<script src="vendor/supabase.js?v=v70"></script>
-<script src="config.js?v=v70"></script>
-<script src="meal-library.js?v=v70"></script>
-<script src="exercise-library.js?v=v70"></script>
-<script src="progress.js?v=v70"></script>
-<script src="health.js?v=v70"></script>
-<script src="privacy.js?v=v70"></script>
+<script src="vendor/supabase.js?v=v71"></script>
+<script src="config.js?v=v71"></script>
+<script src="meal-library.js?v=v71"></script>
+<script src="exercise-library.js?v=v71"></script>
+<script src="progress.js?v=v71"></script>
+<script src="health.js?v=v71"></script>
+<script src="privacy.js?v=v71"></script>
 <script>
 (function () {
   'use strict';
@@ -266,14 +266,38 @@ button{cursor:pointer}
     var btn = document.getElementById('lg_go');
     if (btn) { btn.disabled = true; btn.textContent = 'בודק…'; }
     try {
-      /* מקלדת הטלפון מגדילה את האות הראשונה בשדה סיסמה, וזה היה
-         הכשל הנפוץ ביותר בכניסה. הפרטים נוצרים באותיות קטנות בלבד,
-         ולכן הורדה לאותיות קטנות כאן מיישרת את שני הצדדים. */
-      var r = await sb.rpc('trainee_login',
-        { p_username: u.trim().toLowerCase(), p_password: String(p).toLowerCase() });
-      if (r.error) throw r.error;
-      var d = r.data && r.data[0];
-      if (!d) throw new Error('שם משתמש או סיסמה שגויים');
+      /* שני ניסיונות, בסדר הזה.
+
+         כפי שהוקלד — כי סיסמה שהמאמן הגדיר ידנית לפני v67 יכולה
+         להכיל אות גדולה, וההורדה לאותיות קטנות שנוספה אז שברה אותה
+         בשקט. זו הייתה רגרסיה שלי.
+
+         באותיות קטנות — כי מקלדת הטלפון מגדילה את האות הראשונה
+         בשדה סיסמה, וזה הכשל הנפוץ ביותר.
+
+         שני הניסיונות יחד מכסים את שני המקרים בלי לשבור אף אחד.
+         הנעילה בשרת סופרת כישלונות, ולכן הניסיון השני נעשה רק אם
+         הסיסמה באמת שונה אחרי ההורדה. */
+      var uName = u.trim().toLowerCase();
+      var pRaw  = String(p);
+      var pLow  = pRaw.toLowerCase();
+
+      var r = await sb.rpc('trainee_login', { p_username: uName, p_password: pRaw });
+      var d = (!r.error && r.data && r.data[0]) ? r.data[0] : null;
+
+      if (!d && pLow !== pRaw) {
+        r = await sb.rpc('trainee_login', { p_username: uName, p_password: pLow });
+        d = (!r.error && r.data && r.data[0]) ? r.data[0] : null;
+      }
+
+      if (!d) {
+        /* הודעה שמבחינה בין המצבים, כי "שגוי" לא עוזר למתאמן */
+        var m = String((r.error && r.error.message) || '');
+        if (/locked|locked_until/i.test(m)) {
+          throw new Error('החשבון ננעל לרבע שעה אחרי כמה ניסיונות. נסה שוב בעוד 15 דקות.');
+        }
+        throw new Error('שם משתמש או סיסמה שגויים. בדוק שאין רווח בסוף, ופנה למאמן אם זה חוזר.');
+      }
 
       TOKEN = d.token;
       CACHE = 'ebfit_t_' + TOKEN.slice(0, 12);

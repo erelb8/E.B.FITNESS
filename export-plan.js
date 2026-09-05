@@ -14,7 +14,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['exportPlan'] = 'v70';
+  (window.EB_MOD = window.EB_MOD || {})['exportPlan'] = 'v71';
 
   var esc2 = function (s) {
     return String(s == null ? '' : s)

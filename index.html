@@ -317,8 +317,8 @@ tbody tr:hover{background:var(--panel)}
 <div id="toast"></div>
 
 <!-- ספריית Supabase מקומית (לא מ-CDN) כדי שהאפליקציה תעבוד גם בלי רשת -->
-<script src="vendor/supabase.js?v=v70"></script>
-<script src="config.js?v=v70"></script>
+<script src="vendor/supabase.js?v=v71"></script>
+<script src="config.js?v=v71"></script>
 
 <script>
 /* =======================================================================
@@ -353,7 +353,7 @@ function age(b){ if(!b) return null; const d=new Date(b), t=new Date(); let a=t.
 
 /* ---------------- אחסון ---------------- */
 const KEY='ebfit_v1';
-const EB_VERSION='v70';   // חייב להתאים ל-VERSION ב-sw.js
+const EB_VERSION='v71';   // חייב להתאים ל-VERSION ב-sw.js
 let mem=null, canStore=true;
 function load(){
   try{ const r=localStorage.getItem(KEY); return r?JSON.parse(r):null; }
@@ -445,6 +445,7 @@ const NAV=[
   {id:'schedule',ic:'🗓', t:'יומן אימונים'},
   {id:'money',  ic:'₪', t:'תשלומים'},
   {id:'progress',ic:'📈', t:'התקדמות'},
+  {id:'access', ic:'🔑', t:'גישת מתאמנים'},
   {id:'health', ic:'🩺', t:'סינון בריאות'},
   {id:'biz',    ic:'📊', t:'ניתוח העסק'},
   {id:'lab',    ic:'✦', t:'פיצ׳רים ובוט'},
@@ -454,19 +455,20 @@ function go(v, arg){ VIEW=v; ARG=arg||null; if(v!=='trainee') SUBTAB='details'; 
 
 function renderNav(){
   let h='<div class="grp">ניהול</div>';
-  NAV.slice(0,7).forEach(n=>{
+  NAV.slice(0,8).forEach(n=>{
     let c='';
     if(n.id==='trainees') c='<span class="cnt">'+activeTrainees().length+'</span>';
+    if(n.id==='access'){ const nb=(window.EBAccess?EBAccess.blocked():0); if(nb) c='<span class="cnt">'+nb+'</span>'; }
     if(n.id==='health'){ const n3=(window.EBHealth?EBHealth.needCount():0); if(n3) c='<span class="cnt">'+n3+'</span>'; }
     if(n.id==='schedule'){ const n2=S.sessions.filter(s=>s.date===todayISO()&&s.status==='scheduled').length; if(n2) c='<span class="cnt">'+n2+'</span>'; }
     h+=navBtn(n,c);
   });
   h+='<div class="grp">התאמה אישית</div>';
-  h+=navBtn(NAV[7],'');
+  h+=navBtn(NAV[8],'');
   S.custom.forEach(c=>{
     h+='<button class="nav'+(VIEW==='custom'&&ARG===c.id?' on':'')+'" onclick="go(\'custom\',\''+c.id+'\')"><i>'+esc(c.icon||'✧')+'</i>'+esc(c.title)+'</button>';
   });
-  h+='<div class="grp">מערכת</div>'+navBtn(NAV[8],'');
+  h+='<div class="grp">מערכת</div>'+navBtn(NAV[9],'');
   $('#rail').innerHTML=h;
 
   const mob=['dash','trainees','schedule','money','lab'];
@@ -479,7 +481,7 @@ function render(){
   renderNav();
   const v={dash:vDash,trainees:vTrainees,trainee:vTrainee,schedule:vSchedule,money:vMoney,
            progress:vProgress,lab:vLab,settings:vSettings,custom:vCustom,
-           health:()=>EBHealth.view(), biz:()=>EBBiz.view()}[VIEW]||vDash;
+           health:()=>EBHealth.view(), biz:()=>EBBiz.view(), access:()=>EBAccess.view()}[VIEW]||vDash;
   $('#view').innerHTML = v();
   if(VIEW==='custom') mountCustom();
   if(VIEW==='lab') scrollChat();
@@ -1656,27 +1658,28 @@ if (location.protocol === 'file:') {
 }
 </script>
 
-<script src="health.js?v=v70"></script>
-<script src="privacy.js?v=v70"></script>
-<script src="backup.js?v=v70"></script>
-<script src="reorder.js?v=v70"></script>
-<script src="analysis.js?v=v70"></script>
-<script src="business.js?v=v70"></script>
-<script src="intake.js?v=v70"></script>
-<script src="files.js?v=v70"></script>
-<script src="builder.js?v=v70"></script>
-<script src="import-program.js?v=v70"></script>
-<script src="tracking.js?v=v70"></script>
-<script src="metrics.js?v=v70"></script>
-<script src="meal-library.js?v=v70"></script>
-<script src="library-ui.js?v=v70"></script>
-<script src="export-plan.js?v=v70"></script>
-<script src="cardio.js?v=v70"></script>
-<script src="cardio-ui.js?v=v70"></script>
-<script src="exercise-library.js?v=v70"></script>
-<script src="exercise-ui.js?v=v70"></script>
-<script src="meals.js?v=v70"></script>
-<script src="sync.js?v=v70"></script>
+<script src="health.js?v=v71"></script>
+<script src="privacy.js?v=v71"></script>
+<script src="backup.js?v=v71"></script>
+<script src="reorder.js?v=v71"></script>
+<script src="access.js?v=v71"></script>
+<script src="analysis.js?v=v71"></script>
+<script src="business.js?v=v71"></script>
+<script src="intake.js?v=v71"></script>
+<script src="files.js?v=v71"></script>
+<script src="builder.js?v=v71"></script>
+<script src="import-program.js?v=v71"></script>
+<script src="tracking.js?v=v71"></script>
+<script src="metrics.js?v=v71"></script>
+<script src="meal-library.js?v=v71"></script>
+<script src="library-ui.js?v=v71"></script>
+<script src="export-plan.js?v=v71"></script>
+<script src="cardio.js?v=v71"></script>
+<script src="cardio-ui.js?v=v71"></script>
+<script src="exercise-library.js?v=v71"></script>
+<script src="exercise-ui.js?v=v71"></script>
+<script src="meals.js?v=v71"></script>
+<script src="sync.js?v=v71"></script>
 <script>
 /* =================== חיבור הסנכרון לאפליקציה =================== */
 
