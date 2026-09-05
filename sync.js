@@ -27,11 +27,38 @@
 
   let sb = null;                 // לקוח Supabase
   let user = null;               // המאמן המחובר
+  let adminState = 'unknown';    // unknown / allowed / denied
+  let adminToken = '';
   let timer = null;              // דיבאונס
   let running = false;
   let lastError = null;
+  let resolveAuthReady;
+  const authReady = new Promise(resolve => { resolveAuthReady = resolve; });
+
+  const DEBUG = true;
+  function log() {
+    if (DEBUG && window.console) console.log.apply(console, ['[EBSync]'].concat([].slice.call(arguments)));
+  }
+  function logError() {
+    if (DEBUG && window.console) console.error.apply(console, ['[EBSync]'].concat([].slice.call(arguments)));
+  }
 
   const enabled = () => !!(CFG.URL && CFG.ANON);
+
+  async function checkAdmin() {
+    if (!sb || !adminToken) { adminState = 'denied'; return false; }
+    const { data, error } = await sb.rpc('admin_session');
+    if (error) {
+      adminState = 'unknown';
+      logError('admin check failed', error);
+      throw error;
+    }
+    user = data && data[0] ? { id: data[0].admin_id, email: data[0].email } : null;
+    adminState = user ? 'allowed' : 'denied';
+    if (!user) adminToken = '';
+    log('database admin check', { allowed: adminState === 'allowed', userId: user && user.id });
+    return adminState === 'allowed';
+  }
 
   /* ---------- המרה בין מבנה האפליקציה למבנה השרת ---------- */
   // מתאמן: name/goal/program משותפים עם המתאמן, כל השאר ב-private.
@@ -136,21 +163,28 @@
 
   /* ---------- אתחול ---------- */
   function init() {
-    if (!enabled()) return false;
+    log('init', { enabled: enabled(), hasUrl: !!CFG.URL, hasKey: !!CFG.ANON, hasClient: !!sb });
+    if (!enabled()) { log('disabled: URL or ANON is missing'); return false; }
     if (sb) return true;
-    if (typeof supabase === 'undefined') { lastError = 'ספריית Supabase לא נטענה'; return false; }
-    sb = supabase.createClient(CFG.URL, CFG.ANON, {
-      auth: { persistSession: true, autoRefreshToken: true }
-    });
-    sb.auth.onAuthStateChange((_e, session) => {
-      user = session ? session.user : null;
+    if (typeof supabase === 'undefined') {
+      lastError = 'ספריית Supabase לא נטענה';
+      logError(lastError);
+      return false;
+    }
+    try { adminToken = localStorage.getItem('ebfit_admin_token') || ''; } catch (e) {}
+    const headers = adminToken ? { 'x-admin-token': adminToken } : {};
+    sb = supabase.createClient(CFG.URL, CFG.ANON, { global: { headers: headers } });
+    checkAdmin().then(() => {
+      resolveAuthReady(user);
       paint();
-      if (user) schedule(400);
-    });
-    sb.auth.getSession().then(({ data }) => {
-      user = data.session ? data.session.user : null;
-      paint();
+      if (typeof window.render === 'function') window.render();
       if (user) schedule(800);
+    }).catch(e => {
+      lastError = (e && e.message) || String(e);
+      logError('database session check failed', e);
+      resolveAuthReady(null);
+      paint();
+      if (typeof window.render === 'function') window.render();
     });
     window.addEventListener('online', () => schedule(500));
     document.addEventListener('visibilitychange', () => {
@@ -161,19 +195,49 @@
 
   /* ---------- אימות ---------- */
   async function signIn(email, pass) {
+    log('signIn started', { email: email ? String(email).trim().toLowerCase() : '' });
     if (!init()) throw new Error(lastError || 'הסנכרון לא מוגדר');
-    const { error } = await sb.auth.signInWithPassword({ email, password: pass });
-    if (error) throw error;
+    const { data, error } = await sb.rpc('admin_login', { p_email: email, p_password: pass });
+    if (error) { logError('database admin login failed', error); throw error; }
+    if (!data || !data[0] || !data[0].token) throw new Error('פרטי מנהל שגויים');
+    adminToken = data[0].token;
+    try { localStorage.setItem('ebfit_admin_token', adminToken); } catch (e) {}
+    sb = supabase.createClient(CFG.URL, CFG.ANON, { global: { headers: { 'x-admin-token': adminToken } } });
+    user = { id: data[0].admin_id, email: data[0].email };
+    adminState = 'allowed';
+    log('database admin login accepted');
+    await checkAdmin();
+  }
+  async function traineeLogin(identifier, pass) {
+    log('trainee login started', { identifier: identifier ? String(identifier).trim().toLowerCase() : '' });
+    if (!init()) throw new Error(lastError || 'הסנכרון לא מוגדר');
+    const { data, error } = await sb.rpc('trainee_login', {
+      p_username: identifier,
+      p_password: pass
+    });
+    if (error) { logError('trainee login failed', error); throw error; }
+    if (!data || !data.length || !data[0].token) throw new Error('פרטי הכניסה אינם נכונים');
+    log('trainee login accepted');
+    return data[0];
   }
   async function signUp(email, pass) {
+    log('signUp started', { email: email ? String(email).trim().toLowerCase() : '' });
     if (!init()) throw new Error(lastError || 'הסנכרון לא מוגדר');
-    const { error } = await sb.auth.signUp({ email, password: pass });
-    if (error) throw error;
+    const { data, error } = await sb.auth.signUp({ email, password: pass });
+    if (error) { logError('signUp failed', error); throw error; }
+    if (data && data.session && data.user) user = data.user;
+    log('signUp accepted by Supabase');
+    if (data && data.session) await checkAdmin();
+    return data;
   }
   async function signOut() {
+    log('signOut started');
     if (!sb) return;
-    await sb.auth.signOut();
+    try { await sb.rpc('admin_logout'); } catch (e) {}
+    try { localStorage.removeItem('ebfit_admin_token'); } catch (e) {}
+    adminToken = ''; user = null; adminState = 'denied';
     try { localStorage.removeItem(SNAP_KEY); } catch (e) {}
+    log('signOut completed');
   }
 
   /* ---------- הסנכרון עצמו ---------- */
@@ -184,16 +248,27 @@
   }
 
   async function run() {
-    if (!sb || !user || running || !navigator.onLine) return;
+    if (!sb || !user || running || !navigator.onLine) {
+      log('run skipped', { hasClient: !!sb, signedIn: !!user, running: running, online: navigator.onLine });
+      return;
+    }
+    log('sync started', { userId: user.id });
     running = true; lastError = null; paint();
     try {
+      if (!(await checkAdmin())) {
+        lastError = 'אין הרשאת מנהל לחשבון הזה';
+        if (typeof window.render === 'function') window.render();
+        return;
+      }
       const snap = readSnap();
       await push(snap);
       await pull();
       writeSnap(snapshotOf(window.S));
       localStorage.setItem('ebfit_sync_at', new Date().toISOString());
+      log('sync completed');
     } catch (e) {
       lastError = (e && e.message) || String(e);
+      logError('sync failed', e);
     } finally {
       running = false; paint();
     }
@@ -218,12 +293,14 @@
   }
 
   async function upsertRows(table, rows) {
+    log('upsert', { table: table, rows: rows.length });
     const strip = MISSING[table] || [];
     const payload = strip.length
       ? rows.map(r => { const c = Object.assign({}, r); strip.forEach(k => delete c[k]); return c; })
       : rows;
     const { error } = await sb.from(table).upsert(payload, { onConflict: 'id' });
     if (!error) return;
+    logError('upsert failed', { table: table, error: error });
     const col = missingColumn(error);
     if (col && NEVER_STRIP.indexOf(col) === -1 && strip.indexOf(col) === -1) {
       (MISSING[table] = MISSING[table] || []).push(col);
@@ -276,12 +353,15 @@
 
   // מושך את האמת מהשרת ומחליף את המערכים המקומיים
   async function pull() {
+    log('pull started');
     // כל טבלה נשלפת פעם אחת, ואז מפוצלת למערכים המקומיים
     const fetched = {};
     for (const tbl of ['trainees','sessions','measures','payments']) {
+      log('select', { table: tbl, userId: user.id });
       const { data, error } = await sb.from(tbl)
         .select('*').eq('trainer_id', user.id).eq('deleted', false);
-      if (error) throw error;
+      if (error) { logError('select failed', { table: tbl, error: error }); throw error; }
+      log('select completed', { table: tbl, rows: (data || []).length });
       fetched[tbl] = data || [];
     }
     window.S.trainees = fetched.trainees.map(traineeFromRow);
@@ -306,6 +386,12 @@
     }
     if (typeof window.rawSave === 'function') window.rawSave();
     if (typeof window.render === 'function') window.render();
+    log('pull completed', {
+      trainees: fetched.trainees.length,
+      sessions: fetched.sessions.length,
+      measures: fetched.measures.length,
+      payments: fetched.payments.length
+    });
   }
 
   /* ---------- קישור אישי למתאמן ---------- */
@@ -330,22 +416,26 @@
   async function setLogin(traineeId, username, password) {
     if (!sb || !user) throw new Error('לא מחובר');
 
-    /* נקודת החנק היחידה שכל מסלולי ההגדרה עוברים דרכה — ההגדרה
-       הקבוצתית והידנית כאחד. קודם כל אחת נרמלה בנפרד, ולכן סיסמה
-       שהוגדרה ידנית עם אות גדולה לא התאימה למה שהמתאמן הקליד.
+    /* שתי טרנספורמציות שהיו כאן הוסרו, ושתיהן היו הרסניות:
 
-       אותיות קטנות בשני הצדדים: מקלדת הטלפון מגדילה את האות הראשונה
-       בשדה סיסמה, וזה היה הכשל הנפוץ ביותר בכניסה.
-       ספרות יורדות משם המשתמש בלבד — הורדתן מסיסמה שהמאמן הקליד
-       ידנית הייתה משנה בשקט את מה שהוא כבר מסר למתאמן. */
-    const u = username == null ? null
-      : String(username).toLowerCase().trim().replace(/[0-9]/g, '');
-    const p = password ? String(password).toLowerCase() : null;
+       הסרת ספרות משם המשתמש. הכוונה הייתה שהשמות שנוצרים יהיו בלי
+       ספרות, אבל זה הוחל גם על *שמירה של שם קיים* — ולכן מאמן שפתח
+       את הטופס של מתאמן בשם dan2 ורק שינה לו סיסמה, שינה בלי לדעת
+       גם את שם המשתמש ל-dan. המתאמן נחסם מיד. הסרת הספרות שייכת
+       ליצירת שם חדש בלבד, וזה מקומה ב-slugName.
 
-    if (username != null && !u) throw new Error('שם המשתמש ריק אחרי הסרת הספרות');
+       הורדת הסיסמה לאותיות קטנות. היא נשמרה מגובבת בצורה שונה ממה
+       שהמאמן הקליד ומסר למתאמן. הכניסה מנסה ממילא את שתי הצורות,
+       ולכן אין שום סיבה לשנות כאן את מה שהוקלד.
+
+       מה שנשאר: לואר וטרים על שם המשתמש בלבד — בדיוק מה שהשרת
+       עושה ממילא, ולכן זה לא משנה דבר. */
+    const u = username == null ? null : String(username).trim().toLowerCase();
 
     const { error } = await sb.rpc('set_trainee_login', {
-      p_trainee_id: traineeId, p_username: u || null, p_password: p
+      p_trainee_id: traineeId,
+      p_username: u || null,
+      p_password: password ? String(password) : null
     });
     if (error) throw error;
     const t = (window.S.trainees || []).find(x => x.id === traineeId);
@@ -366,6 +456,8 @@
   function status() {
     if (!enabled())      return { state: 'off',     text: 'מקומי בלבד' };
     if (!user)           return { state: 'out',     text: 'לא מחובר' };
+    if (adminState === 'denied') return { state: 'error', text: 'אין הרשאת מנהל' };
+    if (adminState !== 'allowed') return { state: 'sync', text: 'בודק הרשאות' };
     if (!navigator.onLine) return { state: 'offline', text: 'אין רשת — נסנכרן אח״כ' };
     if (running)         return { state: 'sync',    text: 'מסנכרן…' };
     if (lastError)       return { state: 'error',   text: 'שגיאת סנכרון' };
@@ -375,6 +467,8 @@
 
   function paint() {
     const el = document.getElementById('syncPill');
+    const logout = document.getElementById('adminLogout');
+    if (logout) logout.style.display = adminState === 'allowed' ? '' : 'none';
     if (!el) return;
     const s = status();
     el.className = 'syncpill s-' + s.state;
@@ -383,8 +477,11 @@
   }
 
   window.EBSync = {
-    init, enabled, schedule, run, status, paint, lastError: () => lastError,
+    init, enabled, schedule, run, status, paint, authReady: () => authReady,
+    checkAdmin,
+    adminState: () => adminState, lastError: () => lastError,
     signIn, signUp, signOut,
+    traineeLogin,
     user: () => user,
     client: () => sb,
     missing: () => MISSING,

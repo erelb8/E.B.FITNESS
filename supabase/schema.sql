@@ -35,6 +35,7 @@ create table if not exists public.trainees (
   status        text not null default 'active',
 
   -- הטוקן שנשלח בווטסאפ. 64 תווי hex — לא ניתן לניחוש.
+  email         text,
   access_token  text not null unique
                 default replace(gen_random_uuid()::text,'-','')
                      || replace(gen_random_uuid()::text,'-',''),
@@ -80,8 +81,44 @@ create table if not exists public.payments (
 create table if not exists public.trainer_prefs (
   trainer_id  uuid primary key references auth.users(id) on delete cascade,
   data        jsonb not null default '{}'::jsonb,
+  is_admin    boolean not null default false,
   updated_at  timestamptz not null default now()
 );
+
+-- Explicit allow-list for trainer dashboard accounts. Passwords remain in
+-- Supabase Auth; this table controls which Auth accounts are administrators.
+create table if not exists public.admins (
+  user_id     uuid primary key references auth.users(id) on delete cascade,
+  email       text not null unique,
+  pass_hash   text,
+  display_name text,
+  active      boolean not null default true,
+  created_at  timestamptz not null default now()
+);
+alter table public.admins
+  add column if not exists pass_hash text;
+
+-- Create the application record whenever Supabase Auth creates an account.
+-- The trigger is security-definer so the public signup flow never needs
+-- direct insert permission on trainer_prefs.
+create or replace function public.handle_new_auth_user()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  insert into public.trainer_prefs (trainer_id)
+  values (new.id)
+  on conflict (trainer_id) do nothing;
+  return new;
+end;
+$$;
+
+drop trigger if exists on_auth_user_created on auth.users;
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute function public.handle_new_auth_user();
 
 -- יומן ביצוע — מה שהמתאמן מסמן מהטלפון שלו
 create table if not exists public.workout_logs (
@@ -98,6 +135,7 @@ create table if not exists public.workout_logs (
 
 create index if not exists trainees_trainer_idx on public.trainees(trainer_id);
 create index if not exists trainees_token_idx   on public.trainees(access_token);
+create unique index if not exists trainees_email_uniq on public.trainees(lower(email)) where email is not null;
 create index if not exists sessions_trainer_idx on public.sessions(trainer_id, date desc);
 create index if not exists measures_trainer_idx on public.measures(trainer_id, date desc);
 create index if not exists payments_trainer_idx on public.payments(trainer_id, date desc);
@@ -127,7 +165,22 @@ alter table public.sessions      enable row level security;
 alter table public.measures      enable row level security;
 alter table public.payments      enable row level security;
 alter table public.trainer_prefs enable row level security;
+alter table public.admins        enable row level security;
 alter table public.workout_logs  enable row level security;
+
+alter table public.trainer_prefs
+  add column if not exists is_admin boolean not null default false;
+
+create or replace function public.current_user_is_admin()
+returns boolean
+language sql
+security definer
+set search_path = public
+stable
+as $$
+  select coalesce((select active from public.admins
+                   where user_id = auth.uid()), false);
+$$;
 
 -- המאמן ניגש אך ורק לשורות שלו. אין שום policy ל-anon —
 -- כלומר בלי התחברות אי אפשר לקרוא מהטבלאות כלום.
@@ -139,8 +192,8 @@ begin
     execute format($f$
       create policy trainer_all on public.%I
         for all to authenticated
-        using (trainer_id = auth.uid())
-        with check (trainer_id = auth.uid())
+        using (trainer_id = auth.uid() and public.current_user_is_admin())
+        with check (trainer_id = auth.uid() and public.current_user_is_admin())
     $f$, t);
   end loop;
 end $$;
@@ -148,8 +201,8 @@ end $$;
 drop policy if exists prefs_own on public.trainer_prefs;
 create policy prefs_own on public.trainer_prefs
   for all to authenticated
-  using (trainer_id = auth.uid())
-  with check (trainer_id = auth.uid());
+  using (trainer_id = auth.uid() and public.current_user_is_admin())
+  with check (trainer_id = auth.uid() and public.current_user_is_admin());
 
 -- יומני ביצוע: נכתבים ע"י המתאמן דרך פונקציה, נקראים ע"י המאמן בלבד
 drop policy if exists trainer_read_logs on public.workout_logs;
@@ -157,7 +210,9 @@ create policy trainer_read_logs on public.workout_logs
   for select to authenticated
   using (exists (
     select 1 from public.trainees tr
-    where tr.id = workout_logs.trainee_id and tr.trainer_id = auth.uid()
+    where tr.id = workout_logs.trainee_id
+      and tr.trainer_id = auth.uid()
+      and public.current_user_is_admin()
   ));
 
 
@@ -242,6 +297,32 @@ grant execute on function public.trainee_log(text,integer,text,jsonb,text,text) 
 --    ברירות המחדל של Supabase, כדי שהסכימה תעמוד בפני עצמה.
 -- ---------------------------------------------------------------------
 grant usage on schema public to anon, authenticated;
+
+grant execute on function public.current_user_is_admin() to authenticated;
+
+create or replace function public.check_admin_password(
+  p_email text,
+  p_password text
+)
+returns boolean
+language sql
+security definer
+set search_path = public, extensions
+stable
+as $$
+  select exists (
+    select 1 from public.admins a
+    where lower(a.email) = lower(btrim(coalesce(p_email, '')))
+      and a.active
+      and a.pass_hash is not null
+      and extensions.crypt(coalesce(p_password, ''), a.pass_hash) = a.pass_hash
+  );
+$$;
+
+revoke all on function public.check_admin_password(text, text) from public, anon, authenticated;
+grant execute on function public.check_admin_password(text, text) to anon, authenticated;
+
+revoke all on public.admins from anon, authenticated;
 
 revoke all on all tables in schema public from anon;
 

@@ -34,6 +34,7 @@ create extension if not exists pgcrypto with schema extensions;
 -- ---------------------------------------------------------------------
 alter table public.trainees
   add column if not exists username     text,
+  add column if not exists email        text,
   add column if not exists pass_hash    text,
   add column if not exists login_fails  integer     not null default 0,
   add column if not exists locked_until timestamptz,
