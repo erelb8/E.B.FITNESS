@@ -317,8 +317,8 @@ tbody tr:hover{background:var(--panel)}
 <div id="toast"></div>
 
 <!-- ספריית Supabase מקומית (לא מ-CDN) כדי שהאפליקציה תעבוד גם בלי רשת -->
-<script src="vendor/supabase.js?v=v67"></script>
-<script src="config.js?v=v67"></script>
+<script src="vendor/supabase.js?v=v68"></script>
+<script src="config.js?v=v68"></script>
 
 <script>
 /* =======================================================================
@@ -353,7 +353,7 @@ function age(b){ if(!b) return null; const d=new Date(b), t=new Date(); let a=t.
 
 /* ---------------- אחסון ---------------- */
 const KEY='ebfit_v1';
-const EB_VERSION='v67';   // חייב להתאים ל-VERSION ב-sw.js
+const EB_VERSION='v68';   // חייב להתאים ל-VERSION ב-sw.js
 let mem=null, canStore=true;
 function load(){
   try{ const r=localStorage.getItem(KEY); return r?JSON.parse(r):null; }
@@ -679,7 +679,7 @@ function vTrainee(){
   tabs.push(['health','בריאות']);
   if(t.intake) tabs.push(['intake','שאלון']);   // רק למי שנקלט משאלון
   h+=folderNav(tabs);
-  const TABFN={details:tabDetails,program:tabProgram,measures:tabMeasures,history:tabHistory,pay:tabPay,prs:tabPRs,photos:tabPhotos,nutri:tabNutri,health:(x)=>EBHealth.tab(x), intake:(x)=>EBIntake.tab(x), track:(x)=>EBTrack.tab(x),metrics:(x)=>(window.EBAnalyze?EBAnalyze.tab(x):'')+EBMetrics.tab(x),meals:(x)=>EBMeals.tab(x),cardio:(x)=>EBCardioUI.tab(x)};
+  const TABFN={details:tabDetails,program:tabProgram,measures:tabMeasures,history:tabHistory,pay:tabPay,prs:tabPRs,photos:tabPhotos,nutri:tabNutri,health:(x)=>EBHealth.tab(x)+(window.EBPrivacy?EBPrivacy.block(x):""), intake:(x)=>EBIntake.tab(x), track:(x)=>EBTrack.tab(x),metrics:(x)=>(window.EBAnalyze?EBAnalyze.tab(x):'')+EBMetrics.tab(x),meals:(x)=>EBMeals.tab(x),cardio:(x)=>EBCardioUI.tab(x)};
   h+=(TABFN[SUBTAB]||tabDetails)(t);
   return h;
 }
@@ -1655,24 +1655,25 @@ if (location.protocol === 'file:') {
 }
 </script>
 
-<script src="health.js?v=v67"></script>
-<script src="analysis.js?v=v67"></script>
-<script src="business.js?v=v67"></script>
-<script src="intake.js?v=v67"></script>
-<script src="files.js?v=v67"></script>
-<script src="builder.js?v=v67"></script>
-<script src="import-program.js?v=v67"></script>
-<script src="tracking.js?v=v67"></script>
-<script src="metrics.js?v=v67"></script>
-<script src="meal-library.js?v=v67"></script>
-<script src="library-ui.js?v=v67"></script>
-<script src="export-plan.js?v=v67"></script>
-<script src="cardio.js?v=v67"></script>
-<script src="cardio-ui.js?v=v67"></script>
-<script src="exercise-library.js?v=v67"></script>
-<script src="exercise-ui.js?v=v67"></script>
-<script src="meals.js?v=v67"></script>
-<script src="sync.js?v=v67"></script>
+<script src="health.js?v=v68"></script>
+<script src="privacy.js?v=v68"></script>
+<script src="analysis.js?v=v68"></script>
+<script src="business.js?v=v68"></script>
+<script src="intake.js?v=v68"></script>
+<script src="files.js?v=v68"></script>
+<script src="builder.js?v=v68"></script>
+<script src="import-program.js?v=v68"></script>
+<script src="tracking.js?v=v68"></script>
+<script src="metrics.js?v=v68"></script>
+<script src="meal-library.js?v=v68"></script>
+<script src="library-ui.js?v=v68"></script>
+<script src="export-plan.js?v=v68"></script>
+<script src="cardio.js?v=v68"></script>
+<script src="cardio-ui.js?v=v68"></script>
+<script src="exercise-library.js?v=v68"></script>
+<script src="exercise-ui.js?v=v68"></script>
+<script src="meals.js?v=v68"></script>
+<script src="sync.js?v=v68"></script>
 <script>
 /* =================== חיבור הסנכרון לאפליקציה =================== */
 

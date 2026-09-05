@@ -218,3 +218,21 @@ grant execute on function public.trainee_program(text)                    to ano
 grant execute on function public.trainee_login(text, text)                to anon, authenticated;
 grant execute on function public.trainee_health(text, jsonb)              to anon, authenticated;
 grant execute on function public.trainee_weigh(text, text, numeric, numeric) to anon, authenticated;
+
+-- ---------------------------------------------------------------------
+-- 5. תיעוד ההסכמה לעיבוד מידע רפואי
+--    ההסכמה נשמרת בתוך health כאובייקט consent, ולכן אין צורך בעמודה
+--    חדשה. השאילתה כאן היא לבדיקה: מי הסכים, מתי, ולאיזה נוסח.
+-- ---------------------------------------------------------------------
+create or replace view public.consent_log as
+  select id,
+         name,
+         health->'consent'->>'at'       as consented_at,
+         health->'consent'->>'version'  as notice_version,
+         health->>'signedAt'            as declared_at,
+         (health->'consent') is not null as has_consent
+    from public.trainees
+   where not deleted;
+
+comment on view public.consent_log is
+  'מי מסר הסכמה לעיבוד מידע רפואי, מתי, ולאיזו גרסת נוסח. לצורכי הוכחת עמידה בחוק.';
