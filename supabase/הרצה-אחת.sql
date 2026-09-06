@@ -60,12 +60,14 @@ set search_path = public, extensions
 as $$
 declare v_owner uuid; v_user text;
 begin
-  if auth.uid() is null then
+  -- המאמן מזוהה דרך כותרת x-admin-token (admin_request_id) ולא דרך
+  -- auth.uid — האפליקציה מתחברת עם מפתח anon בלבד, ולכן auth.uid ריק תמיד
+  if public.admin_request_id() is null then
     raise exception 'not authenticated';
   end if;
 
   select trainer_id into v_owner from public.trainees where id = p_trainee_id;
-  if v_owner is null or v_owner <> auth.uid() then
+  if v_owner is null or v_owner <> public.admin_request_id() then
     raise exception 'not your trainee';
   end if;
 
@@ -216,7 +218,8 @@ revoke all on function public.set_trainee_login(text,text,text) from public, ano
 
 grant execute on function public.trainee_program(text)          to anon, authenticated;
 grant execute on function public.trainee_login(text, text)       to anon, authenticated;
-grant execute on function public.set_trainee_login(text,text,text) to authenticated;  -- המאמן בלבד
+-- הלקוח הוא anon; המאמן מזוהה בתוך הפונקציה דרך admin_request_id
+grant execute on function public.set_trainee_login(text,text,text) to anon;
 -- =====================================================================
 --  E.B FIT — ארוחות עם תמונות
 --  להרצה ב-Supabase: SQL Editor -> New query -> הדבק הכל -> Run

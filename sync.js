@@ -32,6 +32,7 @@
   let timer = null;              // דיבאונס
   let running = false;
   let lastError = null;
+  let failCount = 0;             // נכשלות ברצף — ממתינים לפני ניסיון נוסף
   let resolveAuthReady;
   const authReady = new Promise(resolve => { resolveAuthReady = resolve; });
 
@@ -195,14 +196,18 @@
     document.addEventListener('visibilitychange', () => {
       if (!document.hidden) schedule(1500);
     });
+    /* חלון זה פוחז מוקד בלי שינוי נראות — למשל שני חלונות זה לצד זה.
+       בלי זה לוח הניהול היה נשאר ישן כל עוד לא מקליקים עליו. */
+    window.addEventListener('focus', () => schedule(800));
 
-    /* רענון תקופתי בזמן שהמאמן צופה בתיק מתאמן. המתאמן כותב לשרת
-       דרך RPC משלו — שקילות, ארוחות, הצהרות ודיווחי ביצוע — ובלי
-       משיכה יזומה המאמן היה רואה נתון ישן עד לרענון ידני. */
+    /* משיכה יזומה בזמן שהמאמן מסתכל, לא כל הזמן: מתאמנים כותבים
+       לשרת דרך RPC משלהם — שקילות, ארוחות, הצהרות, דיווחי ביצוע
+       וגם עריכת תוכנית. כשהחלון מוסתר אין טעם למשוך, ואחרי כישלון
+       schedule() ממילא ממתין. */
     setInterval(() => {
-      if (document.hidden || !user) return;
-      if (typeof window.VIEW !== 'undefined' && window.VIEW === 'trainee') schedule(0);
-    }, 45000);
+      if (document.hidden || !user || running) return;
+      schedule(0);
+    }, 120000);
     return true;
   }
 
@@ -256,6 +261,12 @@
   /* ---------- הסנכרון עצמו ---------- */
   function schedule(ms) {
     if (!enabled() || !user) return;
+    /* אחרי כישלון לא מנסים שוב מיד — ממתינים לפי מספר הכישלונות,
+       אחרת טיימר ה-45s יורה לחלל האוויר כל פעם מחדש. */
+    if (failCount > 0) {
+      const backoff = Math.min(failCount, 5) * 30000;   // ‎30s,60s,...2.5m
+      if (ms == null || ms < backoff) ms = backoff;
+    }
     clearTimeout(timer);
     timer = setTimeout(() => { run().catch(() => {}); }, ms == null ? 2000 : ms);
   }
@@ -278,9 +289,11 @@
       await pull();
       writeSnap(snapshotOf(window.S));
       localStorage.setItem('ebfit_sync_at', new Date().toISOString());
+      failCount = 0;
       log('sync completed');
     } catch (e) {
       lastError = (e && e.message) || String(e);
+      failCount++;
       logError('sync failed', e);
     } finally {
       running = false; paint();
@@ -311,13 +324,30 @@
     const payload = strip.length
       ? rows.map(r => { const c = Object.assign({}, r); strip.forEach(k => delete c[k]); return c; })
       : rows;
+    /* שורת מתאמן יכולה לשאת תוכנית, קבצים ותפריט שלמים. שפיכה של 14
+       כאלה בבת אחת חצתה את מגבלת הזמן של השרת (57014). שולחים שורה
+       שורה כשמדובר בטבלת trainees — השאר קטנות וממשיכות בנתחים. */
+    if (table === 'trainees') {
+      for (const r of payload) {
+        const { error } = await sb.from(table).upsert([r], { onConflict: 'id' });
+        if (error) { await handleUpsertError(table, [r], error); }
+      }
+      return;
+    }
     const { error } = await sb.from(table).upsert(payload, { onConflict: 'id' });
     if (!error) return;
+    await handleUpsertError(table, payload, error);
+  }
+
+  async function handleUpsertError(table, rows, error) {
     logError('upsert failed', { table: table, error: error });
     const col = missingColumn(error);
-    if (col && NEVER_STRIP.indexOf(col) === -1 && strip.indexOf(col) === -1) {
+    if (col && NEVER_STRIP.indexOf(col) === -1 && (MISSING[table] || []).indexOf(col) === -1) {
       (MISSING[table] = MISSING[table] || []).push(col);
-      return upsertRows(table, rows);        // ניסיון חוזר בלי העמודה החסרה
+      const stripped = rows.map(r => { const c = Object.assign({}, r); delete c[col]; return c; });
+      const retry = await sb.from(table).upsert(stripped, { onConflict: 'id' });
+      if (retry.error) throw retry.error;
+      return;
     }
     throw error;
   }
@@ -336,9 +366,11 @@
       });
 
       if (rows.length) {
-        // בנתחים, כדי לא לחרוג ממגבלת גודל בקשה
-        for (let i = 0; i < rows.length; i += 200) {
-          await upsertRows(TABLE[key], rows.slice(i, i + 200));
+        // נתחים קטנים — המגבלה הקודמת של 200 שורות יצרה פקודת upsert
+        // אחת ענקית שהשרת הרג (57014). trainees מטופלת שורה-שורה ב-upsertRows.
+        const CHUNK = 25;
+        for (let i = 0; i < rows.length; i += CHUNK) {
+          await upsertRows(TABLE[key], rows.slice(i, i + CHUNK));
         }
       }
 
@@ -377,7 +409,27 @@
       log('select completed', { table: tbl, rows: (data || []).length });
       fetched[tbl] = data || [];
     }
+
+    /* המאמן באמצע עריכת תוכנית שלא נשמרה? המשיכה דורסת את
+       S.trainees, ובלעדיה העריכה תיעלם. שומרים את ה-program הערוך
+       ומשחזרים אותו אחרי ההחלפה, ואז ה-dock נשאר נכון. */
+    let unsavedProg = null;
+    if (window.PROGRAM_BASE_ID && window.S && window.S.trainees) {
+      const open = window.S.trainees.find(x => x.id === window.PROGRAM_BASE_ID);
+      const local = open && open.program;
+      const base  = window.PROGRAM_BASE;
+      if (local && base && JSON.stringify(local) !== JSON.stringify(base)) {
+        unsavedProg = { id: window.PROGRAM_BASE_ID, program: local };
+      }
+    }
+
     window.S.trainees = fetched.trainees.map(traineeFromRow);
+
+    if (unsavedProg) {
+      const t = window.S.trainees.find(x => x.id === unsavedProg.id);
+      if (t) t.program = unsavedProg.program;   // מחזירים את העריכה הלא-שמורה
+    }
+
     window.S.sessions = fetched.sessions.map(childFromRow);
     window.S.payments = fetched.payments.map(childFromRow);
     const isDaily = r => ((r.data || {}).kind === 'daily');
@@ -396,6 +448,15 @@
         window.S.settings.apiKey = localKey || '';
       }
       if (p.data.features) window.S.features = Object.assign({}, window.S.features, p.data.features);
+    }
+    /* המתאמן שינה את התוכנית שלו בשרת, והמשיכה החליפה את
+       S.trainees[].program. בלי לעדכן גם את תצלום ה-PROGRAM_BASE
+       ה-dock היה מראה "יש שינויים שטרם נשמרו" על שינוי שבכלל הגיע
+       מהמתאמן ולא מהמאמן. מסנכרנים את התצלום — אבל רק אם אין למאמן
+       עריכה מקומית שלא נשמרה (אז ה-dock ממשיך לשקף אותה). */
+    if (window.PROGRAM_BASE_ID && !unsavedProg) {
+      const cur = (window.S.trainees || []).find(x => x.id === window.PROGRAM_BASE_ID);
+      if (cur) window.PROGRAM_BASE = JSON.parse(JSON.stringify(cur.program || { days: [] }));
     }
     if (typeof window.rawSave === 'function') window.rawSave();
     if (typeof window.render === 'function') window.render();

@@ -158,6 +158,11 @@ a{color:var(--or);text-decoration:none}
   gap:10px;padding:10px 12px;background:rgba(52,40,30,.96);border:1px solid var(--line2);
   border-radius:var(--r);box-shadow:0 12px 34px rgba(0,0,0,.42);backdrop-filter:blur(14px)
 }
+/* במסכים רחבים ה-dock לא צריך להימתח על כל הרוחב — רק לתוכן,
+   ויושב במרכז המסך */
+@media(min-width:601px){
+  .program-dock{left:50%;right:auto;transform:translateX(-50%);width:auto;max-width:min(560px,calc(100vw - 36px))}
+}
 .program-dock .dock-label{flex:1;color:var(--amber);font-size:13px}
 .program-dock .dock-actions{display:flex;gap:7px;flex-wrap:wrap}
 .exercise-edit{white-space:nowrap}
@@ -302,8 +307,15 @@ tbody tr:hover{background:var(--panel)}
 @keyframes pop{from{opacity:0;transform:translateY(12px) scale(.98)}}
 .modal .mh{display:flex;align-items:center;gap:10px;padding:15px 18px;border-bottom:1px solid var(--line)}
 .modal .mh h3{font-size:17px;flex:1}
-.modal .mb{padding:18px;max-height:70vh;overflow:auto}
+.modal .mb{padding:18px;max-height:70vh;overflow:auto;overscroll-behavior:contain}
 .modal .mf{padding:13px 18px;border-top:1px solid var(--line);display:flex;gap:9px;justify-content:flex-start}
+/* גלילה דקה ומותאמת למותג בתוך חלונות */
+.mask,.modal .mb{scrollbar-width:thin;scrollbar-color:var(--line2) transparent}
+.mask::-webkit-scrollbar,.modal .mb::-webkit-scrollbar{width:8px;height:8px}
+.mask::-webkit-scrollbar-track,.modal .mb::-webkit-scrollbar-track{background:transparent}
+.mask::-webkit-scrollbar-thumb,.modal .mb::-webkit-scrollbar-thumb{background:var(--line2);border-radius:99px;border:2px solid transparent;background-clip:padding-box}
+.mask::-webkit-scrollbar-thumb:hover,.modal .mb::-webkit-scrollbar-thumb:hover{background:var(--mut);background-clip:padding-box}
+.mask{overscroll-behavior:contain}
 
 /* ---------- chart ---------- */
 .chart{width:100%;display:block}

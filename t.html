@@ -173,6 +173,29 @@ button{cursor:pointer}
 .category-dialog-head{display:flex;align-items:center;gap:10px;padding-bottom:13px;margin-bottom:4px;border-bottom:1px solid var(--line)}
 .category-dialog-head h2{font-size:22px;flex:1}.category-dialog-head p{margin:2px 0 0;color:var(--mut);font-size:12px}
 .category-close{width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:var(--card);color:var(--tx);font-size:18px}
+/* גלילה דקה ומותאמת למותג בתוך החלונות */
+.category-dialog,.days{scrollbar-width:thin;scrollbar-color:var(--line2) transparent}
+.category-dialog::-webkit-scrollbar,.days::-webkit-scrollbar{width:8px;height:8px}
+.category-dialog::-webkit-scrollbar-track,.days::-webkit-scrollbar-track{background:transparent}
+.category-dialog::-webkit-scrollbar-thumb,.days::-webkit-scrollbar-thumb{background:var(--line2);border-radius:99px;border:2px solid transparent;background-clip:padding-box}
+.category-dialog::-webkit-scrollbar-thumb:hover,.days::-webkit-scrollbar-thumb:hover{background:var(--mut);background-clip:padding-box}
+.category-dialog{overscroll-behavior:contain}
+/* מצב עריכה בתוך מודל האימון */
+.editbar{display:flex;gap:8px;margin-bottom:12px}
+.editbar .btn{flex:1;font-size:13.5px;padding:9px 10px}
+.ex.editing{border-color:var(--line2)}
+.ex.editing .hd input{flex:1;min-width:0;background:var(--ink);border:1px solid var(--line);border-radius:9px;padding:8px 10px;font-size:15px;font-weight:700}
+.editgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:9px}
+.editgrid label{display:block;color:var(--dim);font-size:11px}
+.editgrid input,.exnote{width:100%;background:var(--ink);border:1px solid var(--line);border-radius:9px;padding:8px 6px;font-size:14px;text-align:center;margin-top:3px}
+.exnote{text-align:right;margin-top:7px}
+.editrow{display:flex;gap:7px;margin-top:9px}
+.editrow input{flex:1;min-width:0;background:var(--ink);border:1px solid var(--line);border-radius:9px;padding:8px 6px;font-size:13px;text-align:center}
+.delbtn{flex:none;width:34px;height:34px;border-radius:9px;border:1px solid var(--line2);background:transparent;color:var(--dim);font-size:15px;display:grid;place-items:center}
+.delbtn:hover{color:#D9605A;border-color:#D9605A}
+.dayedit{display:flex;gap:8px;align-items:center;margin-bottom:10px}
+.dayedit input{flex:1;background:var(--ink);border:1px solid var(--line);border-radius:9px;padding:8px 10px;font-size:14px}
+@media(max-width:520px){.editgrid{grid-template-columns:repeat(2,1fr)}}
 @keyframes modalIn{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
 @media(min-width:700px){.category-modal{align-items:center}.category-dialog{border-radius:18px}}
 @media(max-width:520px){.hero{padding:21px 16px 17px}.hero h2{font-size:24px}.overview-card{text-align:center;padding:10px 5px}.overview-card strong{font-size:19px}.overview-card span{font-size:10.5px}.category-tile{min-height:116px;padding:11px 6px}.category-icon{width:48px;height:48px;font-size:38px;margin-bottom:7px}.category-tile strong{font-size:13px}.category-tile span{font-size:10px}}
@@ -219,6 +242,10 @@ button{cursor:pointer}
   /* התרגילים שהמתאמן בחר לעצמו. נשמרים במכשיר ובשרת, כמו הארוחות —
      המכשיר לתגובה מיידית וגם בלי רשת, השרת כדי שהמאמן יראה. */
   let MY_EX = [], EX_OPEN = false, EX_Q = '', EX_MUS = 'all';
+
+  /* מצב עריכה במודל האימון: השינויים נצברים מקומית ונשמרים לשרת
+     רק בלחיצה על שמירה, כדי שהמאמן יראה עדכון אחד שלם. */
+  let EDIT_W = false, EDIT_SNAP = null, EDIT_EX_SNAP = null;
   const exKey = () => 'ebfit_myex_' + String(TOKEN || '').slice(0, 12);
   function readEx() { try { return JSON.parse(localStorage.getItem(exKey())) || []; } catch (e) { return []; } }
   function writeEx() { try { localStorage.setItem(exKey(), JSON.stringify(MY_EX)); } catch (e) {} }
@@ -281,8 +308,9 @@ button{cursor:pointer}
      כדי שהעדכון יגיע בלי שהמתאמן יצטרך לרענן ידנית, שולפים מחדש
      כל פרק זמן, וגם כשחוזרים לטאב/לאפליקציה. */
   let REFRESH_TIMER = null, REFRESHING = false;
+  /* פתיחה/סגירה של מודלים גם בריענון — התוכן מתחתם מחדש */
   async function refreshData(silent) {
-    if (!TOKEN || !sb || REFRESHING) return;
+    if (EDIT_W || !TOKEN || !sb || REFRESHING) return;
     REFRESHING = true;
     try {
       const { data, error } = await sb.rpc('trainee_program', { p_token: TOKEN });
@@ -296,9 +324,10 @@ button{cursor:pointer}
       writeCache(DATA);
       paint();
       if (OPEN_CATEGORY) {
-        const body = document.querySelector('.category-dialog-body');
+        const body = document.querySelector('#categoryModal .category-dialog-body');
         if (body) body.innerHTML = categoryContent(OPEN_CATEGORY);
       }
+      if (EX_OPEN) refreshExModalBody();
       if (!silent) toast('התוכנית עודכנה');
     } catch (e) { /* בלי רשת — משאירים את מה שכבר מוצג */ }
     finally { REFRESHING = false; }
@@ -836,11 +865,39 @@ button{cursor:pointer}
       + '</button>';
   }
 
+  /* ספריית התרגילים כחלון מעל מודל האימון, לא מסך נפרד —
+     המתאמן נשאר עם תחושת המיקום שלו בתוכנית. */
+  function exModal() {
+    closeExModal();
+    EX_OPEN = true;
+    const modal = document.createElement('div');
+    modal.className = 'category-modal';
+    modal.id = 'exModal';
+    modal.style.zIndex = '95';
+    modal.innerHTML = '<div class="category-dialog" role="dialog" aria-modal="true">'
+      + '<div class="category-dialog-head"><div style="flex:1"><h2>ספריית התרגילים</h2>'
+      + '<p>בחר תרגילים להוספה לאימון שלך</p></div>'
+      + '<button class="category-close" data-ex-close aria-label="סגירה">×</button></div>'
+      + '<div class="category-dialog-body">' + exScreen() + '</div></div>';
+    document.body.appendChild(modal);
+    document.body.style.overflow = 'hidden';
+  }
+  function closeExModal() {
+    EX_OPEN = false;
+    const modal = document.getElementById('exModal');
+    if (modal) modal.remove();
+    /* אם מודל הקטגוריה עדיין פתוח מתחת, הוא זה שמונע גלילה בגוף */
+    if (!document.getElementById('categoryModal')) document.body.style.overflow = '';
+  }
+  function refreshExModalBody() {
+    const body = document.querySelector('#exModal .category-dialog-body');
+    if (body) body.innerHTML = exScreen();
+  }
+
   function exScreen() {
     const items = EBEx.search(EX_Q, EX_MUS, 'all');
     const byM = EBEx.byMuscle();
-    let h = '<button class="btn ghost" style="margin-bottom:12px" onclick="__exClose()">‹ חזרה לתוכנית</button>'
-      + '<input id="exq" placeholder="חיפוש לפי שם, שריר או ציוד" value="' + esc(EX_Q) + '" '
+    let h = '<input id="exq" placeholder="חיפוש לפי שם, שריר או ציוד" value="' + esc(EX_Q) + '" '
       + 'oninput="__exSearch(this.value)" style="width:100%;background:var(--card);'
       + 'border:1px solid var(--line);border-radius:10px;padding:11px;font-size:15px;margin-bottom:10px">'
       + '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">'
@@ -883,27 +940,46 @@ button{cursor:pointer}
       + esc(label) + ' <span style="opacity:.6">' + n + '</span></button>';
   }
 
-  /* מוצג בנפרד מהתוכנית של המאמן, כדי שלא ייווצר רושם שהוא רשם את זה */
+  /* מוצג בנפרד מהתוכנית של המאמן, כדי שלא ייווצר רושם שהוא רשם את זה.
+     סטים/חזרות/הערה שהמתאמן שינה דורסים את ברירת המחדל של הספרייה. */
   function myExBlock() {
     if (typeof EBEx === 'undefined' || !MY_EX.length) return '';
-    const rows = MY_EX.map(x => EBEx.byId(x.exId)).filter(Boolean);
+    const rows = MY_EX.map(m => ({ m: m, x: EBEx.byId(m.exId) })).filter(r => r.x);
     if (!rows.length) return '';
     let h = '<div class="card" style="margin-bottom:12px;border-color:var(--line2)">'
       + '<div style="display:flex;align-items:baseline;gap:8px;margin-bottom:10px">'
       + '<div style="flex:1;font-family:Frank Ruhl Libre,serif;font-weight:700;font-size:15px">'
       + 'תרגילים שהוספתי</div>'
       + '<span class="mt" style="font-size:12px">' + rows.length + '</span></div>';
-    rows.forEach(x => {
-      h += '<div style="display:flex;align-items:center;gap:10px;padding:9px 0;'
-        + 'border-top:1px solid var(--line)">'
+    rows.forEach(r => {
+      const s = r.m.s || r.x.s, rr = r.m.r || r.x.r;
+      if (EDIT_W) {
+        h += '<div style="padding:9px 0;border-top:1px solid var(--line)">'
+          + '<div style="display:flex;align-items:center;gap:10px">'
+          + '<div style="flex:1;min-width:0">'
+          + '<div style="font-size:14px;font-weight:500">' + esc(r.x.n) + '</div>'
+          + '<div class="mt" style="font-size:11.5px;margin-top:2px">'
+          + esc(EBEx.MUSCLES[r.x.m]) + ' · ' + esc(EBEx.EQUIP[r.x.e] || 'אחר') + '</div></div>'
+          + '<button class="delbtn" data-exrm="' + esc(r.x.id) + '" title="הסרה">✕</button></div>'
+          + '<div class="editrow">'
+          + '<input data-exsf="s" data-exid="' + esc(r.x.id) + '" value="' + esc(r.m.s || '') + '" placeholder="' + esc(r.x.s) + ' סטים">'
+          + '<input data-exsf="r" data-exid="' + esc(r.x.id) + '" value="' + esc(r.m.r || '') + '" placeholder="' + esc(r.x.r) + ' חזרות">'
+          + '<input data-exsf="note" data-exid="' + esc(r.x.id) + '" value="' + esc(r.m.note || '') + '" placeholder="הערה">'
+          + '</div></div>';
+        return;
+      }
+      h += '<div style="padding:9px 0;border-top:1px solid var(--line)">'
+        + '<div style="display:flex;align-items:center;gap:10px">'
         + '<div style="flex:1;min-width:0">'
-        + '<div style="font-size:14px;font-weight:500">' + esc(x.n) + '</div>'
+        + '<div style="font-size:14px;font-weight:500">' + esc(r.x.n) + '</div>'
         + '<div class="mt" style="font-size:11.5px;margin-top:2px">'
-        + esc(EBEx.MUSCLES[x.m]) + ' · ' + esc(EBEx.EQUIP[x.e] || 'אחר') + '</div></div>'
+        + esc(EBEx.MUSCLES[r.x.m]) + ' · ' + esc(EBEx.EQUIP[r.x.e] || 'אחר') + '</div></div>'
         + '<span style="font-family:Heebo;font-weight:700;font-size:13px;white-space:nowrap">'
-        + esc(x.s) + '×' + esc(x.r) + '</span>'
-        + '<button data-exrm="' + esc(x.id) + '" style="background:none;border:0;color:var(--dim);'
-        + 'font-size:17px;cursor:pointer;padding:0 4px;line-height:1">✕</button></div>';
+        + esc(s) + '×' + esc(rr) + '</span>'
+        + '<button data-exrm="' + esc(r.x.id) + '" style="background:none;border:0;color:var(--dim);'
+        + 'font-size:17px;cursor:pointer;padding:0 4px;line-height:1">✕</button></div>'
+        + (r.m.note ? '<div style="font-size:12px;color:var(--or);margin-top:6px;line-height:1.5">' + esc(r.m.note) + '</div>' : '')
+        + '</div>';
     });
     return h + '</div>';
   }
@@ -950,9 +1026,84 @@ button{cursor:pointer}
   function lth(x,a){ return '<th style="text-align:'+(a||'left')+';padding:5px 4px;border-bottom:1px solid var(--line);font-size:11px;color:var(--mut);font-weight:500;white-space:nowrap">'+x+'</th>'; }
   function ltd(x,a){ return '<td style="text-align:'+(a||'left')+';padding:5px 4px;border-bottom:1px solid var(--line);white-space:nowrap;font-variant-numeric:tabular-nums">'+x+'</td>'; }
 
-  window.__exOpen   = () => { EX_OPEN = true; EX_Q=''; EX_MUS='all'; screen(exScreen()); window.scrollTo(0,0); };
-  window.__exClose  = () => { EX_OPEN = false; if (DATA) paint(); else loginScreen(); window.scrollTo(0,0); };
-  window.__exSearch = v => { EX_Q = v; screen(exScreen());
+  /* ---------- עריכת האימון ----------
+     פתיחה יוצרת תצלום — ביטול מחזיר אותו, שמירה דוחפת לשרת. */
+  function editBar() {
+    return '<div class="editbar">'
+      + (EDIT_W
+          ? '<button class="btn" onclick="__saveW()">✓ שמירת השינויים</button>'
+          + '<button class="btn ghost" onclick="__cancelW()">ביטול</button>'
+          : '<button class="btn ghost" onclick="__editW()">✏️ עריכת התוכנית שלי</button>')
+      + '</div>';
+  }
+
+  function refreshWorkoutBody() {
+    if (OPEN_CATEGORY !== 'workout') return;
+    const body = document.querySelector('#categoryModal .category-dialog-body');
+    if (body) body.innerHTML = categoryContent('workout');
+  }
+
+  window.__editW = () => {
+    if (!DATA.program) DATA.program = { days: [] };
+    if (!Array.isArray(DATA.program.days)) DATA.program.days = [];
+    EDIT_SNAP    = JSON.parse(JSON.stringify(DATA.program));
+    EDIT_EX_SNAP = JSON.parse(JSON.stringify(MY_EX));
+    EDIT_W = true;
+    refreshWorkoutBody();
+  };
+  window.__cancelW = () => {
+    if (EDIT_SNAP) DATA.program = EDIT_SNAP;
+    if (EDIT_EX_SNAP) { MY_EX = EDIT_EX_SNAP; writeEx(); }
+    EDIT_W = false; EDIT_SNAP = EDIT_EX_SNAP = null;
+    refreshWorkoutBody();
+  };
+  window.__saveW = async () => {
+    if (!EDIT_W) return;
+    try {
+      const r = await sb.rpc('trainee_update_program', { p_token: TOKEN, p_program: DATA.program });
+      if (r.error) throw r.error;
+      if (r.data) DATA.program = r.data;
+      const r2 = await sb.rpc('trainee_update_exercises', { p_token: TOKEN, p_exercises: MY_EX });
+      if (r2.error) throw r2.error;
+      if (Array.isArray(r2.data)) { MY_EX = r2.data; writeEx(); }
+      writeCache(DATA);
+      EDIT_W = false; EDIT_SNAP = EDIT_EX_SNAP = null;
+      paint(); refreshWorkoutBody();
+      toast('נשמר — המאמן יראה את העדכון');
+    } catch (e) {
+      /* שגיאה שמזכירה פונקציה חסרה = ה-SQL של העריכה לא הורץ בשרת */
+      const m = String((e && (e.message || e.details)) || '');
+      if (/trainee_update_program|trainee_update_exercises|PGRST202|42883/i.test(m)) {
+        toast('חסר עדכון בשרת — יש להריץ את supabase/trainee-edit.sql');
+      } else {
+        toast('לא הצלחנו לשמור — נסה שוב כשתהיה רשת');
+      }
+    }
+  };
+
+  /* אחרי מחיקת תרגיל או יום האינדקסים זזים — מזיזים גם את סימוני הביצוע,
+     ולא משאירים וי על התרגיל הלא נכון */
+  function shiftStateEx(d, from) {
+    const n = ((DATA.program.days || [])[d] || {}).exercises || [];
+    delete STATE[d + ':' + from];
+    for (let i = from + 1; i <= n.length; i++) {
+      const k = d + ':' + i;
+      if (STATE[k]) { STATE[d + ':' + (i - 1)] = STATE[k]; delete STATE[k]; }
+    }
+  }
+  function shiftStateDay(from) {
+    const next = {};
+    Object.keys(STATE).forEach(k => {
+      const di = +k.split(':')[0], rest = k.split(':')[1];
+      if (di === from) return;
+      next[(di > from ? di - 1 : di) + ':' + rest] = STATE[k];
+    });
+    STATE = next;
+  }
+
+  window.__exOpen   = () => { EX_Q=''; EX_MUS='all'; exModal(); };
+  window.__exClose  = () => { closeExModal(); };
+  window.__exSearch = v => { EX_Q = v; refreshExModalBody();
                              const el = document.getElementById('exq');
                              if (el) { el.focus(); el.setSelectionRange(v.length, v.length); } };
 
@@ -994,9 +1145,39 @@ button{cursor:pointer}
     const ea = e.target.closest('[data-exadd]');
     if (ea) { const id = ea.dataset.exadd; inEx(id) ? exRemove(id) : exAdd(id); return; }
     const er = e.target.closest('[data-exrm]');
-    if (er) { exRemove(er.dataset.exrm); paint(); return; }
+    if (er) { exRemove(er.dataset.exrm); refreshWorkoutBody(); return; }
+
+    const xd = e.target.closest('[data-exdel]');
+    if (xd) {
+      const dd2 = +xd.dataset.exdeld, xi = +xd.dataset.exdel;
+      const day = (DATA.program.days || [])[dd2];
+      if (!day || !day.exercises[xi]) return;
+      if (!confirm('להסיר את "' + (day.exercises[xi].name || 'התרגיל') + '" מהיום הזה?')) return;
+      day.exercises.splice(xi, 1);
+      shiftStateEx(dd2, xi);
+      refreshWorkoutBody();
+      return;
+    }
+    const dy = e.target.closest('[data-daydel]');
+    if (dy) {
+      const dd3 = +dy.dataset.daydel;
+      const day = (DATA.program.days || [])[dd3];
+      if (!day) return;
+      if (!confirm('למחוק את "' + (day.name || 'היום') + '" וכל התרגילים שבו?')) return;
+      DATA.program.days.splice(dd3, 1);
+      shiftStateDay(dd3);
+      refreshWorkoutBody();
+      return;
+    }
+    if (e.target.closest('[data-dayadd]')) {
+      DATA.program.days.push({ name: 'יום ' + (DATA.program.days.length + 1), exercises: [] });
+      refreshWorkoutBody();
+      return;
+    }
+
     const em = e.target.closest('[data-exmus]');
-    if (em) { EX_MUS = em.dataset.exmus; screen(exScreen()); window.scrollTo(0,0); return; }
+    if (em) { EX_MUS = em.dataset.exmus; refreshExModalBody(); return; }
+    if (e.target.closest('[data-ex-close]')) { closeExModal(); return; }
 
     const lt = e.target.closest('[data-libtab]');
     if (lt) { LIB_TAB = lt.dataset.libtab; screen(libScreen()); window.scrollTo(0,0); return; }
@@ -1106,7 +1287,7 @@ button{cursor:pointer}
 
   function categoryContent(key) {
     const days=(DATA.program&&DATA.program.days)||[], files=DATA.files||[];
-    if(key==='workout') return planBlock(days)+exBlockSafe()+exButton();
+    if(key==='workout') return editBar()+planBlock(days)+exBlockSafe()+exButton();
     if(key==='food') return targetsBlock()+nutritionPlan()+libButton();
     if(key==='body') return bodyMetricsBlock()+targetsBlock()+healthAlert()+healthFolder()+filesBlock(files);
     return progBlock()+historyBlock(days);
@@ -1135,7 +1316,18 @@ button{cursor:pointer}
     modal.innerHTML='<div class="category-dialog" role="dialog" aria-modal="true"><div class="category-dialog-head"><div style="flex:1"><h2>'+item[0]+'</h2><p>'+item[1]+'</p></div><button class="category-close" data-category-close aria-label="סגירה">×</button></div><div class="category-dialog-body">'+categoryContent(key)+'</div></div>';
     document.body.appendChild(modal); document.body.style.overflow='hidden';
   }
-  function closeCategory(){ OPEN_CATEGORY = null; const modal=document.getElementById('categoryModal'); if(modal) modal.remove(); document.body.style.overflow=''; }
+  /* סגירה באמצע עריכה משמיטה את השינויים שלא נשמרו — כמו ביטול */
+  function closeCategory(){
+    if (EDIT_W) {
+      if (EDIT_SNAP) DATA.program = EDIT_SNAP;
+      if (EDIT_EX_SNAP) { MY_EX = EDIT_EX_SNAP; writeEx(); }
+      EDIT_W = false; EDIT_SNAP = EDIT_EX_SNAP = null;
+    }
+    OPEN_CATEGORY = null;
+    const modal=document.getElementById('categoryModal');
+    if(modal) modal.remove();
+    document.body.style.overflow='';
+  }
 
   /* פתיח: משפט אחד שאומר מה יש כאן. בלעדיו הדף נפתח באמצע עניין
      ולא ברור אם זו התוכנית המלאה או קטע ממנה. */
@@ -1227,12 +1419,12 @@ button{cursor:pointer}
   /* כל הימים פרושים כתיקיות, ולא רצועת לשוניות שמראה יום אחד. כך
      נראית התוכנית כולה במבט אחד, ואפשר לפתוח את מה שמתאמנים היום. */
   function planBlock(days) {
-    if (!days.length) return '';
+    if (!days.length && !EDIT_W) return '';
     let h = '<div class="section-head"><h3>תוכנית האימון</h3><span>' + days.length + ' ימים · ' + days.reduce((n, d) => n + (d.exercises || []).length, 0) + ' תרגילים</span></div>';
 
     days.forEach((d, i) => {
       const ex   = d.exercises || [];
-      const open = DAY === i;
+      const open = EDIT_W ? true : DAY === i;
       const done = ex.filter((_, j) => (STATE[i + ':' + j] || {}).done).length;
       const full = ex.length > 0 && done === ex.length;
 
@@ -1244,11 +1436,17 @@ button{cursor:pointer}
         + '<span class="daychev"></span></button>'
         + '<div class="dayb">';
 
+      if (EDIT_W) {
+        h += '<div class="dayedit">'
+          + '<input data-dayname="' + i + '" value="' + esc(d.name || '') + '" placeholder="שם היום">'
+          + '<button class="delbtn" data-daydel="' + i + '" title="מחיקת היום">✕</button></div>';
+      }
+
       h += ex.length
         ? ex.map((e, j) => exCard(e, j, i)).join('')
         : '<div class="mt" style="text-align:center;padding:14px;font-size:13.5px">אין תרגילים ליום הזה</div>';
 
-      if (ex.length) {
+      if (ex.length && !EDIT_W) {
         h += '<div class="card" style="margin:4px 0 10px;background:var(--ink)">'
           + '<label style="font-size:13px;color:var(--mut)">איך היה?</label>'
           + '<div class="feel">' + ['קל', 'בסדר', 'קשה'].map(f =>
@@ -1259,6 +1457,9 @@ button{cursor:pointer}
       }
       h += '</div></div>';
     });
+    if (EDIT_W) {
+      h += '<button class="btn ghost" style="width:100%;font-size:13.5px" data-dayadd>+ הוספת יום אימון</button>';
+    }
     return h;
   }
 
@@ -1695,6 +1896,19 @@ button{cursor:pointer}
 
   function exCard(e, i, dayIdx) {
     const d  = (dayIdx == null ? DAY : dayIdx);
+    if (EDIT_W) {
+      return '<div class="ex editing">'
+        + '<div class="hd"><input data-ef="name" data-i="' + i + '" data-d="' + d + '" value="' + esc(e.name || '') + '" placeholder="שם התרגיל">'
+        + '<button class="delbtn" data-exdel="' + i + '" data-exdeld="' + d + '" title="הסרת התרגיל מהיום">✕</button></div>'
+        + '<div class="editgrid">'
+        + '<label>סטים<input data-ef="sets" data-i="' + i + '" data-d="' + d + '" value="' + esc(e.sets || '') + '"></label>'
+        + '<label>חזרות<input data-ef="reps" data-i="' + i + '" data-d="' + d + '" value="' + esc(e.reps || '') + '"></label>'
+        + '<label>מנוחה (שנ)<input data-ef="rest" data-i="' + i + '" data-d="' + d + '" value="' + esc(e.rest || '') + '" inputmode="numeric"></label>'
+        + '<label>משקל<input data-ef="weight" data-i="' + i + '" data-d="' + d + '" value="' + esc(e.weight || '') + '"></label>'
+        + '</div>'
+        + '<input class="exnote" data-ef="note" data-i="' + i + '" data-d="' + d + '" value="' + esc(e.note || '') + '" placeholder="הערה (אופציונלי)">'
+        + '</div>';
+    }
     const st = STATE[d + ':' + i] || {};
     const meta = [e.sets && e.sets + ' סטים', e.reps && e.reps + ' חזרות',
                   e.rest && 'מנוחה ' + e.rest + 'שנ'].filter(Boolean).join(' · ');
@@ -1742,6 +1956,7 @@ button{cursor:pointer}
        לראש הדף, ומי שפתח את יום ד' נזרק חזרה ליום א'. */
     const day = e.target.closest('[data-day]');
     if (day) {
+      if (EDIT_W) return; // במצב עריכה כל הימים פתוחים — אין מה לכווץ
       const card = day.closest('.dayc');
       const i = +day.dataset.day;
       const wasOpen = card.classList.contains('on');
@@ -1800,6 +2015,25 @@ button{cursor:pointer}
     if (bg != null) {
       const i = +bg;
       if (BUILD[i]) { BUILD[i].g = e.target.value; writeBuild(); refreshTot(); }
+      return;
+    }
+    const ef = e.target.dataset && e.target.dataset.ef;
+    if (ef) {
+      const day = (DATA.program.days || [])[+e.target.dataset.d];
+      const exx = day && (day.exercises || [])[+e.target.dataset.i];
+      if (exx) exx[ef] = e.target.value;
+      return;
+    }
+    const dn = e.target.dataset && e.target.dataset.dayname;
+    if (dn != null) {
+      const day2 = (DATA.program.days || [])[+dn];
+      if (day2) day2.name = e.target.value;
+      return;
+    }
+    const esf = e.target.dataset && e.target.dataset.exsf;
+    if (esf) {
+      const mx = MY_EX.find(x => x.exId === e.target.dataset.exid);
+      if (mx) { mx[esf] = e.target.value; writeEx(); }
       return;
     }
     const f = e.target.dataset && e.target.dataset.f;
