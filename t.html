@@ -273,6 +273,46 @@ button{cursor:pointer}
       if (!DATA) screen(msg('לא הצלחנו להתחבר', 'בדוק חיבור לאינטרנט ונסה שוב.'));
       else toast('אין חיבור — מוצגת הגרסה השמורה');
     }
+    startAutoRefresh();
+  }
+
+  /* ---------- ריענון אוטומטי ----------
+     המאמן עורך את הנתונים בלוח הניהול, וכאן אין ערוץ realtime מול השרת.
+     כדי שהעדכון יגיע בלי שהמתאמן יצטרך לרענן ידנית, שולפים מחדש
+     כל פרק זמן, וגם כשחוזרים לטאב/לאפליקציה. */
+  let REFRESH_TIMER = null, REFRESHING = false;
+  async function refreshData(silent) {
+    if (!TOKEN || !sb || REFRESHING) return;
+    REFRESHING = true;
+    try {
+      const { data, error } = await sb.rpc('trainee_program', { p_token: TOKEN });
+      if (error) throw error;
+      if (!data || !data.length) return;
+      const fresh = data[0];
+      if (JSON.stringify(fresh) === JSON.stringify(DATA)) return; // אין שינוי
+      DATA = fresh;
+      mergeMy(DATA.meals_self);
+      mergeEx(DATA.exercises_self);
+      writeCache(DATA);
+      paint();
+      if (OPEN_CATEGORY) {
+        const body = document.querySelector('.category-dialog-body');
+        if (body) body.innerHTML = categoryContent(OPEN_CATEGORY);
+      }
+      if (!silent) toast('התוכנית עודכנה');
+    } catch (e) { /* בלי רשת — משאירים את מה שכבר מוצג */ }
+    finally { REFRESHING = false; }
+  }
+
+  function startAutoRefresh() {
+    if (REFRESH_TIMER) return;
+    REFRESH_TIMER = setInterval(() => {
+      if (document.visibilityState === 'visible') refreshData(true);
+    }, 45000);
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') refreshData(true);
+    });
+    window.addEventListener('focus', () => refreshData(true));
   }
 
   function msg(h, p) { return '<div class="msg"><h2>' + esc(h) + '</h2>' + esc(p) + '</div>'; }
@@ -355,6 +395,7 @@ button{cursor:pointer}
       mergeEx(d.exercises_self);
       writeCache(d);
       paint();
+      startAutoRefresh();
     } catch (e) {
       loginScreen((e && e.message) || 'לא הצלחנו להיכנס');
     }
@@ -365,6 +406,7 @@ button{cursor:pointer}
       localStorage.removeItem('ebfit_t_token');
       if (CACHE) localStorage.removeItem(CACHE);
     } catch (e) {}
+    if (REFRESH_TIMER) { clearInterval(REFRESH_TIMER); REFRESH_TIMER = null; }
     TOKEN = ''; DATA = null;
     var b = document.querySelector('.bar'); if (b) b.remove();
     $('#hTitle').textContent = 'התוכנית שלי'; $('#hSub').textContent = '';
@@ -1083,15 +1125,17 @@ button{cursor:pointer}
       +(bmi?'<div style="display:flex;align-items:baseline;gap:9px"><strong style="font-family:Heebo;font-size:32px;color:var(--or)">'+bmi.value+'</strong><span style="font-size:14px">BMI · '+bmi.label+'</span></div><div class="mt" style="font-size:12px;margin-top:6px">מחושב לפי משקל וגובה עדכניים: '+DATA.weight+' ק״ג · '+DATA.height+' ס״מ</div>'
           :'<div style="font-size:13px;color:var(--mut)">נדרש משקל וגובה כדי לחשב BMI.</div>')+'</div>';
   }
+  let OPEN_CATEGORY = null;
   function openCategory(key) {
     const labels={workout:['אימון','התוכנית והביצוע'],food:['תזונה','התפריט והיעדים שלך'],body:['גוף','מדדים, בריאות וקבצים'],follow:['מעקב','ההתקדמות שלך']};
     const item=labels[key]||labels.workout;
     closeCategory();
+    OPEN_CATEGORY = key;
     const modal=document.createElement('div'); modal.className='category-modal'; modal.id='categoryModal';
     modal.innerHTML='<div class="category-dialog" role="dialog" aria-modal="true"><div class="category-dialog-head"><div style="flex:1"><h2>'+item[0]+'</h2><p>'+item[1]+'</p></div><button class="category-close" data-category-close aria-label="סגירה">×</button></div><div class="category-dialog-body">'+categoryContent(key)+'</div></div>';
     document.body.appendChild(modal); document.body.style.overflow='hidden';
   }
-  function closeCategory(){ const modal=document.getElementById('categoryModal'); if(modal) modal.remove(); document.body.style.overflow=''; }
+  function closeCategory(){ OPEN_CATEGORY = null; const modal=document.getElementById('categoryModal'); if(modal) modal.remove(); document.body.style.overflow=''; }
 
   /* פתיח: משפט אחד שאומר מה יש כאן. בלעדיו הדף נפתח באמצע עניין
      ולא ברור אם זו התוכנית המלאה או קטע ממנה. */
