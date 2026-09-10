@@ -63,7 +63,7 @@ grant execute on function public.check_admin_password(text, text) to anon, authe
 insert into public.admins (user_id, email, display_name, active)
 select id, lower(email), 'אראל באואר', true
 from auth.users
-where lower(email) = lower('erelbauer@gmail.com')
+where lower(email) = lower('erelbauer7@gmail.com')
 on conflict (user_id) do update
   set email = excluded.email, active = true;
 

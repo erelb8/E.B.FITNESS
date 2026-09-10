@@ -77,14 +77,14 @@ grant execute on function public.check_admin_password(text, text) to anon, authe
 insert into public.admins (user_id, email, display_name, active)
 select id, lower(email), 'אראל באואר', true
 from auth.users
-where lower(email) = lower('erelbauer@gmail.com')
+where lower(email) = lower('erelbauer7@gmail.com')
 on conflict (user_id) do update set email = excluded.email, active = true;
 
 -- Remove admin status from every other trainer preference row.
 update public.admins
 set active = false
 where user_id <> (
-  select id from auth.users where lower(email) = lower('erelbauer@gmail.com')
+  select id from auth.users where lower(email) = lower('erelbauer7@gmail.com')
 );
 
 alter table public.trainees      enable row level security;
