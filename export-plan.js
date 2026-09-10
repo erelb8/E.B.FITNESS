@@ -14,7 +14,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['exportPlan'] = 'v74';
+  (window.EB_MOD = window.EB_MOD || {})['exportPlan'] = 'v95';
 
   var esc2 = function (s) {
     return String(s == null ? '' : s)
@@ -40,6 +40,13 @@
       return '<div class="pill"><span>' + esc2(s[0]) + '</span><b>' + esc2(s[1]) + '</b></div>';
     }).join('');
 
+    /* ההערות נשמרות בתוך program אצל המאמן, ולכן הן נוסעות עם
+       התוכנית גם לקובץ המיוצא ולא רק לדף המתאמן. */
+    var noteHtml = function (txt, title) {
+      if (!txt || !String(txt).trim()) return '';
+      return '<div class="tnote"><b>' + esc2(title) + '</b>' + esc2(txt) + '</div>';
+    };
+
     var cards = days.map(function (d, di) {
       var ex = d.exercises || [];
       var rows = ex.map(function (e, ei) {
@@ -63,7 +70,8 @@
         + '<span class="day-t"><span class="day-name">' + esc2(d.name || ('יום ' + (di+1))) + '</span>'
         + '<span class="day-meta"><em class="cnt">0</em>/' + ex.length + ' תרגילים</span></span>'
         + '<span class="chev"></span></button>'
-        + '<div class="day-body"><ul class="rail">' + rows + '</ul></div></section>';
+        + '<div class="day-body">' + noteHtml(d.note, 'הערה ליום זה')
+        + '<ul class="rail">' + rows + '</ul></div></section>';
     }).join('');
 
     /* התפריט, אם יש */
@@ -75,7 +83,8 @@
       var TN = { breakfast:'בוקר', pre:'לפני אימון', post:'אחרי אימון',
                  lunch:'צהריים', snack:'ביניים', dinner:'ערב', other:'נוספות' };
       var n = function (v) { var x = Number(v); return isFinite(x) && x > 0 ? x : 0; };
-      mealsHtml = '<h2 class="sec">התפריט שלך</h2>';
+      mealsHtml = '<h2 class="sec">התפריט שלך</h2>'
+                + noteHtml((t.program || {}).mealsNote, 'הערה לתפריט');
       ['breakfast','pre','post','lunch','snack','dinner','other'].forEach(function (k) {
         var g = byType[k]; if (!g) return;
         mealsHtml += '<div class="grp">' + esc2(TN[k]) + '</div>';
@@ -169,6 +178,9 @@
 + '.ex-name{font-size:15px;font-weight:500;line-height:1.35}'
 + '.ex.done .ex-name{color:var(--dim);text-decoration:line-through}'
 + '.ex-note{color:var(--ember);font-size:12.5px;margin-top:3px;line-height:1.45}'
++ '.tnote{border:1px solid var(--ember);border-radius:10px;padding:11px 13px;margin:14px 0;'
++ 'font-size:13.5px;line-height:1.7;white-space:pre-wrap}'
++ '.tnote b{display:block;color:var(--ember);font-size:12.5px;margin-bottom:4px}'
 + '.ex-spec{display:flex;flex-direction:column;align-items:flex-end;gap:4px;padding-top:4px;flex:none}'
 + '.spec{font-family:Heebo;font-weight:700;font-size:13px;background:var(--panel-2);border:1px solid var(--line);'
 + 'border-radius:8px;padding:3px 9px;white-space:nowrap}'
@@ -211,7 +223,7 @@
 + '<div class="s"><b id="dn">0</b> מתוך ' + totalEx + ' תרגילים</div>'
 + '<div class="bar"><i id="bf"></i></div>'
 + '<button class="reset" id="rs">איפוס לשבוע חדש</button></div></div>'
-+ '<main>' + cards + '</main>' + mealsHtml
++ '<main>' + noteHtml((t.program || {}).note, 'הערה מהמאמן') + cards + '</main>' + mealsHtml
 + '<footer>נבנה עבור <b>' + esc2(t.name) + '</b> · הסימונים נשמרים במכשיר הזה</footer>'
 + '</div><div id="sv">נשמר</div>'
 + '<script>(function(){'

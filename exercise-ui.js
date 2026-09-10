@@ -8,9 +8,14 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['exUi'] = 'v74';
+  (window.EB_MOD = window.EB_MOD || {})['exUi'] = 'v95';
 
   var Q = '', MUS = 'all', EQ = 'all', FOR = null, DAY = 0, TARGET = null;
+
+  /* לאן נכנס תרגיל חדש. ברירת המחדל היא הסוף, כי כך זה עבד עד
+     היום; הבחירה נשמרת כל עוד הספרייה פתוחה, כדי שמי שבונה חימום
+     שלם לא יצטרך לבחור 'בהתחלה' מחדש בכל תרגיל. */
+  var POS = 'end';
 
   /* הספרייה משמשת שני מקומות: יום בתוכנית השמורה, ויום בטיוטה של
      הבונה שעוד לא הוחלה. TARGET מפריד ביניהם — בלעדיו ההוספה מהבונה
@@ -27,7 +32,7 @@
 
   function open(traineeId, dayIndex, target) {
     FOR = traineeId; DAY = dayIndex; TARGET = target || null;
-    Q = ''; MUS = 'all'; EQ = 'all';
+    Q = ''; MUS = 'all'; EQ = 'all'; POS = 'end';
     paint();
   }
 
@@ -43,6 +48,11 @@
       + '<button class="iconbtn" onclick="EBExUI.close()">✕</button></div><div class="mb">'
       + '<div class="muted" style="font-size:12.5px;margin-bottom:10px">'
       + 'מוסיף אל <b style="color:var(--tx)">' + esc(day.name || ('יום ' + (DAY + 1))) + '</b>'
+      + '</div>'
+      + '<div class="row" style="gap:5px;align-items:center;margin-bottom:10px">'
+      + '<span class="muted" style="font-size:12.5px">מיקום:</span>'
+      + chip('בסוף', POS === 'end', 'data-expos="end"')
+      + chip('בהתחלה', POS === 'start', 'data-expos="start"')
       + '</div>'
       + '<div class="search" style="margin-bottom:10px"><span>⌕</span>'
       + '<input id="ex_q" placeholder="חיפוש לפי שם, שריר או ציוד" value="' + esc(Q) + '" '
@@ -132,6 +142,7 @@
   function search(v) { Q = v; paint(); }
   function setMuscle(k) { MUS = k; paint(); }
   function setEquip(k) { EQ = k; paint(); }
+  function setPos(k) { POS = (k === 'start' ? 'start' : 'end'); paint(); }
 
   function add(exId) {
     var x = EBEx.byId(exId);
@@ -145,14 +156,15 @@
       var v = el ? String(el.value).trim() : '';
       return v || dflt;
     };
-    day.exercises.push({
+    var row = {
       name: x.n,
       sets:   g('exs', x.s),
       reps:   g('exr', x.r),
       weight: g('exw', ''),
       rest:   '',
       note:   x.note || ''
-    });
+    };
+    if (POS === 'start') day.exercises.unshift(row); else day.exercises.push(row);
     if (TARGET) TARGET.after(); else { save(); render(); }
 
     /* מעדכנים כרטיס אחד ולא מציירים מחדש — ציור מלא מחזיר את הגלילה
@@ -160,7 +172,7 @@
     var card = document.querySelector('[data-exid="' + exId + '"]');
     var btn = card && card.querySelector('[data-exadd]');
     if (btn) { btn.textContent = 'כבר ביום'; btn.classList.add('ghost'); btn.disabled = true; }
-    toast(x.n + ' נוסף');
+    toast(x.n + (POS === 'start' ? ' נוסף בהתחלה' : ' נוסף'));
   }
 
   document.addEventListener('click', function (e) {
@@ -170,6 +182,8 @@
     if (m) { setMuscle(m.dataset.exm); return; }
     var q = e.target.closest('[data-exe]');
     if (q) { setEquip(q.dataset.exe); return; }
+    var pz = e.target.closest('[data-expos]');
+    if (pz) { setPos(pz.dataset.expos); return; }
   });
 
   /* ══════════ השלמה למספר תרגילים אחיד ══════════
@@ -380,5 +394,5 @@
 
   window.EBExUI = { open: open, close: close,
                     fillTrainee: fillTrainee, fillAll: fillAll, fillDay: fillDay,
-                    applyGoal: applyGoal, applyGoalAll: applyGoalAll, goalKey: goalKey, search: search, setMuscle: setMuscle, setEquip: setEquip, add: add };
+                    applyGoal: applyGoal, applyGoalAll: applyGoalAll, goalKey: goalKey, search: search, setMuscle: setMuscle, setEquip: setEquip, setPos: setPos, add: add };
 })();

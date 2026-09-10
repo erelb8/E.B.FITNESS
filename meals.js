@@ -12,7 +12,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['meals'] = 'v74';
+  (window.EB_MOD = window.EB_MOD || {})['meals'] = 'v95';
 
   var BUCKET = 'programs';
   var MAXW   = 900;          // רוחב מרבי אחרי הקטנה
@@ -132,6 +132,20 @@
           + 'הכול כאן ממשיך לעבוד, וברגע שתריץ את <b>supabase/meals.sql</b> '
           + 'התפריטים יסונכרנו מעצמם.</div></div>';
       }
+    }
+
+    /* ההערה יושבת ב-program ולא בעמודה משלה — program כבר מסונכרן,
+       ולכן ההערה מגיעה למתאמן בלי מיגרציה בשרת. */
+    if (typeof noteBox === 'function') {
+      h += noteBox(t, 'mealsNote', 'הערה לתפריט',
+                   'למשל: לשתות כוס מים לפני כל ארוחה, ולא לדלג על ארוחת בוקר.');
+    }
+
+    /* ההערה יושבת ב-program ולא בעמודה משלה — program כבר מסונכרן,
+       ולכן ההערה מגיעה למתאמן בלי מיגרציה בשרת. */
+    if (typeof noteBox === 'function') {
+      h += noteBox(t, 'mealsNote', 'הערה לתפריט',
+                   'למשל: לשתות כוס מים לפני כל ארוחה, ולא לדלג על ארוחת בוקר.');
     }
 
     /* סיכום מול היעד */

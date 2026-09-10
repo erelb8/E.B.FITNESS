@@ -427,8 +427,8 @@ tbody tr:hover{background:var(--panel)}
 <div id="toast"></div>
 
 <!-- ספריית Supabase מקומית (לא מ-CDN) כדי שהאפליקציה תעבוד גם בלי רשת -->
-<script src="vendor/supabase.js?v=v74"></script>
-<script src="config.js?v=v74"></script>
+<script src="vendor/supabase.js?v=v95"></script>
+<script src="config.js?v=v95"></script>
 
 <script>
 /* =======================================================================
@@ -463,7 +463,7 @@ function age(b){ if(!b) return null; const d=new Date(b), t=new Date(); let a=t.
 
 /* ---------------- אחסון ---------------- */
 const KEY='ebfit_v1';
-const EB_VERSION='v74';   // חייב להתאים ל-VERSION ב-sw.js
+const EB_VERSION='v95';   // חייב להתאים ל-VERSION ב-sw.js
 let mem=null, canStore=true;
 function load(){
   try{ const r=localStorage.getItem(KEY); return r?JSON.parse(r):null; }
@@ -1086,6 +1086,7 @@ function tabProgram(t){
   +programDock(t.id,saveState);
   /* גם בלי תוכנית מוקלדת מציגים את כרטיס הקבצים — זה בדיוק המקרה
      שבו רוצים לצרף תוכנית מוכנה כ-PDF במקום להקליד אותה. */
+  h+=noteBox(t,'note','הערה כללית לתוכנית','למשל: להתחמם 10 דקות לפני כל אימון, ולשתות לפחות 3 ליטר ביום.');
   if(!p.days.length) return h+'<div class="empty"><div class="big">🏋</div>אין עדיין תוכנית מוקלדת. אפשר לפתוח יום אימון ראשון (A), או לצרף תוכנית מוכנה כקובץ למטה.</div>'+EBFiles.card(t);
   h+=selfExBlock(t);
 
@@ -1111,6 +1112,8 @@ function tabProgram(t){
      +'<button class="btn sm ghost" onclick="addEx(\''+t.id+'\','+di+')">+ תרגיל ריק</button>'
      +'<div style="flex:1"></div>'
     +'<button class="iconbtn" title="מחיקת יום אימון" onclick="delDay(\''+t.id+'\','+di+')">🗑</button></div>'
+     +'<div class="noprint" style="padding:0 14px 10px">'
+     +'<input class="f" style="width:100%" placeholder="הערה ליום הזה — תוצג למתאמן" value="'+esc(d.note||'')+'" onchange="setDay(&#39;'+t.id+'&#39;,'+di+',&#39;note&#39;,this.value)"></div>'
      +'<div style="overflow-x:auto;padding:0 14px 12px">'
      +'<table><thead><tr><th style="width:34%">תרגיל</th><th>סטים</th><th>חזרות</th><th>משקל</th><th>מנוחה</th><th>הערה</th><th class="noprint"></th></tr></thead><tbody>';
     ex.forEach((e,ei)=>{
@@ -1190,6 +1193,21 @@ function revertProgram(id){ const t=tById(id); if(t&&window.PROGRAM_BASE_ID===id
 function addDay(id){ const t=tById(id); t.program=t.program||{days:[]}; t.program.days.push({name:'יום '+String.fromCharCode(65+t.program.days.length),exercises:[]}); render(); }
 function delDay(id,di){ if(!confirm('למחוק את יום האימון?'))return; tById(id).program.days.splice(di,1); render(); }
 function setDay(id,di,k,v){ tById(id).program.days[di][k]=v; updateProgramDock(id); }
+
+/* ההערות יושבות בתוך program, שכבר מסונכרן למתאמן. עמודה חדשה בשרת
+   הייתה דורשת מיגרציה, וכל הערה שנכתבה לפני שהיא רצה הייתה נשארת
+   במכשיר בלבד — בדיוק התקלה השקטה שקרתה בעמודת הארוחות.
+
+   מסמן ולא שומר, כמו כל שאר עריכות התוכנית: השמירה היא בלחיצה. */
+function setProgNote(id,k,v){ const t=tById(id); t.program=t.program||{days:[]}; t.program[k]=v; updateProgramDock(id); }
+function noteBox(t,k,title,ph){
+  const v=((t.program||{})[k])||'';
+  return '<div class="card" style="margin-bottom:12px">'
+   +'<div style="font-family:Heebo;font-weight:700;font-size:14px;margin-bottom:6px">'+esc(title)+'</div>'
+   +'<textarea class="f" rows="3" style="width:100%;resize:vertical;line-height:1.6" placeholder="'+esc(ph)+'" '
+   +'onchange="setProgNote(&#39;'+t.id+'&#39;,&#39;'+k+'&#39;,this.value)">'+esc(v)+'</textarea>'
+   +'<div class="muted" style="font-size:11.5px;margin-top:6px">מוצגת למתאמן בדף שלו. נשמרת עם התוכנית.</div></div>';
+}
 function addEx(id,di){ tById(id).program.days[di].exercises.push({name:'',sets:'3',reps:'10',weight:'',rest:'60',note:''}); render(); }
 function delEx(id,di,ei){ tById(id).program.days[di].exercises.splice(ei,1); render(); }
 function setEx(id,di,ei,k,v){ tById(id).program.days[di].exercises[ei][k]=v; updateProgramDock(id); }
@@ -1943,29 +1961,29 @@ if (location.protocol === 'file:') {
 }
 </script>
 
-<script src="health.js?v=v74"></script>
-<script src="privacy.js?v=v74"></script>
-<script src="backup.js?v=v74"></script>
-<script src="reorder.js?v=v74"></script>
-<script src="access.js?v=v74"></script>
-<script src="analysis.js?v=v74"></script>
-<script src="reports.js?v=v74"></script>
-<script src="business.js?v=v94"></script>
-<script src="intake.js?v=v74"></script>
-<script src="files.js?v=v74"></script>
-<script src="builder.js?v=v74"></script>
-<script src="import-program.js?v=v74"></script>
-<script src="tracking.js?v=v74"></script>
-<script src="metrics.js?v=v74"></script>
-<script src="meal-library.js?v=v74"></script>
-<script src="library-ui.js?v=v74"></script>
-<script src="export-plan.js?v=v74"></script>
-<script src="cardio.js?v=v74"></script>
-<script src="cardio-ui.js?v=v74"></script>
-<script src="exercise-library.js?v=v74"></script>
-<script src="exercise-ui.js?v=v74"></script>
-<script src="meals.js?v=v74"></script>
-<script src="sync.js?v=v90"></script>
+<script src="health.js?v=v95"></script>
+<script src="privacy.js?v=v95"></script>
+<script src="backup.js?v=v95"></script>
+<script src="reorder.js?v=v95"></script>
+<script src="access.js?v=v95"></script>
+<script src="analysis.js?v=v95"></script>
+<script src="reports.js?v=v95"></script>
+<script src="business.js?v=v95"></script>
+<script src="intake.js?v=v95"></script>
+<script src="files.js?v=v95"></script>
+<script src="builder.js?v=v95"></script>
+<script src="import-program.js?v=v95"></script>
+<script src="tracking.js?v=v95"></script>
+<script src="metrics.js?v=v95"></script>
+<script src="meal-library.js?v=v95"></script>
+<script src="library-ui.js?v=v95"></script>
+<script src="export-plan.js?v=v95"></script>
+<script src="cardio.js?v=v95"></script>
+<script src="cardio-ui.js?v=v95"></script>
+<script src="exercise-library.js?v=v95"></script>
+<script src="exercise-ui.js?v=v95"></script>
+<script src="meals.js?v=v95"></script>
+<script src="sync.js?v=v95"></script>
 <script>
 /* =================== חיבור הסנכרון לאפליקציה =================== */
 

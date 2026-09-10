@@ -215,13 +215,13 @@ button{cursor:pointer}
 
 <div id="toast"></div>
 
-<script src="vendor/supabase.js?v=v74"></script>
-<script src="config.js?v=v74"></script>
-<script src="meal-library.js?v=v74"></script>
-<script src="exercise-library.js?v=v74"></script>
-<script src="progress.js?v=v74"></script>
-<script src="health.js?v=v74"></script>
-<script src="privacy.js?v=v74"></script>
+<script src="vendor/supabase.js?v=v95"></script>
+<script src="config.js?v=v95"></script>
+<script src="meal-library.js?v=v95"></script>
+<script src="exercise-library.js?v=v95"></script>
+<script src="progress.js?v=v95"></script>
+<script src="health.js?v=v95"></script>
+<script src="privacy.js?v=v95"></script>
 <script>
 (function () {
   'use strict';
@@ -275,7 +275,7 @@ button{cursor:pointer}
     if (!TOKEN) return loginScreen();
 
     CACHE = 'ebfit_t_' + TOKEN.slice(0, 12);
-    if (window.EBProg) EBProg.load(TOKEN);
+    if (window.EBProg) { EBProg.load(TOKEN); EBProg.attach(sb, TOKEN); }
     MY_MEALS = readMy();
     BUILD = readBuild();
     MY_EX = readEx();
@@ -294,6 +294,7 @@ button{cursor:pointer}
       DATA = data[0];
       mergeMy(DATA.meals_self);
       mergeEx(DATA.exercises_self);
+      if (window.EBProg) EBProg.mergeServer(DATA.weighins);
       writeCache(DATA);
       paint();
     } catch (e) {
@@ -321,6 +322,7 @@ button{cursor:pointer}
       DATA = fresh;
       mergeMy(DATA.meals_self);
       mergeEx(DATA.exercises_self);
+      if (window.EBProg) EBProg.mergeServer(DATA.weighins);
       writeCache(DATA);
       paint();
       if (OPEN_CATEGORY) {
@@ -413,7 +415,7 @@ button{cursor:pointer}
 
       TOKEN = d.token;
       CACHE = 'ebfit_t_' + TOKEN.slice(0, 12);
-    if (window.EBProg) EBProg.load(TOKEN);
+    if (window.EBProg) { EBProg.load(TOKEN); EBProg.attach(sb, TOKEN); }
     MY_MEALS = readMy();
     BUILD = readBuild();
     MY_EX = readEx();
@@ -422,6 +424,7 @@ button{cursor:pointer}
       DATA = d;
       mergeMy(d.meals_self);
       mergeEx(d.exercises_self);
+      if (window.EBProg) EBProg.mergeServer(d.weighins);
       writeCache(d);
       paint();
       startAutoRefresh();
@@ -1418,9 +1421,23 @@ button{cursor:pointer}
 
   /* כל הימים פרושים כתיקיות, ולא רצועת לשוניות שמראה יום אחד. כך
      נראית התוכנית כולה במבט אחד, ואפשר לפתוח את מה שמתאמנים היום. */
+  /* ---------- הערות המאמן ----------
+     נכתבות אצל המאמן ונשמרות בתוך program, ולכן הן מגיעות לכאן
+     באותה שליפה של התוכנית ובלי קריאה נוספת ובלי עמודה חדשה. */
+  function trainerNote(txt, title) {
+    if (!txt || !String(txt).trim()) return '';
+    return '<div class="card" style="margin-bottom:12px;border-color:var(--or);'
+      + 'background:var(--or-soft)">'
+      + '<div style="font-family:Heebo;font-weight:700;font-size:13.5px;color:var(--or);'
+      + 'margin-bottom:5px">' + esc(title) + '</div>'
+      + '<div style="font-size:13.5px;line-height:1.7;white-space:pre-wrap">'
+      + esc(txt) + '</div></div>';
+  }
+
   function planBlock(days) {
     if (!days.length && !EDIT_W) return '';
-    let h = '<div class="section-head"><h3>תוכנית האימון</h3><span>' + days.length + ' ימים · ' + days.reduce((n, d) => n + (d.exercises || []).length, 0) + ' תרגילים</span></div>';
+    let h = trainerNote((DATA.program || {}).note, 'הערה מהמאמן')
+      + '<div class="section-head"><h3>תוכנית האימון</h3><span>' + days.length + ' ימים · ' + days.reduce((n, d) => n + (d.exercises || []).length, 0) + ' תרגילים</span></div>';
 
     days.forEach((d, i) => {
       const ex   = d.exercises || [];
@@ -1435,6 +1452,15 @@ button{cursor:pointer}
         + '<span class="daym">' + (done ? '<em>' + done + '</em>/' : '') + ex.length + ' תרגילים</span></span>'
         + '<span class="daychev"></span></button>'
         + '<div class="dayb">';
+
+      /* class="note" לבדו חסר עיצוב — ה-CSS מגדיר .ex .note בלבד,
+         כלומר רק הערה שיושבת בתוך כרטיס תרגיל. */
+      if (d.note && String(d.note).trim()) {
+        h += '<div style="margin:10px 12px 2px;padding:9px 11px;border-radius:9px;'
+          + 'background:var(--or-soft);border:1px solid var(--or);color:var(--or);'
+          + 'font-size:12.5px;line-height:1.65;white-space:pre-wrap">'
+          + esc(d.note) + '</div>';
+      }
 
       if (EDIT_W) {
         h += '<div class="dayedit">'
@@ -1808,7 +1834,8 @@ button{cursor:pointer}
     var tg = (DATA.program && DATA.program.targets) || {};
 
     var h = '<div style="font-family:Frank Ruhl Libre,serif;font-weight:700;font-size:15px;'
-      + 'margin:18px 0 10px">תוכנית התזונה</div>';
+      + 'margin:18px 0 10px">תוכנית התזונה</div>'
+      + trainerNote((DATA.program || {}).mealsNote, 'הערה לתפריט');
 
     if (cnt) {
       h += '<div class="card" style="margin-bottom:12px">'
