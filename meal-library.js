@@ -14,7 +14,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['library'] = 'v95';
+  (window.EB_MOD = window.EB_MOD || {})['library'] = 'v96';
 
   var DB = {
     "אבוקדו":[160,2,8.5,14.7],

@@ -427,8 +427,8 @@ tbody tr:hover{background:var(--panel)}
 <div id="toast"></div>
 
 <!-- ספריית Supabase מקומית (לא מ-CDN) כדי שהאפליקציה תעבוד גם בלי רשת -->
-<script src="vendor/supabase.js?v=v95"></script>
-<script src="config.js?v=v95"></script>
+<script src="vendor/supabase.js?v=v96"></script>
+<script src="config.js?v=v96"></script>
 
 <script>
 /* =======================================================================
@@ -463,7 +463,7 @@ function age(b){ if(!b) return null; const d=new Date(b), t=new Date(); let a=t.
 
 /* ---------------- אחסון ---------------- */
 const KEY='ebfit_v1';
-const EB_VERSION='v95';   // חייב להתאים ל-VERSION ב-sw.js
+const EB_VERSION='v96';   // חייב להתאים ל-VERSION ב-sw.js
 let mem=null, canStore=true;
 function load(){
   try{ const r=localStorage.getItem(KEY); return r?JSON.parse(r):null; }
@@ -1086,6 +1086,14 @@ function tabProgram(t){
   +programDock(t.id,saveState);
   /* גם בלי תוכנית מוקלדת מציגים את כרטיס הקבצים — זה בדיוק המקרה
      שבו רוצים לצרף תוכנית מוכנה כ-PDF במקום להקליד אותה. */
+  /* מה שהמתאמן כתב לך במצב העריכה שלו. לקריאה בלבד — הוא הכותב. */
+  {
+    const tn=String((t.program||{}).traineeNote||'').trim();
+    if(tn) h+='<div class="card" style="margin-bottom:12px;border-color:var(--cop);background:rgba(209,154,85,.07)">'
+      +'<div style="font-family:Heebo;font-weight:700;font-size:14px;color:var(--cop);margin-bottom:5px">'
+      +'📝 הערה מ'+esc(t.name||'המתאמן')+'</div>'
+      +'<div style="font-size:13.5px;line-height:1.7;white-space:pre-wrap">'+esc(tn)+'</div></div>';
+  }
   h+=noteBox(t,'note','הערה כללית לתוכנית','למשל: להתחמם 10 דקות לפני כל אימון, ולשתות לפחות 3 ליטר ביום.');
   if(!p.days.length) return h+'<div class="empty"><div class="big">🏋</div>אין עדיין תוכנית מוקלדת. אפשר לפתוח יום אימון ראשון (A), או לצרף תוכנית מוכנה כקובץ למטה.</div>'+EBFiles.card(t);
   h+=selfExBlock(t);
@@ -1961,29 +1969,29 @@ if (location.protocol === 'file:') {
 }
 </script>
 
-<script src="health.js?v=v95"></script>
-<script src="privacy.js?v=v95"></script>
-<script src="backup.js?v=v95"></script>
-<script src="reorder.js?v=v95"></script>
-<script src="access.js?v=v95"></script>
-<script src="analysis.js?v=v95"></script>
-<script src="reports.js?v=v95"></script>
-<script src="business.js?v=v95"></script>
-<script src="intake.js?v=v95"></script>
-<script src="files.js?v=v95"></script>
-<script src="builder.js?v=v95"></script>
-<script src="import-program.js?v=v95"></script>
-<script src="tracking.js?v=v95"></script>
-<script src="metrics.js?v=v95"></script>
-<script src="meal-library.js?v=v95"></script>
-<script src="library-ui.js?v=v95"></script>
-<script src="export-plan.js?v=v95"></script>
-<script src="cardio.js?v=v95"></script>
-<script src="cardio-ui.js?v=v95"></script>
-<script src="exercise-library.js?v=v95"></script>
-<script src="exercise-ui.js?v=v95"></script>
-<script src="meals.js?v=v95"></script>
-<script src="sync.js?v=v95"></script>
+<script src="health.js?v=v96"></script>
+<script src="privacy.js?v=v96"></script>
+<script src="backup.js?v=v96"></script>
+<script src="reorder.js?v=v96"></script>
+<script src="access.js?v=v96"></script>
+<script src="analysis.js?v=v96"></script>
+<script src="reports.js?v=v96"></script>
+<script src="business.js?v=v96"></script>
+<script src="intake.js?v=v96"></script>
+<script src="files.js?v=v96"></script>
+<script src="builder.js?v=v96"></script>
+<script src="import-program.js?v=v96"></script>
+<script src="tracking.js?v=v96"></script>
+<script src="metrics.js?v=v96"></script>
+<script src="meal-library.js?v=v96"></script>
+<script src="library-ui.js?v=v96"></script>
+<script src="export-plan.js?v=v96"></script>
+<script src="cardio.js?v=v96"></script>
+<script src="cardio-ui.js?v=v96"></script>
+<script src="exercise-library.js?v=v96"></script>
+<script src="exercise-ui.js?v=v96"></script>
+<script src="meals.js?v=v96"></script>
+<script src="sync.js?v=v96"></script>
 <script>
 /* =================== חיבור הסנכרון לאפליקציה =================== */
 
