@@ -1,0 +1,147 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@500;700;900&family=Heebo:wght@300;400;500;700;800;900&display=swap">
+  <style>
+    body { margin: 0; }
+    a { color: #E7B873; } a:hover { color: #D19A55; }
+  </style>
+</helmet>
+
+<div dir="rtl" style="width:390px;min-height:1160px;background:#1B1510;font-family:Heebo,system-ui,sans-serif;color:#F2E8D8;position:relative;overflow:hidden">
+
+  <!-- טבעות רקע -->
+  <div style="position:absolute;top:-190px;left:-130px;width:520px;height:520px;border-radius:50%;border:1px solid rgba(209,154,85,.14)"></div>
+  <div style="position:absolute;top:-140px;left:-80px;width:420px;height:420px;border-radius:50%;border:1px solid rgba(209,154,85,.10)"></div>
+  <div style="position:absolute;top:-90px;left:-30px;width:320px;height:320px;border-radius:50%;border:1px solid rgba(143,168,79,.10)"></div>
+
+  <div style="position:relative;padding:22px 18px 40px;display:flex;flex-direction:column;gap:18px">
+
+    <!-- כותרת -->
+    <div style="display:flex;align-items:flex-start;gap:12px">
+      <div style="flex-grow:1">
+        <div style="font-size:11px;letter-spacing:.16em;color:#D19A55;font-weight:700">E.B FIT</div>
+        <div style="font-family:'Frank Ruhl Libre',serif;font-size:27px;font-weight:700;line-height:1.15;margin-top:5px">בוקר טוב, דני</div>
+        <div style="font-size:12.5px;color:#B3A48E;margin-top:3px">שבוע 7 · חיטוב וירידה באחוזי שומן</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;background:rgba(231,184,115,.12);border:1px solid rgba(231,184,115,.4);border-radius:999px;padding:6px 11px;white-space:nowrap">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#E7B873" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2c1 4 5 5 5 9a5 5 0 0 1-10 0c0-2 1-3 2-4 0 2 1 3 2 3 1-3 1-6 1-8Z"/></svg>
+        <span style="font-size:13px;font-weight:800;color:#E7B873">12</span>
+      </div>
+    </div>
+
+    <!-- הטבעות -->
+    <div style="background:#2B2118;border:1px solid #4A3726;border-radius:18px;padding:20px 18px;display:flex;align-items:center;gap:18px">
+      <div style="position:relative;width:132px;height:132px;flex-grow:0">
+        <svg width="132" height="132" viewBox="0 0 132 132">
+          <circle cx="66" cy="66" r="58" fill="none" stroke="rgba(242,232,216,.07)" stroke-width="9"/>
+          <circle cx="66" cy="66" r="58" fill="none" stroke="#8FA84F" stroke-width="9" stroke-linecap="round" stroke-dasharray="364" stroke-dashoffset="91" transform="rotate(-90 66 66)"/>
+          <circle cx="66" cy="66" r="44" fill="none" stroke="rgba(242,232,216,.07)" stroke-width="9"/>
+          <circle cx="66" cy="66" r="44" fill="none" stroke="#D19A55" stroke-width="9" stroke-linecap="round" stroke-dasharray="276" stroke-dashoffset="97" transform="rotate(-90 66 66)"/>
+          <circle cx="66" cy="66" r="30" fill="none" stroke="rgba(242,232,216,.07)" stroke-width="9"/>
+          <circle cx="66" cy="66" r="30" fill="none" stroke="#E7B873" stroke-width="9" stroke-linecap="round" stroke-dasharray="188" stroke-dashoffset="38" transform="rotate(-90 66 66)"/>
+        </svg>
+      </div>
+      <div style="flex-grow:1;display:flex;flex-direction:column;gap:11px">
+        <div>
+          <div style="font-family:Heebo;font-size:30px;font-weight:900;line-height:1;color:#8FA84F">75<span style="font-size:16px;font-weight:700">%</span></div>
+          <div style="font-size:11.5px;color:#B3A48E;margin-top:2px">השבוע הושלם</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <div style="display:flex;align-items:center;gap:7px;font-size:12px">
+            <span style="width:8px;height:8px;border-radius:50%;background:#8FA84F"></span>
+            <span style="flex-grow:1;color:#B3A48E">אימונים</span><b>3/4</b>
+          </div>
+          <div style="display:flex;align-items:center;gap:7px;font-size:12px">
+            <span style="width:8px;height:8px;border-radius:50%;background:#D19A55"></span>
+            <span style="flex-grow:1;color:#B3A48E">תזונה</span><b>6/7</b>
+          </div>
+          <div style="display:flex;align-items:center;gap:7px;font-size:12px">
+            <span style="width:8px;height:8px;border-radius:50%;background:#E7B873"></span>
+            <span style="flex-grow:1;color:#B3A48E">הרגלים</span><b>8/10</b>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- שורת ימי השבוע -->
+    <div style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px">
+      <div style="text-align:center"><div style="font-size:10px;color:#7E7060;margin-bottom:5px">א</div><div style="height:34px;border-radius:9px;background:#8FA84F;display:flex;align-items:center;justify-content:center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1B1510" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div></div>
+      <div style="text-align:center"><div style="font-size:10px;color:#7E7060;margin-bottom:5px">ב</div><div style="height:34px;border-radius:9px;background:#332619;border:1px solid #4A3726"></div></div>
+      <div style="text-align:center"><div style="font-size:10px;color:#7E7060;margin-bottom:5px">ג</div><div style="height:34px;border-radius:9px;background:#8FA84F;display:flex;align-items:center;justify-content:center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1B1510" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div></div>
+      <div style="text-align:center"><div style="font-size:10px;color:#7E7060;margin-bottom:5px">ד</div><div style="height:34px;border-radius:9px;background:#332619;border:1px solid #4A3726"></div></div>
+      <div style="text-align:center"><div style="font-size:10px;color:#7E7060;margin-bottom:5px">ה</div><div style="height:34px;border-radius:9px;background:#8FA84F;display:flex;align-items:center;justify-content:center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1B1510" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div></div>
+      <div style="text-align:center"><div style="font-size:10px;color:#E7B873;margin-bottom:5px;font-weight:700">ו</div><div style="height:34px;border-radius:9px;background:rgba(231,184,115,.16);border:1.5px solid #E7B873"></div></div>
+      <div style="text-align:center"><div style="font-size:10px;color:#7E7060;margin-bottom:5px">ש</div><div style="height:34px;border-radius:9px;background:#332619;border:1px solid #4A3726"></div></div>
+    </div>
+
+    <!-- המאמן החכם -->
+    <div style="background:linear-gradient(160deg,rgba(143,168,79,.16),#2B2118 62%);border:1px solid rgba(143,168,79,.45);border-radius:16px;padding:15px">
+      <div style="display:flex;align-items:center;gap:9px;margin-bottom:8px">
+        <span style="width:9px;height:9px;border-radius:50%;background:#8FA84F;box-shadow:0 0 0 4px rgba(143,168,79,.18)"></span>
+        <div style="flex-grow:1;font-size:13.5px;font-weight:800">המאמן החכם</div>
+        <span style="font-size:10.5px;color:#7E7060">לפני דקה</span>
+      </div>
+      <div style="font-family:'Frank Ruhl Libre',serif;font-size:17px;font-weight:700;color:#A8C75E;line-height:1.35;margin-bottom:5px">שיא חדש בלחיצת חזה</div>
+      <div style="font-size:12.5px;line-height:1.65;color:#D9CDBB">62.5 ק״ג לשמונה חזרות — הכי חזק שלך אי פעם. עלית 14% בתרגיל הזה בשישה שבועות.</div>
+    </div>
+
+    <!-- מספרים -->
+    <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px">
+      <div style="background:#2B2118;border:1px solid #4A3726;border-radius:14px;padding:13px 10px;text-align:center">
+        <div style="font-size:24px;font-weight:900;line-height:1;color:#F2E8D8">−1.9</div>
+        <div style="font-size:10.5px;color:#B3A48E;margin-top:4px">ק״ג החודש</div>
+      </div>
+      <div style="background:#2B2118;border:1px solid #4A3726;border-radius:14px;padding:13px 10px;text-align:center">
+        <div style="font-size:24px;font-weight:900;line-height:1;color:#F2E8D8">24</div>
+        <div style="font-size:10.5px;color:#B3A48E;margin-top:4px">אימונים</div>
+      </div>
+      <div style="background:#2B2118;border:1px solid #4A3726;border-radius:14px;padding:13px 10px;text-align:center">
+        <div style="font-size:24px;font-weight:900;line-height:1;color:#E7B873">7</div>
+        <div style="font-size:10.5px;color:#B3A48E;margin-top:4px">שיאים</div>
+      </div>
+    </div>
+
+    <!-- הרגלים -->
+    <div style="background:#2B2118;border:1px solid #4A3726;border-radius:16px;padding:15px">
+      <div style="display:flex;align-items:baseline;margin-bottom:11px">
+        <div style="flex-grow:1;font-size:13.5px;font-weight:800">ההרגלים שלי היום</div>
+        <div style="font-size:11px;color:#B3A48E">2 מתוך 3</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <span style="width:22px;height:22px;border-radius:7px;background:#8FA84F;display:flex;align-items:center;justify-content:center;flex-grow:0"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#1B1510" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span style="flex-grow:1;font-size:13px;color:#7E7060;text-decoration:line-through">3 ליטר מים</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <span style="width:22px;height:22px;border-radius:7px;background:#8FA84F;display:flex;align-items:center;justify-content:center;flex-grow:0"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#1B1510" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span style="flex-grow:1;font-size:13px;color:#7E7060;text-decoration:line-through">7 שעות שינה</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <span style="width:22px;height:22px;border-radius:7px;border:1.5px solid #5F4C39;flex-grow:0"></span>
+          <span style="flex-grow:1;font-size:13px">10,000 צעדים</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- צ׳ק-אין -->
+    <div style="border:1.5px dashed rgba(231,184,115,.5);border-radius:16px;padding:15px;display:flex;align-items:center;gap:13px">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#E7B873" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex-grow:0"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/><path d="m9 15 2 2 4-4"/></svg>
+      <div style="flex-grow:1">
+        <div style="font-size:13.5px;font-weight:800;color:#E7B873">צ׳ק-אין שבועי · חמישי</div>
+        <div style="font-size:11.5px;color:#B3A48E;margin-top:2px">משקל, תמונה והרגשה — שתי דקות</div>
+      </div>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E7B873" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex-grow:0"><path d="m15 18-6-6 6-6"/></svg>
+    </div>
+
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

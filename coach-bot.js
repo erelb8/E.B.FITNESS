@@ -18,7 +18,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['bot'] = 'v96';
+  (window.EB_MOD = window.EB_MOD || {})['bot'] = 'v97';
 
   var LOGS = [], WEIGH = [], PROGRAM = null, GOAL = '';
 
@@ -110,6 +110,85 @@
     });
     out.sort(function (a, b) { return b.sessions - a.sessions; });
     return out;
+  }
+
+  /* ---------- מסלול התוכנית ----------
+     המאמן מוכר בחודשים והמתאמן חי בשבועות, ולכן נשמר planMonths
+     ומוצג שבוע. 4.345 ולא 4: שנה היא 52 שבועות ולא 48, וחבילה של
+     שישה חודשים הייתה מסתיימת שבועיים מוקדם מדי.
+
+     planStart ו-planMonths יושבים בתוך program, שכבר מסונכרן —
+     אותה החלטה כמו בהערות, ומאותה סיבה: בלי מיגרציה בשרת. */
+  function plan() {
+    var p = PROGRAM || {};
+    var startISO = String(p.planStart || p.joined || '').slice(0, 10);
+    var months = Number(p.planMonths);
+    if (!isFinite(months) || months <= 0) months = 3;
+    if (!startISO) return null;
+
+    var d0 = new Date(startISO + 'T00:00').getTime();
+    if (!isFinite(d0)) return null;
+
+    var total = Math.max(1, Math.round(months * 4.345));
+    var passed = Math.floor((Date.now() - d0) / dayMs());
+    var weekNow = Math.max(1, Math.floor(passed / 7) + 1);
+
+    var end = new Date(d0);
+    end.setDate(end.getDate() + total * 7 - 1);
+
+    return {
+      start: startISO, months: months, totalWeeks: total,
+      weekNow: weekNow, ended: weekNow > total,
+      weeksLeft: Math.max(0, total - weekNow + 1),
+      pct: Math.max(0, Math.min(100, Math.round((weekNow - 1) / total * 100))),
+      endISO: end.getFullYear() + '-' + String(end.getMonth() + 1).padStart(2, '0')
+            + '-' + String(end.getDate()).padStart(2, '0')
+    };
+  }
+
+  /* ---------- רצף שבועות ----------
+     שבועות רצופים עם אימון אחד לפחות. נספר מכל היומן ולא מתוך חלון
+     התוכנית — מתאמן שסיים תוכנית והאריך אותה אינו מאבד שנה של
+     התמדה רק כי נגמר לו התאריך.
+
+     השבוע הנוכחי אינו שובר רצף כשעוד לא התאמנו בו: ביום ראשון בבוקר
+     איש עוד לא התאמן השבוע, וזו אינה הפסקה. */
+  /* תאריך בשעון המקומי. המרה ל-UTC מזיזה בישראל את חצות ליום
+     הקודם, ורצף היה נשבר בליל שבת-ראשון. */
+  function localISO(d) {
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0')
+         + '-' + String(d.getDate()).padStart(2, '0');
+  }
+  function weekStart(iso) {
+    var d = new Date(String(iso).slice(0, 10) + 'T00:00');
+    d.setDate(d.getDate() - d.getDay());
+    return localISO(d);
+  }
+  function streak() {
+    var weeks = {};
+    LOGS.forEach(function (l) {
+      var d = String(l.date || '').slice(0, 10);
+      if (d) weeks[weekStart(d)] = 1;
+    });
+    if (!Object.keys(weeks).length) return { weeks: 0, active: false };
+
+    var cur = new Date();
+    cur.setDate(cur.getDate() - cur.getDay());
+    var thisW = weekStart(localISO(cur));
+    var active = !!weeks[thisW];
+
+    /* אם השבוע עוד ריק — מתחילים לספור מהשבוע שעבר */
+    if (!active) cur.setDate(cur.getDate() - 7);
+
+    var n = 0;
+    for (;;) {
+      var k = weekStart(localISO(cur));
+      if (!weeks[k]) break;
+      n++;
+      cur.setDate(cur.getDate() - 7);
+      if (n > 520) break;                 // עשר שנים — עצירת בטיחות
+    }
+    return { weeks: n, active: active };
   }
 
   /* ---------- עקביות ---------- */
@@ -398,10 +477,148 @@
     return h + '</div>';
   }
 
+  /* =================== המסע ===================
+     אבני הדרך נגזרות מאירועים שקרו באמת ביומן ובשקילות, ולא ממטרה
+     מספרית — השדה "הגדרת הצלחה ל-3 חודשים" הוא טקסט חופשי ולעיתים
+     קרובות ריק, ומסך שנשען עליו היה נשאר ריק אצל חצי מהמתאמנים.
+
+     תוכנית שהסתיימה אינה מאפסת דבר: הרצף, השיאים ואבני הדרך נשארים
+     על המסך. מי שסיים שלושה חודשים והאריך צריך לראות המשך, לא
+     התחלה מחדש. */
+  function heMonth(iso) {
+    var M = ['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי',
+             'אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
+    var d = new Date(String(iso).slice(0, 10) + 'T00:00');
+    if (!isFinite(d.getTime())) return '';
+    return d.getDate() + ' ב' + M[d.getMonth()];
+  }
+
+  function milestones() {
+    var out = [];
+    if (LOGS.length) {
+      out.push({ date: String(LOGS[0].date).slice(0, 10), title: 'האימון הראשון', done: true });
+    }
+
+    /* שינוי משקל מצטבר — אבן דרך על כל קילו שלם */
+    var wp = weightPoints();
+    if (wp.length >= 2) {
+      var base = wp[0].v, seen = {};
+      wp.forEach(function (p) {
+        var whole = Math.trunc(Math.abs(p.v - base));
+        if (whole >= 1 && !seen[whole]) {
+          seen[whole] = 1;
+          out.push({
+            date: localISO(new Date(p.t)),
+            title: whole + ' ק״ג ' + (p.v < base ? 'למטה' : 'למעלה'),
+            done: true
+          });
+        }
+      });
+    }
+
+    /* השיא האחרון */
+    var prs = trends().filter(function (x) { return x.isPR && x.sessions >= 2; });
+    if (prs.length) {
+      out.push({ date: prs[0].last.date, title: 'שיא ב' + prs[0].name, done: true, accent: true });
+    }
+
+    out.sort(function (a, b) { return String(a.date) < String(b.date) ? -1 : 1; });
+    return out.slice(-4);                  // ארבע האחרונות — יותר מזה זו גלילה
+  }
+
+  function journeyBlock() {
+    var p = plan();
+    var st = streak();
+    if (!p) return '';
+
+    var ring = 2 * Math.PI * 23;
+    var off = ring * (1 - p.pct / 100);
+
+    var h = '<div class="card jr-card" style="margin-bottom:12px">';
+
+    /* כותרת */
+    h += '<div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">'
+      + '<div style="flex:1;min-width:0">'
+      + '<div style="font-size:11px;letter-spacing:.16em;color:var(--cop);font-weight:800">המסע שלך</div>'
+      + '<div style="font-family:Frank Ruhl Libre,serif;font-size:23px;font-weight:700;margin-top:3px">'
+      + (p.ended ? 'התוכנית הסתיימה' : 'שבוע ' + p.weekNow + ' מתוך ' + p.totalWeeks)
+      + '</div></div>'
+      + '<div style="position:relative;width:54px;height:54px;flex:none">'
+      + '<svg width="54" height="54" viewBox="0 0 54 54">'
+      + '<circle cx="27" cy="27" r="23" fill="none" stroke="var(--line2)" stroke-width="5"/>'
+      + '<circle cx="27" cy="27" r="23" fill="none" stroke="' + (p.ended ? 'var(--cop)' : 'var(--or)')
+      + '" stroke-width="5" stroke-linecap="round" stroke-dasharray="' + ring.toFixed(1)
+      + '" stroke-dashoffset="' + off.toFixed(1) + '" transform="rotate(-90 27 27)"/></svg>'
+      + '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;'
+      + 'font-family:Heebo;font-weight:900;font-size:13.5px">' + p.pct + '%</div>'
+      + '</div></div>';
+
+    /* פס הזמן */
+    h += '<div style="height:9px;border-radius:99px;background:var(--ink);overflow:hidden;margin-bottom:9px">'
+      + '<div style="width:' + p.pct + '%;height:100%;border-radius:99px;'
+      + 'background:linear-gradient(90deg,var(--or),var(--gold))"></div></div>';
+
+    h += '<div class="mt" style="font-size:11.5px;line-height:1.6;margin-bottom:13px">'
+      + (p.ended
+          ? 'התוכנית שלך הסתיימה ב-' + esc(heMonth(p.endISO)) + '. כל מה שצברת נשאר כאן — דבר עם המאמן על ההמשך.'
+          : 'התחלת ב-' + esc(heMonth(p.start)) + ' · מסתיימת ב-' + esc(heMonth(p.endISO))
+            + ' · נשארו ' + p.weeksLeft + (p.weeksLeft === 1 ? ' שבוע' : ' שבועות'))
+      + '</div>';
+
+    /* צ׳יפים */
+    var chips = [];
+    if (st.weeks) {
+      chips.push('<span class="jr-chip" style="color:var(--gold);border-color:rgba(231,184,115,.45);'
+        + 'background:rgba(231,184,115,.1)">רצף ' + st.weeks
+        + (st.weeks === 1 ? ' שבוע' : ' שבועות') + '</span>');
+    }
+    var prCount = trends().filter(function (x) { return x.isPR && x.sessions >= 2; }).length;
+    if (prCount) {
+      chips.push('<span class="jr-chip" style="color:var(--ok);border-color:rgba(168,199,94,.45);'
+        + 'background:rgba(168,199,94,.1)">' + prCount + ' שיאים</span>');
+    }
+    var c = consistency();
+    if (c.last4Weeks) {
+      chips.push('<span class="jr-chip">' + c.last4Weeks + ' אימונים בחודש</span>');
+    }
+    if (chips.length) {
+      h += '<div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:4px">' + chips.join('') + '</div>';
+    }
+
+    /* אבני דרך */
+    var ms = milestones();
+    if (ms.length) {
+      h += '<div style="margin-top:14px;padding-top:13px;border-top:1px solid var(--line)">'
+        + '<div class="mt" style="font-size:11px;letter-spacing:.16em;font-weight:800;margin-bottom:11px">'
+        + 'אבני הדרך</div>';
+      ms.forEach(function (m, i) {
+        var last = i === ms.length - 1;
+        h += '<div style="display:flex;gap:12px">'
+          + '<div style="flex:none;width:22px;display:flex;flex-direction:column;align-items:center">'
+          + '<div style="width:22px;height:22px;border-radius:50%;background:'
+          + (m.accent ? 'var(--gold)' : 'var(--or)') + ';display:flex;align-items:center;justify-content:center">'
+          + '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" '
+          + 'stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>'
+          + '</div>'
+          + (last ? '' : '<div style="flex:1;width:2px;background:var(--line2)"></div>')
+          + '</div>'
+          + '<div style="flex:1;min-width:0;padding-bottom:' + (last ? '0' : '14px') + '">'
+          + '<div style="font-size:13.5px;font-weight:700">' + esc(m.title) + '</div>'
+          + '<div class="mt" style="font-size:11px;margin-top:1px">' + esc(heMonth(m.date)) + '</div>'
+          + '</div></div>';
+      });
+      h += '</div>';
+    }
+
+    return h + '</div>';
+  }
+
   window.EBBot = {
     load: load, messages: messages, trends: trends, series: series,
     consistency: consistency, neglectedDays: neglectedDays,
     e1rm: e1rm, block: block, bodyBlock: bodyBlock,
+    plan: plan, streak: streak, weekStart: weekStart,
+    journeyBlock: journeyBlock, milestones: milestones,
     lineChart: lineChart, weightPoints: weightPoints,
     data: function () { return { logs: LOGS, weighins: WEIGH }; }
   };

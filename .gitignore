@@ -9,3 +9,7 @@ desktop.ini
 node_modules/
 tochnit_*.html
 video/
+
+# תוצר בנייה של קנבס העיצוב — 2.5MB, נוצר מחדש מקבצי ה-.dc.html
+design/*.html
+!design/*.dc.html

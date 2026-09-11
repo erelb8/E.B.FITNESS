@@ -153,6 +153,44 @@ t('הפסקה נראית כמרווח', (cx[2] - cx[1]) > (cx[1] - cx[0]) * 10, 
 B.load({ logs: [], weighins: [], program: PROGRAM });
 t('כרטיס גוף בלי נתונים', /עוד אין מספיק נתונים/.test(B.bodyBlock()), true);
 
+/* ---------- מסלול התוכנית ---------- */
+console.log('=== מסלול התוכנית ===');
+B.load({ logs: [], program: { planStart: ago(45), planMonths: 3 } });
+let pl = B.plan();
+t('שלושה חודשים = 13 שבועות', pl.totalWeeks, 13);
+t('אחרי 45 יום זה שבוע 7', pl.weekNow, 7);
+t('לא הסתיים', pl.ended, false);
+
+B.load({ logs: [], program: { planStart: ago(0), planMonths: 3 } });
+t('יום ההתחלה הוא שבוע 1', B.plan().weekNow, 1);
+
+B.load({ logs: [], program: { planStart: ago(200), planMonths: 3 } });
+t('אחרי הזמן — הסתיים', B.plan().ended, true);
+t('אחוז נעצר ב-100', B.plan().pct, 100);
+
+B.load({ logs: [], program: { planMonths: 6, planStart: ago(7) } });
+t('שישה חודשים = 26 שבועות', B.plan().totalWeeks, 26);
+
+B.load({ logs: [], program: {} });
+t('בלי תאריך התחלה — null', B.plan(), null);
+
+/* ---------- רצף ---------- */
+console.log('=== רצף שבועות ===');
+B.load({ logs: [{ date: ago(1) }, { date: ago(8) }, { date: ago(15) }], program: {} });
+t('שלושה שבועות רצופים', B.streak().weeks >= 3, true);
+
+B.load({ logs: [{ date: ago(1) }, { date: ago(8) }, { date: ago(40) }], program: {} });
+t('פער שובר את הרצף', B.streak().weeks <= 2, true);
+
+B.load({ logs: [], program: {} });
+t('בלי אימונים — אפס', B.streak().weeks, 0);
+
+/* הרצף אינו נמחק כשהתוכנית הסתיימה */
+B.load({ logs: [{ date: ago(1) }, { date: ago(8) }, { date: ago(15) }, { date: ago(22) }],
+         program: { planStart: ago(200), planMonths: 3 } });
+t('תוכנית שהסתיימה', B.plan().ended, true);
+t('הרצף שרד את סוף התוכנית', B.streak().weeks >= 4, true);
+
 console.log(fail ? '\n' + fail + ' נכשלו  |  עברו: ' + pass
                  : '\nהכל עבר  |  עברו: ' + pass);
 process.exit(fail ? 1 : 0);

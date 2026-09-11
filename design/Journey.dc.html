@@ -1,0 +1,139 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@500;700;900&family=Heebo:wght@400;500;700;800;900&display=swap">
+  <style>
+    body { margin: 0; }
+    a { color: #E7B873; } a:hover { color: #D19A55; }
+  </style>
+</helmet>
+
+<div dir="rtl" style="width:390px;min-height:1160px;background:#1A1410;font-family:Heebo,system-ui,sans-serif;color:#F2E8D8;padding:24px 20px 40px;display:flex;flex-direction:column;gap:0">
+
+  <!-- ראש -->
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:22px">
+    <div style="flex-grow:1">
+      <div style="font-size:11px;letter-spacing:.18em;color:#D19A55;font-weight:800">המסע שלך</div>
+      <div style="font-family:'Frank Ruhl Libre',serif;font-size:26px;font-weight:700;margin-top:4px">שבוע 7 מתוך 12</div>
+    </div>
+    <div style="position:relative;width:54px;height:54px;flex-grow:0">
+      <svg width="54" height="54" viewBox="0 0 54 54">
+        <circle cx="27" cy="27" r="23" fill="none" stroke="#3A2C20" stroke-width="5"/>
+        <circle cx="27" cy="27" r="23" fill="none" stroke="#8FA84F" stroke-width="5" stroke-linecap="round" stroke-dasharray="144.5" stroke-dashoffset="60.7" transform="rotate(-90 27 27)"/>
+      </svg>
+      <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900">58%</div>
+    </div>
+  </div>
+
+  <!-- פס התקדמות ליעד -->
+  <div style="background:#251C15;border:1px solid #453629;border-radius:15px;padding:16px;margin-bottom:24px">
+    <div style="display:flex;align-items:baseline;margin-bottom:10px">
+      <div style="flex-grow:1;font-size:13px;font-weight:800">היעד: לרדת 6 ק״ג</div>
+      <div style="font-size:12.5px;font-weight:900;color:#8FA84F">3.4 / 6</div>
+    </div>
+    <div style="height:9px;border-radius:99px;background:#15100C;overflow:hidden;margin-bottom:9px">
+      <div style="width:57%;height:100%;border-radius:99px;background:linear-gradient(90deg,#8FA84F,#E7B873)"></div>
+    </div>
+    <div style="font-size:11.5px;color:#9C8C77;line-height:1.6">בקצב הנוכחי תגיע ליעד ב-4 בנובמבר — תשעה ימים לפני התאריך שהצבתם.</div>
+  </div>
+
+  <!-- ציר הזמן -->
+  <div style="font-size:11px;letter-spacing:.18em;color:#7E7060;font-weight:800;margin-bottom:16px">אבני הדרך</div>
+
+  <div style="position:relative;padding-inline-start:0">
+
+    <!-- אבן דרך הושגה -->
+    <div style="display:flex;gap:14px">
+      <div style="flex-grow:0;display:flex;flex-direction:column;align-items:center;width:34px">
+        <div style="width:34px;height:34px;border-radius:50%;background:#8FA84F;display:flex;align-items:center;justify-content:center">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#1A1410" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+        </div>
+        <div style="flex-grow:1;width:2px;background:#8FA84F"></div>
+      </div>
+      <div style="flex-grow:1;padding-bottom:22px">
+        <div style="font-size:15px;font-weight:800">האימון הראשון</div>
+        <div style="font-size:11.5px;color:#7E7060;margin-top:3px">24 ביולי</div>
+      </div>
+    </div>
+
+    <!-- אבן דרך הושגה -->
+    <div style="display:flex;gap:14px">
+      <div style="flex-grow:0;display:flex;flex-direction:column;align-items:center;width:34px">
+        <div style="width:34px;height:34px;border-radius:50%;background:#8FA84F;display:flex;align-items:center;justify-content:center">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#1A1410" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+        </div>
+        <div style="flex-grow:1;width:2px;background:linear-gradient(#8FA84F,#E7B873)"></div>
+      </div>
+      <div style="flex-grow:1;padding-bottom:22px">
+        <div style="font-size:15px;font-weight:800">2 ק״ג ראשונים</div>
+        <div style="font-size:11.5px;color:#7E7060;margin-top:3px">18 באוגוסט</div>
+      </div>
+    </div>
+
+    <!-- הנקודה הנוכחית -->
+    <div style="display:flex;gap:14px">
+      <div style="flex-grow:0;display:flex;flex-direction:column;align-items:center;width:34px">
+        <div style="width:34px;height:34px;border-radius:50%;background:#E7B873;box-shadow:0 0 0 5px rgba(231,184,115,.16);display:flex;align-items:center;justify-content:center">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1A1410" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v6M12 16v6M2 12h6M16 12h6"/></svg>
+        </div>
+        <div style="flex-grow:1;width:2px;background:#3A2C20"></div>
+      </div>
+      <div style="flex-grow:1;padding-bottom:22px">
+        <div style="background:linear-gradient(160deg,rgba(231,184,115,.14),#251C15 60%);border:1px solid rgba(231,184,115,.45);border-radius:14px;padding:14px">
+          <div style="font-size:15px;font-weight:900;color:#E7B873">אתה כאן · שיא בלחיצת חזה</div>
+          <div style="font-size:12.5px;color:#C9BCA8;line-height:1.65;margin-top:5px">62.5 ק״ג לשמונה חזרות, הכי חזק שלך אי פעם. עלייה של 14% בשישה שבועות.</div>
+          <div style="display:flex;gap:7px;margin-top:11px">
+            <span style="background:rgba(143,168,79,.18);color:#A8C75E;border-radius:99px;padding:4px 10px;font-size:11px;font-weight:800">רצף 12 שבועות</span>
+            <span style="background:rgba(209,154,85,.18);color:#D19A55;border-radius:99px;padding:4px 10px;font-size:11px;font-weight:800">7 שיאים</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- אבן דרך עתידית -->
+    <div style="display:flex;gap:14px">
+      <div style="flex-grow:0;display:flex;flex-direction:column;align-items:center;width:34px">
+        <div style="width:34px;height:34px;border-radius:50%;border:2px dashed #5F4C39"></div>
+        <div style="flex-grow:1;width:2px;background:#3A2C20"></div>
+      </div>
+      <div style="flex-grow:1;padding-bottom:22px">
+        <div style="font-size:15px;font-weight:800;color:#9C8C77">חצי הדרך · 3 ק״ג</div>
+        <div style="font-size:11.5px;color:#5F4C39;margin-top:3px">בעוד כשבועיים</div>
+      </div>
+    </div>
+
+    <!-- היעד -->
+    <div style="display:flex;gap:14px">
+      <div style="flex-grow:0;display:flex;flex-direction:column;align-items:center;width:34px">
+        <div style="width:34px;height:34px;border-radius:50%;border:2px solid #D19A55;display:flex;align-items:center;justify-content:center">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D19A55" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3v18"/><path d="M5 4h11l-2 4 2 4H5"/></svg>
+        </div>
+      </div>
+      <div style="flex-grow:1">
+        <div style="font-size:15px;font-weight:800;color:#D19A55">היעד · 6 ק״ג</div>
+        <div style="font-size:11.5px;color:#7E7060;margin-top:3px">4 בנובמבר</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- צ׳ק-אין -->
+  <div style="margin-top:26px;background:#251C15;border:1px solid #453629;border-radius:15px;padding:15px;display:flex;align-items:center;gap:12px">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#8FA84F" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex-grow:0"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/><path d="m9 15 2 2 4-4"/></svg>
+    <div style="flex-grow:1">
+      <div style="font-size:13.5px;font-weight:800">צ׳ק-אין שבועי</div>
+      <div style="font-size:11.5px;color:#9C8C77;margin-top:2px">היום חמישי — זמן לשקול ולצלם</div>
+    </div>
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#8FA84F" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex-grow:0"><path d="m15 18-6-6 6-6"/></svg>
+  </div>
+
+</div>
+</x-dc>
+</body>
+</html>

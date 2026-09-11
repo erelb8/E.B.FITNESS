@@ -427,8 +427,8 @@ tbody tr:hover{background:var(--panel)}
 <div id="toast"></div>
 
 <!-- ספריית Supabase מקומית (לא מ-CDN) כדי שהאפליקציה תעבוד גם בלי רשת -->
-<script src="vendor/supabase.js?v=v96"></script>
-<script src="config.js?v=v96"></script>
+<script src="vendor/supabase.js?v=v97"></script>
+<script src="config.js?v=v97"></script>
 
 <script>
 /* =======================================================================
@@ -463,7 +463,7 @@ function age(b){ if(!b) return null; const d=new Date(b), t=new Date(); let a=t.
 
 /* ---------------- אחסון ---------------- */
 const KEY='ebfit_v1';
-const EB_VERSION='v96';   // חייב להתאים ל-VERSION ב-sw.js
+const EB_VERSION='v97';   // חייב להתאים ל-VERSION ב-sw.js
 let mem=null, canStore=true;
 function load(){
   try{ const r=localStorage.getItem(KEY); return r?JSON.parse(r):null; }
@@ -1094,6 +1094,7 @@ function tabProgram(t){
       +'📝 הערה מ'+esc(t.name||'המתאמן')+'</div>'
       +'<div style="font-size:13.5px;line-height:1.7;white-space:pre-wrap">'+esc(tn)+'</div></div>';
   }
+  h+=planCard(t);
   h+=noteBox(t,'note','הערה כללית לתוכנית','למשל: להתחמם 10 דקות לפני כל אימון, ולשתות לפחות 3 ליטר ביום.');
   if(!p.days.length) return h+'<div class="empty"><div class="big">🏋</div>אין עדיין תוכנית מוקלדת. אפשר לפתוח יום אימון ראשון (A), או לצרף תוכנית מוכנה כקובץ למטה.</div>'+EBFiles.card(t);
   h+=selfExBlock(t);
@@ -1207,6 +1208,76 @@ function setDay(id,di,k,v){ tById(id).program.days[di][k]=v; updateProgramDock(i
    במכשיר בלבד — בדיוק התקלה השקטה שקרתה בעמודת הארוחות.
 
    מסמן ולא שומר, כמו כל שאר עריכות התוכנית: השמירה היא בלחיצה. */
+/* ---------- תקופת התוכנית ----------
+   המאמן מוכר בחודשים, המתאמן חי בשבועות. נשמר planMonths ומוצג גם
+   שבוע, כדי ששני הצדדים יראו את אותו דבר במונחים שלהם.
+
+   יושב בתוך program, שכבר מסונכרן — בלי מיגרציה בשרת, כמו ההערות.
+   תאריך ההתחלה מוצע מ-joined אבל אינו נכתב מעצמו: מתאמן שהצטרף
+   לפני שנה והתחיל תוכנית חדשה היום אינו מתחיל בשבוע 52. */
+function planOf(t){
+  const p=t.program||{};
+  const months=Number(p.planMonths)>0?Number(p.planMonths):null;
+  const start=String(p.planStart||'').slice(0,10);
+  if(!start||!months) return null;
+  const d0=new Date(start+'T00:00').getTime();
+  if(!isFinite(d0)) return null;
+  const total=Math.max(1,Math.round(months*4.345));
+  const weekNow=Math.max(1,Math.floor((Date.now()-d0)/86400000/7)+1);
+  const end=new Date(d0); end.setDate(end.getDate()+total*7-1);
+  return {start,months,total,weekNow,ended:weekNow>total,
+          left:Math.max(0,total-weekNow+1),
+          pct:Math.max(0,Math.min(100,Math.round((weekNow-1)/total*100))),
+          endISO:end.toISOString().slice(0,10)};
+}
+function startPlan(id){
+  const t=tById(id); t.program=t.program||{days:[]};
+  t.program.planStart=t.program.planStart||t.joined||todayISO();
+  t.program.planMonths=t.program.planMonths||3;
+  save(); render(); toast('תקופת התוכנית הוגדרה');
+}
+function setPlanStart(id,v){
+  const t=tById(id); t.program=t.program||{days:[]};
+  t.program.planStart=String(v||'').slice(0,10); save(); render();
+}
+/* הארכה מוסיפה חודשים ואינה נוגעת בתאריך ההתחלה — כך הרצף, אבני
+   הדרך וההיסטוריה של המתאמן ממשיכים ברצף ולא מתאפסים. */
+function extendPlan(id,months){
+  const t=tById(id); if(!t.program||!t.program.planMonths) return;
+  t.program.planMonths=Math.min(60,Number(t.program.planMonths)+months);
+  save(); render(); toast('התוכנית הוארכה ב-'+months+(months===1?' חודש':' חודשים'));
+}
+function planCard(t){
+  const p=planOf(t);
+  if(!p){
+    return '<div class="card" style="margin-bottom:12px">'
+     +'<div style="font-family:Heebo;font-weight:700;font-size:14px;margin-bottom:5px">תקופת התוכנית</div>'
+     +'<div class="muted" style="font-size:13px;line-height:1.6;margin-bottom:11px">'
+     +'עוד לא הוגדרה. ברגע שתגדיר, המתאמן יראה בדף שלו "שבוע X מתוך Y" ואת אבני הדרך שלו.</div>'
+     +'<button class="btn sm" onclick="startPlan(&#39;'+t.id+'&#39;)">התחלת מעקב'
+     +(t.joined?' מ-'+fmtDate(t.joined):'')+'</button></div>';
+  }
+  const col=p.ended?'var(--cop)':'var(--ok)';
+  return '<div class="card" style="margin-bottom:12px;border-color:'+(p.ended?'var(--cop)':'var(--line2)')+'">'
+   +'<div class="row" style="align-items:baseline;margin-bottom:9px">'
+   +'<div style="flex:1;font-family:Heebo;font-weight:700;font-size:14px">תקופת התוכנית</div>'
+   +'<div style="font-size:12.5px;font-weight:800;color:'+col+'">'
+   +(p.ended?'הסתיימה':'שבוע '+p.weekNow+' מתוך '+p.total)+'</div></div>'
+   +'<div style="height:7px;border-radius:99px;background:var(--ink);overflow:hidden;margin-bottom:10px">'
+   +'<div style="width:'+p.pct+'%;height:100%;background:'+col+'"></div></div>'
+   +'<div class="muted" style="font-size:12.5px;line-height:1.6;margin-bottom:12px">'
+   +p.months+(p.months===1?' חודש':' חודשים')+' · '+fmtDate(p.start)+' – '+fmtDate(p.endISO)
+   +(p.ended?' · הרצף והשיאים של המתאמן נשמרו':' · נותרו '+p.left+(p.left===1?' שבוע':' שבועות'))
+   +'</div>'
+   +'<div class="row" style="gap:8px;align-items:center;flex-wrap:wrap">'
+   +'<label class="muted" style="font-size:12.5px">התחלה</label>'
+   +'<input class="f" type="date" style="width:150px" value="'+esc(p.start)+'" '
+   +'onchange="setPlanStart(&#39;'+t.id+'&#39;,this.value)">'
+   +'<div style="flex:1"></div>'
+   +'<span class="muted" style="font-size:12.5px">הארכה</span>'
+   +[1,3,6].map(m=>'<button class="btn sm ghost" onclick="extendPlan(&#39;'+t.id+'&#39;,'+m+')">+'+m+'</button>').join('')
+   +'</div></div>';
+}
 function setProgNote(id,k,v){ const t=tById(id); t.program=t.program||{days:[]}; t.program[k]=v; updateProgramDock(id); }
 function noteBox(t,k,title,ph){
   const v=((t.program||{})[k])||'';
@@ -1969,29 +2040,29 @@ if (location.protocol === 'file:') {
 }
 </script>
 
-<script src="health.js?v=v96"></script>
-<script src="privacy.js?v=v96"></script>
-<script src="backup.js?v=v96"></script>
-<script src="reorder.js?v=v96"></script>
-<script src="access.js?v=v96"></script>
-<script src="analysis.js?v=v96"></script>
-<script src="reports.js?v=v96"></script>
-<script src="business.js?v=v96"></script>
-<script src="intake.js?v=v96"></script>
-<script src="files.js?v=v96"></script>
-<script src="builder.js?v=v96"></script>
-<script src="import-program.js?v=v96"></script>
-<script src="tracking.js?v=v96"></script>
-<script src="metrics.js?v=v96"></script>
-<script src="meal-library.js?v=v96"></script>
-<script src="library-ui.js?v=v96"></script>
-<script src="export-plan.js?v=v96"></script>
-<script src="cardio.js?v=v96"></script>
-<script src="cardio-ui.js?v=v96"></script>
-<script src="exercise-library.js?v=v96"></script>
-<script src="exercise-ui.js?v=v96"></script>
-<script src="meals.js?v=v96"></script>
-<script src="sync.js?v=v96"></script>
+<script src="health.js?v=v97"></script>
+<script src="privacy.js?v=v97"></script>
+<script src="backup.js?v=v97"></script>
+<script src="reorder.js?v=v97"></script>
+<script src="access.js?v=v97"></script>
+<script src="analysis.js?v=v97"></script>
+<script src="reports.js?v=v97"></script>
+<script src="business.js?v=v97"></script>
+<script src="intake.js?v=v97"></script>
+<script src="files.js?v=v97"></script>
+<script src="builder.js?v=v97"></script>
+<script src="import-program.js?v=v97"></script>
+<script src="tracking.js?v=v97"></script>
+<script src="metrics.js?v=v97"></script>
+<script src="meal-library.js?v=v97"></script>
+<script src="library-ui.js?v=v97"></script>
+<script src="export-plan.js?v=v97"></script>
+<script src="cardio.js?v=v97"></script>
+<script src="cardio-ui.js?v=v97"></script>
+<script src="exercise-library.js?v=v97"></script>
+<script src="exercise-ui.js?v=v97"></script>
+<script src="meals.js?v=v97"></script>
+<script src="sync.js?v=v97"></script>
 <script>
 /* =================== חיבור הסנכרון לאפליקציה =================== */
 
