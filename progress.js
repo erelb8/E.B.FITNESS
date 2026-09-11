@@ -20,7 +20,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['progress'] = 'v97';
+  (window.EB_MOD = window.EB_MOD || {})['progress'] = 'v98';
 
   var esc = function (s) {
     return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
@@ -370,7 +370,7 @@
 
     h += '<div class="row" style="align-items:center;gap:14px;margin-top:10px">'
       + '<div style="flex:none;text-align:center;min-width:98px">'
-      + '<div style="font-family:Heebo;font-weight:900;font-size:26px;line-height:1;color:' + color + '">'
+      + '<div style="font-family:Frank Ruhl Libre,serif;font-weight:900;font-size:34px;line-height:1;color:' + color + '">'
       + (delta === null ? '—' : arrow + ' ' + num2(Math.abs(delta))) + '</div>'
       + '<div class="mt" style="font-size:10.5px;margin-top:3px">'
       + (delta === null ? 'אין עדיין השוואה' : 'ק״ג מהשבוע שעבר') + '</div></div>'
