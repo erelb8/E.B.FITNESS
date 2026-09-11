@@ -427,8 +427,8 @@ tbody tr:hover{background:var(--panel)}
 <div id="toast"></div>
 
 <!-- ספריית Supabase מקומית (לא מ-CDN) כדי שהאפליקציה תעבוד גם בלי רשת -->
-<script src="vendor/supabase.js?v=v99"></script>
-<script src="config.js?v=v99"></script>
+<script src="vendor/supabase.js?v=v100"></script>
+<script src="config.js?v=v100"></script>
 
 <script>
 /* =======================================================================
@@ -463,7 +463,7 @@ function age(b){ if(!b) return null; const d=new Date(b), t=new Date(); let a=t.
 
 /* ---------------- אחסון ---------------- */
 const KEY='ebfit_v1';
-const EB_VERSION='v99';   // חייב להתאים ל-VERSION ב-sw.js
+const EB_VERSION='v100';   // חייב להתאים ל-VERSION ב-sw.js
 let mem=null, canStore=true;
 function load(){
   try{ const r=localStorage.getItem(KEY); return r?JSON.parse(r):null; }
@@ -488,6 +488,12 @@ function refreshTargets(){
       vo2:(window.EBCardio ? (EBCardio.vo2(t).best||null) : null)
     } : null;
     const p = t.program || (t.program = {days:[]});
+    const ovKeys = Object.keys(p.targetsOverride || {});
+
+    /* אין מודול חישוב ואין דריסות — לא נוגעים. בלי השורה הזאת,
+       טעינה שבה metrics.js לא עלה היתה מוחקת את היעדים של כל
+       המתאמנים ודוחפת את המחיקה לשרת, בלי שום סימן. */
+    if(!window.EBMetrics && !ovKeys.length) return;
 
     /* דריסה ידנית לכל שדה בנפרד. בלי זה כל יעד שהמאמן מקליד היה
        נמחק בשמירה הבאה, כי הפונקציה הזו רצה בכל save ומחשבת מחדש.
@@ -2106,29 +2112,29 @@ if (location.protocol === 'file:') {
 }
 </script>
 
-<script src="health.js?v=v99"></script>
-<script src="privacy.js?v=v99"></script>
-<script src="backup.js?v=v99"></script>
-<script src="reorder.js?v=v99"></script>
-<script src="access.js?v=v99"></script>
-<script src="analysis.js?v=v99"></script>
-<script src="reports.js?v=v99"></script>
-<script src="business.js?v=v99"></script>
-<script src="intake.js?v=v99"></script>
-<script src="files.js?v=v99"></script>
-<script src="builder.js?v=v99"></script>
-<script src="import-program.js?v=v99"></script>
-<script src="tracking.js?v=v99"></script>
-<script src="metrics.js?v=v99"></script>
-<script src="meal-library.js?v=v99"></script>
-<script src="library-ui.js?v=v99"></script>
-<script src="export-plan.js?v=v99"></script>
-<script src="cardio.js?v=v99"></script>
-<script src="cardio-ui.js?v=v99"></script>
-<script src="exercise-library.js?v=v99"></script>
-<script src="exercise-ui.js?v=v99"></script>
-<script src="meals.js?v=v99"></script>
-<script src="sync.js?v=v99"></script>
+<script src="health.js?v=v100"></script>
+<script src="privacy.js?v=v100"></script>
+<script src="backup.js?v=v100"></script>
+<script src="reorder.js?v=v100"></script>
+<script src="access.js?v=v100"></script>
+<script src="analysis.js?v=v100"></script>
+<script src="reports.js?v=v100"></script>
+<script src="business.js?v=v100"></script>
+<script src="intake.js?v=v100"></script>
+<script src="files.js?v=v100"></script>
+<script src="builder.js?v=v100"></script>
+<script src="import-program.js?v=v100"></script>
+<script src="tracking.js?v=v100"></script>
+<script src="metrics.js?v=v100"></script>
+<script src="meal-library.js?v=v100"></script>
+<script src="library-ui.js?v=v100"></script>
+<script src="export-plan.js?v=v100"></script>
+<script src="cardio.js?v=v100"></script>
+<script src="cardio-ui.js?v=v100"></script>
+<script src="exercise-library.js?v=v100"></script>
+<script src="exercise-ui.js?v=v100"></script>
+<script src="meals.js?v=v100"></script>
+<script src="sync.js?v=v100"></script>
 <script>
 /* =================== חיבור הסנכרון לאפליקציה =================== */
 

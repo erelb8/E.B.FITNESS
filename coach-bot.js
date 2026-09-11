@@ -18,7 +18,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['bot'] = 'v99';
+  (window.EB_MOD = window.EB_MOD || {})['bot'] = 'v100';
 
   var LOGS = [], WEIGH = [], PROGRAM = null, GOAL = '';
 
@@ -121,7 +121,7 @@
      אותה החלטה כמו בהערות, ומאותה סיבה: בלי מיגרציה בשרת. */
   function plan() {
     var p = PROGRAM || {};
-    var startISO = String(p.planStart || p.joined || '').slice(0, 10);
+    var startISO = String(p.planStart || '').slice(0, 10);
     var months = Number(p.planMonths);
     if (!isFinite(months) || months <= 0) months = 3;
     if (!startISO) return null;
