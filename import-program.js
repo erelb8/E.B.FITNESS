@@ -19,7 +19,7 @@
   'use strict';
 
   // חותמת גרסה — index.html משווה אליה כדי לזהות קובץ ישן במטמון
-  (window.EB_MOD = window.EB_MOD || {})['import'] = 'v100';
+  (window.EB_MOD = window.EB_MOD || {})['import'] = 'v101';
 
   var FOR = null, DRAFT = null;
 

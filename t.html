@@ -320,14 +320,14 @@ body::before{
 
 <div id="toast"></div>
 
-<script src="vendor/supabase.js?v=v100"></script>
-<script src="config.js?v=v100"></script>
-<script src="meal-library.js?v=v100"></script>
-<script src="exercise-library.js?v=v100"></script>
-<script src="progress.js?v=v100"></script>
-<script src="coach-bot.js?v=v100"></script>
-<script src="health.js?v=v100"></script>
-<script src="privacy.js?v=v100"></script>
+<script src="vendor/supabase.js?v=v101"></script>
+<script src="config.js?v=v101"></script>
+<script src="meal-library.js?v=v101"></script>
+<script src="exercise-library.js?v=v101"></script>
+<script src="progress.js?v=v101"></script>
+<script src="coach-bot.js?v=v101"></script>
+<script src="health.js?v=v101"></script>
+<script src="privacy.js?v=v101"></script>
 <script>
 (function () {
   'use strict';
@@ -2243,7 +2243,7 @@ body::before{
       if (!sb || !TOKEN) return;
       try { await sb.rpc('trainee_save_state', { p_token: TOKEN, p_state: STATE }); }
       catch (e) { /* אין רשת או שה-SQL לא הורץ — הרישום כבר במכשיר */ }
-    }, 2500);
+    }, 1500);
   }
 
   /* ההיסטוריה למאמן החכם ולגרף. נשלפת בנפרד מ-trainee_program
