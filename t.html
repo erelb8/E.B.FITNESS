@@ -2058,9 +2058,16 @@ body::before{
 
   function footerBlock() {
     if (!localStorage.getItem('ebfit_t_token')) return '';
+    /* הגרסה מוצגה כדי שאפשר יהיה לדעת מהטלפון אם הדף
+       מעודכן. בלעדיה "זה לא התעדכן" הוא ניחוש ולא עובדה. */
     return '<div style="text-align:center;margin:22px 0 6px">'
       + '<button class="btn ghost" style="font-size:13px;padding:8px 18px" '
-      + 'onclick="__ebLogout()">יציאה</button></div>';
+      + 'onclick="__ebLogout()">יציאה</button>'
+      + '<div class="mt" style="font-size:11px;margin-top:10px">גרסה '
+      + esc(window.EB_T_VERSION || '?')
+      + ' · <button onclick="__ebHardRefresh()" style="background:none;border:0;color:var(--mut);'
+      + 'font:inherit;text-decoration:underline;padding:0;cursor:pointer">רענון מלא</button></div>'
+      + '</div>';
   }
 
   function exCard(e, i, dayIdx) {
@@ -2321,6 +2328,74 @@ body::before{
   }
 
   boot();
+})();
+</script>
+
+<script>
+/* =====================================================================
+   עדכון הגרסה בדף המתאמן
+   ---------------------------------------------------------------------
+   sw.js שמר את t.html במטמון מהיום הראשון, אבל לוגיקת
+   העדכון ישבה רק ב-index.html. מתאמן שפותח רק את הקישור
+   שלו — וזה כל המתאמנים — לא הפעיל אף בדיקת עדכון, והשירות-
+   וורקר הישן המשיך להגיש לו גרסה ישנה. באפליקציה שמותקנת
+   בטלפון, שכמעט לעולם אינה נסגרת, זה נשאר כך ללא הגבלה.
+   ===================================================================== */
+(function () {
+  'use strict';
+  var V = (document.currentScript && '') || '';
+  try {
+    var tag = document.querySelector('script[src*="progress.js"]');
+    var m = tag && /\?v=(v\d+)/.exec(tag.getAttribute('src') || '');
+    window.EB_T_VERSION = m ? m[1] : '';
+  } catch (e) { window.EB_T_VERSION = ''; }
+
+  window.__ebHardRefresh = function () {
+    try {
+      if (window.caches && caches.keys) {
+        caches.keys().then(function (ks) {
+          return Promise.all(ks.map(function (k) { return caches.delete(k); }));
+        }).then(go, go);
+      } else { go(); }
+    } catch (e) { go(); }
+    function go() {
+      if (navigator.serviceWorker && navigator.serviceWorker.getRegistrations) {
+        navigator.serviceWorker.getRegistrations().then(function (rs) {
+          return Promise.all(rs.map(function (r) { return r.unregister(); }));
+        }).then(reload, reload);
+      } else { reload(); }
+    }
+    function reload() { location.reload(true); }
+  };
+
+  if (!('serviceWorker' in navigator) || location.protocol === 'file:') return;
+
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(function (reg) {
+      var check = function () { try { reg.update(); } catch (e) {} };
+      check();
+      document.addEventListener('visibilitychange', function () {
+        if (document.visibilityState === 'visible') check();
+      });
+
+      var activate = function (nw) {
+        nw.addEventListener('statechange', function () {
+          if (nw.state !== 'installed' || !navigator.serviceWorker.controller) return;
+          nw.postMessage('skipWaiting');
+        });
+      };
+      if (reg.waiting && navigator.serviceWorker.controller) reg.waiting.postMessage('skipWaiting');
+      reg.addEventListener('updatefound', function () { if (reg.installing) activate(reg.installing); });
+
+      /* טעינה אחת בלבד, כדי שלא ניכנס ללולאה אם ההפעלה נכשלת */
+      var reloaded = false;
+      navigator.serviceWorker.addEventListener('controllerchange', function () {
+        if (reloaded) return;
+        reloaded = true;
+        location.reload();
+      });
+    }).catch(function () {});
+  });
 })();
 </script>
 </body>
