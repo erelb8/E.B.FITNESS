@@ -18,7 +18,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['bot'] = 'v101';
+  (window.EB_MOD = window.EB_MOD || {})['bot'] = 'v102';
 
   var LOGS = [], WEIGH = [], PROGRAM = null, GOAL = '';
 
@@ -43,6 +43,89 @@
     if (R <= 1) return W;                // חזרה אחת היא ה-1RM עצמו
     if (R > 12) R = 12;                  // מעל זה הנוסחה מנפחת
     return W * (1 + R / 30);
+  }
+
+  /* ---------- נפח ----------
+     משקל כפול חזרות, מסוכם על כל הסטים של האימון. זה המדד שזז
+     כשהמשקל עומד במקום: מי שהוסיף סט באותו משקל עשה יותר עבודה,
+     והמערכת שמסתכלת רק על המשקל המקסימלי קוראת לזה "תקוע".
+
+     setLog הוא הפירוט לכל סט, והוא קיים רק ביומן החדש. לאימונים
+     ישנים נופלים חזרה למשקל ולחזרות של הסט הכבד. */
+  function volumeOf(entries) {
+    var v = 0;
+    (entries || []).forEach(function (e) {
+      if (!e || !e.done) return;
+      var log = e.setLog || [];
+      if (log.length) {
+        log.forEach(function (s) {
+          var w = num(s.w), r = num(s.r);
+          if (w && r) v += w * r;
+        });
+      } else {
+        var w2 = num(e.weight), r2 = num(e.reps), n = num(e.sets) || 1;
+        if (w2 && r2) v += w2 * r2 * n;
+      }
+    });
+    return Math.round(v);
+  }
+
+  /* נפח לאימון, לפי תאריך */
+  function volumeSeries() {
+    var by = {};
+    LOGS.forEach(function (l) {
+      var d = String(l.date || '').slice(0, 10);
+      if (!d) return;
+      by[d] = (by[d] || 0) + volumeOf(l.entries);
+    });
+    return Object.keys(by).sort().map(function (d) { return { date: d, vol: by[d] }; });
+  }
+
+  /* ---------- מעקב יום-יום ----------
+     הרצף השבועי עונה על "האם אני בכלל בעניין"; הרצף היומי עונה על
+     "מה עשיתי השבוע". מתאמן שמתאמן שלוש פעמים בשבוע לא אמור לראות
+     רצף שנשבר ביום מנוחה, ולכן יום מנוחה אינו שובר — רק שבעה ימים
+     רצופים בלי אימון שוברים. */
+  function dailyTrack(days) {
+    days = days || 14;
+    var seen = {};
+    LOGS.forEach(function (l) {
+      var d = String(l.date || '').slice(0, 10);
+      if (d) seen[d] = (seen[d] || 0) + 1;
+    });
+    var out = [];
+    var cur = new Date();
+    for (var i = days - 1; i >= 0; i--) {
+      var d = new Date(cur.getTime() - i * dayMs());
+      var iso = localISO(d);
+      out.push({ date: iso, wd: d.getDay(), trained: !!seen[iso] });
+    }
+    return out;
+  }
+
+  /* השבוע הנוכחי מול המתוכנן */
+  function thisWeek() {
+    var start = weekStart(localISO(new Date()));
+    var n = 0;
+    LOGS.forEach(function (l) {
+      var d = String(l.date || '').slice(0, 10);
+      if (d && weekStart(d) === start) n++;
+    });
+    var planned = ((PROGRAM || {}).days || []).length;
+    return { done: n, planned: planned, left: Math.max(0, planned - n) };
+  }
+
+  /* מגמת נפח: ארבעה אימונים אחרונים מול הארבעה שלפניהם */
+  function volumeTrend() {
+    var s = volumeSeries().filter(function (x) { return x.vol > 0; });
+    if (s.length < 4) return null;
+    var tail = s.slice(-4), head = s.slice(-8, -4);
+    if (!head.length) return null;
+    var avg = function (a) { return a.reduce(function (x, y) { return x + y.vol; }, 0) / a.length; };
+    var now = avg(tail), before = avg(head);
+    if (!before) return null;
+    return { now: Math.round(now), before: Math.round(before),
+             pct: Math.round((now - before) / before * 100) };
   }
 
   function load(opts) {
@@ -290,6 +373,33 @@
             + '. חוסר איזון מצטבר בשקט ומופיע בסוף כפציעה.' });
     }
 
+    /* מה נשאר השבוע. ההודעה הזאת היא היחידה שאפשר לפעול לפיה
+       היום, ולכן היא נכנסת גם כשהכול תקין. */
+    var tw = thisWeek();
+    if (tw.planned && tw.left > 0 && c.lastAt !== null && c.lastAt < 10) {
+      out.push({ tone: 'info', icon: '🗒', title: 'נשארו ' + tw.left + ' אימונים השבוע',
+        text: 'סיימת ' + tw.done + ' מתוך ' + tw.planned + '. '
+            + (tw.left === 1 ? 'אימון אחד ואתה סוגר שבוע מלא.' : 'יש עוד זמן לסגור את השבוע במלואו.') });
+    } else if (tw.planned && tw.done >= tw.planned) {
+      out.push({ tone: 'good', icon: '✅', title: 'סגרת את השבוע',
+        text: 'כל ' + tw.planned + ' האימונים שתוכננו בוצעו. שבוע מלא הוא מה שמזיז את המחט לאורך זמן.' });
+    }
+
+    /* נפח: המדד שזז כשהמשקל עומד. מוצג רק כשיש מספיק אימונים
+       עם פירוט סטים, אחרת הוא רועש ומטעה. */
+    var vt = volumeTrend();
+    if (vt && Math.abs(vt.pct) >= 8) {
+      if (vt.pct > 0) {
+        out.push({ tone: 'good', icon: '🧱', title: 'נפח האימונים עלה ' + vt.pct + ' אחוז',
+          text: 'ארבעת האימונים האחרונים שלך היו כבדים יותר בסך הכול מהארבעה שלפניהם — '
+              + vt.now.toLocaleString('en-US') + ' מול ' + vt.before.toLocaleString('en-US')
+              + ' ק״ג. זו התקדמות גם אם המשקל על המוט לא זז.' });
+      } else {
+        out.push({ tone: 'info', icon: '🪶', title: 'נפח האימונים ירד ' + Math.abs(vt.pct) + ' אחוז',
+          text: 'עשית פחות עבודה בסך הכול בארבעת האימונים האחרונים. אם זה מכוון — שבוע קל הוא חלק מהתוכנית. אם לא, שווה לבדוק אם קיצרת אימונים.' });
+      }
+    }
+
     /* משקל גוף — נשען על המנוע שכבר קיים */
     if (!opts.skipWeight && window.EBProg && EBProg.coach && WEIGH.length) {
       var dir = EBProg.direction(GOAL);
@@ -324,6 +434,17 @@
           ? '<span class="mt" style="font-size:11.5px">' + c.last4Weeks + ' אימונים ב-4 שבועות</span>'
           : '')
       + '</div>';
+
+    /* פס שבועיים: עמודה לכל יום. תמונה אחת שאומרת "מתי התאמנתי"
+       מהר יותר מכל משפט, והיא גם מראה את החורים. */
+    var track = dailyTrack(14);
+    var HE = ['א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ש'];
+    h += '<div class="bot-track">';
+    track.forEach(function (d, i) {
+      h += '<div class="bot-day' + (d.trained ? ' on' : '') + (i === track.length - 1 ? ' now' : '') + '">'
+        + '<span>' + HE[d.wd] + '</span></div>';
+    });
+    h += '</div>';
 
     msgs.slice(0, 4).forEach(function (m) {
       var col = COL[m.tone] || COL.info;
@@ -614,6 +735,8 @@
   }
 
   window.EBBot = {
+    volumeOf: volumeOf, volumeSeries: volumeSeries, volumeTrend: volumeTrend,
+    dailyTrack: dailyTrack, thisWeek: thisWeek,
     load: load, messages: messages, trends: trends, series: series,
     consistency: consistency, neglectedDays: neglectedDays,
     e1rm: e1rm, block: block, bodyBlock: bodyBlock,

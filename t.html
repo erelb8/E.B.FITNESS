@@ -221,39 +221,20 @@ button{cursor:pointer}
   --ring:rgba(209,154,85,.16);
 }
 
-/* רקע: טבעות רחבות ורכות במקום כתם אחיד */
-body::before{
-  content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
-  background:
-    radial-gradient(circle at 88% 6%, var(--ring) 0 1px, transparent 1px) 0 0/100% 100%,
-    repeating-radial-gradient(circle at 88% 6%, transparent 0 58px, var(--ring) 58px 59px),
-    repeating-radial-gradient(circle at 6% 94%, transparent 0 74px, rgba(143,168,79,.07) 74px 75px);
-  mask-image:linear-gradient(180deg, #000 0 42%, transparent 78%);
-  -webkit-mask-image:linear-gradient(180deg, #000 0 42%, transparent 78%);
-}
+/* הרקע נשאר שקט. הטבעות שהיו כאן הן מה שנתן לדף מראה של תבנית
+   מוכנה, והן גם טשטשו את המספרים שמעליהן. */
 #wrap{position:relative;z-index:1}
 
-/* כרטיסים: קו אור דק למעלה, ומסגרת חמה יותר */
+/* כרטיס אחד, צבע אחד, קו אחד. הדרגתיות וקו אור בכל כרטיס הפכו
+   כל בלוק ל"מיוחד", וכשהכול מיוחד שום דבר לא בולט. */
 .card,.dayc{border-color:var(--warm-2)}
-.card{position:relative;background:linear-gradient(168deg,rgba(62,46,32,.55),var(--card) 46%)}
-.card::before{
-  content:'';position:absolute;inset:0 0 auto 0;height:1px;border-radius:var(--r) var(--r) 0 0;
-  background:linear-gradient(90deg,transparent,rgba(231,184,115,.28),transparent);
-  pointer-events:none;
-}
+.card{position:relative;background:var(--card)}
 
-/* אריחי הקטגוריות: טבעת נחושת שנדלקת במגע */
-.category-tile{position:relative;overflow:hidden;border-color:var(--warm-2)}
-.category-tile::after{
-  content:'';position:absolute;inset-inline-end:-34px;inset-block-start:-34px;
-  width:104px;height:104px;border-radius:50%;
-  border:1px solid rgba(209,154,85,.22);
-  box-shadow:0 0 0 12px rgba(209,154,85,.05);
-  transition:.22s;pointer-events:none;
-}
-.category-tile:hover::after,.category-tile:focus-visible::after{
-  border-color:rgba(231,184,115,.5);transform:scale(1.08);
-}
+/* אריחים שטוחים: השם קריא, האייקון מרמז, והטבעת שהייתה מאחור
+   רק הוסיפה רעש מאחורי הטקסט. */
+.category-tile{position:relative;overflow:hidden;border-color:var(--warm-2);
+  background:var(--card);box-shadow:none;min-height:112px}
+.category-tile:hover,.category-tile:focus-visible{border-color:var(--cop);transform:none;box-shadow:none}
 .category-icon{position:relative}
 
 /* מספר היום: טבעת כפולה במקום עיגול שטוח */
@@ -281,6 +262,15 @@ body::before{
 }
 @media (prefers-reduced-motion:reduce){ .bot-dot{animation:none} }
 .bot-msg{padding:8px 11px;margin-top:8px;border-radius:0 9px 9px 0;background:rgba(0,0,0,.16)}
+/* פס שבועיים: עמודה לכל יום. תמונה אחת שאומרת מתי התאמנת, ובעיקר
+   מראה את החורים — שני משפטים לא עושים את זה באותה מהירות. */
+.bot-track{display:flex;gap:4px;margin-bottom:12px}
+.bot-day{flex:1;min-width:0;height:32px;border-radius:7px;display:grid;place-items:center;
+  border:1px solid var(--line);background:rgba(0,0,0,.18)}
+.bot-day span{font-size:10px;font-weight:700;color:var(--dim)}
+.bot-day.on{background:var(--or-soft);border-color:var(--or)}
+.bot-day.on span{color:var(--or)}
+.bot-day.now{box-shadow:0 0 0 2px rgba(231,184,115,.35)}
 .bot-msg:first-of-type{margin-top:0}
 
 /* פתק ההערה של המתאמן עצמו */
@@ -341,6 +331,19 @@ body::before{
 .wl-histd{flex:none;width:42px;text-align:center}
 .wl-histd b{display:block;font-family:'Heebo';font-size:17px;font-weight:800;line-height:1}
 .wl-histd span{display:block;color:var(--dim);font-size:10.5px;margin-top:2px}
+
+/* ═══════════ הפתיח ═══════════
+   ארבעה מספרים במקום ברכה. "בוקר טוב" נכון בדיוק פעם אחת ביום
+   ואינו אומר דבר על האימון; "3 מתוך 4 השבוע" אומר מה נשאר לעשות. */
+.hero{padding:20px 18px 18px;background:var(--card);box-shadow:none}
+.hero:before{display:none}
+.hero h2{font-size:25px}
+.hero-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:18px}
+.hstat b{display:block;font-family:'Frank Ruhl Libre',Georgia,serif;font-size:27px;font-weight:900;
+  line-height:1;font-variant-numeric:tabular-nums}
+.hstat span{display:block;color:var(--mut);font-size:10.5px;margin-top:5px;line-height:1.35}
+.hstat.dim b{color:var(--dim)}
+@media(max-width:400px){.hstat b{font-size:23px}.hstat span{font-size:10px}}
 </style>
 </head>
 <body>
@@ -357,15 +360,16 @@ body::before{
 
 <div id="toast"></div>
 
-<script src="vendor/supabase.js?v=v101"></script>
-<script src="config.js?v=v101"></script>
-<script src="meal-library.js?v=v101"></script>
-<script src="exercise-library.js?v=v101"></script>
-<script src="progress.js?v=v101"></script>
-<script src="coach-bot.js?v=v101"></script>
-<script src="workout-log.js?v=v101"></script>
-<script src="health.js?v=v101"></script>
-<script src="privacy.js?v=v101"></script>
+<script src="vendor/supabase.js?v=v102"></script>
+<script src="config.js?v=v102"></script>
+<script src="meal-library.js?v=v102"></script>
+<script src="exercise-library.js?v=v102"></script>
+<script src="progress.js?v=v102"></script>
+<script src="coach-bot.js?v=v102"></script>
+<script src="workout-log.js?v=v102"></script>
+<script src="targets.js?v=v102"></script>
+<script src="health.js?v=v102"></script>
+<script src="privacy.js?v=v102"></script>
 <script>
 (function () {
   'use strict';
@@ -1462,7 +1466,6 @@ body::before{
         openerBlock(days)
       + journeyBlockSafe()
       + categoryBlock()
-      + statsBlock(days)
       + footerBlock()
     );
     bar();
@@ -1473,15 +1476,8 @@ body::before{
     if(key==='log') return logScreen();
     if(key==='workout') return editBar()+planBlock(days)+exBlockSafe()+exButton();
     if(key==='food') return targetsBlock()+nutritionPlan()+libButton();
-    if(key==='body') return botBody()+bodyMetricsBlock()+targetsBlock()+healthAlert()+healthFolder()+filesBlock(files);
-    return botBlock({skipWeight:true})+progBlock()+historyBlock(days);
-  }
-  function historyBlock(days) {
-    const done=days.reduce((n,d,i)=>n+(d.exercises||[]).filter((_,j)=>(STATE[i+':'+j]||{}).done).length,0);
-    return '<div class="card"><div style="font-size:13px;color:var(--mut);margin-bottom:8px">מעקב כללי</div>'
-      +'<div style="display:flex;gap:12px;flex-wrap:wrap;font-size:13px">'
-      +'<span>ימי תוכנית <b>'+days.length+'</b></span><span>תרגילים שבוצעו <b>'+done+'</b></span>'
-      +'</div></div>';
+    if(key==='body') return botBody()+bodyMetricsBlock()+healthAlert()+healthFolder()+filesBlock(files);
+    return botBlock({skipWeight:true})+progBlock();
   }
   function bodyMetricsBlock() {
     const bmi=bodyBmi();
@@ -1519,20 +1515,48 @@ body::before{
     const first = (DATA.name || '').trim().split(/\s+/)[0] || '';
     const ex    = days.reduce((a, d) => a + ((d.exercises || []).length), 0);
     const meals = (DATA.meals || []).length;
-    const t     = (DATA.program && DATA.program.targets) || null;
+    const t     = todayTargets();
     const done = days.reduce((a, d, i) => a + (d.exercises || []).filter((_, j) => (STATE[i + ':' + j] || {}).done).length, 0);
-    const pct = ex ? Math.round(done / ex * 100) : 0;
-    const chips = [];
-    if (DATA.goal) chips.push('<span class="hero-chip">' + esc(DATA.goal) + '</span>');
-    if (t && t.kcal) chips.push('<span class="hero-chip">' + Number(t.kcal).toLocaleString('en-US') + ' קק״ל ביום</span>');
-    const hour=new Date().getHours();
-    const greeting=hour<5?'לילה טוב':hour<12?'בוקר טוב':hour<18?'צהריים טובים':'ערב טוב';
+    /* ארבעה מספרים אמיתיים מהיומן. אין כאן משפטי עידוד גנריים:
+       מתאמן קורא "כל ביצוע קטן מצטבר" פעם אחת, ומהפעם השנייה
+       מדלג על האזור כולו — כולל המספרים שיושבים בו. */
+    const logs = EXTRAS.logs || [];
+    const planned = days.length;
+    let weekDone = 0, lastVol = 0, lastWhen = null;
+    try {
+      const wkStart = new Date();
+      wkStart.setHours(0, 0, 0, 0);
+      wkStart.setDate(wkStart.getDate() - wkStart.getDay());
+      logs.forEach(function (l) {
+        const d = new Date(String(l.date).slice(0, 10) + 'T00:00');
+        if (isFinite(d.getTime()) && d >= wkStart) weekDone++;
+      });
+      const sorted = logs.slice().sort(function (a, b) {
+        return String(a.date).localeCompare(String(b.date));
+      });
+      const lastLog = sorted[sorted.length - 1];
+      if (lastLog) {
+        lastVol = EBWLog.volumeOf(lastLog.entries || []);
+        lastWhen = EBWLog.dayGap(lastLog.date);
+      }
+    } catch (e) {}
+
+    const stat = function (val, label, dim) {
+      return '<div class="hstat' + (dim ? ' dim' : '') + '"><b>' + val + '</b><span>' + label + '</span></div>';
+    };
+    const sinceTxt = lastWhen === null ? '—' : lastWhen === 0 ? 'היום' : lastWhen === 1 ? 'אתמול' : lastWhen;
+    const sinceLbl = (lastWhen === null || lastWhen <= 1) ? 'האימון האחרון' : 'ימים מאז אימון';
+
     return '<section class="hero">'
-      + '<div class="hero-kicker">המרחב האישי שלך · E.B FIT</div>'
-      + '<h2>' + (first ? greeting + ', ' + esc(first) : 'התוכנית שלך מוכנה') + '</h2>'
-      + '<p>' + (pct ? 'המשכת קדימה. כל ביצוע קטן מצטבר לתוצאה גדולה.' : 'כאן נמצאים האימונים, היעדים והכלים שלך במקום אחד.') + '</p>'
-      + '<div class="hero-meta">' + chips.join('') + (pct ? '<span class="hero-chip">' + pct + '% מהשבוע הושלם</span>' : '') + '</div>'
-      + '</section>';
+      + '<div class="hero-kicker">' + (DATA.goal ? esc(DATA.goal) : 'E.B FIT') + '</div>'
+      + '<h2>' + (first ? esc(first) : 'התוכנית שלך') + '</h2>'
+      + '<div class="hero-stats">'
+      + stat(weekDone + (planned ? '<span style="font-size:15px;color:var(--dim)">/' + planned + '</span>' : ''),
+             'אימונים השבוע', !weekDone)
+      + stat(sinceTxt, sinceLbl, lastWhen !== null && lastWhen > 3)
+      + stat(logs.length, 'אימונים בסך הכול', !logs.length)
+      + stat(lastVol ? lastVol.toLocaleString('en-US') : '—', 'ק״ג באימון האחרון', !lastVol)
+      + '</div></section>';
   }
 
   function categoryBlock() {
@@ -1557,17 +1581,6 @@ body::before{
   function categoryTile(key, title, sub) {
     return '<button class="category-tile" data-category="'+key+'"><span class="category-icon">'+categoryIcon(key)+'</span><strong>'+title+'</strong><span>'+sub+'</span></button>';
   }
-  function statsBlock(days) {
-    const exercises=days.reduce((n,d)=>n+(d.exercises||[]).length,0);
-    const done=days.reduce((n,d,i)=>n+(d.exercises||[]).filter((_,j)=>(STATE[i+':'+j]||{}).done).length,0);
-    const meals=(DATA.meals||[]).length;
-    const pct=exercises?Math.round(done/exercises*100):0;
-    const bmi=bodyBmi();
-    return '<div class="section-head"><h3>הסטטיסטיקות שלך</h3><span>תמונת מצב</span></div><div class="overview">'
-      +'<div class="overview-card"><strong>'+pct+'%</strong><span>השלמת התוכנית</span></div>'
-      +'<div class="overview-card"><strong>'+done+'</strong><span>תרגילים שבוצעו</span></div>'
-      +'<div class="overview-card"><strong>'+(bmi?bmi.value:'—')+'</strong><span>'+(bmi?'BMI · '+bmi.label:'BMI ללא נתונים')+'</span></div></div>';
-  }
   function bodyBmi() {
     const h=Number(DATA.height), w=Number(DATA.weight);
     if(!(h>0&&w>0)) return null;
@@ -1577,9 +1590,26 @@ body::before{
 
   /* היעדים המחושבים. מגיעים בתוך התוכנית כי הם נגזרים ממדידות
      שהמאמן לקח, ואין להם מקום משלהם בשליפה. */
+  /* היעד של היום ולא היעד הקבוע: המאמן יכול לקבוע יעד שונה לכל
+     יום בשבוע, ומה שהמתאמן שואל בבוקר הוא "כמה אני אוכל היום".
+     המיזוג עצמו יושב ב-targets.js, כדי ששני הצדדים יראו מספר אחד. */
+  function todayDay() {
+    if (typeof EBTargets === 'undefined') return null;
+    try { return EBTargets.forDay(DATA.program, new Date()); } catch (e) { return null; }
+  }
+  function todayTargets() {
+    const d = todayDay();
+    if (d) return d.values;
+    return (DATA.program && DATA.program.targets) || null;
+  }
+
   function targetsBlock() {
-    const t = (DATA.program && DATA.program.targets) || null;
+    const day = todayDay();
+    const t = todayTargets();
     if (!t || !t.kcal) return '';
+    const perDay = day && day.overridden.length
+      ? '<span style="font-size:11.5px;font-weight:400;color:var(--cop)"> · יום '
+        + esc(day.dayName) + '</span>' : '';
     const n = v => (v == null || v === '') ? null : v;
     const cell = (label, val, unit) => !n(val) ? '' :
       '<div style="flex:1;min-width:74px">'
@@ -1590,7 +1620,7 @@ body::before{
 
     return '<div class="card" style="margin-bottom:12px">'
       + '<div style="font-family:Frank Ruhl Libre,serif;font-weight:700;font-size:15px;margin-bottom:11px">'
-      + 'היעדים היומיים שלך</div>'
+      + 'היעדים היומיים שלך' + perDay + '</div>'
       + '<div style="display:flex;gap:12px;flex-wrap:wrap">'
       + cell('קלוריות', t.kcal && t.kcal.toLocaleString('en-US'), '')
       + cell('חלבון', t.protein, 'ג׳')
@@ -2214,7 +2244,7 @@ body::before{
     SLOT_ORDER.forEach(function (s) {
       by[s].forEach(function (m) { tot.k += m.k; tot.p += m.p; tot.c += m.c; tot.f += m.f; cnt++; });
     });
-    var tg = (DATA.program && DATA.program.targets) || {};
+    var tg = todayTargets() || {};
 
     var h = '<div style="font-family:Frank Ruhl Libre,serif;font-weight:700;font-size:15px;'
       + 'margin:18px 0 10px">תוכנית התזונה</div>'
