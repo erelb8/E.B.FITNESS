@@ -377,9 +377,11 @@
        היום, ולכן היא נכנסת גם כשהכול תקין. */
     var tw = thisWeek();
     if (tw.planned && tw.left > 0 && c.lastAt !== null && c.lastAt < 10) {
-      out.push({ tone: 'info', icon: '🗒', title: 'נשארו ' + tw.left + ' אימונים השבוע',
+      out.push({ tone: 'info',
+        icon: '🗒',
+        title: tw.left === 1 ? 'נשאר אימון אחד השבוע' : 'נשארו ' + tw.left + ' אימונים השבוע',
         text: 'סיימת ' + tw.done + ' מתוך ' + tw.planned + '. '
-            + (tw.left === 1 ? 'אימון אחד ואתה סוגר שבוע מלא.' : 'יש עוד זמן לסגור את השבוע במלואו.') });
+            + (tw.left === 1 ? 'עוד אחד ואתה סוגר שבוע מלא.' : 'יש עוד זמן לסגור את השבוע במלואו.') });
     } else if (tw.planned && tw.done >= tw.planned) {
       out.push({ tone: 'good', icon: '✅', title: 'סגרת את השבוע',
         text: 'כל ' + tw.planned + ' האימונים שתוכננו בוצעו. שבוע מלא הוא מה שמזיז את המחט לאורך זמן.' });

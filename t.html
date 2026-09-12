@@ -1551,8 +1551,7 @@ button{cursor:pointer}
       + '<div class="hero-kicker">' + (DATA.goal ? esc(DATA.goal) : 'E.B FIT') + '</div>'
       + '<h2>' + (first ? esc(first) : 'התוכנית שלך') + '</h2>'
       + '<div class="hero-stats">'
-      + stat(weekDone + (planned ? '<span style="font-size:15px;color:var(--dim)">/' + planned + '</span>' : ''),
-             'אימונים השבוע', !weekDone)
+      + stat(weekDone, planned ? 'מתוך ' + planned + ' השבוע' : 'אימונים השבוע', !weekDone)
       + stat(sinceTxt, sinceLbl, lastWhen !== null && lastWhen > 3)
       + stat(logs.length, 'אימונים בסך הכול', !logs.length)
       + stat(lastVol ? lastVol.toLocaleString('en-US') : '—', 'ק״ג באימון האחרון', !lastVol)
@@ -1574,9 +1573,13 @@ button{cursor:pointer}
       workout:'<path d="M6 8v8M10 6v12M14 6v12M18 8v8M3 10h18M3 14h18"/>',
       food:'<path d="M5 3v8M8 3v8M5 7h3M6.5 11v10M15 3v18M15 3c3 2 4 5 4 8h-4"/>',
       body:'<circle cx="12" cy="5" r="2.5"/><path d="M8 21l1.5-7L7 11l2-3 3 2 3-2 2 3-2.5 3 1.5 7M9.5 14h5"/>',
+      log:'<path d="M5 4.5h11a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H5z"/><path d="M5 4.5a2 2 0 0 0 0 4h2"/><path d="M9.5 11h5M9.5 15h3"/>',
       follow:'<circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3.5 2M8.5 3.5l-2-2M15.5 3.5l2-2"/>'
     };
-    return '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">'+paths[key]+'</g></svg>';
+    /* אריח בלי נתיב קיבל undefined ונשאר ריק בלי שום סימן.
+       עיגול הוא אייקון גרוע, אבל הוא נראה מיד. */
+    return '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">'
+      +(paths[key]||'<circle cx="12" cy="12" r="8.5"/>')+'</g></svg>';
   }
   function categoryTile(key, title, sub) {
     return '<button class="category-tile" data-category="'+key+'"><span class="category-icon">'+categoryIcon(key)+'</span><strong>'+title+'</strong><span>'+sub+'</span></button>';
@@ -1768,7 +1771,7 @@ button{cursor:pointer}
       + '<div class="wl-big"><span id="wlVol">' + vol.toLocaleString('en-US') + '</span>'
       + '<small>ק״ג נפח</small></div>'
       + '<div class="wl-sub" id="wlSub">' + (entries.length
-          ? entries.length + ' מתוך ' + ex.length + ' תרגילים נרשמו'
+          ? (entries.length === 1 ? 'תרגיל אחד' : entries.length + ' תרגילים') + ' מתוך ' + ex.length + (entries.length === 1 ? ' נרשם' : ' נרשמו')
           : 'רשום משקל וחזרות לכל סט שסיימת') + '</div></div>';
 
     h += '<div class="wl-days">' + days.map(function (d, j) {
@@ -1845,7 +1848,8 @@ button{cursor:pointer}
         + '<div style="flex:1;min-width:0">'
         + '<div style="font-weight:700;font-size:14px">' + esc(l.day_name || l.dayName || 'אימון') + '</div>'
         + '<div class="mt" style="font-size:12px;margin-top:2px">'
-        + entries.filter(function (x) { return x.done; }).length + ' תרגילים'
+        + (function (n) { return n === 1 ? 'תרגיל אחד' : n + ' תרגילים'; })(
+            entries.filter(function (x) { return x.done; }).length)
         + (vol ? ' · ' + vol.toLocaleString('en-US') + ' ק״ג נפח' : '')
         + (l.feel ? ' · ' + esc(l.feel) : '') + '</div></div>'
         + '<div class="mt" style="font-size:11.5px;white-space:nowrap">' + wlWhen(l.date) + '</div>'
@@ -1871,7 +1875,7 @@ button{cursor:pointer}
     const subEl = document.getElementById('wlSub');
     if (subEl) {
       subEl.textContent = entries.length
-        ? entries.length + ' מתוך ' + ex.length + ' תרגילים נרשמו'
+        ? (entries.length === 1 ? 'תרגיל אחד' : entries.length + ' תרגילים') + ' מתוך ' + ex.length + (entries.length === 1 ? ' נרשם' : ' נרשמו')
         : 'רשום משקל וחזרות לכל סט שסיימת';
     }
     const btn = document.querySelector('[data-wlsave]');
@@ -2335,7 +2339,13 @@ button{cursor:pointer}
       + '<button class="btn ghost" style="font-size:13px;padding:8px 18px" '
       + 'onclick="__ebLogout()">יציאה</button>'
       + '<div class="mt" style="font-size:11px;margin-top:10px">גרסה '
-      + esc(window.EB_T_VERSION || '?')
+      + esc(window.EB_T_VERSION || (function () {
+          try {
+            var tg = document.querySelector('script[src*="progress.js"]');
+            var mm = tg && /\?v=(v\d+)/.exec(tg.getAttribute('src') || '');
+            return mm ? mm[1] : '';
+          } catch (e) { return ''; }
+        })() || '?')
       + ' · <button onclick="__ebHardRefresh()" style="background:none;border:0;color:var(--mut);'
       + 'font:inherit;text-decoration:underline;padding:0;cursor:pointer">רענון מלא</button></div>'
       + '</div>';
