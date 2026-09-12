@@ -121,6 +121,15 @@ button{cursor:pointer}
 }
 .chk:active{transform:scale(.93)}
 .ex.done .chk{background:var(--ok);border-color:var(--ok);color:#141A06}
+.hb-week{display:flex;gap:5px;justify-content:space-between;margin:10px 0 2px}
+.hb-day{flex:1;text-align:center}
+.hb-dot{height:26px;border-radius:8px;border:1.5px solid var(--line2);background:none;display:grid;place-items:center;font-size:13px;color:transparent}
+.hb-dot.on{background:var(--ok);border-color:var(--ok);color:#141A06}
+.hb-day span{display:block;font-size:10px;color:var(--mut);margin-top:4px}
+.hb-add{display:flex;gap:8px;margin-top:10px}
+.hb-add input{flex:1;min-width:0}
+.hb-del{flex:0 0 auto;width:32px;height:32px;border-radius:9px;border:1px solid var(--line2);background:none;color:var(--mut);font-size:17px;line-height:1;cursor:pointer}
+.hb-mine{font-size:11px;color:var(--mut);border:1px solid var(--line2);border-radius:999px;padding:1px 7px;margin-inline-start:7px}
 .logs{display:flex;gap:8px;margin-top:11px}
 /* גובה 48 ומספר גדול: מקלידים כאן בין סטים, וצריך
    לראות מרחוק מה נרשם בפעם הקודמת. */
@@ -360,16 +369,17 @@ button{cursor:pointer}
 
 <div id="toast"></div>
 
-<script src="vendor/supabase.js?v=v103"></script>
-<script src="config.js?v=v103"></script>
-<script src="meal-library.js?v=v103"></script>
-<script src="exercise-library.js?v=v103"></script>
-<script src="progress.js?v=v103"></script>
-<script src="coach-bot.js?v=v103"></script>
-<script src="workout-log.js?v=v103"></script>
-<script src="targets.js?v=v103"></script>
-<script src="health.js?v=v103"></script>
-<script src="privacy.js?v=v103"></script>
+<script src="vendor/supabase.js?v=v104"></script>
+<script src="config.js?v=v104"></script>
+<script src="meal-library.js?v=v104"></script>
+<script src="exercise-library.js?v=v104"></script>
+<script src="progress.js?v=v104"></script>
+<script src="habits.js?v=v104"></script>
+<script src="coach-bot.js?v=v104"></script>
+<script src="workout-log.js?v=v104"></script>
+<script src="targets.js?v=v104"></script>
+<script src="health.js?v=v104"></script>
+<script src="privacy.js?v=v104"></script>
 <script>
 (function () {
   'use strict';
@@ -424,7 +434,7 @@ button{cursor:pointer}
 
     CACHE = 'ebfit_t_' + TOKEN.slice(0, 12);
     if (window.EBProg) { EBProg.load(TOKEN); EBProg.attach(sb, TOKEN); }
-    STATE = readState();
+    STATE = readState(); hydrateHabits();
     MY_MEALS = readMy();
     BUILD = readBuild();
     MY_EX = readEx();
@@ -566,7 +576,7 @@ button{cursor:pointer}
       TOKEN = d.token;
       CACHE = 'ebfit_t_' + TOKEN.slice(0, 12);
     if (window.EBProg) { EBProg.load(TOKEN); EBProg.attach(sb, TOKEN); }
-    STATE = readState();
+    STATE = readState(); hydrateHabits();
     MY_MEALS = readMy();
     BUILD = readBuild();
     MY_EX = readEx();
@@ -1280,6 +1290,11 @@ button{cursor:pointer}
   function shiftStateDay(from) {
     const next = {};
     Object.keys(STATE).forEach(k => {
+      /* ב-STATE יושבים גם מפתחות שאינם "יום:תרגיל" — סימוני ההרגלים
+         נשמרים באותו בלוב, כי הוא היחיד שכבר מסתנכרן לשרת. בלי
+         הבדיקה הזאת מחיקת יום אימון הייתה הופכת אותם ל-NaN:undefined
+         ומוחקת למתאמן את כל היסטוריית המתיחות והתזונה. */
+      if (!/^\d+:\d+$/.test(k)) { next[k] = STATE[k]; return; }
       const di = +k.split(':')[0], rest = k.split(':')[1];
       if (di === from) return;
       next[(di > from ? di - 1 : di) + ':' + rest] = STATE[k];
@@ -1477,6 +1492,7 @@ button{cursor:pointer}
     if(key==='workout') return editBar()+planBlock(days)+exBlockSafe()+exButton();
     if(key==='food') return targetsBlock()+nutritionPlan()+libButton();
     if(key==='body') return botBody()+bodyMetricsBlock()+healthAlert()+healthFolder()+filesBlock(files);
+    if(key==='habits') return habitsScreen();
     return botBlock({skipWeight:true})+progBlock();
   }
   function bodyMetricsBlock() {
@@ -1488,7 +1504,7 @@ button{cursor:pointer}
   }
   let OPEN_CATEGORY = null;
   function openCategory(key) {
-    const labels={log:['יומן האימונים','מה שעשית בפועל'],workout:['אימון','התוכנית והביצוע'],food:['תזונה','התפריט והיעדים שלך'],body:['גוף','מדדים, בריאות וקבצים'],follow:['מעקב','ההתקדמות שלך']};
+    const labels={log:['יומן האימונים','מה שעשית בפועל'],workout:['אימון','התוכנית והביצוע'],food:['תזונה','התפריט והיעדים שלך'],body:['גוף','מדדים, בריאות וקבצים'],follow:['מעקב','ההתקדמות שלך'],habits:['הרגלים','מה שקורה כל יום']};
     const item=labels[key]||labels.workout;
     closeCategory();
     OPEN_CATEGORY = key;
@@ -1558,6 +1574,88 @@ button{cursor:pointer}
       + '</div></section>';
   }
 
+
+  /* ---------- הרגלים ----------
+     מתיחות ותזונה הן פעולה של חמש שניות שחוזרת כל יום, ולכן המסך
+     בנוי סביב "היום" ולא סביב היסטוריה: שורת שבעה ימים כדי לראות
+     מגמה במבט, ומתחתיה מה שאפשר לסמן עכשיו.
+
+     אין כאן כפתור שמירה. כל סימון נשמר מיד במכשיר ובהשהיה גם
+     בשרת — כמו טיוטת האימון, ומאותה סיבה: מי שצריך ללחוץ "שמור"
+     אחרי כל וי מפסיק לסמן אחרי שבוע. */
+  const HB_WD = ['א','ב','ג','ד','ה','ו','ש'];
+  function habWeek(kind) {
+    if (!window.EBHabits) return '';
+    const w = EBHabits.week(HABITS, kind, 7);
+    const a = EBHabits.adherence(HABITS, kind, 7);
+    const st = EBHabits.streak(HABITS, kind);
+    return '<div class="hb-week">'
+      + w.map(d => '<div class="hb-day"><div class="hb-dot' + (d.done ? ' on' : '') + '">✓</div>'
+                 + '<span>' + HB_WD[d.wd] + '</span></div>').join('')
+      + '</div>'
+      + '<div class="muted" style="font-size:12px;margin-top:8px">'
+      + a.done + ' מתוך 7 בשבוע האחרון'
+      + (st ? ' · רצף של ' + (st === 1 ? 'יום אחד' : st + ' ימים') : '')
+      + '</div>';
+  }
+  function habRow(id, kind, name, note, mine) {
+    const on = EBHabits.isMarked(HABITS, EBHabits.todayISO(), kind, id);
+    return '<div class="ex' + (on ? ' done' : '') + '">'
+      + '<div class="hd">'
+      + '<button class="chk" data-hab="' + esc(id) + '" data-habkind="' + kind + '" aria-label="סימון">✓</button>'
+      + '<div style="flex:1;min-width:0"><div class="nm">' + esc(name)
+      + (mine ? '<span class="hb-mine">שלי</span>' : '') + '</div>'
+      + (note ? '<div class="note">' + esc(note) + '</div>' : '') + '</div>'
+      + (mine ? '<button class="hb-del" data-habdel="' + esc(id) + '" aria-label="מחיקה">×</button>' : '')
+      + '</div></div>';
+  }
+  function habitsScreen() {
+    if (!window.EBHabits) return '<div class="muted">לא נטען.</div>';
+    const prog = (DATA && DATA.program) || {};
+    let h = '';
+
+    /* ----- מוביליטי ----- */
+    h += '<div style="font-family:Frank Ruhl Libre,serif;font-weight:700;font-size:15px;margin:2px 0 10px">מוביליטי ומתיחות</div>';
+    h += trainerNote(prog.mobilityNote, 'הערה למתיחות');
+    h += '<div class="card" style="margin-bottom:12px">' + habWeek('mob') + '</div>';
+
+    const items = habitItems();
+    h += items.length
+      ? items.map(x => habRow(x.id, 'mob', x.name, x.note, x.mine)).join('')
+      : '<div class="muted" style="font-size:13px;margin-bottom:10px">'
+        + 'המאמן עוד לא בנה לך רשימת מתיחות. אפשר להוסיף בעצמך מה שאתה עושה.</div>';
+
+    h += '<div class="hb-add">'
+      + '<input class="f" id="habNew" maxlength="60" placeholder="מתיחה משלי — למשל: מתיחת כתף בקיר">'
+      + '<button class="btn sm" data-habadd>הוספה</button></div>';
+
+    /* ----- תזונה ----- */
+    h += '<div style="font-family:Frank Ruhl Libre,serif;font-weight:700;font-size:15px;margin:22px 0 10px">תזונה</div>';
+    h += '<div class="card" style="margin-bottom:12px">' + habWeek('food') + '</div>';
+
+    const onFood = EBHabits.isMarked(HABITS, EBHabits.todayISO(), 'food', null);
+    h += '<div class="ex' + (onFood ? ' done' : '') + '"><div class="hd">'
+      + '<button class="chk" data-habfood aria-label="סימון">✓</button>'
+      + '<div style="flex:1;min-width:0"><div class="nm">אכלתי לפי התוכנית היום</div>'
+      + '<div class="meta">סימון אחד ליום. מספיק גם בלי תפריט מוגדר.</div></div>'
+      + '</div></div>';
+
+    /* ארוחות מהתפריט — רק למי שיש לו תפריט. בלי זה זו כותרת ריקה. */
+    const by = slots();
+    const rows = [];
+    SLOT_ORDER.forEach(function (k) {
+      by[k].forEach(function (m) {
+        rows.push(habRow(EBHabits.idOf(k + '|' + m.name), 'meals',
+                         m.name, SLOT_HE[k] || '', false));
+      });
+    });
+    if (rows.length) {
+      h += '<div class="muted" style="font-size:12px;margin:16px 0 8px">או לפי ארוחות</div>'
+        + rows.join('');
+    }
+    return h;
+  }
+
   function categoryBlock() {
     return '<div class="section-head"><h3>המרחב שלך</h3><span>בחר קטגוריה</span></div>'
       + '<div class="category-grid">'
@@ -1566,6 +1664,7 @@ button{cursor:pointer}
       + categoryTile('food','תזונה','ארוחות ויעדים')
       + categoryTile('body','גוף','מדדים ובריאות')
       + categoryTile('follow','מעקב','התקדמות והרגלים')
+      + categoryTile('habits','הרגלים','מוביליטי ותזונה')
       + '</div>';
   }
   function categoryIcon(key) {
@@ -1574,7 +1673,8 @@ button{cursor:pointer}
       food:'<path d="M5 3v8M8 3v8M5 7h3M6.5 11v10M15 3v18M15 3c3 2 4 5 4 8h-4"/>',
       body:'<circle cx="12" cy="5" r="2.5"/><path d="M8 21l1.5-7L7 11l2-3 3 2 3-2 2 3-2.5 3 1.5 7M9.5 14h5"/>',
       log:'<path d="M5 4.5h11a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H5z"/><path d="M5 4.5a2 2 0 0 0 0 4h2"/><path d="M9.5 11h5M9.5 15h3"/>',
-      follow:'<circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3.5 2M8.5 3.5l-2-2M15.5 3.5l2-2"/>'
+      follow:'<circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3.5 2M8.5 3.5l-2-2M15.5 3.5l2-2"/>',
+      habits:'<path d="M20.5 6.5l-9 9-4-4"/><path d="M3.5 6.5h3M3.5 12h3M3.5 17.5h11"/><path d="M20.5 15.5l-3 3-1.5-1.5"/>'
     };
     /* אריח בלי נתיב קיבל undefined ונשאר ריק בלי שום סימן.
        עיגול הוא אייקון גרוע, אבל הוא נראה מיד. */
@@ -2435,6 +2535,44 @@ button{cursor:pointer}
       return;
     }
 
+    /* ---------- הרגלים ----------
+       כל פעולה כאן מציירת את המסך מחדש ולא מעדכנת אלמנט בודד:
+       הסימון משנה גם את שורת השבוע, גם את הדבקות וגם את הרצף,
+       ועדכון ידני של שלושתם הוא בדיוק המקום שבו הם מתפצלים. */
+    const hab = e.target.closest('[data-hab]');
+    if (hab) {
+      const kind = hab.dataset.habkind === 'meals' ? 'meals' : 'mob';
+      const id = hab.dataset.hab, iso = EBHabits.todayISO();
+      EBHabits.mark(HABITS, iso, kind, id, !EBHabits.isMarked(HABITS, iso, kind, id));
+      saveHabits(); repaintHabits();
+      return;
+    }
+    if (e.target.closest('[data-habfood]')) {
+      const iso = EBHabits.todayISO();
+      EBHabits.mark(HABITS, iso, 'food', null, !EBHabits.isMarked(HABITS, iso, 'food', null));
+      saveHabits(); repaintHabits();
+      return;
+    }
+    const hdel = e.target.closest('[data-habdel]');
+    if (hdel) {
+      const id = hdel.dataset.habdel;
+      HABITS.own = HABITS.own.filter(x => x.id !== id);
+      saveHabits(); repaintHabits();
+      return;
+    }
+    if (e.target.closest('[data-habadd]')) {
+      const inp = document.getElementById('habNew');
+      const name = (inp && inp.value || '').trim();
+      if (!name) return;
+      const id = EBHabits.idOf(name);
+      /* כפילות מול הרשימה המשותפת ולא רק מול שלו: מתיחה שהמאמן
+         כבר נתן אינה צריכה שורה שנייה עם סימון נפרד. */
+      if (!habitItems().some(x => x.id === id)) HABITS.own.push({ id: id, name: name });
+      if (inp) inp.value = '';
+      saveHabits(); repaintHabits();
+      return;
+    }
+
     const fl = e.target.closest('[data-feel]');
     if (fl) {
       FEEL = FEEL === fl.dataset.feel ? null : fl.dataset.feel;
@@ -2547,6 +2685,43 @@ button{cursor:pointer}
   function writeState() {
     try { localStorage.setItem(stateKey(), JSON.stringify(STATE)); } catch (e) {}
   }
+  /* ---------- הרגלים ----------
+     יושבים בתוך STATE ולא בבלוב משלהם, כי trainee_save_state הוא
+     הדרך היחידה שכבר קיימת לשמור נתוני מתאמן לשרת בלי RPC חדש —
+     כלומר בלי סקריפט SQL שצריך להריץ לפני שזה עובד.
+
+     prune לפני כל שמירה: לשרת יש תקרה של 60,000 תווים על הבלוב
+     הזה, והוא משותף עם טיוטת האימון. חריגה נכשלת בלי הודעה. */
+  let HABITS = { own: [], marks: {} };
+  function hydrateHabits() {
+    HABITS = window.EBHabits ? EBHabits.prune(EBHabits.normalize(STATE.habits))
+                             : { own: [], marks: {} };
+    /* בכוונה לא נכתב כאן STATE.habits. הוספת מפתח למתאמן שעוד לא
+       סימן כלום הייתה הופכת את STATE ל"לא ריק", ושחזור טיוטת האימון
+       מהשרת מותנה בדיוק בכך ש-STATE ריק — כלומר מתאמן שעבר מכשיר
+       באמצע אימון היה מאבד את המשקלים שהקליד. */
+  }
+  /* טיוטת אימון מזוהה לפי צורת המפתח, "יום:תרגיל", ולא לפי עצם
+     קיומו של מפתח כלשהו — ב-STATE יושבים היום גם ההרגלים. */
+  function hasDraft(o) {
+    return Object.keys(o || {}).some(k => /^\d+:\d+$/.test(k));
+  }
+  function saveHabits() {
+    if (window.EBHabits) EBHabits.prune(HABITS);
+    STATE.habits = HABITS;
+    writeState();
+    queueStateSync();
+    feedBot();
+  }
+  function habitItems() {
+    return window.EBHabits ? EBHabits.items(DATA && DATA.program, HABITS.own) : [];
+  }
+  function repaintHabits() {
+    if (OPEN_CATEGORY !== 'habits') return;
+    const body = document.querySelector('#categoryModal .category-dialog-body');
+    if (body) body.innerHTML = habitsScreen();
+  }
+
   let STATE_TIMER = null;
   function queueStateSync() {
     clearTimeout(STATE_TIMER);
@@ -2571,8 +2746,16 @@ button{cursor:pointer}
       /* טיוטה מהשרת — רק אם במכשיר הזה אין כלום, כדי לא לדרוס
          אימון שמתנהל ממש עכשיו במכשיר שביד. */
       const srv = row.session_state || {};
-      if (srv && Object.keys(srv).length && !Object.keys(STATE).length) {
-        STATE = srv; writeState();
+      if (hasDraft(srv) && !hasDraft(STATE)) {
+        Object.keys(srv).forEach(k => { if (/^\d+:\d+$/.test(k)) STATE[k] = srv[k]; });
+        writeState();
+      }
+      /* ההרגלים מתאחדים ולא נדרסים — ראה merge ב-habits.js. הם
+         מטופלים בנפרד מהטיוטה כי הם אינם "האימון שבעבודה": הם
+         נכונים גם כשאין אימון פתוח בכלל. */
+      if (window.EBHabits && srv.habits) {
+        const merged = EBHabits.prune(EBHabits.merge(HABITS, srv.habits));
+        if (!EBHabits.isEmpty(merged)) { HABITS = merged; STATE.habits = HABITS; writeState(); }
       }
       if (window.EBProg) EBProg.mergeServer(EXTRAS.weighins);
       feedBot();
@@ -2586,7 +2769,8 @@ button{cursor:pointer}
       logs: EXTRAS.logs,
       weighins: (window.EBProg ? EBProg.db().logs.map(l => ({ date: l.date, weight: l.w })) : EXTRAS.weighins),
       program: DATA && DATA.program,
-      goal: (DATA && DATA.goal) || ''
+      goal: (DATA && DATA.goal) || '',
+      habits: HABITS
     });
   }
   function journeyBlockSafe() {

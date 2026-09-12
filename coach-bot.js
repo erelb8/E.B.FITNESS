@@ -18,9 +18,13 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['bot'] = 'v103';
+  (window.EB_MOD = window.EB_MOD || {})['bot'] = 'v104';
 
-  var LOGS = [], WEIGH = [], PROGRAM = null, GOAL = '';
+  var LOGS = [], WEIGH = [], PROGRAM = null, GOAL = '', HABITS = null;
+
+  /* ריבוי בעברית. שלוש טעויות מהסוג הזה ("1 תרגילים") נתפסו בבדיקת
+     דפדפן אחת, כולן דווקא במצב הנפוץ — ולכן זה יושב כאן ולא בשורה. */
+  function heDays(n) { return n === 1 ? 'יום אחד' : n + ' ימים'; }
 
   function esc(s) {
     return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
@@ -134,6 +138,7 @@
     WEIGH   = Array.isArray(opts.weighins) ? opts.weighins.slice() : [];
     PROGRAM = opts.program || null;
     GOAL    = String(opts.goal || '');
+    HABITS  = opts.habits || null;
     LOGS.sort(function (a, b) { return String(a.date) < String(b.date) ? -1 : 1; });
     return true;
   }
@@ -315,6 +320,52 @@
      כבר אומר את משפט משקל הגוף במלואו. אותה פסקה פעמיים במסך
      אחד נקראת כתקלה, ומלמדת לדלג על הכרטיס. חלוקת התפקידים:
      הכרטיס על המשקל, הבוט על הכוח והעקביות. */
+  /* ---------- מוביליטי ותזונה ----------
+     שני אלה אינם אימון ואין להם דיווח: הם קורים כל יום והמתאמן רק
+     מסמן. לכן הם נמדדים בדבקות ורצף ולא בנפח או ב-1RM, ולכן גם
+     המשפט שונה — "כמה ימים מתוך שבעה" ולא "כמה עלית".
+
+     שתי הודעות לכל היותר, אחת לכל תחום. מתאמן שמקבל שש הודעות
+     מפסיק לקרוא את כולן, וההודעות על האימון עצמו חשובות יותר. */
+  function habitWatch() {
+    var out = [];
+    if (!window.EBHabits || !HABITS) return out;
+
+    var hasList = !!((PROGRAM || {}).mobility || []).length
+               || !!((HABITS.own) || []).length;
+
+    [{ kind: 'mob',  on: hasList, icon: '🧘', what: 'מתיחות',
+       zero: 'יש לך רשימת מתיחות ועוד לא סימנת אף יום. חמש דקות ביום הן ההפרש בין טווח תנועה שנשמר לבין כזה שנסגר בשקט.' },
+     { kind: 'food', on: true,    icon: '🥗', what: 'תזונה',
+       zero: 'עוד לא סימנת ימי תזונה. האימון בונה את הגירוי, האוכל בונה את התוצאה — וסימון יומי אחד מספיק כדי שנראה מגמה.' }
+    ].forEach(function (cfg) {
+      if (!cfg.on) return;
+      var a = EBHabits.adherence(HABITS, cfg.kind, 7);
+      var s = EBHabits.streak(HABITS, cfg.kind);
+
+      if (!a.done && !s) {
+        out.push({ tone: 'info', icon: cfg.icon, title: 'עוד לא סימנת ' + cfg.what, text: cfg.zero });
+        return;
+      }
+      if (a.done >= 5) {
+        out.push({ tone: 'good', icon: cfg.icon,
+          title: cfg.what + ': ' + a.done + ' מתוך 7 השבוע',
+          text: (s > 1 ? 'רצף של ' + heDays(s) + '. ' : '')
+              + 'זה בדיוק החלק שרוב האנשים מוותרים עליו ראשון, ואתה עומד בו.' });
+      } else if (a.done) {
+        out.push({ tone: 'info', icon: cfg.icon,
+          title: cfg.what + ': ' + a.done + ' מתוך 7 השבוע',
+          text: 'סימנת ' + heDays(a.done) + ' בשבוע האחרון. היעד אינו מושלם אלא רציף — '
+              + 'עוד יום או שניים בשבוע וזה כבר הרגל.' });
+      } else {
+        out.push({ tone: 'warn', icon: cfg.icon,
+          title: cfg.what + ' נעצרו השבוע',
+          text: 'שבוע שלם בלי סימון, אחרי שכבר היה לך רצף. אל תתחיל מחדש — תסמן היום אחד, וזה חוזר.' });
+      }
+    });
+    return out;
+  }
+
   function messages(opts) {
     opts = opts || {};
     var out = [];
@@ -325,7 +376,9 @@
     if (!LOGS.length) {
       out.push({ tone: 'info', icon: '👋', title: 'עוד לא דיווחת אימון',
         text: 'סמן תרגילים תוך כדי האימון ולחץ "סיימתי" בסוף. אחרי שלושה אימונים אני כבר יודע להגיד לך מה עולה ומה נתקע.' });
-      return out;
+      /* מתיחות ותזונה אינן תלויות בדיווח אימון: מי שעוד לא התאמן
+         אבל כבר מסמן אותן ראוי לקבל על זה מילה, ולא מסך ריק. */
+      return out.concat(habitWatch());
     }
 
     /* נעלם */
@@ -369,7 +422,8 @@
     var nd = neglectedDays();
     if (nd.length) {
       out.push({ tone: 'warn', icon: '🗓', title: 'לא נגעת ב' + nd[0],
-        text: 'שלושה שבועות בלי היום הזה' + (nd.length > 1 ? ' (וגם ' + (nd.length - 1) + ' ימים נוספים)' : '')
+        text: 'שלושה שבועות בלי היום הזה'
+            + (nd.length > 1 ? ' (וגם ' + (nd.length === 2 ? 'יום נוסף' : (nd.length - 1) + ' ימים נוספים') + ')' : '')
             + '. חוסר איזון מצטבר בשקט ומופיע בסוף כפציעה.' });
     }
 
@@ -414,6 +468,14 @@
         }
       }
     }
+
+    /* לא בסוף הרשימה: הכרטיס מציג ארבע הודעות בלבד, והוספה בסוף
+       פירושה שההרגלים נחתכים ולא נראים אף פעם אצל מתאמן פעיל —
+       כלומר בדיוק אצל מי שיש לו מה להגיד עליו. אחרי ההודעה
+       הראשונה, שהיא תמיד הדחופה ביותר. */
+    var hw = habitWatch();
+    if (hw.length) out.splice(1, 0, hw[0]);
+    if (hw.length > 1) out.splice(3, 0, hw[1]);
 
     if (!out.length) {
       out.push({ tone: 'info', icon: '👀', title: 'עוקב אחריך',
@@ -743,7 +805,7 @@
     consistency: consistency, neglectedDays: neglectedDays,
     e1rm: e1rm, block: block, bodyBlock: bodyBlock,
     plan: plan, streak: streak, weekStart: weekStart,
-    journeyBlock: journeyBlock, milestones: milestones,
+    journeyBlock: journeyBlock, milestones: milestones, habitWatch: habitWatch,
     lineChart: lineChart, weightPoints: weightPoints,
     data: function () { return { logs: LOGS, weighins: WEIGH }; }
   };

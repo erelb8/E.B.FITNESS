@@ -427,8 +427,8 @@ tbody tr:hover{background:var(--panel)}
 <div id="toast"></div>
 
 <!-- ספריית Supabase מקומית (לא מ-CDN) כדי שהאפליקציה תעבוד גם בלי רשת -->
-<script src="vendor/supabase.js?v=v103"></script>
-<script src="config.js?v=v103"></script>
+<script src="vendor/supabase.js?v=v104"></script>
+<script src="config.js?v=v104"></script>
 
 <script>
 /* =======================================================================
@@ -463,7 +463,7 @@ function age(b){ if(!b) return null; const d=new Date(b), t=new Date(); let a=t.
 
 /* ---------------- אחסון ---------------- */
 const KEY='ebfit_v1';
-const EB_VERSION='v103';   // חייב להתאים ל-VERSION ב-sw.js
+const EB_VERSION='v104';   // חייב להתאים ל-VERSION ב-sw.js
 let mem=null, canStore=true;
 function load(){
   try{ const r=localStorage.getItem(KEY); return r?JSON.parse(r):null; }
@@ -1244,6 +1244,7 @@ function tabProgram(t){
   h+=planCard(t);
   h+=targetsCard(t);
   h+=noteBox(t,'note','הערה כללית לתוכנית','למשל: להתחמם 10 דקות לפני כל אימון, ולשתות לפחות 3 ליטר ביום.');
+  h+=mobilityCard(t);
   if(!p.days.length) return h+'<div class="empty"><div class="big">🏋</div>אין עדיין תוכנית מוקלדת. אפשר לפתוח יום אימון ראשון (A), או לצרף תוכנית מוכנה כקובץ למטה.</div>'+EBFiles.card(t);
   h+=selfExBlock(t);
 
@@ -1426,6 +1427,46 @@ function planCard(t){
    +[1,3,6].map(m=>'<button class="btn sm ghost" onclick="extendPlan(&#39;'+t.id+'&#39;,'+m+')">+'+m+'</button>').join('')
    +'</div></div>';
 }
+
+/* ---------- מתיחות ומוביליטי ----------
+   לא יום אימון ולא תרגיל: זו רשימה יומית שהמתאמן מסמן אצלו, בלי
+   סטים ובלי משקל. לכן היא יושבת ליד התוכנית ולא בתוך הימים —
+   מתיחה שהייתה נכנסת כתרגיל הייתה נספרת בנפח ובחישובי הכוח
+   של המאמן החכם, ומזייפת גם את הגרף וגם את השיאים.
+
+   המתאמן יכול להוסיף לעצמו פריטים משלו. הם אינם מופיעים כאן:
+   הם שלו, והם נשמרים אצלו. */
+function mobilityCard(t){
+  const p=t.program||(t.program={days:[]});
+  const list=Array.isArray(p.mobility)?p.mobility:[];
+  let h='<div class="card" style="margin-bottom:12px">'
+   +'<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">'
+   +'<div style="font-family:Heebo;font-weight:700;font-size:14px;flex:1">מתיחות ומוביליטי</div>'
+   +'<button class="btn sm ghost" onclick="addMob(&#39;'+t.id+'&#39;)">+ מתיחה</button></div>';
+  if(!list.length){
+    h+='<div class="muted" style="font-size:12.5px">אין רשימה. המתאמן יראה את האריח "הרגלים" ויוכל להוסיף לעצמו.</div>';
+  } else {
+    h+=list.map((m,i)=>'<div style="display:flex;gap:7px;margin-bottom:7px;align-items:center">'
+      +'<input class="f" style="flex:1.1;min-width:0" placeholder="שם המתיחה" value="'+esc(m.name||'')+'" '
+      +'onchange="setMob(&#39;'+t.id+'&#39;,'+i+',&#39;name&#39;,this.value)">'
+      +'<input class="f" style="flex:1.4;min-width:0" placeholder="הנחיה קצרה — למשל: 30 שניות לכל צד" value="'+esc(m.note||'')+'" '
+      +'onchange="setMob(&#39;'+t.id+'&#39;,'+i+',&#39;note&#39;,this.value)">'
+      +'<button class="btn sm ghost" style="flex:0 0 auto" onclick="delMob(&#39;'+t.id+'&#39;,'+i+')" aria-label="מחיקה">×</button>'
+      +'</div>').join('');
+  }
+  h+='<textarea class="f" rows="2" style="width:100%;resize:vertical;line-height:1.6;margin-top:8px" '
+   +'placeholder="הערה למתיחות — מתי לעשות אותן, ומה לדלג עליו ביום מנוחה" '
+   +'onchange="setProgNote(&#39;'+t.id+'&#39;,&#39;mobilityNote&#39;,this.value)">'+esc(p.mobilityNote||'')+'</textarea>'
+   +'<div class="muted" style="font-size:11.5px;margin-top:6px">מוצג למתאמן באריח "הרגלים". הוא מסמן כל יום, והמאמן החכם עוקב אחרי הדבקות.</div>'
+   +'</div>';
+  return h;
+}
+function mobList(id){ const t=tById(id); t.program=t.program||{days:[]};
+  if(!Array.isArray(t.program.mobility)) t.program.mobility=[];
+  return t.program.mobility; }
+function addMob(id){ mobList(id).push({name:'',note:''}); render(); }
+function delMob(id,i){ mobList(id).splice(i,1); render(); }
+function setMob(id,i,k,v){ const l=mobList(id); if(l[i]){ l[i][k]=v; updateProgramDock(id); } }
 function setProgNote(id,k,v){ const t=tById(id); t.program=t.program||{days:[]}; t.program[k]=v; updateProgramDock(id); }
 function noteBox(t,k,title,ph){
   const v=((t.program||{})[k])||'';
@@ -2188,30 +2229,30 @@ if (location.protocol === 'file:') {
 }
 </script>
 
-<script src="health.js?v=v103"></script>
-<script src="privacy.js?v=v103"></script>
-<script src="backup.js?v=v103"></script>
-<script src="reorder.js?v=v103"></script>
-<script src="access.js?v=v103"></script>
-<script src="analysis.js?v=v103"></script>
-<script src="reports.js?v=v103"></script>
-<script src="business.js?v=v103"></script>
-<script src="intake.js?v=v103"></script>
-<script src="files.js?v=v103"></script>
-<script src="builder.js?v=v103"></script>
-<script src="import-program.js?v=v103"></script>
-<script src="tracking.js?v=v103"></script>
-<script src="metrics.js?v=v103"></script>
-<script src="targets.js?v=v103"></script>
-<script src="meal-library.js?v=v103"></script>
-<script src="library-ui.js?v=v103"></script>
-<script src="export-plan.js?v=v103"></script>
-<script src="cardio.js?v=v103"></script>
-<script src="cardio-ui.js?v=v103"></script>
-<script src="exercise-library.js?v=v103"></script>
-<script src="exercise-ui.js?v=v103"></script>
-<script src="meals.js?v=v103"></script>
-<script src="sync.js?v=v103"></script>
+<script src="health.js?v=v104"></script>
+<script src="privacy.js?v=v104"></script>
+<script src="backup.js?v=v104"></script>
+<script src="reorder.js?v=v104"></script>
+<script src="access.js?v=v104"></script>
+<script src="analysis.js?v=v104"></script>
+<script src="reports.js?v=v104"></script>
+<script src="business.js?v=v104"></script>
+<script src="intake.js?v=v104"></script>
+<script src="files.js?v=v104"></script>
+<script src="builder.js?v=v104"></script>
+<script src="import-program.js?v=v104"></script>
+<script src="tracking.js?v=v104"></script>
+<script src="metrics.js?v=v104"></script>
+<script src="targets.js?v=v104"></script>
+<script src="meal-library.js?v=v104"></script>
+<script src="library-ui.js?v=v104"></script>
+<script src="export-plan.js?v=v104"></script>
+<script src="cardio.js?v=v104"></script>
+<script src="cardio-ui.js?v=v104"></script>
+<script src="exercise-library.js?v=v104"></script>
+<script src="exercise-ui.js?v=v104"></script>
+<script src="meals.js?v=v104"></script>
+<script src="sync.js?v=v104"></script>
 <script>
 /* =================== חיבור הסנכרון לאפליקציה =================== */
 
