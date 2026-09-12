@@ -169,7 +169,7 @@ button{cursor:pointer}
 }
 #toast.on{opacity:1;transform:translate(50%,0)}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
-.category-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-bottom:18px}
+.category-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(96px,1fr));gap:9px;margin-bottom:18px}
 .category-tile{appearance:none;text-align:center;background:linear-gradient(145deg,rgba(52,40,30,.98),rgba(43,33,25,.9));border:1px solid var(--line);border-radius:var(--r);padding:16px 10px;color:var(--tx);min-height:142px;transition:.18s;box-shadow:0 8px 22px rgba(0,0,0,.12)}
 .category-tile:hover,.category-tile:focus-visible{border-color:var(--or);transform:translateY(-2px);box-shadow:0 12px 28px rgba(0,0,0,.2)}
 .category-icon{display:grid;place-items:center;width:58px;height:58px;margin:0 auto 10px;border:0;border-radius:0;background:transparent;color:var(--or);font-size:44px;line-height:1;box-shadow:none}
@@ -304,6 +304,43 @@ body::before{
   font-size:11.5px;font-weight:800;padding:4px 11px;border-radius:99px;
   border:1px solid var(--line2);color:var(--mut);white-space:nowrap;
 }
+
+/* ═══════════ יומן האימונים ═══════════
+   מסך שעובדים בו תוך כדי מאמץ: מספר אחד גדול למעלה,
+   שדות גדולים, וכל השאר שקט. */
+.wl-top{
+  position:relative;overflow:hidden;border-color:rgba(209,154,85,.4);
+  background:radial-gradient(150px 150px at 92% -20%,rgba(231,184,115,.14),transparent 72%),
+             linear-gradient(168deg,rgba(74,55,38,.55),var(--card) 54%);
+  padding:18px 16px;margin-bottom:14px;border-radius:var(--r);border:1px solid var(--line2);
+}
+.wl-kick{font-size:11px;letter-spacing:.16em;color:var(--cop);font-weight:800}
+.wl-big{font-family:'Frank Ruhl Libre',Georgia,serif;font-size:42px;font-weight:900;line-height:1;
+  margin-top:6px;font-variant-numeric:tabular-nums}
+.wl-big small{font-family:'Heebo';font-size:14px;font-weight:700;color:var(--mut);margin-inline-start:6px}
+.wl-sub{color:var(--mut);font-size:12.5px;margin-top:7px}
+.wl-days{display:flex;gap:7px;overflow-x:auto;padding:2px 0 12px;-webkit-overflow-scrolling:touch}
+.wl-days button{flex:0 0 auto;background:var(--card);border:1px solid var(--line);color:var(--mut);
+  padding:9px 14px;border-radius:11px;font-weight:600;white-space:nowrap;font-size:13.5px}
+.wl-days button.on{background:var(--or-soft);border-color:var(--or);color:var(--or);font-weight:800}
+.wl-ex{border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px;background:var(--card)}
+.wl-ex.has{border-color:rgba(168,199,94,.45);background:rgba(168,199,94,.05)}
+.wl-exname{font-weight:700;font-size:16px;line-height:1.3}
+.wl-last{color:var(--cop);font-size:12px;margin-top:3px}
+.wl-none{color:var(--dim);font-size:12px;margin-top:3px}
+.wl-set{display:flex;align-items:center;gap:8px;margin-top:9px}
+.wl-setn{flex:none;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;
+  font-family:'Heebo';font-weight:800;font-size:12px;color:var(--dim);border:1px solid var(--line2)}
+.wl-set.filled .wl-setn{background:var(--ok);border-color:var(--ok);color:#0D1503}
+.wl-set input{flex:1;min-width:0;background:var(--ink);border:1px solid var(--line2);border-radius:11px;
+  min-height:48px;padding:10px;font-size:17px;font-weight:700;text-align:center;color:var(--tx)}
+.wl-set input:focus{border-color:var(--or);outline:none}
+.wl-set input::placeholder{color:var(--dim);font-size:13px;font-weight:400}
+.wl-hist{display:flex;align-items:center;gap:11px;padding:11px 0;border-top:1px solid var(--line)}
+.wl-hist:first-of-type{border-top:0}
+.wl-histd{flex:none;width:42px;text-align:center}
+.wl-histd b{display:block;font-family:'Heebo';font-size:17px;font-weight:800;line-height:1}
+.wl-histd span{display:block;color:var(--dim);font-size:10.5px;margin-top:2px}
 </style>
 </head>
 <body>
@@ -326,6 +363,7 @@ body::before{
 <script src="exercise-library.js?v=v101"></script>
 <script src="progress.js?v=v101"></script>
 <script src="coach-bot.js?v=v101"></script>
+<script src="workout-log.js?v=v101"></script>
 <script src="health.js?v=v101"></script>
 <script src="privacy.js?v=v101"></script>
 <script>
@@ -1432,6 +1470,7 @@ body::before{
 
   function categoryContent(key) {
     const days=(DATA.program&&DATA.program.days)||[], files=DATA.files||[];
+    if(key==='log') return logScreen();
     if(key==='workout') return editBar()+planBlock(days)+exBlockSafe()+exButton();
     if(key==='food') return targetsBlock()+nutritionPlan()+libButton();
     if(key==='body') return botBody()+bodyMetricsBlock()+targetsBlock()+healthAlert()+healthFolder()+filesBlock(files);
@@ -1453,7 +1492,7 @@ body::before{
   }
   let OPEN_CATEGORY = null;
   function openCategory(key) {
-    const labels={workout:['אימון','התוכנית והביצוע'],food:['תזונה','התפריט והיעדים שלך'],body:['גוף','מדדים, בריאות וקבצים'],follow:['מעקב','ההתקדמות שלך']};
+    const labels={log:['יומן האימונים','מה שעשית בפועל'],workout:['אימון','התוכנית והביצוע'],food:['תזונה','התפריט והיעדים שלך'],body:['גוף','מדדים, בריאות וקבצים'],follow:['מעקב','ההתקדמות שלך']};
     const item=labels[key]||labels.workout;
     closeCategory();
     OPEN_CATEGORY = key;
@@ -1499,6 +1538,7 @@ body::before{
   function categoryBlock() {
     return '<div class="section-head"><h3>המרחב שלך</h3><span>בחר קטגוריה</span></div>'
       + '<div class="category-grid">'
+      + categoryTile('log','יומן','מה שעשית בפועל')
       + categoryTile('workout','אימון','התוכנית והביצוע')
       + categoryTile('food','תזונה','ארוחות ויעדים')
       + categoryTile('body','גוף','מדדים ובריאות')
@@ -1631,6 +1671,207 @@ body::before{
     return h;
   }
 
+
+  /* ---------- יומן האימונים ----------
+     נפרד מהתוכנית בכוונה: התוכנית היא מה שהמאמן כתב, היומן הוא מה
+     שקרה בחדר הכושר. ערבוב השניים הסתיר את ההבדל, ובעיקר הקשה על
+     דיווח אימון שלא הלך בדיוק לפי הדף.
+
+     המשקל נרשם לכל סט בנפרד ולא לכל תרגיל: מי שעשה 60, 65 ו-70
+     עשה אימון אחר ממי שעשה 70 שלוש פעמים, וההבדל הזה הוא בדיוק
+     מה שהמאמן החכם מחפש.
+
+     הטיוטה יושבת במכשיר בלבד. מה שנשלח בלחיצה נשמר בשרת דרך
+     trainee_log, ומשם המאמן החכם קורא אותו. */
+  let WL_DAY = null, WL_DRAFT = null;
+
+  function wlKey() { return 'ebfit_wl_' + String(TOKEN || '').slice(0, 12); }
+  function wlAll() {
+    if (WL_DRAFT) return WL_DRAFT;
+    try { WL_DRAFT = JSON.parse(localStorage.getItem(wlKey())) || {}; } catch (e) { WL_DRAFT = {}; }
+    return WL_DRAFT;
+  }
+  function wlWrite() { try { localStorage.setItem(wlKey(), JSON.stringify(wlAll())); } catch (e) {} }
+  function wlDays() { return (DATA.program && DATA.program.days) || []; }
+  function wlIdx() {
+    const days = wlDays();
+    if (WL_DAY != null && days[WL_DAY]) return WL_DAY;
+    try { WL_DAY = EBWLog.suggestDay(DATA.program, EXTRAS.logs); } catch (e) { WL_DAY = 0; }
+    return WL_DAY;
+  }
+  function wlDraft() { return EBWLog.draftOf(wlAll(), wlIdx()); }
+  function wlEntries() {
+    try { return EBWLog.buildEntries(wlDays()[wlIdx()] || {}, wlDraft()); } catch (e) { return []; }
+  }
+
+  /* תאריך קצר לשורת ההיסטוריה */
+  const WL_MON = ['ינו', 'פבר', 'מרץ', 'אפר', 'מאי', 'יוני', 'יולי', 'אוג', 'ספט', 'אוק', 'נוב', 'דצמ'];
+  function wlWhen(iso) {
+    const gap = EBWLog.dayGap(iso);
+    if (gap === 0) return 'היום';
+    if (gap === 1) return 'אתמול';
+    if (gap !== null && gap < 7) return 'לפני ' + gap + ' ימים';
+    const d = new Date(String(iso).slice(0, 10) + 'T00:00');
+    return isFinite(d.getTime()) ? d.getDate() + ' ב' + WL_MON[d.getMonth()] : '';
+  }
+
+  function logScreen() {
+    if (typeof EBWLog === 'undefined') {
+      return '<div class="card">היומן לא נטען. משוך את הדף למטה כדי לרענן.</div>';
+    }
+    const days = wlDays();
+    if (!days.length) {
+      return '<div class="card" style="text-align:center;padding:28px 16px">'
+        + '<div style="font-size:16px;font-weight:700;margin-bottom:7px">עוד אין תוכנית</div>'
+        + '<div class="mt" style="font-size:13px;line-height:1.7">ברגע שהמאמן יבנה לך תוכנית אימון, '
+        + 'כל אימון שתעשה יירשם כאן — משקל, חזרות והתקדמות מאימון לאימון.</div></div>';
+    }
+    const i = wlIdx(), day = days[i] || {}, draft = wlDraft();
+    const ex = day.exercises || [];
+    const entries = wlEntries();
+    const vol = EBWLog.volumeOf(entries);
+
+    /* המספר הגדול: נפח. הוא זז גם כשהמשקל לא זז — עוד סט באותו
+       משקל הוא עוד עבודה, ומספר שלא זז אף פעם מפסיקים להסתכל עליו. */
+    let h = '<div class="wl-top">'
+      + '<div class="wl-kick">האימון של היום</div>'
+      + '<div class="wl-big"><span id="wlVol">' + vol.toLocaleString('en-US') + '</span>'
+      + '<small>ק״ג נפח</small></div>'
+      + '<div class="wl-sub" id="wlSub">' + (entries.length
+          ? entries.length + ' מתוך ' + ex.length + ' תרגילים נרשמו'
+          : 'רשום משקל וחזרות לכל סט שסיימת') + '</div></div>';
+
+    h += '<div class="wl-days">' + days.map(function (d, j) {
+      return '<button data-wlday="' + j + '"' + (j === i ? ' class="on"' : '') + '>'
+        + esc(d.name || ('יום ' + (j + 1))) + '</button>';
+    }).join('') + '</div>';
+
+    if (!ex.length) {
+      h += '<div class="card mt" style="text-align:center;padding:20px;font-size:13.5px">'
+        + 'אין תרגילים ביום הזה.</div>';
+    }
+
+    ex.forEach(function (e, j) {
+      const n = EBWLog.setCount(e);
+      const last = EBWLog.lastTimeOf(EXTRAS.logs, e.name);
+      let filled = 0;
+      for (let s = 0; s < n; s++) {
+        const c = draft.sets[EBWLog.setKey(j, s)];
+        if (c && (c.w || c.r)) filled++;
+      }
+      const target = [e.sets && e.sets + ' סטים', e.reps && e.reps + ' חזרות'].filter(Boolean).join(' · ');
+      h += '<div class="wl-ex' + (filled ? ' has' : '') + '" data-wlex="' + j + '">'
+        + '<div class="wl-exname">' + esc(e.name || 'תרגיל') + '</div>'
+        + (target ? '<div class="mt" style="font-size:12.5px;margin-top:2px">' + esc(target) + '</div>' : '')
+        + (last
+            ? '<div class="wl-last">בפעם הקודמת ' + EBWLog.r1(last.weight || 0) + ' ק״ג'
+              + (last.reps ? ' × ' + last.reps : '') + ' · ' + wlWhen(last.date) + '</div>'
+            : '<div class="wl-none">הפעם הראשונה שאתה רושם את התרגיל הזה</div>');
+      for (let s = 0; s < n; s++) {
+        const cell = draft.sets[EBWLog.setKey(j, s)] || {};
+        const on = (cell.w || cell.r) ? ' filled' : '';
+        h += '<div class="wl-set' + on + '">'
+          + '<span class="wl-setn">' + (s + 1) + '</span>'
+          + '<input data-ws="' + j + ':' + s + '" data-wf="w" inputmode="decimal" placeholder="משקל" value="'
+          + esc(cell.w != null ? cell.w : '') + '">'
+          + '<input data-ws="' + j + ':' + s + '" data-wf="r" inputmode="numeric" placeholder="חזרות" value="'
+          + esc(cell.r != null ? cell.r : '') + '">'
+          + '</div>';
+      }
+      h += '</div>';
+    });
+
+    if (ex.length) {
+      h += '<div class="card" style="background:var(--ink);margin-top:4px">'
+        + '<label style="font-size:13px;color:var(--mut)">איך היה?</label>'
+        + '<div class="feel">' + ['קל', 'בסדר', 'קשה'].map(function (f) {
+            return '<button data-wlfeel="' + f + '"' + (draft.feel === f ? ' class="on"' : '') + '>' + f + '</button>';
+          }).join('') + '</div>'
+        + '<button class="btn" data-wlsave style="width:100%;margin-top:11px"'
+        + (entries.length ? '' : ' disabled') + '>שמירת האימון</button>'
+        + '<div class="mt" style="font-size:11.5px;margin-top:8px;text-align:center">'
+        + 'נשמר אצל המאמן ונכנס למעקב ההתקדמות שלך.</div></div>';
+    }
+
+    return h + wlHistory();
+  }
+
+  /* ההיסטוריה: מה שכבר נשמר בשרת. זה מה שמפריד בין "רשמתי" לבין
+     "נרשם" — בלי הרשימה הזאת אין למתאמן דרך לדעת מה באמת נקלט. */
+  function wlHistory() {
+    const logs = (EXTRAS.logs || []).slice().sort(function (a, b) {
+      return String(b.date).localeCompare(String(a.date));
+    }).slice(0, 8);
+    if (!logs.length) return '';
+    let h = '<div class="section-head" style="margin-top:22px"><h3>אימונים קודמים</h3>'
+      + '<span>' + (EXTRAS.logs || []).length + ' בסך הכול</span></div><div class="card">';
+    logs.forEach(function (l) {
+      const d = new Date(String(l.date).slice(0, 10) + 'T00:00');
+      const entries = l.entries || [];
+      const vol = EBWLog.volumeOf(entries);
+      h += '<div class="wl-hist">'
+        + '<div class="wl-histd"><b>' + (isFinite(d.getTime()) ? d.getDate() : '—') + '</b>'
+        + '<span>' + (isFinite(d.getTime()) ? WL_MON[d.getMonth()] : '') + '</span></div>'
+        + '<div style="flex:1;min-width:0">'
+        + '<div style="font-weight:700;font-size:14px">' + esc(l.day_name || l.dayName || 'אימון') + '</div>'
+        + '<div class="mt" style="font-size:12px;margin-top:2px">'
+        + entries.filter(function (x) { return x.done; }).length + ' תרגילים'
+        + (vol ? ' · ' + vol.toLocaleString('en-US') + ' ק״ג נפח' : '')
+        + (l.feel ? ' · ' + esc(l.feel) : '') + '</div></div>'
+        + '<div class="mt" style="font-size:11.5px;white-space:nowrap">' + wlWhen(l.date) + '</div>'
+        + '</div>';
+    });
+    return h + '</div>';
+  }
+
+  /* ציור מחדש של גוף החלון בלבד. paint() מלא היה סוגר את היומן
+     ומחזיר את המתאמן למסך הבית באמצע אימון. */
+  function wlRepaint() {
+    const body = document.querySelector('#categoryModal .category-dialog-body');
+    if (body && OPEN_CATEGORY === 'log') body.innerHTML = logScreen();
+  }
+
+  /* עדכון המספר הגדול בלי ציור מחדש — ציור בכל הקלדה מוציא
+     את הסמן מהשדה אחרי כל ספרה. */
+  function wlTouch() {
+    const entries = wlEntries();
+    const volEl = document.getElementById('wlVol');
+    if (volEl) volEl.textContent = EBWLog.volumeOf(entries).toLocaleString('en-US');
+    const ex = (wlDays()[wlIdx()] || {}).exercises || [];
+    const subEl = document.getElementById('wlSub');
+    if (subEl) {
+      subEl.textContent = entries.length
+        ? entries.length + ' מתוך ' + ex.length + ' תרגילים נרשמו'
+        : 'רשום משקל וחזרות לכל סט שסיימת';
+    }
+    const btn = document.querySelector('[data-wlsave]');
+    if (btn) btn.disabled = !entries.length;
+  }
+
+  async function wlSaveWorkout(btn) {
+    const entries = wlEntries();
+    if (!entries.length) { toast('רשום לפחות סט אחד'); return; }
+    const i = wlIdx(), day = wlDays()[i] || {}, draft = wlDraft();
+    if (btn) { btn.disabled = true; btn.textContent = 'שומר…'; }
+    try {
+      const { error } = await sb.rpc('trainee_log', {
+        p_token: TOKEN, p_day_index: i,
+        p_day_name: day.name || ('יום ' + (i + 1)),
+        p_entries: entries, p_feel: draft.feel || null, p_note: null
+      });
+      if (error) throw error;
+      /* מנקים רק את היום ששודר */
+      delete wlAll()['d' + i];
+      wlWrite();
+      if (window.EBProg) EBProg.logWorkout();
+      toast('האימון נשמר. כל הכבוד! 💪');
+      await loadExtras();
+      wlRepaint();
+    } catch (err) {
+      toast('לא הצלחנו לשמור — נסה שוב כשתהיה רשת');
+      if (btn) { btn.disabled = false; btn.textContent = 'שמירת האימון'; }
+    }
+  }
 
   /* ---------- הצהרת בריאות ----------
      שבע שאלות הסינון מגיעות מ-health.js, אותו מקור שהמאמן קורא ממנו,
@@ -2177,6 +2418,23 @@ body::before{
       return;
     }
 
+    const wld = e.target.closest('[data-wlday]');
+    if (wld) { WL_DAY = +wld.dataset.wlday; wlRepaint(); return; }
+
+    const wlf = e.target.closest('[data-wlfeel]');
+    if (wlf) {
+      const d = wlDraft();
+      d.feel = d.feel === wlf.dataset.wlfeel ? null : wlf.dataset.wlfeel;
+      wlWrite();
+      document.querySelectorAll('[data-wlfeel]').forEach(function (b) {
+        b.classList.toggle('on', b.dataset.wlfeel === d.feel);
+      });
+      return;
+    }
+
+    const wls = e.target.closest('[data-wlsave]');
+    if (wls) { wlSaveWorkout(wls); return; }
+
     const fin = e.target.closest('[data-fin]');
     if (fin) { finish(+fin.dataset.fin, fin); return; }
 
@@ -2210,6 +2468,19 @@ body::before{
     if (esf) {
       const mx = MY_EX.find(x => x.exId === e.target.dataset.exid);
       if (mx) { mx[esf] = e.target.value; writeEx(); }
+      return;
+    }
+    const ws = e.target.dataset && e.target.dataset.ws;
+    if (ws) {
+      const d = wlDraft();
+      d.sets[ws] = d.sets[ws] || {};
+      d.sets[ws][e.target.dataset.wf] = e.target.value;
+      wlWrite();
+      const row = e.target.closest('.wl-set');
+      if (row) row.classList.toggle('filled', !!(d.sets[ws].w || d.sets[ws].r));
+      const card = e.target.closest('.wl-ex');
+      if (card) card.classList.add('has');
+      wlTouch();
       return;
     }
     const f = e.target.dataset && e.target.dataset.f;

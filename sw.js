@@ -32,6 +32,7 @@ const SHELL_FILES = [
   './meal-library.js?v=v101',
   './progress.js?v=v101',
   './coach-bot.js?v=v101',
+  './workout-log.js?v=v101',
   './library-ui.js?v=v101',
   './export-plan.js?v=v101',
   './cardio.js?v=v101',
