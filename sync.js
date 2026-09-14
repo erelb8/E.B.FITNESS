@@ -15,7 +15,7 @@
   'use strict';
 
   // חותמת גרסה — index.html משווה אליה כדי לזהות קובץ ישן במטמון
-  (window.EB_MOD = window.EB_MOD || {})['sync'] = 'v112';
+  (window.EB_MOD = window.EB_MOD || {})['sync'] = 'v113';
 
   const CFG      = window.EBFIT_CONFIG || { URL: '', ANON: '' };
   const SNAP_KEY = 'ebfit_sync_v1';
@@ -559,6 +559,106 @@
   }
 
   /* ---------- חיווי מצב ---------- */
+
+  /* =====================================================================
+     בדיקת חיבור
+     ---------------------------------------------------------------------
+     "שגיאת סנכרון" לא אומרת כלום, ולכן כל תקלה הפכה לסבב שאלות מול
+     הקונסולה. כאן כל שכבה נבדקת בנפרד ומדווחת בעברית, בסדר שבו
+     הן תלויות זו בזו: הגדרות, זהות, קריאה, כתיבה.
+
+     ההבחנה שחוזרת ומבלבלת, ולכן היא מפורשת כאן: דחיית RLS על שורה
+     מחזירה 401, והיעדר GRANT מחזיר 403. שתיהן נראות "אין הרשאה"
+     אבל הפתרון שלהן שונה לגמרי.
+
+     בדיקת הכתיבה נעשית על trainer_prefs ולא על trainees: זו אותה
+     הרשאה בדיוק, אבל כתיבה חוזרת של מה שכבר שם — ולכן אינה יכולה
+     לפגוע בנתוני מתאמן גם אם משהו משתבש באמצע.
+     ===================================================================== */
+  async function diagnose() {
+    const out = [];
+    const add = (ok, title, text, fix) => out.push({ ok: ok, title: title, text: text, fix: fix || '' });
+
+    // 1. הגדרות
+    if (!enabled()) {
+      add(false, 'הגדרות חיבור', 'אין כתובת שרת או מפתח ב-config.js.',
+          'האפליקציה עובדת מקומית בלבד. אין מה לסנכרן.');
+      return out;
+    }
+    add(true, 'הגדרות חיבור', 'כתובת השרת והמפתח קיימים.');
+
+    // 2. רשת
+    if (!navigator.onLine) {
+      add(false, 'רשת', 'הדפדפן מדווח שאין חיבור לאינטרנט.', 'להתחבר לרשת ולנסות שוב.');
+      return out;
+    }
+    add(true, 'רשת', 'יש חיבור.');
+
+    // 3. זהות
+    let token = '';
+    try { token = localStorage.getItem('ebfit_admin_token') || ''; } catch (e) {}
+    if (!token) {
+      add(false, 'זהות', 'אין טוקן מנהל במכשיר — לא התחברת, או שההתחברות נמחקה.',
+          'להתחבר מחדש באפליקציה.');
+      return out;
+    }
+    try {
+      const r = await sb.rpc('admin_session');
+      if (r.error) throw r.error;
+      const row = r.data && r.data[0];
+      if (!row) {
+        add(false, 'זהות', 'הטוקן במכשיר אינו מוכר לשרת — כנראה פג תוקף.',
+            'יציאה והתחברות מחדש באפליקציה. זה מייצר טוקן חדש.');
+        return out;
+      }
+      add(true, 'זהות', 'השרת מזהה אותך' + (row.email ? ' כ-' + row.email : '') + '.');
+    } catch (e) {
+      add(false, 'זהות', 'בדיקת הזהות נכשלה: ' + ((e && e.message) || e),
+          'יציאה והתחברות מחדש. אם חוזר — בעיה בשרת.');
+      return out;
+    }
+
+    // 4. קריאה
+    let serverCount = null;
+    try {
+      const r = await sb.from('trainees').select('id', { count: 'exact', head: true })
+                        .eq('trainer_id', user.id).eq('deleted', false);
+      if (r.error) throw r.error;
+      serverCount = r.count == null ? 0 : r.count;
+      const local = ((window.S && window.S.trainees) || []).length;
+      if (!serverCount && local) {
+        add(false, 'קריאה מהשרת', 'השרת מחזיר אפס מתאמנים, ובמכשיר יש ' + local + '.',
+            'ההרשאות או המדיניות בשרת. להריץ את supabase/fix-rls-403.sql. '
+            + 'הנתונים במכשיר בטוחים — המשיכה נעצרת ואינה מוחקת אותם.');
+      } else {
+        add(true, 'קריאה מהשרת', serverCount + ' מתאמנים בשרת, ' + local + ' במכשיר.');
+      }
+    } catch (e) {
+      add(false, 'קריאה מהשרת', 'נכשלה: ' + ((e && e.message) || e),
+          'להריץ את supabase/fix-rls-403.sql.');
+    }
+
+    // 5. כתיבה
+    try {
+      const probe = { trainer_id: user.id, data: (window.S && window.S.settings) ? { settings: window.S.settings } : {} };
+      const r = await sb.from('trainer_prefs').upsert(probe, { onConflict: 'trainer_id' });
+      if (r.error) throw r.error;
+      add(true, 'כתיבה לשרת', 'הצליחה. הסנכרון אמור לעבוד.');
+    } catch (e) {
+      const msg  = String((e && e.message) || e);
+      const code = String((e && (e.code || e.status)) || '');
+      const rls  = /row-level security|violates row-level/i.test(msg);
+      add(false, 'כתיבה לשרת',
+          'נדחתה' + (code ? ' (' + code + ')' : '') + ': ' + msg,
+          rls
+            ? 'המדיניות דוחה את השורה — trainer_id אינו תואם למי שהשרת מזהה. '
+              + 'להריץ את supabase/fix-rls-403.sql.'
+            : 'חסרה הרשאת טבלה, לרוב לתפקיד authenticated. '
+              + 'להריץ את supabase/fix-rls-403.sql — הוא מעניק לשני התפקידים.');
+    }
+    return out;
+  }
+
   function status() {
     if (!enabled())      return { state: 'off',     text: 'מקומי בלבד' };
     if (!user)           return { state: 'out',     text: 'לא מחובר' };
@@ -583,7 +683,11 @@
   }
 
   window.EBSync = {
-    init, enabled, schedule, run, status, paint, authReady: () => authReady,
+    init, enabled, schedule, run, status, paint, diagnose, authReady: () => authReady,
+    /* שחזור מגיבוי שרת: ההמרה משורות המסד למבנה האפליקציה יושבת
+       כאן ממילא, ובלעדיה הייבוא היה צריך לשכפל אותה ולהתיישן. */
+    fromRows: (table, rows) => (rows || []).map(
+      table === 'trainees' ? traineeFromRow : childFromRow),
     checkAdmin,
     adminState: () => adminState, lastError: () => lastError,
     signIn, signUp, signOut,
