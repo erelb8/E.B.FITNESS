@@ -427,8 +427,8 @@ tbody tr:hover{background:var(--panel)}
 <div id="toast"></div>
 
 <!-- ספריית Supabase מקומית (לא מ-CDN) כדי שהאפליקציה תעבוד גם בלי רשת -->
-<script src="vendor/supabase.js?v=v107"></script>
-<script src="config.js?v=v107"></script>
+<script src="vendor/supabase.js?v=v108"></script>
+<script src="config.js?v=v108"></script>
 
 <script>
 /* =======================================================================
@@ -463,7 +463,7 @@ function age(b){ if(!b) return null; const d=new Date(b), t=new Date(); let a=t.
 
 /* ---------------- אחסון ---------------- */
 const KEY='ebfit_v1';
-const EB_VERSION='v107';   // חייב להתאים ל-VERSION ב-sw.js
+const EB_VERSION='v108';   // חייב להתאים ל-VERSION ב-sw.js
 let mem=null, canStore=true;
 function load(){
   try{ const r=localStorage.getItem(KEY); return r?JSON.parse(r):null; }
@@ -1442,7 +1442,8 @@ function mobilityCard(t){
   let h='<div class="card" style="margin-bottom:12px">'
    +'<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">'
    +'<div style="font-family:Heebo;font-weight:700;font-size:14px;flex:1">מתיחות ומוביליטי</div>'
-   +'<button class="btn sm ghost" onclick="addMob(&#39;'+t.id+'&#39;)">+ מתיחה</button></div>';
+   +'<button class="btn sm ghost" onclick="addMob(&#39;'+t.id+'&#39;)">+ מתיחה</button></div>'
+   +mobCopyRow(t);
   if(!list.length){
     h+='<div class="muted" style="font-size:12.5px">אין רשימה. המתאמן יראה את האריח "הרגלים" ויוכל להוסיף לעצמו.</div>';
   } else {
@@ -1460,6 +1461,57 @@ function mobilityCard(t){
    +'<div class="muted" style="font-size:11.5px;margin-top:6px">מוצג למתאמן באריח "הרגלים". הוא מסמן כל יום, והמאמן החכם עוקב אחרי הדבקות.</div>'
    +'</div>';
   return h;
+}
+
+/* ---------- שכפול רשימה ממתאמן אחר ----------
+   רוב המתאמנים מקבלים את אותן מתיחות בסיס, ובניית חמש תוכניות ברצף
+   פירושה להקליד את אותה רשימה חמש פעמים. ההעתקה מוסיפה ואינה דורסת:
+   מי שכבר הוסיף מתיחה ספציפית למתאמן הזה לא מאבד אותה, ופריט שכבר
+   קיים באותו שם אינו נכפל. */
+function mobSources(id){
+  return (S.trainees||[]).filter(function(x){
+    return x.id !== id && !x.deleted
+        && Array.isArray((x.program||{}).mobility) && x.program.mobility.length;
+  });
+}
+function mobCopyRow(t){
+  const src = mobSources(t.id);
+  if(!src.length) return '';
+  return '<div style="display:flex;gap:7px;align-items:center;margin-bottom:10px">'
+   +'<span class="muted" style="font-size:12px;white-space:nowrap">העתקה מ־</span>'
+   +'<select class="f" id="mobFrom_'+t.id+'" style="flex:1;min-width:0">'
+   + src.map(function(x){
+       return '<option value="'+esc(x.id)+'">'+esc(x.name||'ללא שם')
+            +' ('+x.program.mobility.length+')</option>';
+     }).join('')
+   +'</select>'
+   +'<button class="btn sm ghost" style="white-space:nowrap" '
+   +'onclick="copyMob(&#39;'+t.id+'&#39;)">העתקה</button></div>';
+}
+function copyMob(id){
+  const sel = document.getElementById('mobFrom_'+id);
+  if(!sel) return;
+  const from = (S.trainees||[]).find(function(x){ return x.id === sel.value; });
+  if(!from) return;
+  const list = mobList(id);
+  const have = {};
+  list.forEach(function(m){ have[String(m.name||'').trim().toLowerCase()] = true; });
+  let added = 0;
+  (from.program.mobility||[]).forEach(function(m){
+    const k = String(m.name||'').trim().toLowerCase();
+    if(!k || have[k]) return;
+    have[k] = true;
+    list.push({ name: m.name||'', note: m.note||'' });
+    added++;
+  });
+  /* ההערה מועתקת רק כשאין כזו, כדי לא למחוק הנחיה שנכתבה למתאמן הזה */
+  const t = tById(id);
+  if(!String(t.program.mobilityNote||'').trim() && String((from.program||{}).mobilityNote||'').trim()){
+    t.program.mobilityNote = from.program.mobilityNote;
+  }
+  toast(added ? 'הועתקו ' + (added === 1 ? 'מתיחה אחת' : added + ' מתיחות')
+              : 'הכול כבר קיים אצלו');
+  render();
 }
 function mobList(id){ const t=tById(id); t.program=t.program||{days:[]};
   if(!Array.isArray(t.program.mobility)) t.program.mobility=[];
@@ -2229,30 +2281,30 @@ if (location.protocol === 'file:') {
 }
 </script>
 
-<script src="health.js?v=v107"></script>
-<script src="privacy.js?v=v107"></script>
-<script src="backup.js?v=v107"></script>
-<script src="reorder.js?v=v107"></script>
-<script src="access.js?v=v107"></script>
-<script src="analysis.js?v=v107"></script>
-<script src="reports.js?v=v107"></script>
-<script src="business.js?v=v107"></script>
-<script src="intake.js?v=v107"></script>
-<script src="files.js?v=v107"></script>
-<script src="builder.js?v=v107"></script>
-<script src="import-program.js?v=v107"></script>
-<script src="tracking.js?v=v107"></script>
-<script src="metrics.js?v=v107"></script>
-<script src="targets.js?v=v107"></script>
-<script src="meal-library.js?v=v107"></script>
-<script src="library-ui.js?v=v107"></script>
-<script src="export-plan.js?v=v107"></script>
-<script src="cardio.js?v=v107"></script>
-<script src="cardio-ui.js?v=v107"></script>
-<script src="exercise-library.js?v=v107"></script>
-<script src="exercise-ui.js?v=v107"></script>
-<script src="meals.js?v=v107"></script>
-<script src="sync.js?v=v107"></script>
+<script src="health.js?v=v108"></script>
+<script src="privacy.js?v=v108"></script>
+<script src="backup.js?v=v108"></script>
+<script src="reorder.js?v=v108"></script>
+<script src="access.js?v=v108"></script>
+<script src="analysis.js?v=v108"></script>
+<script src="reports.js?v=v108"></script>
+<script src="business.js?v=v108"></script>
+<script src="intake.js?v=v108"></script>
+<script src="files.js?v=v108"></script>
+<script src="builder.js?v=v108"></script>
+<script src="import-program.js?v=v108"></script>
+<script src="tracking.js?v=v108"></script>
+<script src="metrics.js?v=v108"></script>
+<script src="targets.js?v=v108"></script>
+<script src="meal-library.js?v=v108"></script>
+<script src="library-ui.js?v=v108"></script>
+<script src="export-plan.js?v=v108"></script>
+<script src="cardio.js?v=v108"></script>
+<script src="cardio-ui.js?v=v108"></script>
+<script src="exercise-library.js?v=v108"></script>
+<script src="exercise-ui.js?v=v108"></script>
+<script src="meals.js?v=v108"></script>
+<script src="sync.js?v=v108"></script>
 <script>
 /* =================== חיבור הסנכרון לאפליקציה =================== */
 
