@@ -15,7 +15,7 @@
   'use strict';
 
   // חותמת גרסה — index.html משווה אליה כדי לזהות קובץ ישן במטמון
-  (window.EB_MOD = window.EB_MOD || {})['sync'] = 'v109';
+  (window.EB_MOD = window.EB_MOD || {})['sync'] = 'v110';
 
   const CFG      = window.EBFIT_CONFIG || { URL: '', ANON: '' };
   const SNAP_KEY = 'ebfit_sync_v1';
@@ -71,8 +71,12 @@
   /* mealsSelf, health ו-weighins נקראים מהשרת ולעולם לא נדחפים אליו —
      המתאמן כותב אותם דרך RPC משלו, ודחיפה מכאן הייתה מוחקת
      את ההצהרה ואת השקילות שהוא הזין. */
+  /* termsAccepted נקרא מ-session_state ושייך לאותה משפחה: נקרא מהשרת
+     ולעולם לא נדחף אליו. בלי שהוא ברשימה הזאת הוא נפל ל-private,
+     כלומר נכתב חזרה כעותק שני של אישור שהמתאמן נתן — מקור אמת כפול
+     לרשומה משפטית. */
   const SHARED = ['id', 'name', 'goal', 'program', 'status', 'files', 'meals', 'mealsSelf',
-                  'exercisesSelf', 'health', 'weighins'];
+                  'exercisesSelf', 'health', 'weighins', 'termsAccepted'];
 
   function traineeToRow(t) {
     const priv = {};
@@ -346,6 +350,14 @@
 
   async function handleUpsertError(table, rows, error) {
     logError('upsert failed', { table: table, error: error });
+    /* 403 אינו באג באפליקציה אלא דחייה של מדיניות RLS. ההודעה
+       הגנרית שלחה לחפש בקונסול; זו אומרת מה קרה ומה עושים. */
+    if (String(error && (error.code || error.status)) === '403'
+        || /permission denied|row-level security|violates row-level/i.test(String(error && error.message))) {
+      throw new Error('השרת דחה את השמירה (403) — בעיית הרשאות במסד הנתונים, '
+        + 'לא באפליקציה. הנתונים נשארו במכשיר. יש להריץ את '
+        + 'supabase/fix-rls-403.sql ב-SQL Editor של סופאבייס.');
+    }
     const col = missingColumn(error);
     if (col && NEVER_STRIP.indexOf(col) === -1 && (MISSING[table] || []).indexOf(col) === -1) {
       (MISSING[table] = MISSING[table] || []).push(col);
@@ -426,6 +438,21 @@
       if (local && base && JSON.stringify(local) !== JSON.stringify(base)) {
         unsavedProg = { id: window.PROGRAM_BASE_ID, program: local };
       }
+    }
+
+    /* ---------- הגנה מפני מחיקה בשקט ----------
+       המשיכה מחליפה את המערך המקומי. כשהשרת מחזיר אפס שורות בגלל
+       מדיניות הרשאה — לא בגלל שנמחקו מתאמנים — השורה הזאת מוחקת
+       את כל העבודה מהאפליקציה בלי שאלה ובלי הודעה.
+
+       מאמן שהיו לו מתאמנים ופתאום אין לו אף אחד הוא תקלה, לא מצב
+       תקין. במקרה כזה עוצרים את המשיכה ומדווחים, ומשאירים את
+       המקומי כמו שהוא. מחיקת המתאמן האחרון באמת תעבוד שוב אחרי
+       שהשרת יחזיר תשובה תקינה כלשהי. */
+    if (!fetched.trainees.length && (window.S.trainees || []).length) {
+      throw new Error('השרת החזיר רשימת מתאמנים ריקה בזמן שבמכשיר יש '
+        + window.S.trainees.length + '. המשיכה נעצרה כדי לא למחוק אותם — '
+        + 'כנראה בעיית הרשאות בשרת.');
     }
 
     window.S.trainees = fetched.trainees.map(traineeFromRow);
