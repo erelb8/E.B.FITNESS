@@ -369,17 +369,17 @@ button{cursor:pointer}
 
 <div id="toast"></div>
 
-<script src="vendor/supabase.js?v=v105"></script>
-<script src="config.js?v=v105"></script>
-<script src="meal-library.js?v=v105"></script>
-<script src="exercise-library.js?v=v105"></script>
-<script src="progress.js?v=v105"></script>
-<script src="habits.js?v=v105"></script>
-<script src="coach-bot.js?v=v105"></script>
-<script src="workout-log.js?v=v105"></script>
-<script src="targets.js?v=v105"></script>
-<script src="health.js?v=v105"></script>
-<script src="privacy.js?v=v105"></script>
+<script src="vendor/supabase.js?v=v106"></script>
+<script src="config.js?v=v106"></script>
+<script src="meal-library.js?v=v106"></script>
+<script src="exercise-library.js?v=v106"></script>
+<script src="progress.js?v=v106"></script>
+<script src="habits.js?v=v106"></script>
+<script src="coach-bot.js?v=v106"></script>
+<script src="workout-log.js?v=v106"></script>
+<script src="targets.js?v=v106"></script>
+<script src="health.js?v=v106"></script>
+<script src="privacy.js?v=v106"></script>
 <script>
 (function () {
   'use strict';
@@ -1484,6 +1484,9 @@ button{cursor:pointer}
       + footerBlock()
     );
     bar();
+    /* אחרי הציור ולא לפניו: המתאמן רואה שהתוכנית שלו שם, ורק אז
+       מתבקש לאשר. שער שנפתח על מסך ריק נראה כמו חסימה. */
+    termsGate();
   }
 
   function categoryContent(key) {
@@ -1575,6 +1578,59 @@ button{cursor:pointer}
   }
 
 
+
+  /* ---------- אישור התקנון ----------
+     סעיף 9 בתקנון אומר שההצטרפות מהווה הסכמה. בלי רישום מי אישר ומתי
+     ועל איזו גרסה, זו טענה ולא ראיה — ולכן השער הזה.
+
+     הוא נפתח פעם אחת, והאישור נשמר ב-session_state כמו ההרגלים: אותו
+     בלוב, אותו RPC, בלי טבלה חדשה ובלי SQL. המאמן רואה את התאריך
+     ואת הגרסה בלשונית הבריאות.
+
+     מה שהוא *לא* עושה: הוא לא נועל את המתאמן בחוץ. כישלון רשת בשמירה
+     לא אמור להשאיר מישהו בלי התוכנית שלו באמצע חדר כושר, ולכן האישור
+     נרשם במכשיר מיד והסנכרון לשרת הוא ניסיון ולא תנאי. */
+  function termsOK() {
+    var t = STATE.terms;
+    return !!(t && t.at && window.EBPrivacy && t.version === EBPrivacy.TERMS_VERSION);
+  }
+  function termsGate() {
+    if (!TOKEN || termsOK() || !window.EBPrivacy) return;
+    if (document.getElementById('termsGate')) return;
+    var w = document.createElement('div');
+    w.id = 'termsGate';
+    w.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(15,11,7,.86);'
+      + 'display:flex;align-items:flex-end;justify-content:center;padding:14px';
+    w.innerHTML =
+      '<div style="background:var(--card);border:1px solid var(--line2);border-radius:16px;'
+      + 'padding:20px 18px;max-width:520px;width:100%;max-height:86vh;overflow:auto">'
+      + '<div style="font-family:Frank Ruhl Libre,serif;font-weight:700;font-size:19px;'
+      + 'margin-bottom:8px">לפני שנתחיל</div>'
+      + '<div style="font-size:13.5px;line-height:1.75;color:var(--tx)">'
+      + 'התקנון מסדיר את מה שחשוב שתדע: מה השירות כולל, איך עובדים ביטולים '
+      + 'והקפאות, ובעיקר — שההנחיות התזונתיות הן המלצה ולא הוראה רפואית.'
+      + '</div>'
+      + '<a href="terms.html" target="_blank" rel="noopener" style="display:inline-block;'
+      + 'margin-top:12px;font-size:13px;color:var(--cop);text-decoration:underline;'
+      + 'text-underline-offset:3px">לקריאת התקנון המלא ←</a>'
+      + '<label style="display:flex;gap:10px;align-items:flex-start;cursor:pointer;'
+      + 'font-size:13px;line-height:1.6;margin-top:16px">'
+      + '<input type="checkbox" id="termsChk" style="margin-top:2px;flex:none;width:18px;height:18px">'
+      + '<span>קראתי את התקנון ותנאי השימוש ואני מסכים להם.</span></label>'
+      + '<button class="btn" id="termsGo" style="width:100%;margin-top:16px">אישור והמשך</button>'
+      + '<div class="muted" style="font-size:11px;margin-top:10px;line-height:1.6">'
+      + 'האישור נשמר עם התאריך ומספר הגרסה, כדי ששנינו נדע על מה הסכמת.'
+      + '</div></div>';
+    document.body.appendChild(w);
+    document.getElementById('termsGo').onclick = function () {
+      if (!document.getElementById('termsChk').checked) { toast('צריך לסמן את התיבה'); return; }
+      STATE.terms = EBPrivacy.termsRecord();
+      writeState();
+      queueStateSync();
+      w.remove();
+    };
+  }
+
   /* ---------- הרגלים ----------
      מתיחות ותזונה הן פעולה של חמש שניות שחוזרת כל יום, ולכן המסך
      בנוי סביב "היום" ולא סביב היסטוריה: שורת שבעה ימים כדי לראות
@@ -1632,7 +1688,7 @@ button{cursor:pointer}
     /* ----- תזונה ----- */
     h += '<div style="font-family:Frank Ruhl Libre,serif;font-weight:700;font-size:15px;margin:22px 0 10px">תזונה</div>';
     h += '<div class="muted" style="font-size:11.5px;margin:-4px 0 10px;line-height:1.6">'
-      + 'התפריט הוא המלצה של יועץ תזונה ולא הוראה רפואית. הפירוט המלא באריח "תזונה".</div>';
+      + 'התפריט הוא המלצה של מדריך כושר ויועץ תזונה, ולא הוראה רפואית. הפירוט המלא באריח "תזונה".</div>';
     h += '<div class="card" style="margin-bottom:12px">' + habWeek('food') + '</div>';
 
     const onFood = EBHabits.isMarked(HABITS, EBHabits.todayISO(), 'food', null);
@@ -2357,7 +2413,7 @@ button{cursor:pointer}
       + '<div style="font-family:Heebo;font-weight:700;font-size:13.5px;color:var(--cop);'
       + 'margin-bottom:6px">המלצה, לא הוראה רפואית</div>'
       + '<div style="font-size:12.5px;line-height:1.75;color:var(--tx)">'
-      + 'אני יועץ תזונה — לא דיאטן קליני ולא רופא. התפריט והיעדים כאן הם המלצה '
+      + 'אני מדריך כושר ויועץ תזונה — לא דיאטן קליני ולא רופא. התפריט והיעדים כאן הם המלצה '
       + 'שבניתי לפי המטרה שלך, וההחלטה מה לאכול היא שלך. אין בהם אבחון, טיפול '
       + 'או תחליף לייעוץ רפואי.'
       + '<br><br>'

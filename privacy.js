@@ -16,9 +16,16 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['privacy'] = 'v105';
+  (window.EB_MOD = window.EB_MOD || {})['privacy'] = 'v106';
 
   var NOTICE_VERSION = '2026-09-05';
+
+  /* התקנון הוא מסמך נפרד מהיידוע: היידוע נוגע למידע הרפואי, והתקנון
+     לשירות כולו — תשלומים, ביטולים, אחריות וגבולות הייעוץ התזונתי.
+     סעיף 9 בתקנון אומר שההצטרפות מהווה הסכמה, אבל בלי רישום מי אישר
+     ומתי זו טענה ולא ראיה. הגרסה נשמרת יחד עם האישור, כי נוסח שמשתנה
+     בלי מספר גרסה הופך כל אישור ישן לחסר משמעות. */
+  var TERMS_VERSION = '2026-09-14';
 
   /* פרטי בעל המאגר. נקראים מההגדרות אם קיימים, כדי שמאמן אחר
      שישתמש במערכת לא ימסור את הפרטים של אראל. */
@@ -71,6 +78,15 @@
     };
   }
 
+  function termsRecord() {
+    return {
+      at: new Date().toISOString(),
+      version: TERMS_VERSION,
+      doc: 'terms.html',
+      text: 'אני מאשר שקראתי את התקנון ותנאי השימוש ואני מסכים להם.'
+    };
+  }
+
   /* ---------- זכות העיון: כל מה שיש על מתאמן, בקובץ אחד ---------- */
   function exportTrainee(id) {
     var t = (typeof S !== 'undefined' ? S.trainees : []).find(function (x) { return x.id === id; });
@@ -115,6 +131,7 @@
   /* ---------- הבלוק בתיק המתאמן ---------- */
   function block(t) {
     var c = t.health && t.health.consent;
+    var tm = t.termsAccepted;
     return '<div class="card">'
       + '<div class="row" style="margin-bottom:8px"><h3 style="flex:1;font-size:15px">פרטיות וזכויות</h3></div>'
       + '<div class="line-item"><span class="muted" style="width:130px;font-size:13px">הסכמה מתועדת</span>'
@@ -122,6 +139,12 @@
       + (c ? 'נמסרה ' + esc(String(c.at).slice(0, 10).split('-').reverse().join('.'))
              + ' <span class="muted">(נוסח ' + esc(c.version) + ')</span>'
            : '<b style="color:#D9605A">חסרה</b> — המתאמן טרם אישר את היידוע')
+      + '</span></div>'
+      + '<div class="line-item"><span class="muted" style="width:130px;font-size:13px">אישור התקנון</span>'
+      + '<span style="flex:1;font-size:13.5px">'
+      + (tm ? 'אושר ' + esc(String(tm.at).slice(0, 10).split('-').reverse().join('.'))
+              + ' <span class="muted">(גרסה ' + esc(tm.version) + ')</span>'
+            : '<b style="color:#D9605A">חסר</b> — המתאמן טרם אישר את התקנון')
       + '</span></div>'
       + '<div class="line-item"><span class="muted" style="width:130px;font-size:13px">מיקום הנתונים</span>'
       + '<span style="flex:1;font-size:13.5px">שרתי Supabase, מחוץ לישראל</span></div>'
@@ -136,6 +159,8 @@
 
   window.EBPrivacy = {
     VERSION: NOTICE_VERSION,
+    TERMS_VERSION: TERMS_VERSION,
+    termsRecord: termsRecord,
     noticeHTML: noticeHTML,
     consentHTML: consentHTML,
     consentRecord: consentRecord,

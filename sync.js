@@ -15,7 +15,7 @@
   'use strict';
 
   // חותמת גרסה — index.html משווה אליה כדי לזהות קובץ ישן במטמון
-  (window.EB_MOD = window.EB_MOD || {})['sync'] = 'v105';
+  (window.EB_MOD = window.EB_MOD || {})['sync'] = 'v106';
 
   const CFG      = window.EBFIT_CONFIG || { URL: '', ANON: '' };
   const SNAP_KEY = 'ebfit_sync_v1';
@@ -105,6 +105,11 @@
       mealsSelf: r.meals_self || [],
       exercisesSelf: r.exercises_self || [],
       health: r.health || null,
+      /* אישור התקנון יושב ב-session_state, אותו בלוב שהמתאמן כותב
+         דרך trainee_save_state. הוא נקרא לכאן ולעולם לא נדחף חזרה:
+         traineeToRow אינו כולל את העמודה, ולכן שמירה של המאמן
+         משאירה אותה — כמו health ו-weighins. */
+      termsAccepted: (r.session_state || {}).terms || null,
       weighins: r.weighins || [],
       status: r.status,
       _token: r.access_token,
