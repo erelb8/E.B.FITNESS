@@ -369,17 +369,17 @@ button{cursor:pointer}
 
 <div id="toast"></div>
 
-<script src="vendor/supabase.js?v=v104"></script>
-<script src="config.js?v=v104"></script>
-<script src="meal-library.js?v=v104"></script>
-<script src="exercise-library.js?v=v104"></script>
-<script src="progress.js?v=v104"></script>
-<script src="habits.js?v=v104"></script>
-<script src="coach-bot.js?v=v104"></script>
-<script src="workout-log.js?v=v104"></script>
-<script src="targets.js?v=v104"></script>
-<script src="health.js?v=v104"></script>
-<script src="privacy.js?v=v104"></script>
+<script src="vendor/supabase.js?v=v105"></script>
+<script src="config.js?v=v105"></script>
+<script src="meal-library.js?v=v105"></script>
+<script src="exercise-library.js?v=v105"></script>
+<script src="progress.js?v=v105"></script>
+<script src="habits.js?v=v105"></script>
+<script src="coach-bot.js?v=v105"></script>
+<script src="workout-log.js?v=v105"></script>
+<script src="targets.js?v=v105"></script>
+<script src="health.js?v=v105"></script>
+<script src="privacy.js?v=v105"></script>
 <script>
 (function () {
   'use strict';
@@ -1490,7 +1490,7 @@ button{cursor:pointer}
     const days=(DATA.program&&DATA.program.days)||[], files=DATA.files||[];
     if(key==='log') return logScreen();
     if(key==='workout') return editBar()+planBlock(days)+exBlockSafe()+exButton();
-    if(key==='food') return targetsBlock()+nutritionPlan()+libButton();
+    if(key==='food') return nutritionDisclaimer()+targetsBlock()+nutritionPlan()+libButton();
     if(key==='body') return botBody()+bodyMetricsBlock()+healthAlert()+healthFolder()+filesBlock(files);
     if(key==='habits') return habitsScreen();
     return botBlock({skipWeight:true})+progBlock();
@@ -1631,6 +1631,8 @@ button{cursor:pointer}
 
     /* ----- תזונה ----- */
     h += '<div style="font-family:Frank Ruhl Libre,serif;font-weight:700;font-size:15px;margin:22px 0 10px">תזונה</div>';
+    h += '<div class="muted" style="font-size:11.5px;margin:-4px 0 10px;line-height:1.6">'
+      + 'התפריט הוא המלצה של יועץ תזונה ולא הוראה רפואית. הפירוט המלא באריח "תזונה".</div>';
     h += '<div class="card" style="margin-bottom:12px">' + habWeek('food') + '</div>';
 
     const onFood = EBHabits.isMarked(HABITS, EBHabits.todayISO(), 'food', null);
@@ -2337,6 +2339,40 @@ button{cursor:pointer}
     return by;
   }
 
+
+  /* ---------- הצהרת ייעוץ תזונה ----------
+     יועץ תזונה אינו דיאטן קליני ואינו רופא: הוא ממליץ, ואינו רושם
+     תפריט טיפולי ואינו מטפל במצב רפואי. לכן ההצהרה יושבת בראש אזור
+     התזונה ולא בתחתיתו — הצהרה שמופיעה אחרי התפריט כבר לא ממסגרת
+     אותו, והמתאמן קרא את ההמלצה כהוראה.
+
+     היא מוצגת תמיד, גם למתאמן בלי תפריט ובלי יעדים: גם "כמה קלוריות
+     ביום" הוא המלצה, והוא מופיע שם בפני עצמו.
+
+     הסיפה מחזירה אליי: מתאמן שיש לו מגבלה צריך גם להתייעץ עם רופא
+     וגם לעדכן אותי, אחרת אבנה לו שוב את אותו תפריט. */
+  function nutritionDisclaimer() {
+    return '<div class="card" style="margin-bottom:12px;border-color:var(--line2);'
+      + 'background:rgba(209,154,85,.06)">'
+      + '<div style="font-family:Heebo;font-weight:700;font-size:13.5px;color:var(--cop);'
+      + 'margin-bottom:6px">המלצה, לא הוראה רפואית</div>'
+      + '<div style="font-size:12.5px;line-height:1.75;color:var(--tx)">'
+      + 'אני יועץ תזונה — לא דיאטן קליני ולא רופא. התפריט והיעדים כאן הם המלצה '
+      + 'שבניתי לפי המטרה שלך, וההחלטה מה לאכול היא שלך. אין בהם אבחון, טיפול '
+      + 'או תחליף לייעוץ רפואי.'
+      + '<br><br>'
+      + 'אם יש לך מצב רפואי, אתה נוטל תרופות, בהיריון או עם אלרגיה או רגישות — '
+      + 'כדאי להתייעץ עם רופא או דיאטן קליני לפני שינוי בתזונה, ולעדכן אותי '
+      + 'במגבלות כדי שאתאים את ההמלצה.'
+      + '</div>'
+      /* הנוסח המלא הוא סעיף 2 בתקנון. הקישור יושב כאן ולא רק בתחתית
+         הדף: מי שקורא את ההצהרה הוא בדיוק מי שירצה לראות אותה במלואה. */
+      + '<a href="terms.html" target="_blank" rel="noopener" '
+      + 'style="display:inline-block;margin-top:11px;font-size:12.5px;color:var(--cop);'
+      + 'text-decoration:underline;text-underline-offset:3px">התקנון המלא ותנאי השימוש ←</a>'
+      + '</div>';
+  }
+
   function nutritionPlan() {
     var by = slots();
     var any = SLOT_ORDER.some(function (k) { return by[k].length; });
@@ -2448,6 +2484,12 @@ button{cursor:pointer}
         })() || '?')
       + ' · <button onclick="__ebHardRefresh()" style="background:none;border:0;color:var(--mut);'
       + 'font:inherit;text-decoration:underline;padding:0;cursor:pointer">רענון מלא</button></div>'
+      /* גם בתחתית וגם ליד הצהרת התזונה: התקנון חל על כל השירות ולא
+         רק על התזונה, ומתאמן שמחפש אותו לא אמור לדעת שהוא מוסתר
+         בתוך אריח. */
+      + '<div class="mt" style="font-size:11px;margin-top:7px">'
+      + '<a href="terms.html" target="_blank" rel="noopener" '
+      + 'style="color:var(--mut);text-decoration:underline">תקנון ותנאי שימוש</a></div>'
       + '</div>';
   }
 

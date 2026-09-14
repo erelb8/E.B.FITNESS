@@ -18,7 +18,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['analysis'] = 'v104';
+  (window.EB_MOD = window.EB_MOD || {})['analysis'] = 'v105';
 
   /* ---------- כיוון המטרה ---------- */
   var DOWN = ['ירידה', 'להוריד', 'לרדת', 'חיטוב', 'לחטב', 'שריפת שומן', 'הרזיה', 'לרזות', 'אחוז שומן'];

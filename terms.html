@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>תקנון ותנאי שימוש — E.B FIT</title>
+<meta name="theme-color" content="#221A12">
+<meta name="robots" content="noindex,nofollow">
+<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700&family=Frank+Ruhl+Libre:wght@700&display=swap" rel="stylesheet">
+
+<!-- ═══════════════════════════════════════════════════════════════
+     התקנון, בעיצוב האפליקציה ולא כ-PDF.
+
+     המקור היה קובץ A4 שנועד למדפסת. המתאמן קורא אותו בטלפון, ודף
+     A4 בטלפון הוא זום-וגרירה: הוא לא נקרא, ולכן גם לא מוסכם באמת.
+     כאן הטקסט זורם לרוחב המסך.
+
+     נוסח הסעיפים לא שונה מילה. שינוי בנוסח משפטי הוא החלטה של
+     אראל ושל עורך דין, לא שלי. מה שכן נוסף: תאריך גרסה, שבלעדיו
+     אי אפשר להוכיח על איזה נוסח מתאמן הסכים.
+     ═══════════════════════════════════════════════════════════ */ -->
+<style>
+:root{
+  --ink:#221A12; --card:#34281E; --line:#48392B; --line2:#5F4C39;
+  --tx:#F2E8D8; --mut:#B3A48E; --dim:#7E7060;
+  --or:#8FA84F; --or-soft:rgba(143,168,79,.15);
+  --cop:#D19A55; --gold:#E7B873; --r:10px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--ink); color:var(--tx);
+  font-family:'Heebo',system-ui,sans-serif; font-size:15px; line-height:1.65;
+  -webkit-text-size-adjust:100%;
+}
+.wrap{max-width:720px;margin:0 auto;padding:0 16px 60px}
+
+header{
+  background:linear-gradient(180deg,#2B2118,#221A12);
+  border-bottom:1px solid var(--line);
+  padding:18px 16px 16px;margin-bottom:18px;
+}
+header .inner{max-width:720px;margin:0 auto}
+.brand{font-family:'Frank Ruhl Libre',serif;font-weight:700;font-size:12px;
+  letter-spacing:.16em;color:var(--mut);text-align:left}
+.brand b{color:var(--or)}
+h1{font-family:'Frank Ruhl Libre',serif;font-size:23px;margin:6px 0 4px;line-height:1.25}
+header p{margin:0;color:var(--mut);font-size:13px}
+.ver{margin-top:9px;font-size:11.5px;color:var(--dim)}
+
+.notice{
+  background:var(--or-soft);border:1px solid var(--or);border-radius:var(--r);
+  padding:13px 15px;margin-bottom:18px;font-size:13.5px;line-height:1.7
+}
+.notice b{color:var(--or)}
+
+.crit{
+  background:rgba(209,154,85,.09);border:1px solid var(--cop);
+  border-inline-start:4px solid var(--cop);border-radius:var(--r);
+  padding:13px 15px;margin:12px 0;font-size:13.5px;line-height:1.7
+}
+.crit b{color:var(--cop)}
+
+h2{
+  font-family:'Frank Ruhl Libre',serif;font-size:17px;
+  margin:26px 0 9px;padding-bottom:6px;border-bottom:1px solid var(--line);
+}
+h2 span{color:var(--cop);font-size:14px;margin-inline-end:6px}
+p{margin:0 0 10px}
+ul,ol{margin:0 0 12px;padding-inline-start:20px}
+li{margin-bottom:7px}
+strong{color:var(--gold);font-weight:700}
+
+/* טבלה שלא נשברת בטלפון: בצר רוחב היא נפרשת לכרטיסים,
+   כי טבלה דו-עמודתית ב-360 פיקסלים נדחסת לעמודה של מילה. */
+table{width:100%;border-collapse:collapse;margin:14px 0;font-size:13.5px}
+th,td{border:1px solid var(--line);padding:9px 11px;text-align:start;vertical-align:top}
+th{background:var(--card);font-weight:700;color:var(--gold)}
+td:first-child{font-weight:700;color:var(--tx);white-space:nowrap}
+@media(max-width:560px){
+  table,thead,tbody,tr,td{display:block;width:100%}
+  thead{display:none}
+  tr{border:1px solid var(--line);border-radius:var(--r);margin-bottom:10px;overflow:hidden}
+  td{border:0;padding:10px 12px}
+  td:first-child{background:var(--card);color:var(--gold);white-space:normal;
+    border-bottom:1px solid var(--line)}
+}
+
+.sign{
+  border:1px dashed var(--line2);border-radius:var(--r);
+  padding:14px 15px;margin-top:22px;background:var(--card)
+}
+.sign .fields{display:flex;flex-wrap:wrap;gap:14px;margin-top:12px;font-size:13.5px}
+.sign .f{flex:1 1 180px}
+.sign .line{display:block;border-bottom:1px solid var(--line2);height:22px;margin-top:4px}
+
+.back{
+  display:inline-block;margin-top:26px;padding:11px 18px;border-radius:var(--r);
+  border:1px solid var(--line2);color:var(--tx);text-decoration:none;font-size:14px
+}
+.back:hover{border-color:var(--or)}
+.foot{margin-top:22px;color:var(--dim);font-size:11.5px;line-height:1.7}
+
+/* הדפסה: מכאן יוצא PDF תקין, עם טקסט שאפשר להעתיק ולהקריא —
+   מה שחסר בקובץ המקורי. */
+@media print{
+  :root{--tx:#1a1a1a;--mut:#555;--dim:#666;--line:#bbb;--line2:#999;
+        --card:#f5f5f5;--or:#4a6b1f;--cop:#8a5a12;--gold:#5a4a20}
+  body{background:#fff;color:#1a1a1a;font-size:10.5pt}
+  header{background:none;border-bottom:2px solid #333;margin-bottom:14px}
+  .wrap{max-width:none;padding:0}
+  .back{display:none}
+  h2{page-break-after:avoid}
+  table,.sign,.crit{page-break-inside:avoid}
+  @page{size:A4;margin:16mm}
+}
+</style>
+</head>
+<body>
+
+<header><div class="inner">
+  <div class="brand">E.B<b>&bull;</b>FIT</div>
+  <h1>תקנון תנאי שימוש והסכם הצטרפות</h1>
+  <p>ליווי, אימון ותוכניות כושר אונליין</p>
+  <div class="ver" id="ver">גרסה 2</div>
+</div></header>
+
+<div class="wrap">
+
+<div class="notice">
+  <b>הודעה חשובה:</b> מסמך זה מהווה הסכם משפטי מחייב בין המאמן/העסק לבין
+  הלקוח/המתאמן. הרשמה לשירות, ביצוע תשלום עבורו או קבלת תוכנית מהווים
+  הסכמה מלאה ומפורשת לכל התנאים המפורטים בתקנון זה.
+</div>
+
+<h2><span>1.</span>מהות השירות והגדרת מסגרת הליווי</h2>
+<p>השירות הינו שירות ליווי והדרכה מרחוק (אונליין), הכולל בניית תוכניות
+אימונים מותאמות אישית, הכוונה לאורח חיים בריא, ומעקב תקופתי באמצעות
+ערוצי תקשורת דיגיטליים (כגון WhatsApp, דוא"ל, או אפליקציה ייעודית).</p>
+<ul>
+  <li>השירות אינו כולל נוכחות פיזית או השגחה צמודה של המאמן בזמן ביצוע
+      האימונים בפועל.</li>
+  <li>התוכניות נבנות בהתאם למידע, ליעדים, למגבלות ולציוד עליהם הצהיר
+      המתאמן. הצלחת התוכנית מותנית במחויבות ובמשמעת האישית של המתאמן.</li>
+</ul>
+
+<h2><span>2.</span>הבהרה משפטית ומקצועית: ייעוץ תזונה והרגלי אכילה</h2>
+<div class="crit">
+  <b>דגש קריטי — גבולות הגזרה התזונתית:</b><br>
+  המאמן הינו מדריך כושר ויועץ תזונה, ואיננו דיאטן קליני / תזונאי מורשה
+  מטעם משרד הבריאות לפי חוק הסדרת העיסוק במקצועות הבריאות, התשס"ח-2008.
+</div>
+<ol>
+  <li>ההנחיות התזונתיות הניתנות במסגרת הליווי מהוות <strong>המלצות בלבד</strong>
+      להרגלי אכילה בריאים, חלוקת מאקרו-נוטריאנטים (חלבונים, פחמימות, שומנים)
+      וצריכה קלורית משוערת בהתאם למטרות האימון.</li>
+  <li>המאמן <strong>אינו רושם, אינו מכתיב ואינו מנפק תפריטי תזונה מחייבים</strong>,
+      אינו עוסק בטיפול תזונתי רפואי (MNT) ואינו מוסמך לטפל באמצעות תזונה
+      במחלות כרוניות, הפרעות אכילה או מצבים קליניים.</li>
+  <li>בכל מקרה של מחלה, מצב בריאותי מיוחד, הריון, נטילת תרופות או צורך
+      בתפריט רפואי ייעודי — חלה חובה על המתאמן להיוועץ בדיאטן קליני מוסמך
+      או ברופא המטפל.</li>
+  <li>כל בחירה ושינוי תזונתי מבוצעים על דעתו, רצונו ואחריותו המלאה
+      והבלעדית של המתאמן.</li>
+</ol>
+
+<h2><span>3.</span>כשירות רפואית, הצהרת בריאות ובטיחות</h2>
+<ol>
+  <li>חובה על המתאמן למלא ולחתום על שאלון רפואי / הצהרת בריאות מפורטת
+      טרם תחילת ההתקשרות וקבלת התוכנית.</li>
+  <li>המתאמן מצהיר כי הוא כשיר פיזית ונפשית לבצע פעילות גופנית ומאמצים
+      בעצימויות שונות. במידה וקיימת מגבלה רפואית, מחלה כרונית או כאבים
+      כרוניים — חובה להמציא אישור רפואי מפורש מרופא מטפל.</li>
+  <li>המתאמן מתחייב לדווח מיידית על כל שינוי במצבו הבריאותי, כאב חריג או
+      אי-נוחות, ולהפסיק את האימון לאלתר במידת הצורך.</li>
+</ol>
+
+<h2><span>4.</span>אחריות, שחרור מתביעות והסתלקות מאחריות (Disclaimer)</h2>
+<ul>
+  <li>הואיל והאימון מתבצע באופן עצמאי וללא השגחה ישירה, המתאמן נושא
+      באחריות המלאה והבלעדית על בטיחות סביבת האימון, תקינות הציוד,
+      טכניקת הביצוע ומשקלי העבודה.</li>
+  <li>המאמן לא יישא בכל אחריות לכל פציעה, נזק גופני, החמרה של מצב קיים
+      או נזק כספי/עקיף שייגרמו עקב ביצוע לא נכון של תרגילים, עומס יתר,
+      התעלמות מהנחיות או אי-דיווח על מצב רפואי.</li>
+  <li>התכנים וסרטוני ההסבר מהווים כלי עזר לימודי ואינם מהווים ייעוץ רפואי
+      או תחליף לאבחון קליני. מומלץ להיעזר בשליחת סרטוני ביצוע (בדיקת
+      טכניקה) למאמן.</li>
+</ul>
+
+<h2><span>5.</span>תנאי תשלום, ביטולים והקפאות</h2>
+<p>תנאי התשלום והביטול מוסדרים בהתאם לחוק הגנת הצרכן, התשמ"א-1981
+ותקנותיו:</p>
+<table>
+  <thead><tr><th>נושא</th><th>פירוט התנאים</th></tr></thead>
+  <tbody>
+    <tr><td>מועד התשלום</td>
+        <td>התשלום מוסדר מראש ובמלואו לפני תחילת העבודה על התוכניות
+            ותחילת הליווי.</td></tr>
+    <tr><td>ביטול עסקה כדין</td>
+        <td>ביטול יתאפשר בתוך 14 יום ממועד העסקה או מסירת מסמך הגילוי
+            (המאוחר מביניהם), ובלבד שההודעה נמסרה לפחות 2 ימים שאינם ימי
+            מנוחה לפני תחילת השירות.</td></tr>
+    <tr><td>דמי ביטול כחוק</td>
+        <td>בביטול כדין לפני תחילת השירות ינוכו דמי ביטול בשיעור של 5%
+            ממחיר העסקה או 100 ₪ (הנמוך מביניהם).</td></tr>
+    <tr><td>ביטול לאחר תחילת השירות</td>
+        <td>מרגע שנמסרה תוכנית אישית או החל הליווי בפועל (שירות שיוצר
+            במיוחד / הוחל בביצועו), ייגבה תשלום מלא עבור שווי הכנת
+            התוכנית והימים שבהם ניתן ליווי.</td></tr>
+    <tr><td>הקפאת שירות</td>
+        <td>הקפאת מסלול תתאפשר אך ורק מטעמים רפואיים מוצדקים (בצירוף
+            אישור רופא) או שירות מילואים פעיל, בתיאום מראש ובאישור המאמן
+            (עד 30 יום).</td></tr>
+  </tbody>
+</table>
+
+<h2><span>6.</span>זמני מענה וערוצי תקשורת</h2>
+<ul>
+  <li>התקשורת, המענה לשאלות ובדיקת סרטוני ביצוע יתבצעו בימים א'-ה'
+      בשעות הפעילות המוגדרות, ולא במהלך שבתות ומועדי ישראל.</li>
+  <li>המאמן מתחייב להשיב בטווח זמן סביר (עד 24-48 שעות בימי עסקים).
+      השירות אינו מהווה מוקד חירום רפואי או זמינות רציפה 24/7.</li>
+</ul>
+
+<h2><span>7.</span>קניין רוחני וזכויות יוצרים</h2>
+<p>כל התוכניות, המדריכים, סרטוני ההדרכה, טבלאות המעקב והחומרים
+הדיגיטליים הינם קניינו הרוחני הבלעדי של המאמן.</p>
+<ul>
+  <li>החומרים מיועדים לשימוש אישי ופרטי של הלקוח/ה בלבד.</li>
+  <li>חל איסור מוחלט להעתיק, להפיץ, להעביר לצד שלישי או לפרסם ברשת ללא
+      אישור מראש ובכתב.</li>
+</ul>
+
+<h2><span>8.</span>פרטיות, סודיות ותמונות מעקב</h2>
+<p>המאמן מתחייב לשמור בסודיות מלאה את כל המידע האישי, המדדים, השאלונים
+והנתונים. <strong>תמונות מעקב והתקדמות לא יפורסמו לעולם</strong> ברשתות
+החברתיות או באתר ללא הסכמה מפורשת ונפרדת בכתב (וניתן לבקש טשטוש מלא של
+פנים וסימנים מזהים).</p>
+
+<h2><span>9.</span>אישור והצהרת הלקוח/ה</h2>
+<p>בהצטרפותי לתוכנית, ביצוע התשלום ו/או חתימתי להלן, אני מאשר/ת כי קראתי
+בעיון את כל סעיפי התקנון, הבנתי את תוכנם, ובפרט את מהות הייעוץ התזונתי
+כהמלצה בלבד ואת ההסתלקות מאחריות, ואני מסכים/ה ומקבל/ת על עצמי את כל
+תנאיו ללא כל סייג.</p>
+
+<div class="sign">
+  <strong>אישור וחתימת המתאמן/ת:</strong>
+  <div class="fields">
+    <div class="f">שם מלא<span class="line"></span></div>
+    <div class="f">תאריך<span class="line"></span></div>
+    <div class="f">חתימה<span class="line"></span></div>
+  </div>
+</div>
+
+<a class="back" href="javascript:history.length>1?history.back():location.href='t.html'">← חזרה לתוכנית שלי</a>
+
+<div class="foot">
+  לשמירה או להדפסה: תפריט הדפדפן ← הדפסה ← שמירה כ-PDF.
+</div>
+
+</div>
+</body>
+</html>
