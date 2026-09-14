@@ -14,7 +14,7 @@
   'use strict';
 
   // חותמת גרסה — index.html משווה אליה כדי לזהות קובץ ישן במטמון
-  (window.EB_MOD = window.EB_MOD || {})['builder'] = 'v110';
+  (window.EB_MOD = window.EB_MOD || {})['builder'] = 'v111';
 
   /* ---------- דפוסי תנועה ----------
      החלוקה לפי דפוס ולא לפי שריר, כי כך בונים פיצולים מאוזנים
@@ -90,6 +90,15 @@
     { n:'כפיפות בטן',           p:P.CORE,  eq:['gym','home','park'], lvl:1, bad:['גב'] },
     { n:'דד באג',               p:P.CORE,  eq:['gym','home'],        lvl:1, bad:[] },
     { n:'עץ פלאנק עם משיכה',    p:P.CORE,  eq:['gym','home'],        lvl:2, bad:[] },
+    /* שני תרגילי ליבה בכל אימון דורשים מאגר גדול יותר: בפיצול של
+       חמישה ימים צריך עשר בחירות, ובשש בלבד הימים האחרונים נשארו
+       ריקים. */
+    { n:'גלגלת בטן',            p:P.CORE,  eq:['gym','home'],        lvl:3, bad:['גב'] },
+    { n:'כפיפות בטן בכבל',      p:P.CORE,  eq:['gym'],               lvl:2, bad:[] },
+    { n:'הליכת חקלאי',          p:P.CORE,  eq:['gym','home'],        lvl:1, bad:[] },
+    { n:'פלאנק עם הרמת יד',     p:P.CORE,  eq:['gym','home','park'], lvl:2, bad:['כתף'] },
+    { n:'סופרמן',               p:P.CORE,  eq:['gym','home','park'], lvl:1, bad:[] },
+    { n:'רוטציות רוסיות',       p:P.CORE,  eq:['gym','home','park'], lvl:2, bad:['גב'] },
 
     // אירובי
     { n:'הליכה בשיפוע',         p:P.CARDIO,eq:['gym'],               lvl:1, bad:[] },
@@ -138,22 +147,42 @@
   /* =====================================================================
      לימוד מהתוכניות הקיימות של המאמן
      ===================================================================== */
+  /* ---------- תוכנית הבית ----------
+     המנוע לומד מכל התוכניות במשקל שווה, ולכן תוכנית אחת מוצלחת
+     נבלעת בין עשר בינוניות. כאן אפשר לסמן תוכנית אחת כהתייחסות,
+     והיא נספרת כאילו נכתבה WEIGHT פעמים: התרגילים שלה עולים לראש
+     הדירוג, והסטים, החזרות והמנוחה שלה מושכים את החציון אליהם.
+
+     זו הטיה מכוונת ולא באג. היא אינה מוחקת את שאר התוכניות — מתאמן
+     עם מגבלה עדיין יקבל תרגיל חלופי, כי הסינון קודם לדירוג. */
+  var HOUSE_WEIGHT = 6;
+  function houseId() {
+    var st = (window.S && window.S.settings) || {};
+    return st.refProgramId || '';
+  }
   function learn() {
-    var out = { uses: {}, sets: [], reps: {}, rest: [], names: {}, programs: 0 };
+    var out = { uses: {}, sets: [], reps: {}, rest: [], names: {}, programs: 0,
+                house: null };
+    var ref = houseId();
 
     (window.S.trainees || []).forEach(function (t) {
       var days = (t.program && t.program.days) || [];
       if (!days.length) return;
       out.programs++;
+      var w = (ref && t.id === ref) ? HOUSE_WEIGHT : 1;
+      if (w > 1) out.house = t.name || '';
       days.forEach(function (d) {
         (d.exercises || []).forEach(function (e) {
           var n = String(e.name || '').trim();
           if (!n) return;
-          out.uses[n] = (out.uses[n] || 0) + 1;
+          out.uses[n] = (out.uses[n] || 0) + w;
           out.names[n.replace(/\s+/g, '')] = n;      // לזיהוי כתיב שונה
-          var s = parseFloat(e.sets); if (s > 0 && s < 12) out.sets.push(s);
-          var r = parseFloat(e.rest); if (r > 0 && r < 400) out.rest.push(r);
-          if (e.reps) out.reps[e.reps] = (out.reps[e.reps] || 0) + 1;
+          var s = parseFloat(e.sets), r = parseFloat(e.rest);
+          for (var i = 0; i < w; i++) {
+            if (s > 0 && s < 12) out.sets.push(s);
+            if (r > 0 && r < 400) out.rest.push(r);
+            if (e.reps) out.reps[e.reps] = (out.reps[e.reps] || 0) + 1;
+          }
         });
       });
     });
@@ -220,9 +249,44 @@
       return chosen;
     }
 
+    /* ---------- ליבה בכל אימון ----------
+       שניים, בסוף האימון. לא בהתחלה: ליבה עייפה לפני סקוואט או
+       דדליפט פוגעת ביציבות העמוד ומעלה סיכון, וזה גם הסדר המקובל.
+
+       הליבה אינה עוברת דרך used הרגיל. מאגר הליבה קטן מסך הבחירות
+       הנדרשות בפיצול של חמישה ימים, ולכן חזרה על תרגיל בין ימים
+       מותרת — אך לא באותו אימון. זה גם נכון אימונית: ליבה חוזרת
+       היא בדיוק מה שמשפר אותה. */
+    var coreSeen = {};
+    function pickCore(dayUsed) {
+      var pool = LIB.filter(function (x) {
+        if (x.p !== P.CORE) return false;
+        if (dayUsed[x.n]) return false;
+        if (x.eq.indexOf(eq) < 0) return false;
+        if (x.lvl > lvl + (lvl === 1 ? 0 : 1)) return false;
+        for (var i = 0; i < bad.length; i++)
+          if (x.bad.indexOf(bad[i]) > -1) return false;
+        return true;
+      });
+      if (!pool.length) return null;
+      /* עדיפות למה שטרם הופיע בתוכנית, ואחר כך למה שהמאמן נותן */
+      pool.sort(function (a, b) {
+        var sa = coreSeen[a.n] || 0, sb = coreSeen[b.n] || 0;
+        if (sa !== sb) return sa - sb;
+        return (L.uses[b.n] || 0) - (L.uses[a.n] || 0);
+      });
+      var head = pool.slice(0, 2);
+      var chosen = head[Math.floor(Math.random() * head.length)];
+      coreSeen[chosen.n] = (coreSeen[chosen.n] || 0) + 1;
+      dayUsed[chosen.n] = 1;
+      return chosen;
+    }
+
     var outDays = days.map(function (d) {
       var ex = [];
-      d.pat.forEach(function (pat) {
+      /* הליבה שבדפוס יוצאת מהלולאה: היא מתווספת בסוף בכמות קבועה,
+         ובלי זה היו שלושה תרגילי ליבה בימים שכבר כללו אחד. */
+      d.pat.filter(function (pat) { return pat !== P.CORE; }).forEach(function (pat) {
         var x = pick(pat);
         if (!x) return;
         var isCore = x.p === P.CORE, isArm = x.p === P.ARMS || x.p === P.SHLD;
@@ -235,6 +299,21 @@
           note  : ''
         });
       });
+      // שני תרגילי ליבה, אחרי עבודת הכוח
+      var dayUsed = {};
+      for (var ci = 0; ci < 2; ci++) {
+        var c2 = pickCore(dayUsed);
+        if (!c2) break;
+        ex.push({
+          name  : c2.n,
+          sets  : String(Math.max(2, sets - 1)),
+          reps  : '30-45 שנ׳',
+          weight: '',
+          rest  : String(Math.min(45, rest)),
+          note  : ''
+        });
+      }
+
       // אירובי בסוף, למטרות שמצדיקות אותו
       if (g.cardio) {
         var c = pick(P.CARDIO);
@@ -298,6 +377,7 @@
       + sel('רמה','bd_lvl',['מתחיל','בינוני','מתקדם'], lvl)
       + sel('מיקום','bd_eq',[['gym','חדר כושר מאובזר'],['home','אימון ביתי'],['park','פארק / משקל גוף']], eq)
       + '</div>'
+      + houseSelect(traineeId)
       + '<div class="sep"></div><label class="f">מגבלות — תרגילים שמעמיסים עליהן יוסרו</label>'
       + '<div class="row" style="margin-top:6px">'
       + ['כתף','ברך','גב','שורש כף יד'].map(function (w) {
@@ -311,6 +391,39 @@
       + '<button class="btn ghost" onclick="closeModal()">ביטול</button></div>', true);
   }
 
+
+  /* בוחר תוכנית ההתייחסות. נשמר בהגדרות ולא בתוכנית, כי הוא חל על
+     כל בנייה עתידית ולא על מתאמן מסוים. */
+  function houseSelect(skipId) {
+    var opts = (window.S.trainees || []).filter(function (t) {
+      return t.id !== skipId && !t.deleted
+          && ((t.program || {}).days || []).some(function (d) {
+               return ((d.exercises || []).length);
+             });
+    });
+    if (!opts.length) return '';
+    var cur = houseId();
+    return '<div style="margin:12px 0 4px">'
+      + '<label class="f" style="display:block;margin-bottom:4px">תוכנית התייחסות</label>'
+      + '<select class="f" id="bd_house" style="width:100%" '
+      + 'onchange="EBBuild.setHouse(this.value)">'
+      + '<option value="">ללא — ללמוד מכל התוכניות באותו משקל</option>'
+      + opts.map(function (t) {
+          return '<option value="' + esc(t.id) + '"' + (t.id === cur ? ' selected' : '') + '>'
+               + esc(t.name || 'ללא שם') + '</option>';
+        }).join('')
+      + '</select>'
+      + '<div class="muted" style="font-size:11.5px;margin-top:5px;line-height:1.6">'
+      + 'התוכנית שנבחרה תשפיע פי ' + HOUSE_WEIGHT + ' משאר התוכניות — התרגילים שלה '
+      + 'יעלו לראש, והסטים והחזרות שלה יקבעו את ברירת המחדל. הבחירה נשמרת '
+      + 'לכל הבניות הבאות.</div></div>';
+  }
+  function setHouse(id) {
+    window.S.settings = window.S.settings || {};
+    window.S.settings.refProgramId = id || '';
+    if (typeof save === 'function') save();
+    if (FOR) { closeModal(); open(FOR); }
+  }
   function readOpts() {
     var lim = ['כתף','ברך','גב','שורש כף יד'].filter(function (w) {
       var el = document.getElementById('bd_l_' + w.replace(/\s/g,'_'));
@@ -413,5 +526,6 @@
   }
 
   window.EBBuild = { open: open, gen: gen, apply: apply, build: build,
-                     learn: learn, fromLib: fromLib, drop: drop };
+                     learn: learn, fromLib: fromLib, drop: drop,
+                     setHouse: setHouse, houseId: houseId };
 })();
