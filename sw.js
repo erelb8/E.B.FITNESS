@@ -2,7 +2,7 @@
    נותן לאפליקציה לעבוד לגמרי בלי אינטרנט אחרי הפתיחה הראשונה.
    כשמעדכנים את האפליקציה — מעלים את המספר ב-VERSION. */
 
-const VERSION = 'ebfit-v108';
+const VERSION = 'ebfit-v109';
 const SHELL   = VERSION + '-shell';
 const FONTS   = VERSION + '-fonts';
 
@@ -12,37 +12,37 @@ const SHELL_FILES = [
   './manifest.json',
   './t.html',
   './terms.html',
-  './config.js?v=v108',
-  './sync.js?v=v108',
-  './business.js?v=v108',
-  './health.js?v=v108',
-  './privacy.js?v=v108',
-  './backup.js?v=v108',
-  './reorder.js?v=v108',
-  './access.js?v=v108',
-  './analysis.js?v=v108',
-  './reports.js?v=v108',
-  './business.js?v=v108',
-  './intake.js?v=v108',
-  './files.js?v=v108',
-  './builder.js?v=v108',
-  './import-program.js?v=v108',
-  './tracking.js?v=v108',
-  './metrics.js?v=v108',
-  './targets.js?v=v108',
-  './meals.js?v=v108',
-  './meal-library.js?v=v108',
-  './progress.js?v=v108',
-  './habits.js?v=v108',
-  './coach-bot.js?v=v108',
-  './workout-log.js?v=v108',
-  './library-ui.js?v=v108',
-  './export-plan.js?v=v108',
-  './cardio.js?v=v108',
-  './cardio-ui.js?v=v108',
-  './exercise-library.js?v=v108',
-  './exercise-ui.js?v=v108',
-  './vendor/supabase.js?v=v108',
+  './config.js?v=v109',
+  './sync.js?v=v109',
+  './business.js?v=v109',
+  './health.js?v=v109',
+  './privacy.js?v=v109',
+  './backup.js?v=v109',
+  './reorder.js?v=v109',
+  './access.js?v=v109',
+  './analysis.js?v=v109',
+  './reports.js?v=v109',
+  './business.js?v=v109',
+  './intake.js?v=v109',
+  './files.js?v=v109',
+  './builder.js?v=v109',
+  './import-program.js?v=v109',
+  './tracking.js?v=v109',
+  './metrics.js?v=v109',
+  './targets.js?v=v109',
+  './meals.js?v=v109',
+  './meal-library.js?v=v109',
+  './progress.js?v=v109',
+  './habits.js?v=v109',
+  './coach-bot.js?v=v109',
+  './workout-log.js?v=v109',
+  './library-ui.js?v=v109',
+  './export-plan.js?v=v109',
+  './cardio.js?v=v109',
+  './cardio-ui.js?v=v109',
+  './exercise-library.js?v=v109',
+  './exercise-ui.js?v=v109',
+  './vendor/supabase.js?v=v109',
   './icons/icon-180.png',
   './icons/icon-192.png',
   './icons/icon-256.png',
@@ -85,16 +85,32 @@ self.addEventListener('fetch', e => {
     return;
   }
 
-  // ניווט (פתיחת האפליקציה) — רשת קודם כדי לקבל עדכונים, מטמון כגיבוי
+  /* ניווט (פתיחת הדף) — רשת קודם כדי לקבל עדכונים, מטמון כגיבוי.
+
+     cache:'reload' ולא fetch רגיל: הדפים מוגשים עם max-age=600, ו-fetch
+     רגיל מכבד את מטמון ה-HTTP — כלומר "רשת קודם" החזיר בפועל עותק מהדיסק
+     עד עשר דקות, בלי לפנות לשרת בכלל. כך נוצר מצב שהטלפון כבר על הגרסה
+     החדשה והדפדפן במחשב עדיין על הישנה.
+
+     הנתיב נשמר תחת המפתח של עצמו ולא תמיד תחת index.html: ניווט ל-t.html
+     דרס עד היום את גיבוי ה-offline של אפליקציית הניהול, כך שמאמן שפתח
+     דף מתאמן פעם אחת קיבל אותו בלי רשת במקום את האפליקציה שלו. */
   if (req.mode === 'navigate') {
     e.respondWith((async () => {
+      const url  = new URL(req.url);
+      const path = url.origin === self.location.origin
+        ? './' + (url.pathname.split('/').pop() || '')
+        : null;
       try {
-        const fresh = await fetch(req);
-        const c = await caches.open(SHELL);
-        c.put('./index.html', fresh.clone());
+        const fresh = await fetch(req, { cache: 'reload' });
+        if (fresh && fresh.ok && path) {
+          const c = await caches.open(SHELL);
+          c.put(path === './' ? './index.html' : path, fresh.clone());
+        }
         return fresh;
       } catch {
-        return (await caches.match('./index.html')) ||
+        return (path && await caches.match(path)) ||
+               (await caches.match('./index.html')) ||
                (await caches.match('./')) ||
                new Response('אין חיבור והאפליקציה עוד לא נשמרה במכשיר.', {
                  status: 503, headers: { 'Content-Type': 'text/plain; charset=utf-8' }
