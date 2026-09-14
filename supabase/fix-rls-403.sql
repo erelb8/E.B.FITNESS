@@ -78,18 +78,31 @@ create policy trainer_read_logs on public.workout_logs
 --  זה בטוח: מיד אחרי ההרשאה ה-RLS שלמעלה מסנן כל שורה לפי טוקן
 --  המנהל. בלי טוקן תקף, anon אינו רואה ואינו כותב דבר.
 -- ---------------------------------------------------------------------
-grant usage on schema public to anon;
+--  שני התפקידים ולא אחד. האפליקציה רצה כ-anon כשאין הפעלת Auth,
+--  וכ-authenticated כשיש אחת ששרדה מהארכיטקטורה הישנה — והדפדפן
+--  קובע, לא הקוד. הענקה לתפקיד אחד בלבד עובדת במכשיר אחד ונכשלת
+--  באחר, וזה בדיוק מה שקרה ב-14.9.2026: anon היה מורשה,
+--  authenticated לא, והכתיבה נדחתה ב-403.
+--
+--  איך מבדילים בין השניים בשטח: דחיית RLS על שורה מחזירה 401,
+--  ואילו היעדר GRANT מחזיר 403. ההבדל הזה הוא שפיצח את התקלה.
+grant usage on schema public to anon, authenticated;
 
 grant select, insert, update, delete on
   public.trainees, public.sessions, public.measures,
   public.payments, public.trainer_prefs
-  to anon;
+  to anon, authenticated;
 
-grant select on public.workout_logs to anon;
+grant select on public.workout_logs to anon, authenticated;
+grant execute on function public.admin_request_id() to anon, authenticated;
 
 -- ואלה נשארות חסומות תמיד: שם יושבים גיבובי הסיסמאות
 revoke all on public.admins         from anon, authenticated;
 revoke all on public.admin_sessions from anon, authenticated;
+
+-- PostgREST מחזיק מטמון סכימה. בלי זה שינוי הרשאות יכול לא להיכנס
+-- לתוקף מיד, ונראה כאילו התיקון לא עבד.
+notify pgrst, 'reload schema';
 
 -- ---------------------------------------------------------------------
 -- אימות: מה פעיל עכשיו. כל שורה חייבת להראות admin_request_id.
@@ -111,3 +124,13 @@ select table_name as "טבלה",
  where grantee = 'anon' and table_schema = 'public'
  group by table_name
  order by table_name;
+
+-- שני התפקידים חייבים להיות מורשים. אם אחד מהם false — הסנכרון
+-- ייכשל ב-403 במכשיר שרץ באותו תפקיד, ויעבוד באחר.
+select 'anon' as "תפקיד",
+       has_table_privilege('anon','public.trainees','insert') as "INSERT",
+       has_function_privilege('anon','public.admin_request_id()','execute') as "הרצת פונקציה"
+union all
+select 'authenticated',
+       has_table_privilege('authenticated','public.trainees','insert'),
+       has_function_privilege('authenticated','public.admin_request_id()','execute');
