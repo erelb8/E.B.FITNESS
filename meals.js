@@ -12,7 +12,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['meals'] = 'v130';
+  (window.EB_MOD = window.EB_MOD || {})['meals'] = 'v131';
 
   var BUCKET = 'programs';
   var MAXW   = 900;          // רוחב מרבי אחרי הקטנה

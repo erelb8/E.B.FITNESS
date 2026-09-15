@@ -15,7 +15,7 @@
   'use strict';
 
   // חותמת גרסה — index.html משווה אליה כדי לזהות קובץ ישן במטמון
-  (window.EB_MOD = window.EB_MOD || {})['sync'] = 'v130';
+  (window.EB_MOD = window.EB_MOD || {})['sync'] = 'v131';
 
   const CFG      = window.EBFIT_CONFIG || { URL: '', ANON: '' };
   const SNAP_KEY = 'ebfit_sync_v1';
@@ -171,6 +171,51 @@
   }
   function writeSnap(snap) {
     try { localStorage.setItem(SNAP_KEY, JSON.stringify(snap)); } catch (e) {}
+  }
+
+  /* ---------- מצבות מחיקה ----------
+     רשימת מזהים שהמאמן מחק במפורש, לפי טבלה. נכתבת ברגע המחיקה
+     ונקראת בדחיפה, והיא ההבדל היחיד בין מחיקה לבין רשימה שהתכווצה.
+
+     יושבת ב-localStorage ולא ב-S: היא מצב סנכרון ולא נתון של
+     המאמן, ואין שום סיבה שתסתנכרן למכשיר אחר. מכשיר שמחק — הוא
+     זה שידחוף את המחיקה.
+
+     נשמרת עד שהמחיקה הצליחה בשרת, כדי שמחיקה שנעשתה אופליין לא
+     תלך לאיבוד ותהפוך בסנכרון הבא ל"רשימה שהתכווצה". */
+  const TOMB_KEY = 'ebfit_sync_tombs';
+  function readTombs() {
+    try { return JSON.parse(localStorage.getItem(TOMB_KEY)) || {}; }
+    catch (e) { return {}; }
+  }
+  function writeTombs(t) {
+    try { localStorage.setItem(TOMB_KEY, JSON.stringify(t)); } catch (e) {}
+  }
+  /* נקראת מ-index.html ברגע שהמאמן מאשר מחיקה */
+  function tomb(table, ids) {
+    if (!table || !ids) return;
+    const list = Array.isArray(ids) ? ids : [ids];
+    if (!list.length) return;
+    const t = readTombs();
+    t[table] = t[table] || {};
+    list.forEach(id => { if (id) t[table][id] = Date.now(); });
+    writeTombs(t);
+    log('tomb', { table: table, ids: list });
+  }
+  /* מי מהנעדרים נמחק בכוונה ומי סתם נעדר. טהורה בכוונה — זו
+     ההחלטה שמוחקת נתונים, והיא חייבת להיות ניתנת לבדיקה בלי שרת. */
+  function partitionGone(gone, tombs, table) {
+    const mark = (tombs && tombs[table]) || {};
+    const wanted = [], unknown = [];
+    (gone || []).forEach(id => { (mark[id] ? wanted : unknown).push(id); });
+    return { wanted: wanted, unknown: unknown };
+  }
+  function clearTombs(table, ids) {
+    const t = readTombs();
+    if (!t[table]) return;
+    ids.forEach(id => { delete t[table][id]; });
+    if (!Object.keys(t[table]).length) delete t[table];
+    writeTombs(t);
   }
   function snapshotOf(state) {
     const out = {};
@@ -429,16 +474,34 @@
          הפער: pull יחזיר למכשיר את מה שחסר בו, התצלום הבא יתאים
          לרשימה, ובסנכרון שאחריו כבר לא יהיה gone. ההודעה נשמרת
          כדי שהמאמן ידע — אבל היא מדווחת, לא חוסמת. */
+      /* ---------- מצבה: מחיקה מפורשת גוברת על הסקה ----------
+         ב-15.9.2026 נמחקה מתאמנת שלמה יום אחרי שנוספה, בלי שאיש
+         לחץ עליה "מחק". היא הייתה היחידה שנעדרה מהרשימה, ולכן
+         gone.length היה 1 — מתחת לתקרה, ולכן המחיקה בוצעה בשקט.
+
+         התקרה לבדה לא יכולה להציל: מחיקה אמיתית של מתאמן אחד
+         ורשימה שאיבדה מתאמן אחד הן אותו מספר בדיוק, ואין במידע
+         שלפנינו שום דבר שמבדיל ביניהן.
+
+         מה שמבדיל ביניהן הוא כוונה, ואותה צריך לרשום בזמן אמת.
+         delTrainee ושאר המוחקים כותבים את המזהה ל-EBSync.tomb,
+         וכאן מוחקים רק מה שנרשם שם. מה שנעלם בלי מצבה הוא רשימה
+         שהתכווצה — ועליו מדלגים ומדווחים, ו-pull יחזיר אותו. */
       const gone = Object.keys(prev).filter(id => !seen.has(id));
       if (gone.length) {
-        const MAX_INFERRED_DELETE = 2;
-        if (gone.length > MAX_INFERRED_DELETE) {
-          logError('inferred delete skipped', { table: key, count: gone.length, ids: gone });
-          skippedDeletes.push(gone.length + ' ב"' + key + '"');
-        } else {
+        const part = partitionGone(gone, readTombs(), key);
+        const wanted = part.wanted, unknown = part.unknown;
+
+        if (wanted.length) {
           const { error } = await sb.from(TABLE[key])
-            .update({ deleted: true }).in('id', gone).eq('trainer_id', user.id);
+            .update({ deleted: true }).in('id', wanted).eq('trainer_id', user.id);
           if (error) throw error;
+          clearTombs(key, wanted);           // הושלם — אין צורך לשמור
+        }
+        if (unknown.length) {
+          logError('inferred delete skipped — no tombstone',
+                   { table: key, count: unknown.length, ids: unknown });
+          skippedDeletes.push(unknown.length + ' ב"' + key + '"');
         }
       }
     }
@@ -739,6 +802,9 @@
     fromRows: (table, rows) => (rows || []).map(
       table === 'trainees' ? traineeFromRow : childFromRow),
     checkAdmin,
+    /* מצבת מחיקה. חייבת להיקרא לפני שהשורה מוסרת מ-S, אחרת
+       הדחיפה תראה היעלמות בלי כוונה ותדלג עליה. */
+    tomb, partitionGone,
     adminState: () => adminState, lastError: () => lastError,
     signIn, signUp, signOut,
     traineeLogin,
