@@ -22,7 +22,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['backup'] = 'v135';
+  (window.EB_MOD = window.EB_MOD || {})['backup'] = 'v136';
 
   var LAST_KEY = 'ebfit_backup_at';
   var TABLES = ['trainees', 'sessions', 'measures', 'payments'];
@@ -51,17 +51,14 @@
     setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
   }
 
-  /* ---------- הגיבוי ---------- */
-  async function run() {
-    if (!window.EBSync || !EBSync.enabled()) {
-      toast('הסנכרון לא מוגדר — אין מה לגבות מהשרת'); return;
-    }
+  /* ---------- הגיבוי ----------
+     האיסוף הופרד מההורדה כדי שהגיבוי האוטומטי יוכל להשתמש באותו
+     קוד בדיוק. שני מסלולים שאוספים כל אחד את שלו היו נפרדים ביום
+     הראשון ומתפצלים בשקט אחרי החודש הראשון — והגיבוי האוטומטי הוא
+     בדיוק זה שאיש לא פותח כדי לבדוק. */
+  async function collect(onStep) {
     var sb = EBSync.client && EBSync.client();
     var user = EBSync.user && EBSync.user();
-    if (!sb || !user) { toast('צריך להתחבר לסנכרון קודם'); return; }
-
-    var btn = document.getElementById('bk_run');
-    if (btn) { btn.disabled = true; btn.textContent = 'מגבה…'; }
 
     var out = {
       נוצר: new Date().toISOString(),
@@ -73,9 +70,11 @@
     };
     var counts = [];
 
-    try {
       /* כל טבלה נמשכת בעמודים. בלי זה Supabase מחזיר 1000 שורות
-         ראשונות בלבד ושותק — גיבוי חלקי שנראה שלם. */
+         ראשונות בלבד ושותק — גיבוי חלקי שנראה שלם.
+
+         שגיאה כאן עולה למעלה בכוונה: מי שקרא הוא זה שיודע אם להציג
+         אותה למאמן (גיבוי ידני) או לבלוע אותה (אוטומטי). */
       for (var i = 0; i < TABLES.length; i++) {
         var t = TABLES[i], rows = [], from = 0, page = 1000;
         for (;;) {
@@ -87,7 +86,7 @@
         }
         out.טבלאות[t] = rows;
         counts.push(t + ' ' + rows.length);
-        if (btn) btn.textContent = 'מגבה… ' + t;
+        if (onStep) onStep(t);
       }
 
       /* דיווחי המתאמנים — הטבלה שלא נמצאת ב-S ולכן חסרה בייצוא המקומי */
@@ -118,9 +117,25 @@
       /* המצב המקומי, כרשת ביטחון שנייה */
       out.מצב_מקומי = (typeof S !== 'undefined') ? S : null;
 
+      out._counts = counts;
+      return out;
+  }
+
+  /* ---------- גיבוי ידני: אוסף ומוריד ---------- */
+  async function run() {
+    if (!window.EBSync || !EBSync.enabled()) {
+      toast('הסנכרון לא מוגדר — אין מה לגבות מהשרת'); return;
+    }
+    if (!(EBSync.client && EBSync.client()) || !(EBSync.user && EBSync.user())) {
+      toast('צריך להתחבר לסנכרון קודם'); return;
+    }
+    var btn = document.getElementById('bk_run');
+    if (btn) { btn.disabled = true; btn.textContent = 'מגבה…'; }
+    try {
+      var out = await collect(function (t) { if (btn) btn.textContent = 'מגבה… ' + t; });
+      var counts = out._counts || []; delete out._counts;
       save(out, 'ebfit-גיבוי-' + stamp() + '.json');
       try { localStorage.setItem(LAST_KEY, new Date().toISOString()); } catch (e) {}
-
       toast('הגיבוי ירד — ' + counts.join(' · '));
       if (typeof render === 'function') render();
     } catch (e) {
@@ -128,6 +143,173 @@
     } finally {
       if (btn) { btn.disabled = false; btn.textContent = 'גיבוי מלא עכשיו'; }
     }
+  }
+
+  /* =====================================================================
+     גיבוי אוטומטי יומי
+     ---------------------------------------------------------------------
+     הגיבוי הידני עבד, אבל הוא תלוי בזיכרון של המאמן — ודווקא בימים
+     העמוסים, שבהם משתנה הכי הרבה, איש לא לוחץ עליו. ב-15.9.2026
+     גיבוי מלפני שעות הציל מתאמנת שנמחקה, ובאותו יום תוכנית שלמה
+     אבדה כי לא היה שום עותק שלה בשום מקום.
+
+     האוטומטי לא מוריד קובץ: הורדה יומית הייתה מציפה את תיקיית
+     ההורדות, והדפדפן חוסם הורדה שלא יזם אותה אדם. במקום זה הוא
+     נשמר במכשיר, ושומר את שבעת האחרונים.
+
+     ב-IndexedDB ולא ב-localStorage: גיבוי אחד שוקל כ-370KB, ושבעה
+     כאלה חורגים מהמכסה של localStorage וגם היו מסכנים את S עצמו —
+     כלומר גיבוי שמסכן את מה שהוא בא להגן עליו.
+
+     הוא אינו תחליף לגיבוי הידני. עותק שיושב באותו דפדפן נעלם יחד
+     עם הדפדפן — ניקוי נתוני אתר, מחשב שנגנב, דיסק שמת. הוא מכסה
+     את המקרה השכיח, שהוא טעות אנוש, ולא את המקרה שבו המכשיר עצמו
+     איננו. לכן הכרטיס ממשיך לדרוש גיבוי ידני לדיסק ולענן. */
+  var DB_NAME = 'ebfit_backups', STORE = 'snaps', KEEP = 7;
+  var AUTO_KEY = 'ebfit_autobackup_on';     // תאריך היום שבו כבר רץ
+
+  function openDB() {
+    return new Promise(function (res, rej) {
+      if (!window.indexedDB) return rej(new Error('אין IndexedDB'));
+      var rq = indexedDB.open(DB_NAME, 1);
+      rq.onupgradeneeded = function () {
+        var db = rq.result;
+        if (!db.objectStoreNames.contains(STORE)) db.createObjectStore(STORE, { keyPath: 'at' });
+      };
+      rq.onsuccess = function () { res(rq.result); };
+      rq.onerror = function () { rej(rq.error || new Error('IndexedDB נכשל')); };
+    });
+  }
+  function tx(db, mode) { return db.transaction(STORE, mode).objectStore(STORE); }
+  function asPromise(rq) {
+    return new Promise(function (res, rej) {
+      rq.onsuccess = function () { res(rq.result); };
+      rq.onerror = function () { rej(rq.error); };
+    });
+  }
+
+  async function listSnaps() {
+    try {
+      var db = await openDB();
+      var all = await asPromise(tx(db, 'readonly').getAll());
+      db.close();
+      return (all || []).sort(function (a, b) { return String(b.at).localeCompare(String(a.at)); });
+    } catch (e) { return []; }
+  }
+  async function getSnap(at) {
+    try {
+      var db = await openDB();
+      var one = await asPromise(tx(db, 'readonly').get(at));
+      db.close();
+      return one || null;
+    } catch (e) { return null; }
+  }
+  async function putSnap(rec) {
+    var db = await openDB();
+    await asPromise(tx(db, 'readwrite').put(rec));
+    /* גיזום מיד אחרי הכתיבה, ולא בהזדמנות אחרת: מכסת האחסון נבדקת
+       בכתיבה הבאה, ואם לא גוזמים כאן הכתיבה הבאה היא שתיכשל. */
+    var all = await asPromise(tx(db, 'readonly').getAll());
+    var keys = (all || []).map(function (r) { return r.at; })
+                          .sort(function (a, b) { return String(b).localeCompare(String(a)); });
+    var st = tx(db, 'readwrite');
+    keys.slice(KEEP).forEach(function (k) { st.delete(k); });
+    db.close();
+  }
+  async function dropSnap(at) {
+    try {
+      var db = await openDB();
+      await asPromise(tx(db, 'readwrite').delete(at));
+      db.close();
+    } catch (e) {}
+  }
+
+  function ranToday() {
+    try { return localStorage.getItem(AUTO_KEY) === new Date().toDateString(); }
+    catch (e) { return false; }
+  }
+
+  /* רץ פעם ביום, בשקט. כישלון אינו מוצג למאמן — הוא לא ביקש את
+     הריצה הזאת, והכרטיס בהגדרות כבר אומר מתי הגיבוי האחרון ירד. */
+  async function auto() {
+    try {
+      if (ranToday()) return;
+      if (!window.EBSync || !EBSync.enabled()) return;
+      if (!(EBSync.client && EBSync.client()) || !(EBSync.user && EBSync.user())) return;
+      if (!navigator.onLine) return;
+
+      var out = await collect();
+      var counts = out._counts || []; delete out._counts;
+
+      /* גיבוי ריק אינו גיבוי. שמירתו הייתה דוחקת עותק תקין מהתור
+         של שבעת האחרונים — כלומר הורסת בדיוק את מה שבאנו לשמור. */
+      if (!((out.טבלאות || {}).trainees || []).length) return;
+
+      await putSnap({
+        at: new Date().toISOString(),
+        מתאמנים: (out.טבלאות.trainees || []).length,
+        פירוט: counts.join(' · '),
+        גודל: JSON.stringify(out).length,
+        data: out
+      });
+      try { localStorage.setItem(AUTO_KEY, new Date().toDateString()); } catch (e) {}
+      if (typeof render === 'function') render();
+    } catch (e) {
+      if (window.console) console.warn('[EBBackup] גיבוי אוטומטי נכשל', e);
+    }
+  }
+
+  // הורדת עותק אוטומטי כקובץ, כדי שיישמר מחוץ לדפדפן
+  async function download(at) {
+    var rec = await getSnap(at);
+    if (!rec || !rec.data) { toast('העותק לא נמצא'); return; }
+    save(rec.data, 'ebfit-גיבוי-' + String(at).slice(0, 16).replace(/[:T]/g, '-') + '.json');
+    try { localStorage.setItem(LAST_KEY, new Date().toISOString()); } catch (e) {}
+    toast('העותק ירד');
+    if (typeof render === 'function') render();
+  }
+
+  /* שחזור מעותק אוטומטי — עובר דרך אותו מייבא של הגיבוי הידני,
+     כולל אזהרותיו. אין כאן מסלול שחזור שני. */
+  async function restore(at) {
+    var rec = await getSnap(at);
+    if (!rec || !rec.data) { toast('העותק לא נמצא'); return; }
+    if (typeof window.applyBackup !== 'function') { toast('המייבא לא זמין'); return; }
+    window.applyBackup(rec.data);
+  }
+
+  // נקרא מ-index.html אחרי שהמסך עלה
+  var AUTO_HTML = '';
+  async function refreshAuto() {
+    var list = await listSnaps();
+    AUTO_HTML = autoHTML(list);
+    if (typeof render === 'function') render();
+  }
+  function autoHTML(list) {
+    if (!list.length) {
+      return '<div class="muted" style="font-size:12px;margin-top:10px;line-height:1.6">'
+        + 'גיבוי אוטומטי יומי פעיל. העותק הראשון ייווצר בפעם הבאה שהאפליקציה '
+        + 'תיפתח עם חיבור לשרת.</div>';
+    }
+    var kb = function (n) { return Math.round(n / 1024) + ' KB'; };
+    return '<div class="sep" style="margin:12px 0"></div>'
+      + '<div style="font-family:Heebo;font-weight:700;font-size:13.5px;margin-bottom:6px">'
+      + 'עותקים אוטומטיים במכשיר (' + list.length + ' מתוך ' + KEEP + ')</div>'
+      + list.map(function (r) {
+          var d = new Date(r.at);
+          var p = function (n) { return String(n).padStart(2, '0'); };
+          var when = p(d.getDate()) + '.' + p(d.getMonth() + 1) + ' · ' + p(d.getHours()) + ':' + p(d.getMinutes());
+          return '<div class="line-item" style="align-items:center;gap:8px;padding:6px 0">'
+            + '<span style="flex:1;font-size:13px">' + esc(when)
+            + '<span class="muted" style="font-size:11.5px"> · ' + r.מתאמנים + ' מתאמנים · '
+            + kb(r.גודל || 0) + '</span></span>'
+            + '<button class="btn sm ghost" onclick="EBBackup.download(\'' + esc(r.at) + '\')">הורדה</button>'
+            + '<button class="btn sm ghost" onclick="EBBackup.restore(\'' + esc(r.at) + '\')">שחזור</button>'
+            + '</div>';
+        }).join('')
+      + '<div class="muted" style="font-size:11.5px;margin-top:8px;line-height:1.6">'
+      + 'העותקים האלה יושבים בדפדפן הזה בלבד. ניקוי נתוני אתר או מחשב שאבד '
+      + 'מוחק אותם יחד איתו — ולכן הם אינם מחליפים גיבוי לדיסק ולענן.</div>';
   }
 
   /* ---------- הכרטיס בהגדרות ---------- */
@@ -152,8 +334,11 @@
       + 'נמשך מהשרת ולא מהמכשיר, ולכן כולל גם הצהרות בריאות, שקילות שהמתאמנים '
       + 'הזינו ודיווחי ביצוע — שלושתם אינם נמצאים בייצוא המקומי. '
       + 'לשמור בשני מקומות: כונן חיצוני וענן.</div>'
+      + AUTO_HTML
       + '</div>';
   }
 
-  window.EBBackup = { run: run, card: card, lastAt: lastAt, daysSince: daysSince };
+  window.EBBackup = { run: run, card: card, lastAt: lastAt, daysSince: daysSince,
+                      auto: auto, refreshAuto: refreshAuto, list: listSnaps,
+                      download: download, restore: restore };
 })();

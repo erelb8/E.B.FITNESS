@@ -427,8 +427,8 @@ tbody tr:hover{background:var(--panel)}
 <div id="toast"></div>
 
 <!-- ספריית Supabase מקומית (לא מ-CDN) כדי שהאפליקציה תעבוד גם בלי רשת -->
-<script src="vendor/supabase.js?v=v135"></script>
-<script src="config.js?v=v135"></script>
+<script src="vendor/supabase.js?v=v136"></script>
+<script src="config.js?v=v136"></script>
 
 <script>
 /* =======================================================================
@@ -463,7 +463,7 @@ function age(b){ if(!b) return null; const d=new Date(b), t=new Date(); let a=t.
 
 /* ---------------- אחסון ---------------- */
 const KEY='ebfit_v1';
-const EB_VERSION='v135';   // חייב להתאים ל-VERSION ב-sw.js
+const EB_VERSION='v136';   // חייב להתאים ל-VERSION ב-sw.js
 let mem=null, canStore=true;
 function load(){
   try{ const r=localStorage.getItem(KEY); return r?JSON.parse(r):null; }
@@ -1139,8 +1139,23 @@ function saveTrainee(id){
     notes:gv('tf_notes') };
   if(S.features.health){ o.health=gv('tf_health'); const c=document.getElementById('tf_hok'); o.healthOk=c?c.checked:false; }
   if(S.features.nutrition){ o.kcal=gn('tf_kcal'); o.prot=gn('tf_prot'); o.steps=gn('tf_steps'); }
-  if(id){ Object.assign(tById(id), o); } else { o.id=uid(); o.program={days:[]}; S.trainees.push(o); }
-  save(); closeModal(); toast(id?'המתאמן עודכן':'המתאמן נוסף'); render();
+  /* מתאמן חדש מתחיל מעקב מיד, לשלושה חודשים. המעקב היה צריך הפעלה
+     ידנית, ולכן מי שנוסף בעומס נשאר בלי תקופה — ובלי תקופה אין שבוע
+     נוכחי, אין אחוז התקדמות, ואין תאריך סיום שאפשר לדבר עליו.
+
+     נכתב רק ביצירה, ובכוונה. מתאמן קיים שמתחיל תוכנית חדשה היום
+     אינו אמור לקפוץ לשבוע 52 רק כי הצטרף לפני שנה — אצלו ההפעלה
+     נשארת ידנית, ושם היא הבחירה הנכונה.
+
+     שלושה חודשים ותאריך ההצטרפות הם ברירת מחדל, לא החלטה: שניהם
+     נערכים בכרטיס תקופת התוכנית. */
+  if(id){ Object.assign(tById(id), o); }
+  else {
+    o.id=uid();
+    o.program={ days:[], planStart:(o.joined||todayISO()).slice(0,10), planMonths:3 };
+    S.trainees.push(o);
+  }
+  save(); closeModal(); toast(id?'המתאמן עודכן':'המתאמן נוסף — מעקב לשלושה חודשים החל היום'); render();
 }
 /* ---------- מחיקה מסונכרנת ----------
    הסרה מהמערך המקומי לבדה אינה מספיקה. הדחיפה מזהה מחיקה לפי מה
@@ -2513,7 +2528,18 @@ function importJSON(e){
     let d;
     try{ d=JSON.parse(r.result); }
     catch(err){ toast('הקובץ אינו JSON תקין'); input.value=''; return; }
-    if(!d || typeof d!=='object'){ toast('הקובץ ריק או לא מוכר'); input.value=''; return; }
+    applyBackup(d, ()=>{ input.value=''; });
+  };
+  r.onerror=()=>{ toast('קריאת הקובץ נכשלה'); input.value=''; };
+  r.readAsText(f);
+}
+/* השחזור עצמו, מופרד מקריאת הקובץ: הגיבוי האוטומטי שיושב במכשיר
+   כבר מפוענח, ואין לו קלט קבצים לאפס. מסלול שחזור שני היה מתפצל
+   מזה תוך חודש, וכל האזהרות שכתובות כאן היו חסרות שם. */
+function applyBackup(d, done){
+  const fin=()=>{ if(typeof done==='function') done(); };
+  {
+    if(!d || typeof d!=='object'){ toast('הקובץ ריק או לא מוכר'); fin(); return; }
 
     let next=null, kind='';
     /* מחוקים מסוננים כאן, ולא במקרה. המשיכה הרגילה מהשרת מסננת
@@ -2536,7 +2562,7 @@ function importJSON(e){
       next=Object.assign({},JSON.parse(JSON.stringify(DEFAULT)),snap);
       kind='גיבוי מ-'+String(d.נוצר||'').slice(0,10)+' (העותק המקומי שבתוכו)';
     } else if(rows){
-      if(!window.EBSync || !EBSync.fromRows){ toast('הסנכרון לא נטען — אי אפשר לשחזר גיבוי שרת'); input.value=''; return; }
+      if(!window.EBSync || !EBSync.fromRows){ toast('הסנכרון לא נטען — אי אפשר לשחזר גיבוי שרת'); fin(); return; }
       const T=d.טבלאות;
       /* אימון, מדידה או תשלום של מתאמן שנמחק הם יתומים: הם לא
          יוצגו בשום מסך, אבל כן ייספרו בסיכומים ובכסף. */
@@ -2550,9 +2576,9 @@ function importJSON(e){
       });
       kind='גיבוי מהשרת מ-'+String(d.נוצר||'').slice(0,10);
     } else if(d.טבלאות || d.מצב_מקומי){
-      toast('זה קובץ גיבוי, אבל אין בו מתאמנים כלל'); input.value=''; return;
+      toast('זה קובץ גיבוי, אבל אין בו מתאמנים כלל'); fin(); return;
     } else {
-      toast('הקובץ אינו גיבוי של E.B FIT'); input.value=''; return;
+      toast('הקובץ אינו גיבוי של E.B FIT'); fin(); return;
     }
 
     const have=(S.trainees||[]).length, get=(next.trainees||[]).length;
@@ -2564,21 +2590,19 @@ function importJSON(e){
       alert('הקובץ הזה ריק ממתאמנים, ובמערכת יש ' + heTrainees(have) + '.\n\n'
         + 'לרוב זה גיבוי שנלקח בזמן שהסנכרון לא עבד, ולכן לא הספיק למשוך כלום.\n'
         + 'הייבוא בוטל כדי לא למחוק לך את מה שקיים.');
-      input.value=''; return;
+      fin(); return;
     }
     /* שתי שורות ולא משפט: משפט עם פועל צריך להתאים ליחיד ולרבים
        בשני המספרים בו-זמנית, ותמיד יוצא שבור באחד מהם. */
     if(!confirm(kind+'\n\nבקובץ: '+heTrainees(get)+'\nבמערכת כעת: '+heTrainees(have)
-      +'\n\nהפעולה דורסת את כל המידע במערכת ואינה הפיכה.\n\nלהמשיך?')){ input.value=''; return; }
+      +'\n\nהפעולה דורסת את כל המידע במערכת ואינה הפיכה.\n\nלהמשיך?')){ fin(); return; }
 
     S=next;
     S.settings=Object.assign({},DEFAULT.settings,d.settings||S.settings||{});
     S.features=Object.assign({},DEFAULT.features,d.features||S.features||{});
     save(); toast('נטענו '+heTrainees(get)); go('dash');
-    input.value='';
-  };
-  r.onerror=()=>{ toast('קריאת הקובץ נכשלה'); input.value=''; };
-  r.readAsText(f);
+    fin();
+  }
 }
 function wipe(){ if(!confirm('למחוק את כל המידע במערכת? מומלץ לייצא גיבוי קודם.')) return;
   S=JSON.parse(JSON.stringify(DEFAULT)); save(); go('dash'); toast('הכול נמחק'); }
@@ -2678,30 +2702,30 @@ if (location.protocol === 'file:') {
 }
 </script>
 
-<script src="health.js?v=v135"></script>
-<script src="privacy.js?v=v135"></script>
-<script src="backup.js?v=v135"></script>
-<script src="reorder.js?v=v135"></script>
-<script src="access.js?v=v135"></script>
-<script src="analysis.js?v=v135"></script>
-<script src="reports.js?v=v135"></script>
-<script src="business.js?v=v135"></script>
-<script src="intake.js?v=v135"></script>
-<script src="files.js?v=v135"></script>
-<script src="builder.js?v=v135"></script>
-<script src="import-program.js?v=v135"></script>
-<script src="tracking.js?v=v135"></script>
-<script src="metrics.js?v=v135"></script>
-<script src="targets.js?v=v135"></script>
-<script src="meal-library.js?v=v135"></script>
-<script src="library-ui.js?v=v135"></script>
-<script src="export-plan.js?v=v135"></script>
-<script src="cardio.js?v=v135"></script>
-<script src="cardio-ui.js?v=v135"></script>
-<script src="exercise-library.js?v=v135"></script>
-<script src="exercise-ui.js?v=v135"></script>
-<script src="meals.js?v=v135"></script>
-<script src="sync.js?v=v135"></script>
+<script src="health.js?v=v136"></script>
+<script src="privacy.js?v=v136"></script>
+<script src="backup.js?v=v136"></script>
+<script src="reorder.js?v=v136"></script>
+<script src="access.js?v=v136"></script>
+<script src="analysis.js?v=v136"></script>
+<script src="reports.js?v=v136"></script>
+<script src="business.js?v=v136"></script>
+<script src="intake.js?v=v136"></script>
+<script src="files.js?v=v136"></script>
+<script src="builder.js?v=v136"></script>
+<script src="import-program.js?v=v136"></script>
+<script src="tracking.js?v=v136"></script>
+<script src="metrics.js?v=v136"></script>
+<script src="targets.js?v=v136"></script>
+<script src="meal-library.js?v=v136"></script>
+<script src="library-ui.js?v=v136"></script>
+<script src="export-plan.js?v=v136"></script>
+<script src="cardio.js?v=v136"></script>
+<script src="cardio-ui.js?v=v136"></script>
+<script src="exercise-library.js?v=v136"></script>
+<script src="exercise-ui.js?v=v136"></script>
+<script src="meals.js?v=v136"></script>
+<script src="sync.js?v=v136"></script>
 <script>
 /* =================== חיבור הסנכרון לאפליקציה =================== */
 
@@ -3100,7 +3124,18 @@ async function toggleAccess(id,active){
 /* --------- הפעלה --------- */
 if(window.EBSync && EBSync.enabled()){
   EBSync.init();
-  EBSync.authReady().then(()=>{ window.EB_AUTH_READY=true; render(); });
+  EBSync.authReady().then(()=>{
+    window.EB_AUTH_READY=true; render();
+    /* גיבוי אוטומטי יומי. רץ אחרי ההזדהות, כי בלי מאמן מחובר אין
+       מה למשוך מהשרת. שתי הזדמנויות ולא אחת: המשיכה הראשונה עשויה
+       עוד לרוץ בניסיון הראשון, והפונקציה שומרת בעצמה שלא תרוץ
+       פעמיים באותו יום. */
+    if(window.EBBackup && EBBackup.auto){
+      EBBackup.refreshAuto();
+      setTimeout(()=>EBBackup.auto(),  20000);
+      setTimeout(()=>EBBackup.auto(), 120000);
+    }
+  });
 }else{
   window.EB_AUTH_READY=true;
   render();

@@ -10,7 +10,7 @@
   'use strict';
 
   // חותמת גרסה — index.html משווה אליה כדי לזהות קובץ ישן במטמון
-  (window.EB_MOD = window.EB_MOD || {})['intake'] = 'v135';
+  (window.EB_MOD = window.EB_MOD || {})['intake'] = 'v136';
 
   /* ---------- מילון: תווית בשאלון -> שדה במערכת ---------- */
   /* הסדר משנה — הביטוי הראשון שמתאים מנצח, ולכן ביטויים ארוכים
@@ -419,7 +419,10 @@
       pkgTotal: S.settings.defaultPack, pkgUsed: 0,
       pricePerSession: S.settings.sessionPrice,
       notes: '',
-      program: { days: [] },
+      /* מעקב מתחיל מיד, לשלושה חודשים. מתאמן שנוצר מהשאלון הוא חדש
+         בהגדרה, ולכן תאריך ההצטרפות הוא גם תחילת התקופה. שניהם
+         ברירת מחדל ונערכים בכרטיס תקופת התוכנית. */
+      program: { days: [], planStart: todayISO(), planMonths: 3 },
       intake: intake
     };
 
