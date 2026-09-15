@@ -20,7 +20,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['metrics'] = 'v124';
+  (window.EB_MOD = window.EB_MOD || {})['metrics'] = 'v125';
 
   var r1 = function (x) { return Math.round(x * 10) / 10; };
   var r2 = function (x) { return Math.round(x * 100) / 100; };
@@ -33,6 +33,20 @@
       .filter(function (m) { return m.traineeId === t.id && m[field] !== '' && m[field] != null; })
       .sort(function (a, b) { return (b.date || '').localeCompare(a.date || ''); });
     return ms.length ? { v: Number(ms[0][field]), date: ms[0].date } : null;
+  }
+  /* גובה במטרים או בסנטימטרים — שתי הצורות מתקבלות.
+
+     מתאמן שגובהו הוזן כ-1.64 במקום 164 קיבל BMI של 330,904 וחלבון
+     שלילי, כי 6.25·1.64 במקום 6.25·164 גורע אלף קלוריות מה-BMR.
+     המספרים היו אבסורדיים, אבל שום דבר לא צעק — הם פשוט הוצגו.
+
+     אדם אינו נמוך ממטר ואינו גבוה משלושה, ולכן ערך קטן מ-3 הוא
+     בוודאות מטרים. מעל 250 הוא טעות הקלדה ואין מה לנחש לגביו. */
+  function normHeight(v) {
+    var n = Number(v);
+    if (!isFinite(n) || n <= 0) return null;
+    if (n < 3) n = n * 100;        // 1.64 → 164
+    return (n >= 90 && n <= 250) ? n : null;
   }
   function ageOf(t) {
     if (!t.birth) return null;
@@ -53,7 +67,7 @@
     var W = latest(t,'weight'), waist = latest(t,'waist'), neck = latest(t,'neck'),
         hip = latest(t,'hips'), fatM = latest(t,'fat');
     var w = W ? W.v : null;
-    var h = Number(t.height) || null;
+    var h = normHeight(t.height);
     var a = ageOf(t);
     var sex = t.gender === 'זכר' ? 'm' : t.gender === 'נקבה' ? 'f' : null;
 

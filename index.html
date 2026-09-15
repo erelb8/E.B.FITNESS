@@ -427,8 +427,8 @@ tbody tr:hover{background:var(--panel)}
 <div id="toast"></div>
 
 <!-- ספריית Supabase מקומית (לא מ-CDN) כדי שהאפליקציה תעבוד גם בלי רשת -->
-<script src="vendor/supabase.js?v=v124"></script>
-<script src="config.js?v=v124"></script>
+<script src="vendor/supabase.js?v=v125"></script>
+<script src="config.js?v=v125"></script>
 
 <script>
 /* =======================================================================
@@ -463,7 +463,7 @@ function age(b){ if(!b) return null; const d=new Date(b), t=new Date(); let a=t.
 
 /* ---------------- אחסון ---------------- */
 const KEY='ebfit_v1';
-const EB_VERSION='v124';   // חייב להתאים ל-VERSION ב-sw.js
+const EB_VERSION='v125';   // חייב להתאים ל-VERSION ב-sw.js
 let mem=null, canStore=true;
 function load(){
   try{ const r=localStorage.getItem(KEY); return r?JSON.parse(r):null; }
@@ -898,7 +898,7 @@ function render(){
 
 /* ---------- מילוי מהיר של מין ----------
    בלי מין, BMR מחושב כממוצע בין שתי הנוסחאות — פער של 166 קק״ל
-   ליום. השדה נוסף לשאלון ב-v124, אבל מי שנקלט לפניו נשאר בלעדיו.
+   ליום. השדה נוסף לשאלון ב-v125, אבל מי שנקלט לפניו נשאר בלעדיו.
 
    שני כפתורים לכל מתאמן ולא טופס: זו לחיצה אחת, והכרטיס נעלם לבד
    כשכולם מולאו. ניחוש לפי שם לא בא בחשבון — יעד קלורי שגוי הוא
@@ -2525,30 +2525,30 @@ if (location.protocol === 'file:') {
 }
 </script>
 
-<script src="health.js?v=v124"></script>
-<script src="privacy.js?v=v124"></script>
-<script src="backup.js?v=v124"></script>
-<script src="reorder.js?v=v124"></script>
-<script src="access.js?v=v124"></script>
-<script src="analysis.js?v=v124"></script>
-<script src="reports.js?v=v124"></script>
-<script src="business.js?v=v124"></script>
-<script src="intake.js?v=v124"></script>
-<script src="files.js?v=v124"></script>
-<script src="builder.js?v=v124"></script>
-<script src="import-program.js?v=v124"></script>
-<script src="tracking.js?v=v124"></script>
-<script src="metrics.js?v=v124"></script>
-<script src="targets.js?v=v124"></script>
-<script src="meal-library.js?v=v124"></script>
-<script src="library-ui.js?v=v124"></script>
-<script src="export-plan.js?v=v124"></script>
-<script src="cardio.js?v=v124"></script>
-<script src="cardio-ui.js?v=v124"></script>
-<script src="exercise-library.js?v=v124"></script>
-<script src="exercise-ui.js?v=v124"></script>
-<script src="meals.js?v=v124"></script>
-<script src="sync.js?v=v124"></script>
+<script src="health.js?v=v125"></script>
+<script src="privacy.js?v=v125"></script>
+<script src="backup.js?v=v125"></script>
+<script src="reorder.js?v=v125"></script>
+<script src="access.js?v=v125"></script>
+<script src="analysis.js?v=v125"></script>
+<script src="reports.js?v=v125"></script>
+<script src="business.js?v=v125"></script>
+<script src="intake.js?v=v125"></script>
+<script src="files.js?v=v125"></script>
+<script src="builder.js?v=v125"></script>
+<script src="import-program.js?v=v125"></script>
+<script src="tracking.js?v=v125"></script>
+<script src="metrics.js?v=v125"></script>
+<script src="targets.js?v=v125"></script>
+<script src="meal-library.js?v=v125"></script>
+<script src="library-ui.js?v=v125"></script>
+<script src="export-plan.js?v=v125"></script>
+<script src="cardio.js?v=v125"></script>
+<script src="cardio-ui.js?v=v125"></script>
+<script src="exercise-library.js?v=v125"></script>
+<script src="exercise-ui.js?v=v125"></script>
+<script src="meals.js?v=v125"></script>
+<script src="sync.js?v=v125"></script>
 <script>
 /* =================== חיבור הסנכרון לאפליקציה =================== */
 
