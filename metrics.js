@@ -20,7 +20,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['metrics'] = 'v115';
+  (window.EB_MOD = window.EB_MOD || {})['metrics'] = 'v116';
 
   var r1 = function (x) { return Math.round(x * 10) / 10; };
   var r2 = function (x) { return Math.round(x * 100) / 100; };
@@ -180,9 +180,17 @@
     }
 
     /* ---------- מטרה ויעד קלורי ---------- */
-    var g = /מסה|מסת שריר|היפרטרופ|לעלות/.test(String(t.goal||'')+' '+String(t.notes||'')) ? 'mass'
-          : /חיטוב|ירידה|לרזות|שומן|להחטיב/.test(String(t.goal||'')+' '+String(t.notes||'')) ? 'cut' : 'keep';
+    /* בחירה מפורשת של המאמן גוברת על ניחוש מהטקסט. הזיהוי האוטומטי
+       מחפש מילים מסוימות, ומטרה כמו "כוח" או "חזרה אחרי פציעה"
+       נופלת ל"שמירה" בשקט — כלומר המתאמן מקבל יעד אחזקה בלי
+       שאיש התכוון לכך. macroGoal נותן למאמן להכריע. */
+    var explicit = String(t.macroGoal || '');
+    var g = (explicit === 'cut' || explicit === 'mass' || explicit === 'keep')
+      ? explicit
+      : /מסה|מסת שריר|היפרטרופ|לעלות/.test(String(t.goal||'')+' '+String(t.notes||'')) ? 'mass'
+      : /חיטוב|ירידה|לרזות|שומן|להחטיב/.test(String(t.goal||'')+' '+String(t.notes||'')) ? 'cut' : 'keep';
     o.goal = g;
+    o.goalSrc = explicit ? 'נבחר ידנית' : 'זוהה מהמטרה הכתובה';
     o.goalTxt = {cut:'חיטוב וירידה', mass:'עלייה במסה', keep:'שמירה'}[g];
     if (o.tdee) {
       var adj = g==='cut' ? 0.80 : g==='mass' ? 1.12 : 1;

@@ -427,8 +427,8 @@ tbody tr:hover{background:var(--panel)}
 <div id="toast"></div>
 
 <!-- ספריית Supabase מקומית (לא מ-CDN) כדי שהאפליקציה תעבוד גם בלי רשת -->
-<script src="vendor/supabase.js?v=v115"></script>
-<script src="config.js?v=v115"></script>
+<script src="vendor/supabase.js?v=v116"></script>
+<script src="config.js?v=v116"></script>
 
 <script>
 /* =======================================================================
@@ -463,7 +463,7 @@ function age(b){ if(!b) return null; const d=new Date(b), t=new Date(); let a=t.
 
 /* ---------------- אחסון ---------------- */
 const KEY='ebfit_v1';
-const EB_VERSION='v115';   // חייב להתאים ל-VERSION ב-sw.js
+const EB_VERSION='v116';   // חייב להתאים ל-VERSION ב-sw.js
 let mem=null, canStore=true;
 function load(){
   try{ const r=localStorage.getItem(KEY); return r?JSON.parse(r):null; }
@@ -512,6 +512,77 @@ function refreshTargets(){
       if(next) p.targets = next; else delete p.targets;
     }
   });
+}
+
+
+/* ---------- חישוב מאקרו לפי המטרה ----------
+   החישוב עצמו קיים ב-metrics.js ורץ אוטומטית בכל שמירה, אבל המטרה
+   נוחשה מהטקסט החופשי: "כוח" או "חזרה אחרי פציעה" נפלו ל"שמירה"
+   בלי שאיש התכוון לכך. כאן המאמן מכריע, ורואה מיד את ארבעת
+   המספרים ואת מה שחסר כדי לחשב. */
+const MACRO_GOALS = [['','אוטומטי'],['cut','חיטוב'],['keep','שמירה'],['mass','מסה']];
+function setMacroGoal(id,g){
+  const t=tById(id); if(!t) return;
+  if(g) t.macroGoal=g; else delete t.macroGoal;
+  save(); render();
+}
+function macroCard(t){
+  let m=null;
+  if(window.EBMetrics){ try{ m=EBMetrics.compute(t); }catch(e){ m=null; } }
+  const cur=String(t.macroGoal||'');
+
+  let h='<div class="card" style="margin-bottom:12px">'
+   +'<div style="font-family:Heebo;font-weight:700;font-size:14px;margin-bottom:8px">'
+   +'חישוב לפי המטרה</div>'
+   +'<div class="row" style="gap:6px;flex-wrap:wrap;margin-bottom:10px">'
+   +MACRO_GOALS.map(g=>{
+      const on=g[0]===cur;
+      return '<button onclick="setMacroGoal(&#39;'+t.id+'&#39;,&#39;'+g[0]+'&#39;)" '
+        +'style="padding:7px 14px;border-radius:9px;font-family:inherit;font-size:13px;'
+        +'font-weight:'+(on?'800':'600')+';cursor:pointer;'
+        +'border:1px solid '+(on?'var(--cop)':'var(--line)')+';'
+        +'background:'+(on?'rgba(209,154,85,.14)':'transparent')+';'
+        +'color:'+(on?'var(--cop)':'var(--mut)')+'">'+esc(g[1])+'</button>';
+    }).join('')
+   +'</div>';
+
+  if(!m || !m.kcal){
+    /* compute כבר מחזיק רשימת חסרים משלו — משתמשים בה ולא מנחשים
+       שוב, אחרת שתי רשימות יתפצלו. ולכל שדה נאמר איפה משלימים
+       אותו: המשקל מגיע ממדידה ולא משדה בכרטיס. */
+    const miss=(m&&m.missing)||[];
+    /* המפתחות זהים למה ש-compute דוחף ל-missing. אי-התאמה כאן
+       הייתה משאירה שדה בלי הסבר איפה משלימים אותו. */
+    const where={ 'משקל':'שקילה בלשונית מדדים', 'גובה':'פרטי המתאמן',
+                  'תאריך לידה':'פרטי המתאמן', 'מין':'פרטי המתאמן' };
+    h+='<div class="muted" style="font-size:13px;line-height:1.75">'
+      +(miss.length
+        ? 'כדי לחשב חסר:<br>'+miss.map(k=>'• <b style="color:var(--cop)">'+esc(k)+'</b>'
+            +(where[k]?' — '+esc(where[k]):'')).join('<br>')
+        : 'אין מספיק נתונים לחישוב.')
+      +'</div></div>';
+    return h;
+  }
+
+  const cell=(label,val,unit,sub)=>
+     '<div style="flex:1;min-width:88px">'
+    +'<div style="font-family:Heebo;font-weight:700;font-size:20px;line-height:1;color:var(--cop)">'
+    +val+'<span style="font-size:11px;font-weight:400;color:var(--mut)"> '+unit+'</span></div>'
+    +'<div class="muted" style="font-size:11px;margin-top:3px">'+label+'</div>'
+    +(sub?'<div class="muted" style="font-size:10.5px;opacity:.8">'+sub+'</div>':'')
+    +'</div>';
+
+  h+='<div class="row" style="gap:12px;flex-wrap:wrap">'
+   +cell('קלוריות',m.kcal,'קק״ל','')
+   +cell('חלבון',m.protein,'ג׳',m.proteinPerKg+' ג׳/ק״ג')
+   +cell('פחמימות',m.carbs,'ג׳',m.carbsPct+'%')
+   +cell('שומן',m.fatG,'ג׳',m.fatPct+'%')
+   +'</div>'
+   +'<div class="muted" style="font-size:11.5px;margin-top:10px;line-height:1.65">'
+   +esc(m.goalTxt)+' · '+esc(m.goalSrc||'')+' · TDEE '+m.tdee+' לפי '+esc(m.act.t)+'.<br>'
+   +'המספרים האלה כבר מוצגים למתאמן. שדה שתקליד למטה גובר עליהם.'
+   +'</div></div>';
+  return h;
 }
 
 /* ---------- יעדים ידניים ---------- */
@@ -1242,6 +1313,7 @@ function tabProgram(t){
       +'<div style="font-size:13.5px;line-height:1.7;white-space:pre-wrap">'+esc(tn)+'</div></div>';
   }
   h+=planCard(t);
+  h+=macroCard(t);
   h+=targetsCard(t);
   h+=noteBox(t,'note','הערה כללית לתוכנית','למשל: להתחמם 10 דקות לפני כל אימון, ולשתות לפחות 3 ליטר ביום.');
   h+=mobilityCard(t);
@@ -2397,30 +2469,30 @@ if (location.protocol === 'file:') {
 }
 </script>
 
-<script src="health.js?v=v115"></script>
-<script src="privacy.js?v=v115"></script>
-<script src="backup.js?v=v115"></script>
-<script src="reorder.js?v=v115"></script>
-<script src="access.js?v=v115"></script>
-<script src="analysis.js?v=v115"></script>
-<script src="reports.js?v=v115"></script>
-<script src="business.js?v=v115"></script>
-<script src="intake.js?v=v115"></script>
-<script src="files.js?v=v115"></script>
-<script src="builder.js?v=v115"></script>
-<script src="import-program.js?v=v115"></script>
-<script src="tracking.js?v=v115"></script>
-<script src="metrics.js?v=v115"></script>
-<script src="targets.js?v=v115"></script>
-<script src="meal-library.js?v=v115"></script>
-<script src="library-ui.js?v=v115"></script>
-<script src="export-plan.js?v=v115"></script>
-<script src="cardio.js?v=v115"></script>
-<script src="cardio-ui.js?v=v115"></script>
-<script src="exercise-library.js?v=v115"></script>
-<script src="exercise-ui.js?v=v115"></script>
-<script src="meals.js?v=v115"></script>
-<script src="sync.js?v=v115"></script>
+<script src="health.js?v=v116"></script>
+<script src="privacy.js?v=v116"></script>
+<script src="backup.js?v=v116"></script>
+<script src="reorder.js?v=v116"></script>
+<script src="access.js?v=v116"></script>
+<script src="analysis.js?v=v116"></script>
+<script src="reports.js?v=v116"></script>
+<script src="business.js?v=v116"></script>
+<script src="intake.js?v=v116"></script>
+<script src="files.js?v=v116"></script>
+<script src="builder.js?v=v116"></script>
+<script src="import-program.js?v=v116"></script>
+<script src="tracking.js?v=v116"></script>
+<script src="metrics.js?v=v116"></script>
+<script src="targets.js?v=v116"></script>
+<script src="meal-library.js?v=v116"></script>
+<script src="library-ui.js?v=v116"></script>
+<script src="export-plan.js?v=v116"></script>
+<script src="cardio.js?v=v116"></script>
+<script src="cardio-ui.js?v=v116"></script>
+<script src="exercise-library.js?v=v116"></script>
+<script src="exercise-ui.js?v=v116"></script>
+<script src="meals.js?v=v116"></script>
+<script src="sync.js?v=v116"></script>
 <script>
 /* =================== חיבור הסנכרון לאפליקציה =================== */
 
