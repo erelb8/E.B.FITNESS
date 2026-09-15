@@ -15,7 +15,7 @@
   'use strict';
 
   // חותמת גרסה — index.html משווה אליה כדי לזהות קובץ ישן במטמון
-  (window.EB_MOD = window.EB_MOD || {})['sync'] = 'v121';
+  (window.EB_MOD = window.EB_MOD || {})['sync'] = 'v122';
 
   const CFG      = window.EBFIT_CONFIG || { URL: '', ANON: '' };
   const SNAP_KEY = 'ebfit_sync_v1';
@@ -300,12 +300,18 @@
         return;
       }
       const snap = readSnap();
-      await push(snap);
+      const skipped = await push(snap);
       await pull();
       writeSnap(snapshotOf(window.S));
       localStorage.setItem('ebfit_sync_at', new Date().toISOString());
       failCount = 0;
       log('sync completed');
+      /* מחיקה חשודה שדולגה: הסנכרון הצליח, ולכן זו הודעה ולא שגיאה.
+         היא מוצגת פעם אחת, אחרי שהמשיכה כבר סגרה את הפער. */
+      if (skipped && skipped.length && typeof window.toast === 'function') {
+        window.toast('הסנכרון הושלם. דילגתי על מחיקה של ' + skipped.join(', ')
+          + ' — היא נראתה כמו רשימה שהתכווצה ולא כמו מחיקה שלך. שום דבר לא נמחק.');
+      }
     } catch (e) {
       lastError = (e && e.message) || String(e);
       failCount++;
@@ -376,6 +382,8 @@
   }
 
   async function push(snap) {
+    /* מחיקות שדולגו עליהן, כדי לדווח אחרי שהסנכרון הצליח ולא במקומו */
+    const skippedDeletes = [];
     for (const key of ARRAYS) {
       const list = window.S[key] || [];
       const prev = snap[key] || {};
@@ -410,22 +418,28 @@
          שנייה, ובהם אחד שהוחזר ידנית שעה קודם.
 
          מחיקה אמיתית היא פעולה נקודתית — אחד, לפעמים שניים. מחיקה
-         של שלושה ומעלה בבת אחת היא כמעט תמיד התכווצות של הרשימה, ולכן
-         היא נעצרת ומדווחת במקום להתבצע. מי שבאמת רוצה למחוק רבים
-         עושה זאת אחד-אחד, וזה בסדר גמור. */
+         של שלושה ומעלה בבת אחת היא כמעט תמיד התכווצות של הרשימה.
+
+         הגרסה הראשונה של ההגנה זרקה שגיאה ועצרה את כל הסנכרון. זה
+         מנע את האובדן אבל השאיר את המאמן תקוע בלי דרך קדימה: שום
+         שינוי לא נדחף, ושום דבר לא נמשך, והמצב לא היה יכול להיפתר
+         מעצמו כי הפער נשאר בדיוק כפי שהיה.
+
+         עכשיו מדלגים על המחיקות בלבד וממשיכים. זה גם מה שסוגר את
+         הפער: pull יחזיר למכשיר את מה שחסר בו, התצלום הבא יתאים
+         לרשימה, ובסנכרון שאחריו כבר לא יהיה gone. ההודעה נשמרת
+         כדי שהמאמן ידע — אבל היא מדווחת, לא חוסמת. */
       const gone = Object.keys(prev).filter(id => !seen.has(id));
       if (gone.length) {
         const MAX_INFERRED_DELETE = 2;
         if (gone.length > MAX_INFERRED_DELETE) {
-          logError('inferred delete blocked', { table: key, count: gone.length, ids: gone });
-          throw new Error('הסנכרון נעצר: הוא עמד למחוק ' + gone.length + ' רשומות מתוך '
-            + Object.keys(prev).length + ' ב"' + key + '" בבת אחת. '
-            + 'מחיקה כזאת כמעט תמיד נובעת ממשיכה חלקית מהשרת ולא ממחיקה שלך. '
-            + 'שום דבר לא נמחק. אם באמת מחקת אותם — מחק אותם שוב אחד-אחד.');
+          logError('inferred delete skipped', { table: key, count: gone.length, ids: gone });
+          skippedDeletes.push(gone.length + ' ב"' + key + '"');
+        } else {
+          const { error } = await sb.from(TABLE[key])
+            .update({ deleted: true }).in('id', gone).eq('trainer_id', user.id);
+          if (error) throw error;
         }
-        const { error } = await sb.from(TABLE[key])
-          .update({ deleted: true }).in('id', gone).eq('trainer_id', user.id);
-        if (error) throw error;
       }
     }
 
@@ -440,6 +454,7 @@
         .upsert({ trainer_id: user.id, data: JSON.parse(prefs) }, { onConflict: 'trainer_id' });
       if (error) throw error;
     }
+    return skippedDeletes;
   }
 
   // מושך את האמת מהשרת ומחליף את המערכים המקומיים
@@ -475,13 +490,19 @@
        את כל העבודה מהאפליקציה בלי שאלה ובלי הודעה.
 
        מאמן שהיו לו מתאמנים ופתאום אין לו אף אחד הוא תקלה, לא מצב
-       תקין. במקרה כזה עוצרים את המשיכה ומדווחים, ומשאירים את
-       המקומי כמו שהוא. מחיקת המתאמן האחרון באמת תעבוד שוב אחרי
-       שהשרת יחזיר תשובה תקינה כלשהי. */
+       תקין. במקרה כזה משאירים את המקומי כמו שהוא ומדווחים.
+
+       ומדלגים ולא זורקים, מאותה סיבה שבמחיקה המוסקת: שגיאה עוצרת
+       את כל הסנכרון ומשאירה את המאמן תקוע בלי דרך לצאת מהמצב.
+       דילוג משאיר את הנתונים במקום, ומאפשר לכל השאר להמשיך. */
     if (!fetched.trainees.length && (window.S.trainees || []).length) {
-      throw new Error('השרת החזיר רשימת מתאמנים ריקה בזמן שבמכשיר יש '
-        + window.S.trainees.length + '. המשיכה נעצרה כדי לא למחוק אותם — '
-        + 'כנראה בעיית הרשאות בשרת.');
+      logError('empty pull skipped', { local: window.S.trainees.length });
+      if (typeof window.toast === 'function') {
+        window.toast('השרת החזיר רשימת מתאמנים ריקה ובמכשיר יש '
+          + window.S.trainees.length + '. לא נגעתי בהם. '
+          + 'הרץ "בדיקת חיבור" בהגדרות כדי לראות למה.');
+      }
+      return;
     }
 
     window.S.trainees = fetched.trainees.map(traineeFromRow);
