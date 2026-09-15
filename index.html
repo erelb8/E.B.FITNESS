@@ -427,8 +427,8 @@ tbody tr:hover{background:var(--panel)}
 <div id="toast"></div>
 
 <!-- ספריית Supabase מקומית (לא מ-CDN) כדי שהאפליקציה תעבוד גם בלי רשת -->
-<script src="vendor/supabase.js?v=v128"></script>
-<script src="config.js?v=v128"></script>
+<script src="vendor/supabase.js?v=v129"></script>
+<script src="config.js?v=v129"></script>
 
 <script>
 /* =======================================================================
@@ -463,7 +463,7 @@ function age(b){ if(!b) return null; const d=new Date(b), t=new Date(); let a=t.
 
 /* ---------------- אחסון ---------------- */
 const KEY='ebfit_v1';
-const EB_VERSION='v128';   // חייב להתאים ל-VERSION ב-sw.js
+const EB_VERSION='v129';   // חייב להתאים ל-VERSION ב-sw.js
 let mem=null, canStore=true;
 function load(){
   try{ const r=localStorage.getItem(KEY); return r?JSON.parse(r):null; }
@@ -826,7 +826,14 @@ const NAV=[
   {id:'lab',    ic:'✦', t:'פיצ׳רים ובוט'},
   {id:'settings',ic:'⚙', t:'הגדרות'}
 ];
-function go(v, arg){ VIEW=v; ARG=arg||null; if(v!=='trainee') SUBTAB='details'; window.scrollTo(0,0); render(); }
+function go(v, arg){
+  /* ניווט משאיר מאחור עריכת תוכנית שלא נשמרה, והיא תאבד במשיכה
+     הבאה מהשרת. שואלים לפני, ורק כשעוזבים את המתאמן שנערך. */
+  if(typeof confirmLeaveProgram==='function' && window.PROGRAM_BASE_ID
+     && !(v==='trainee' && arg===window.PROGRAM_BASE_ID)
+     && !confirmLeaveProgram()) return;
+  VIEW=v; ARG=arg||null; if(v!=='trainee') SUBTAB='details'; window.scrollTo(0,0); render();
+}
 
 function renderNav(){
   let h='<div class="grp">ניהול</div>';
@@ -906,7 +913,7 @@ function render(){
 
 /* ---------- מילוי מהיר של מין ----------
    בלי מין, BMR מחושב כממוצע בין שתי הנוסחאות — פער של 166 קק״ל
-   ליום. השדה נוסף לשאלון ב-v128, אבל מי שנקלט לפניו נשאר בלעדיו.
+   ליום. השדה נוסף לשאלון ב-v129, אבל מי שנקלט לפניו נשאר בלעדיו.
 
    שני כפתורים לכל מתאמן ולא טופס: זו לחיצה אחת, והכרטיס נעלם לבד
    כשכולם מולאו. ניחוש לפי שם לא בא בחשבון — יעד קלורי שגוי הוא
@@ -1424,6 +1431,28 @@ function tabProgram(t){
 function exCell(tid,di,ei,k,v,ph){
   return '<td><input class="f" style="background:transparent;border-color:transparent;padding:5px 6px" placeholder="'+(ph||'—')+'" value="'+esc(v==null?'':v)+'" onchange="setEx(\''+tid+'\','+di+','+ei+',\''+k+'\',this.value)"></td>';
 }
+/* ---------- שמירה על עריכת תוכנית שלא נשמרה ----------
+   עריכת תוכנית אינה נשמרת אוטומטית: היא מחכה לכפתור ברצועה
+   "יש שינויים שטרם נשמרו". זו החלטה נכונה — עריכה היא טיוטה —
+   אבל היא פתחה דרך לאבד עבודה בשקט: ניווט למתאמן אחר, רענון,
+   או משיכה מהשרת, והכל נעלם בלי אזהרה.
+
+   ב-15.9.2026 כך אבדה תוכנית שנבנתה במלואה.
+
+   שתי הגנות: שאלה לפני שעוזבים מסך עם שינויים פתוחים, ואזהרת
+   דפדפן לפני רענון או סגירה. */
+function hasUnsavedProgram(){
+  const id=window.PROGRAM_BASE_ID; if(!id) return false;
+  const t=tById(id); if(!t) return false;
+  return JSON.stringify(t.program||{days:[]}) !== JSON.stringify(window.PROGRAM_BASE||{days:[]});
+}
+function confirmLeaveProgram(){
+  if(!hasUnsavedProgram()) return true;
+  const t=tById(window.PROGRAM_BASE_ID);
+  return confirm('יש שינויים בתוכנית של '+((t&&t.name)||'המתאמן')+' שטרם נשמרו.\n\n'
+    +'אם תעזוב עכשיו הם יאבדו.\n\nלעזוב בכל זאת?');
+}
+
 function programDock(id,dirty){
   return '<div class="program-dock noprint" id="programDock_'+id+'" style="display:'+(dirty?'flex':'none')+'">'
    +'<span class="dock-label">יש שינויים שטרם נשמרו</span><div class="dock-actions">'
@@ -2551,7 +2580,16 @@ function seedDemo(){
 }
 
 /* =================== התחלה =================== */
-window.addEventListener('beforeunload',()=>{ if(!canStore) return; save(); });
+window.addEventListener('beforeunload',(e)=>{
+  if(!canStore) return;
+  save();
+  /* עריכת תוכנית פתוחה אינה נכללת ב-save, כי היא טיוטה עד ללחיצה
+     על "שמירה". בלי האזהרה הזאת רענון מוחק אותה בלי סימן. */
+  if(typeof hasUnsavedProgram==='function' && hasUnsavedProgram()){
+    e.preventDefault(); e.returnValue='';
+    return '';
+  }
+});
 </script>
 
 <script>
@@ -2608,30 +2646,30 @@ if (location.protocol === 'file:') {
 }
 </script>
 
-<script src="health.js?v=v128"></script>
-<script src="privacy.js?v=v128"></script>
-<script src="backup.js?v=v128"></script>
-<script src="reorder.js?v=v128"></script>
-<script src="access.js?v=v128"></script>
-<script src="analysis.js?v=v128"></script>
-<script src="reports.js?v=v128"></script>
-<script src="business.js?v=v128"></script>
-<script src="intake.js?v=v128"></script>
-<script src="files.js?v=v128"></script>
-<script src="builder.js?v=v128"></script>
-<script src="import-program.js?v=v128"></script>
-<script src="tracking.js?v=v128"></script>
-<script src="metrics.js?v=v128"></script>
-<script src="targets.js?v=v128"></script>
-<script src="meal-library.js?v=v128"></script>
-<script src="library-ui.js?v=v128"></script>
-<script src="export-plan.js?v=v128"></script>
-<script src="cardio.js?v=v128"></script>
-<script src="cardio-ui.js?v=v128"></script>
-<script src="exercise-library.js?v=v128"></script>
-<script src="exercise-ui.js?v=v128"></script>
-<script src="meals.js?v=v128"></script>
-<script src="sync.js?v=v128"></script>
+<script src="health.js?v=v129"></script>
+<script src="privacy.js?v=v129"></script>
+<script src="backup.js?v=v129"></script>
+<script src="reorder.js?v=v129"></script>
+<script src="access.js?v=v129"></script>
+<script src="analysis.js?v=v129"></script>
+<script src="reports.js?v=v129"></script>
+<script src="business.js?v=v129"></script>
+<script src="intake.js?v=v129"></script>
+<script src="files.js?v=v129"></script>
+<script src="builder.js?v=v129"></script>
+<script src="import-program.js?v=v129"></script>
+<script src="tracking.js?v=v129"></script>
+<script src="metrics.js?v=v129"></script>
+<script src="targets.js?v=v129"></script>
+<script src="meal-library.js?v=v129"></script>
+<script src="library-ui.js?v=v129"></script>
+<script src="export-plan.js?v=v129"></script>
+<script src="cardio.js?v=v129"></script>
+<script src="cardio-ui.js?v=v129"></script>
+<script src="exercise-library.js?v=v129"></script>
+<script src="exercise-ui.js?v=v129"></script>
+<script src="meals.js?v=v129"></script>
+<script src="sync.js?v=v129"></script>
 <script>
 /* =================== חיבור הסנכרון לאפליקציה =================== */
 
