@@ -427,8 +427,8 @@ tbody tr:hover{background:var(--panel)}
 <div id="toast"></div>
 
 <!-- ספריית Supabase מקומית (לא מ-CDN) כדי שהאפליקציה תעבוד גם בלי רשת -->
-<script src="vendor/supabase.js?v=v114"></script>
-<script src="config.js?v=v114"></script>
+<script src="vendor/supabase.js?v=v115"></script>
+<script src="config.js?v=v115"></script>
 
 <script>
 /* =======================================================================
@@ -463,7 +463,7 @@ function age(b){ if(!b) return null; const d=new Date(b), t=new Date(); let a=t.
 
 /* ---------------- אחסון ---------------- */
 const KEY='ebfit_v1';
-const EB_VERSION='v114';   // חייב להתאים ל-VERSION ב-sw.js
+const EB_VERSION='v115';   // חייב להתאים ל-VERSION ב-sw.js
 let mem=null, canStore=true;
 function load(){
   try{ const r=localStorage.getItem(KEY); return r?JSON.parse(r):null; }
@@ -2244,7 +2244,13 @@ function importJSON(e){
     if(!d || typeof d!=='object'){ toast('הקובץ ריק או לא מוכר'); input.value=''; return; }
 
     let next=null, kind='';
-    const rows=(d.טבלאות&&Array.isArray(d.טבלאות.trainees))?d.טבלאות.trainees:null;
+    /* מחוקים מסוננים כאן, ולא במקרה. המשיכה הרגילה מהשרת מסננת
+       deleted בשאילתה עצמה, אבל הגיבוי שומר את הטבלה כמו שהיא —
+       כולל שורות שנמחקו. ייבוא בלי סינון מחזיר לחיים מתאמנים
+       שנמחקו, ומכיוון שרבים מהם נמחקו בגלל כפילות, התוצאה היא
+       רשימה מלאה בכפילויות. */
+    const rows=(d.טבלאות&&Array.isArray(d.טבלאות.trainees))
+      ? d.טבלאות.trainees.filter(r=>!r.deleted) : null;
     const snap=(d.מצב_מקומי&&Array.isArray(d.מצב_מקומי.trainees))?d.מצב_מקומי:null;
 
     if(Array.isArray(d.trainees)){
@@ -2260,11 +2266,15 @@ function importJSON(e){
     } else if(rows){
       if(!window.EBSync || !EBSync.fromRows){ toast('הסנכרון לא נטען — אי אפשר לשחזר גיבוי שרת'); input.value=''; return; }
       const T=d.טבלאות;
+      /* אימון, מדידה או תשלום של מתאמן שנמחק הם יתומים: הם לא
+         יוצגו בשום מסך, אבל כן ייספרו בסיכומים ובכסף. */
+      const live=new Set(rows.map(r=>r.id));
+      const keep=a=>(a||[]).filter(x=>live.has(x.traineeId));
       next=Object.assign({},JSON.parse(JSON.stringify(DEFAULT)),{
         trainees: EBSync.fromRows('trainees', rows),
-        sessions: EBSync.fromRows('sessions', T.sessions),
-        measures: EBSync.fromRows('measures', T.measures),
-        payments: EBSync.fromRows('payments', T.payments)
+        sessions: keep(EBSync.fromRows('sessions', T.sessions)),
+        measures: keep(EBSync.fromRows('measures', T.measures)),
+        payments: keep(EBSync.fromRows('payments', T.payments))
       });
       kind='גיבוי מהשרת מ-'+String(d.נוצר||'').slice(0,10);
     } else if(d.טבלאות || d.מצב_מקומי){
@@ -2387,30 +2397,30 @@ if (location.protocol === 'file:') {
 }
 </script>
 
-<script src="health.js?v=v114"></script>
-<script src="privacy.js?v=v114"></script>
-<script src="backup.js?v=v114"></script>
-<script src="reorder.js?v=v114"></script>
-<script src="access.js?v=v114"></script>
-<script src="analysis.js?v=v114"></script>
-<script src="reports.js?v=v114"></script>
-<script src="business.js?v=v114"></script>
-<script src="intake.js?v=v114"></script>
-<script src="files.js?v=v114"></script>
-<script src="builder.js?v=v114"></script>
-<script src="import-program.js?v=v114"></script>
-<script src="tracking.js?v=v114"></script>
-<script src="metrics.js?v=v114"></script>
-<script src="targets.js?v=v114"></script>
-<script src="meal-library.js?v=v114"></script>
-<script src="library-ui.js?v=v114"></script>
-<script src="export-plan.js?v=v114"></script>
-<script src="cardio.js?v=v114"></script>
-<script src="cardio-ui.js?v=v114"></script>
-<script src="exercise-library.js?v=v114"></script>
-<script src="exercise-ui.js?v=v114"></script>
-<script src="meals.js?v=v114"></script>
-<script src="sync.js?v=v114"></script>
+<script src="health.js?v=v115"></script>
+<script src="privacy.js?v=v115"></script>
+<script src="backup.js?v=v115"></script>
+<script src="reorder.js?v=v115"></script>
+<script src="access.js?v=v115"></script>
+<script src="analysis.js?v=v115"></script>
+<script src="reports.js?v=v115"></script>
+<script src="business.js?v=v115"></script>
+<script src="intake.js?v=v115"></script>
+<script src="files.js?v=v115"></script>
+<script src="builder.js?v=v115"></script>
+<script src="import-program.js?v=v115"></script>
+<script src="tracking.js?v=v115"></script>
+<script src="metrics.js?v=v115"></script>
+<script src="targets.js?v=v115"></script>
+<script src="meal-library.js?v=v115"></script>
+<script src="library-ui.js?v=v115"></script>
+<script src="export-plan.js?v=v115"></script>
+<script src="cardio.js?v=v115"></script>
+<script src="cardio-ui.js?v=v115"></script>
+<script src="exercise-library.js?v=v115"></script>
+<script src="exercise-ui.js?v=v115"></script>
+<script src="meals.js?v=v115"></script>
+<script src="sync.js?v=v115"></script>
 <script>
 /* =================== חיבור הסנכרון לאפליקציה =================== */
 
