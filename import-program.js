@@ -19,7 +19,7 @@
   'use strict';
 
   // חותמת גרסה — index.html משווה אליה כדי לזהות קובץ ישן במטמון
-  (window.EB_MOD = window.EB_MOD || {})['import'] = 'v134';
+  (window.EB_MOD = window.EB_MOD || {})['import'] = 'v135';
 
   var FOR = null, DRAFT = null;
 
@@ -495,6 +495,27 @@
   /* ---------- תזונה ----------
      חלק מהתוכניות הן "אימונים ותזונה". למערכת אין מבנה לתפריט, ובלי
      החילוץ הזה חצי מהמסמך היה נעלם בייבוא. נאסף כטקסט להערות. */
+  /* ---------- הערה כללית לתוכנית ----------
+     טקסט ארוך — חימום, כללי עבודה, הנחיות — שהמאמן רוצה שיגיע
+     למתאמן. הקלדה שלו בטלפון היא עונש, ולכן הוא נוסע עם הקובץ.
+
+     המבנה שמחפשים הוא אלמנט עם class="program-note". בכוונה לא
+     כותרת בעברית: כותרת אפשר לכתוב בעשר דרכים, ומחלקה היא חוזה
+     חד-משמעי שאפשר לתעד. הטקסט נלקח כמות שהוא, בלי HTML. */
+  function extractNote(src) {
+    var doc;
+    try { doc = new DOMParser().parseFromString(src, 'text/html'); }
+    catch (e) { return ''; }
+    var el = doc.querySelector('.program-note');
+    if (!el) return '';
+    var txt = (el.textContent || '')
+      .replace(/\r\n?/g, '\n')
+      .replace(/[ \t]+\n/g, '\n')
+      .replace(/\n{3,}/g, '\n\n')
+      .trim();
+    return txt.length > 8000 ? txt.slice(0, 8000) : txt;
+  }
+
   function extractNutrition(src) {
     var out = [];
 
@@ -559,7 +580,8 @@
       days = fromTables(doc); how = 'טבלאות';
       if (!days.length) { days = fromLists(doc); how = 'כותרות ורשימות'; }
     }
-    return { days: dropPlaceholders(days), how: how, nutrition: extractNutrition(src) };
+    return { days: dropPlaceholders(days), how: how,
+             nutrition: extractNutrition(src), note: extractNote(src) };
   }
 
   /* ---------- ממשק ---------- */
@@ -626,6 +648,18 @@
       h += '<div class="muted" style="font-size:12.5px">' + partial
          + ' תרגילים הגיעו בלי סטים או חזרות מלאים — אפשר להשלים אחרי הייבוא.</div>';
 
+    if (DRAFT.note) {
+      var had = ((t.program || {}).note || '').trim();
+      h += '<div class="sep"></div>'
+        + '<label style="font-size:13.5px;display:flex;align-items:center;gap:8px">'
+        + '<input type="checkbox" id="ip_note" checked> לצרף את ההערה הכללית שבקובץ'
+        + (had ? ' <b style="color:var(--warn)">(תחליף את ההערה הקיימת)</b>' : '')
+        + '</label>'
+        + '<div class="card" style="margin-top:8px;padding:12px;max-height:180px;overflow:auto">'
+        + '<pre style="margin:0;white-space:pre-wrap;font-family:inherit;font-size:12.5px;color:var(--mut)">'
+        + esc(DRAFT.note) + '</pre></div>';
+    }
+
     if (DRAFT.nutrition) {
       h += '<div class="sep"></div>'
         + '<label style="font-size:13.5px;display:flex;align-items:center;gap:8px">'
@@ -649,6 +683,9 @@
         !confirm('להחליף את התוכנית הקיימת? השינוי לא הפיך.')) return;
     t.program = t.program || { days: [] };
     t.program.days = append ? t.program.days.concat(DRAFT.days) : DRAFT.days.slice();
+
+    var nb = document.getElementById('ip_note');
+    if (DRAFT.note && nb && nb.checked) t.program.note = DRAFT.note;
 
     var nu = document.getElementById('ip_nutri');
     if (DRAFT.nutrition && nu && nu.checked) {
