@@ -369,17 +369,17 @@ button{cursor:pointer}
 
 <div id="toast"></div>
 
-<script src="vendor/supabase.js?v=v125"></script>
-<script src="config.js?v=v125"></script>
-<script src="meal-library.js?v=v125"></script>
-<script src="exercise-library.js?v=v125"></script>
-<script src="progress.js?v=v125"></script>
-<script src="habits.js?v=v125"></script>
-<script src="coach-bot.js?v=v125"></script>
-<script src="workout-log.js?v=v125"></script>
-<script src="targets.js?v=v125"></script>
-<script src="health.js?v=v125"></script>
-<script src="privacy.js?v=v125"></script>
+<script src="vendor/supabase.js?v=v126"></script>
+<script src="config.js?v=v126"></script>
+<script src="meal-library.js?v=v126"></script>
+<script src="exercise-library.js?v=v126"></script>
+<script src="progress.js?v=v126"></script>
+<script src="habits.js?v=v126"></script>
+<script src="coach-bot.js?v=v126"></script>
+<script src="workout-log.js?v=v126"></script>
+<script src="targets.js?v=v126"></script>
+<script src="health.js?v=v126"></script>
+<script src="privacy.js?v=v126"></script>
 <script>
 (function () {
   'use strict';
@@ -1764,6 +1764,16 @@ button{cursor:pointer}
     return (DATA.program && DATA.program.targets) || null;
   }
 
+  /* ערך יעד לתצוגה: מספר עם מפריד אלפים, או טווח כמו שהוא */
+  function tv(v) {
+    if (v === null || v === undefined || v === '') return null;
+    if (typeof EBTargets === 'undefined') return v;
+    var p = EBTargets.parseVal(v);
+    if (!p) return null;
+    return p.range ? (p.lo.toLocaleString('en-US') + '–' + p.hi.toLocaleString('en-US'))
+                   : p.mid.toLocaleString('en-US');
+  }
+
   function targetsBlock() {
     const day = todayDay();
     const t = todayTargets();
@@ -1783,10 +1793,12 @@ button{cursor:pointer}
       + '<div style="font-family:Frank Ruhl Libre,serif;font-weight:700;font-size:15px;margin-bottom:11px">'
       + 'היעדים היומיים שלך' + perDay + '</div>'
       + '<div style="display:flex;gap:12px;flex-wrap:wrap">'
-      + cell('קלוריות', t.kcal && t.kcal.toLocaleString('en-US'), '')
-      + cell('חלבון', t.protein, 'ג׳')
-      + cell('פחמימות', t.carbs, 'ג׳')
-      + cell('שומן', t.fat, 'ג׳')
+      /* fmtVal: היעד יכול להיות טווח ("2100-2300"), ואז toLocaleString
+         היה מחזיר NaN והמתאמן היה רואה שדה ריק. */
+      + cell('קלוריות', tv(t.kcal), '')
+      + cell('חלבון', tv(t.protein), 'ג׳')
+      + cell('פחמימות', tv(t.carbs), 'ג׳')
+      + cell('שומן', tv(t.fat), 'ג׳')
       + cell('מים', t.water, 'ליטר')
       + cell('צח״מ', t.vo2, '')
       + '</div></div>';
@@ -2516,10 +2528,17 @@ button{cursor:pointer}
   }
 
   /* ערך מול יעד — בלי יעד מוצג המספר בלבד */
+  /* "אכלת 2150 מתוך 2100–2300". Number(target) על טווח הוא NaN,
+     ולכן היעד פשוט נעלם מהשורה ולמתאמן לא היה מול מה להשוות.
+
+     ובטווח גם הצבע משתנה: מי שנמצא בתוכו רואה ירוק, וזו בדיוק
+     הסיבה שמאמן נותן טווח מלכתחילה. */
   function macro(label, val, target) {
-    var t = Number(target);
-    var pctTxt = (isFinite(t) && t > 0) ? ' <span class="mt" style="font-size:11.5px">/ ' + Math.round(t) + '</span>' : '';
-    return '<span><b style="font-family:Heebo;color:var(--or)">' + val + '</b>' + pctTxt
+    var txt = (typeof EBTargets !== 'undefined') ? EBTargets.fmtVal(target) : '';
+    var pctTxt = txt ? ' <span class="mt" style="font-size:11.5px">/ ' + txt + '</span>' : '';
+    var ok = (typeof EBTargets !== 'undefined') ? EBTargets.inTarget(val, target) : null;
+    var col = ok === true ? 'var(--ok)' : 'var(--or)';
+    return '<span><b style="font-family:Heebo;color:' + col + '">' + val + '</b>' + pctTxt
       + ' <span class="mt">' + label + '</span></span>';
   }
 

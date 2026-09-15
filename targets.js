@@ -17,7 +17,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['targets'] = 'v125';
+  (window.EB_MOD = window.EB_MOD || {})['targets'] = 'v126';
 
   var KEYS = ['kcal', 'protein', 'carbs', 'fat', 'water', 'steps'];
   var DAY_HE = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
@@ -42,6 +42,63 @@
 
   function dayName(wd) { return DAY_HE[wd] || ''; }
 
+  /* ---------- ערך: מספר או טווח ----------
+     מאמן שכותב "2100-2300" מתכוון לטווח, ולא לפספס אם חרג ב-50
+     קלוריות. עד היום num() דחה כל דבר שאינו מספר, והטווח נמחק
+     בשקט בשמירה הבאה.
+
+     הערך נשמר כמחרוזת כשהוא טווח וכמספר כשהוא יחיד, כדי שתוכניות
+     קיימות לא ישתנו כלל. כל מי שצריך מספר בודד להשוואה מקבל את
+     האמצע — זה גם מה שמאמן מתכוון אליו כשהוא נותן טווח.
+
+     המקף מתקבל בשלוש צורותיו: רגיל, קו מפריד, ומקף עברי. */
+  var DASH = /[-–—]/;
+  function parseVal(v) {
+    if (v === null || v === undefined || v === '') return null;
+    if (typeof v === 'number') return isFinite(v) && v > 0 ? { lo:v, hi:v, mid:v, range:false } : null;
+    var s = String(v).trim().replace(/,/g, '');
+    if (!s) return null;
+    if (DASH.test(s)) {
+      var parts = s.split(DASH).map(function (x) { return Number(String(x).trim()); });
+      if (parts.length === 2 && parts.every(function (n) { return isFinite(n) && n > 0; })) {
+        var lo = Math.min(parts[0], parts[1]), hi = Math.max(parts[0], parts[1]);
+        /* טווח שבו שני הקצוות זהים אינו טווח */
+        if (lo === hi) return { lo:lo, hi:hi, mid:lo, range:false };
+        return { lo:lo, hi:hi, mid:Math.round((lo+hi)/2), range:true };
+      }
+      return null;
+    }
+    var n = Number(s);
+    return isFinite(n) && n > 0 ? { lo:n, hi:n, mid:n, range:false } : null;
+  }
+
+  /* הצורה שנשמרת: מספר ליחיד, מחרוזת מנורמלת לטווח */
+  function normVal(v) {
+    var p = parseVal(v);
+    if (!p) return null;
+    return p.range ? (p.lo + '-' + p.hi) : p.mid;
+  }
+
+  /* הצורה שמוצגת. המקף הוא קו מפריד ולא מינוס. */
+  function fmtVal(v) {
+    var p = parseVal(v);
+    if (!p) return '';
+    return p.range ? (p.lo + '–' + p.hi) : String(p.mid);
+  }
+
+  /* מספר בודד להשוואות ולחישובים */
+  function midVal(v) { var p = parseVal(v); return p ? p.mid : null; }
+
+  /* האם ערך שנמדד נמצא בתוך היעד. בטווח — בין הקצוות ועד כולל.
+     ביחיד — סטייה של עד 5% נחשבת עמידה, אחרת כל מספר הוא פספוס. */
+  function inTarget(measured, target) {
+    var p = parseVal(target), m = Number(measured);
+    if (!p || !isFinite(m)) return null;
+    if (p.range) return m >= p.lo && m <= p.hi;
+    return Math.abs(m - p.mid) <= p.mid * 0.05;
+  }
+
+
   /* הדריסות של יום מסוים, אחרי ניקוי ערכים לא תקינים */
   function dayOverrides(program, wd) {
     var map = (program || {}).targetsByDay || {};
@@ -49,7 +106,7 @@
     if (!raw) return null;
     var out = null;
     KEYS.forEach(function (k) {
-      var v = num(raw[k]);
+      var v = normVal(raw[k]);
       if (v !== null) { out = out || {}; out[k] = v; }
     });
     return out;
@@ -95,7 +152,7 @@
     var map = program.targetsByDay = program.targetsByDay || {};
     var k = String(wd);
     var row = map[k] = map[k] || {};
-    var v = num(value);
+    var v = normVal(value);
     if (v === null) delete row[key]; else row[key] = v;
     if (!Object.keys(row).length) delete map[k];
     if (!Object.keys(map).length) delete program.targetsByDay;
@@ -114,6 +171,8 @@
     weekdayOf: weekdayOf, dayName: dayName,
     dayOverrides: dayOverrides, forDay: forDay,
     daysWithOverride: daysWithOverride,
-    setDayValue: setDayValue, clearDay: clearDay
+    setDayValue: setDayValue, clearDay: clearDay,
+    parseVal: parseVal, normVal: normVal, fmtVal: fmtVal,
+    midVal: midVal, inTarget: inTarget
   };
 })();
