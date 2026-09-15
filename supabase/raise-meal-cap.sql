@@ -17,6 +17,11 @@ begin
   end if;
 end $$;
 
+-- הפונקציה הקיימת מוגדרת עם ברירות מחדל לפרמטרים, ו-create or replace
+-- אינו יכול להסיר אותן. לכן מוחקים ומגדירים מחדש, באותה טרנזקציה,
+-- כך שאין רגע שבו היא חסרה למתאמן שמוסיף ארוחה.
+drop function if exists public.trainee_add_meal(text,text,text);
+
 create or replace function public.trainee_add_meal(
   p_token  text,
   p_lib_id text,
