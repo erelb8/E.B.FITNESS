@@ -20,7 +20,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['metrics'] = 'v120';
+  (window.EB_MOD = window.EB_MOD || {})['metrics'] = 'v121';
 
   var r1 = function (x) { return Math.round(x * 10) / 10; };
   var r2 = function (x) { return Math.round(x * 100) / 100; };
@@ -160,10 +160,28 @@
       o.bmrAll.katch = Math.round(370 + 21.6*o.leanKg);
       o.f.katch = '370 + 21.6·' + o.leanKg + ' (מסה רזה)';
     }
-    /* Katch-McArdle עדיף כשמסת הגוף הרזה ידועה — נוסחאות שנשענות
-       על משקל בלבד שוגות ביותר מ-10% אצל רזים מאוד או שמנים מאוד. */
-    o.bmr = o.bmrAll.katch || o.bmrAll.mifflin || null;
-    o.bmrSrc = o.bmrAll.katch ? 'Katch-McArdle' : o.bmrAll.mifflin ? 'Mifflin-St Jeor' : null;
+    /* Katch-McArdle עדיף כשמסת הגוף הרזה **נמדדה** — אבל רק אז.
+
+       כשאין מדידת שומן ואין היקפים, המסה הרזה נגזרת מ-Deurenberg,
+       שמעריך שומן לפי BMI. BMI אינו מבדיל בין שריר לשומן, ולכן הוא
+       מנפח את אחוז השומן אצל מאומנים — בדיוק האוכלוסייה כאן.
+
+       נמדד: מתאמן 82 ק״ג בגובה 178 עם 12% שומן אמיתי מקבל מ-Deurenberg
+       22%. המסה הרזה יורדת ב-8 ק״ג, ו-TDEE יוצא 2716 במקום 2992 —
+       גירעון של 276 קק״ל שאיש לא התכוון אליו. אצל מתאמן מסיבי יותר
+       ההפרש מגיע ל-362.
+
+       Mifflin אינו נזקק לאחוז שומן כלל, ולכן במצב הזה הוא המדויק
+       מבין השניים. Katch חוזר להיות עדיף ברגע שנמדדים היקף צוואר
+       ומותן, או שמוזן אחוז שומן ישירות. */
+    var katchMeasured = o.bmrAll.katch && o.fatSrc !== 'deurenberg';
+    o.bmr = katchMeasured ? o.bmrAll.katch : (o.bmrAll.mifflin || o.bmrAll.katch || null);
+    o.bmrSrc = katchMeasured ? 'Katch-McArdle'
+             : o.bmrAll.mifflin ? 'Mifflin-St Jeor'
+             : o.bmrAll.katch ? 'Katch-McArdle' : null;
+    /* למה לא הדיוק הגבוה יותר: הצעה קונקרטית עדיפה על הסתייגות. */
+    if (!katchMeasured && o.bmrAll.katch)
+      o.bmrHint = 'מדידת היקף צוואר ומותן תיתן אחוז שומן אמיתי ותחליף את ההערכה לפי BMI.';
 
     /* ---------- TDEE ---------- */
     var ACT = [
@@ -383,8 +401,10 @@
     if (o.rate) e += row('קצב ' + o.rate.txt + ' מומלץ', o.rate.lo + '–' + o.rate.hi + ' ק״ג בשבוע', '', '', o.rate.f);
     if (o.weeks) e += row('הערכת זמן', o.weeks + ' שבועות', 'לטווח התקין');
     h += box('אנרגיה', e,
-      o.bmrAll.katch ? 'נבחר Katch-McArdle — הוא נשען על מסה רזה, ומדויק יותר כשאחוז השומן ידוע.'
-                     : (o.sex ? '' : 'המין לא מוגדר — החישוב הוא ממוצע בין הנוסחאות, הפרש של כ-166 קק״ל.'));
+      (o.bmrHint ? o.bmrHint
+        : o.bmrSrc === 'Katch-McArdle'
+          ? 'נבחר Katch-McArdle — הוא נשען על מסה רזה שנמדדה, וזה החישוב המדויק ביותר.'
+          : (o.sex ? '' : 'המין לא מוגדר — החישוב הוא ממוצע בין הנוסחאות, הפרש של כ-166 קק״ל.')));
 
     /* --- מאקרו --- */
     var mc = '';
