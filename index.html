@@ -427,8 +427,8 @@ tbody tr:hover{background:var(--panel)}
 <div id="toast"></div>
 
 <!-- ספריית Supabase מקומית (לא מ-CDN) כדי שהאפליקציה תעבוד גם בלי רשת -->
-<script src="vendor/supabase.js?v=v117"></script>
-<script src="config.js?v=v117"></script>
+<script src="vendor/supabase.js?v=v118"></script>
+<script src="config.js?v=v118"></script>
 
 <script>
 /* =======================================================================
@@ -463,7 +463,7 @@ function age(b){ if(!b) return null; const d=new Date(b), t=new Date(); let a=t.
 
 /* ---------------- אחסון ---------------- */
 const KEY='ebfit_v1';
-const EB_VERSION='v117';   // חייב להתאים ל-VERSION ב-sw.js
+const EB_VERSION='v118';   // חייב להתאים ל-VERSION ב-sw.js
 let mem=null, canStore=true;
 function load(){
   try{ const r=localStorage.getItem(KEY); return r?JSON.parse(r):null; }
@@ -895,6 +895,56 @@ function render(){
 }
 
 /* =================== לוח בקרה =================== */
+
+/* ---------- מילוי מהיר של מין ----------
+   בלי מין, BMR מחושב כממוצע בין שתי הנוסחאות — פער של 166 קק״ל
+   ליום. השדה נוסף לשאלון ב-v118, אבל מי שנקלט לפניו נשאר בלעדיו.
+
+   שני כפתורים לכל מתאמן ולא טופס: זו לחיצה אחת, והכרטיס נעלם לבד
+   כשכולם מולאו. ניחוש לפי שם לא בא בחשבון — יעד קלורי שגוי הוא
+   דבר שמגיע לאדם אמיתי. */
+function needGender(){
+  return activeTrainees().filter(t=>!t.gender);
+}
+function setGenderQuick(id,g){
+  const t=tById(id); if(!t) return;
+  t.gender=g; save(); render();
+}
+function setGenderRest(g){
+  const list=needGender();
+  if(!list.length) return;
+  if(!confirm('לסמן ' + heTrainees(list.length) + ' כ' + g + '?\n\n'
+    + list.map(t => '• ' + (t.name || 'ללא שם')).join('\n')
+    + '\n\nאפשר לשנות אחר כך בכרטיס של כל אחד.')) return;
+  list.forEach(t=>{ t.gender=g; });
+  save(); render();
+  toast('סומנו '+heTrainees(list.length));
+}
+function genderFixCard(){
+  const list=needGender();
+  if(!list.length) return '';
+  return '<div class="card" style="margin-top:14px;border-color:var(--cop)">'
+   +'<div class="row" style="align-items:center;margin-bottom:6px">'
+   +'<h3 style="flex:1;font-size:15px">חסר מין ל-'+heTrainees(list.length)+'</h3></div>'
+   +'<div class="muted" style="font-size:12.5px;line-height:1.65;margin-bottom:11px">'
+   +'בלי מין, חישוב הקלוריות הוא ממוצע בין נוסחת הגבר לנוסחת האישה — '
+   +'פער של עד 166 קק״ל ליום. לחיצה אחת לכל מתאמן, והשורה נעלמת.<br>'
+   +'ברשימה שרובה צד אחד: לסמן קודם את החריגים, ואז את השאר בבת אחת.</div>'
+   /* פעולה קבוצתית לשאריות. ברשימה של חמישה-עשר שרובם צד אחד, זה
+      ההבדל בין שלוש לחיצות לחמש-עשרה — והחריגים כבר סומנו לפניה. */
+   +'<div class="row" style="gap:7px;margin-bottom:11px">'
+   +'<button class="btn sm" onclick="setGenderRest(&#39;זכר&#39;)">כל הנותרים — זכר</button>'
+   +'<button class="btn sm ghost" onclick="setGenderRest(&#39;נקבה&#39;)">כל הנותרים — נקבה</button>'
+   +'</div>'
+   +list.map(t=>
+      '<div class="line-item" style="align-items:center;gap:8px">'
+     +'<span style="flex:1;font-size:13.5px">'+esc(t.name||'ללא שם')+'</span>'
+     +'<button class="btn sm ghost" onclick="setGenderQuick(&#39;'+t.id+'&#39;,&#39;זכר&#39;)">זכר</button>'
+     +'<button class="btn sm ghost" onclick="setGenderQuick(&#39;'+t.id+'&#39;,&#39;נקבה&#39;)">נקבה</button>'
+     +'</div>').join('')
+   +'</div>';
+}
+
 function vDash(){
   const t=todayISO(), act=activeTrainees();
   const today=S.sessions.filter(s=>s.date===t).sort((a,b)=>(a.time||'').localeCompare(b.time||''));
@@ -910,6 +960,8 @@ function vDash(){
    + stat('אימונים ב־7 ימים', week, 'הושלמו', ICO.cal)
    + stat('הכנסות החודש', money(income), S.payments.filter(p=>(p.date||'').slice(0,7)===mon).length+' תשלומים', ICO.wallet)
    + '</div>';
+
+  h += genderFixCard();
 
   h+='<div class="grid g2" style="margin-top:14px">';
   /* היום */
@@ -2469,30 +2521,30 @@ if (location.protocol === 'file:') {
 }
 </script>
 
-<script src="health.js?v=v117"></script>
-<script src="privacy.js?v=v117"></script>
-<script src="backup.js?v=v117"></script>
-<script src="reorder.js?v=v117"></script>
-<script src="access.js?v=v117"></script>
-<script src="analysis.js?v=v117"></script>
-<script src="reports.js?v=v117"></script>
-<script src="business.js?v=v117"></script>
-<script src="intake.js?v=v117"></script>
-<script src="files.js?v=v117"></script>
-<script src="builder.js?v=v117"></script>
-<script src="import-program.js?v=v117"></script>
-<script src="tracking.js?v=v117"></script>
-<script src="metrics.js?v=v117"></script>
-<script src="targets.js?v=v117"></script>
-<script src="meal-library.js?v=v117"></script>
-<script src="library-ui.js?v=v117"></script>
-<script src="export-plan.js?v=v117"></script>
-<script src="cardio.js?v=v117"></script>
-<script src="cardio-ui.js?v=v117"></script>
-<script src="exercise-library.js?v=v117"></script>
-<script src="exercise-ui.js?v=v117"></script>
-<script src="meals.js?v=v117"></script>
-<script src="sync.js?v=v117"></script>
+<script src="health.js?v=v118"></script>
+<script src="privacy.js?v=v118"></script>
+<script src="backup.js?v=v118"></script>
+<script src="reorder.js?v=v118"></script>
+<script src="access.js?v=v118"></script>
+<script src="analysis.js?v=v118"></script>
+<script src="reports.js?v=v118"></script>
+<script src="business.js?v=v118"></script>
+<script src="intake.js?v=v118"></script>
+<script src="files.js?v=v118"></script>
+<script src="builder.js?v=v118"></script>
+<script src="import-program.js?v=v118"></script>
+<script src="tracking.js?v=v118"></script>
+<script src="metrics.js?v=v118"></script>
+<script src="targets.js?v=v118"></script>
+<script src="meal-library.js?v=v118"></script>
+<script src="library-ui.js?v=v118"></script>
+<script src="export-plan.js?v=v118"></script>
+<script src="cardio.js?v=v118"></script>
+<script src="cardio-ui.js?v=v118"></script>
+<script src="exercise-library.js?v=v118"></script>
+<script src="exercise-ui.js?v=v118"></script>
+<script src="meals.js?v=v118"></script>
+<script src="sync.js?v=v118"></script>
 <script>
 /* =================== חיבור הסנכרון לאפליקציה =================== */
 
