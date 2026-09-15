@@ -10,7 +10,7 @@
   'use strict';
 
   // חותמת גרסה — index.html משווה אליה כדי לזהות קובץ ישן במטמון
-  (window.EB_MOD = window.EB_MOD || {})['intake'] = 'v126';
+  (window.EB_MOD = window.EB_MOD || {})['intake'] = 'v127';
 
   /* ---------- מילון: תווית בשאלון -> שדה במערכת ---------- */
   /* הסדר משנה — הביטוי הראשון שמתאים מנצח, ולכן ביטויים ארוכים
@@ -81,7 +81,13 @@
   }
   function isLabelLine(s) {
     var t = clean(s);
-    return !t || /:/.test(t) || /\?/.test(t) || /^\d+\./.test(String(s).trim());
+    if (!t) return true;
+    if (/[:;?]/.test(t)) return true;
+    if (/^\d+\.\s/.test(String(s).trim())) return true;
+    /* "בטן - 73" היא שורת תווית לכל דבר. בלי זה כותרת ריקה כמו
+       "היקפים ;" בלעה אותה כערך של עצמה, והיקף הבטן נעלם. */
+    var dm = t.match(/^([^0-9\-–—]{2,20})[\-–—]\s*(.+)$/);
+    return !!(dm && matchKey(dm[1]));
   }
   // מחפש את הערך בשורות הבאות, אם השורה הנוכחית נשארה ריקה
   function lookAhead(lines, i) {
@@ -108,6 +114,43 @@
     return false;
   }
 
+
+  /* ---------- רמזים לשורות חופשיות ----------
+     מופעל רק על שורות בלי תווית, ולעולם לא על שורה מתויגת — שם
+     המילון הרגיל מדויק יותר ואסור לרפות אותו.
+
+     השורה כולה נשמרת כערך ולא רק המילה שזוהתה: "אין מגבלות
+     תזונתיות בכלל" הוא התוכן, ו"מגבלות תזונתיות" הוא רק הסימן
+     שלפיו ידענו לאן הוא שייך.
+
+     כל רמז חייב להיות חד-משמעי. מילה שיכולה להופיע בשני הקשרים
+     אינה נכנסת לכאן — שדה ריק שהמאמן ימלא עדיף על שיוך שגוי. */
+  var BARE_HINTS = [
+    ['water',        ['ליטר']],
+    ['sleepQuality', ['איכות שינה', 'איכות השינה']],
+    ['sleepHours',   ['שעות שינה', 'שעות בלילה', 'שעות של שינה']],
+    ['stress',       ['סטרס', 'מתח נפשי']],
+    ['diet',         ['מגבלות תזונתיות', 'העדפות תזונתיות', 'צמחוני', 'טבעוני', 'כשר', 'ללא גלוטן']],
+    ['supplements',  ['תוסף', 'תוספים', 'ויטמין', 'חומצה פולית', 'אומגה', 'קריאטין', 'ברזל']],
+    ['injuries',     ['פציעה', 'פציעות', 'ניתוח', 'קרע']],
+    ['medical',      ['בריא לחלוטין', 'בריאה לחלוטין', 'ללא בעיות רפואיות', 'סוכרת', 'לחץ דם']],
+    ['experience',   ['מתאמן כבר', 'מתאמנת כבר', 'שנים האחרונות', 'ותק']],
+    ['location',     ['סטודיו', 'חדר כושר', 'בבית', 'פארק']],
+    ['occupation',   ['עבודה פיזית', 'עבודה משרדית', 'יושב', 'עומד']],
+    ['recentTrain',  ['פילאטיס', 'קרוספיט', 'ריצה', 'יוגה', 'אימוני כוח']],
+    ['goal',         ['חיטוב', 'ירידה במשקל', 'מסת שריר', 'העלאת מסה', 'כוח מתפרץ', 'כושר כללי']]
+  ];
+  function bareKey(line) {
+    var L = String(line || '');
+    for (var i = 0; i < BARE_HINTS.length; i++) {
+      var syns = BARE_HINTS[i][1];
+      for (var j = 0; j < syns.length; j++) {
+        if (L.indexOf(syns[j]) > -1) return BARE_HINTS[i][0];
+      }
+    }
+    return null;
+  }
+
   function matchKey(label) {
     var L = labelKey(label);
     if (!L) return null;
@@ -123,17 +166,24 @@
   /* ---------- המפענח ---------- */
   function parseIntake(text) {
     var lines = String(text || '').split(/\r?\n/);
-    var out = {}, unknown = [];
+    var out = {}, unknown = [], bare = [];
 
     for (var i = 0; i < lines.length; i++) {
       var raw = lines[i];
-      var L = String(raw).replace(/^[\s*•\-–—]+/, '').replace(/^\d+\.\s*/, '').trim();
+      /* \s+ ולא \s*: "1. ליאל כהן" הוא מספר רשימה, אבל "29.10.2004"
+         הוא תאריך — והרווח אחרי הנקודה הוא ההבדל היחיד ביניהם.
+         בלי זה התאריך נחתך ל-"10.2004". */
+      var L = String(raw).replace(/^[\s*•\-–—]+/, '').replace(/^\d+\.\s+/, '').trim();
       if (!L) continue;
 
       // שורת היקפים: "בטן: 88 | חזה: 100 | זרוע: 35"
       if (L.indexOf('|') > -1 && L.indexOf(':') > -1) {
         L.split('|').forEach(function (part) {
-          var ci = part.indexOf(':');
+          /* הנקודתיים האחרונות ולא הראשונות: הקטע הראשון נושא גם את
+             כותרת המקטע, "היקפים: בטן: 92". לפי הראשונות התווית
+             הייתה "היקפים" — שאינה שדה — והבטן נעלמה בשקט. */
+          var ci = part.lastIndexOf(':');
+          if (ci < 0) ci = part.lastIndexOf(';');
           if (ci < 0) return;
           var k = matchKey(part.slice(0, ci)), v = clean(part.slice(ci + 1));
           if (k && v && !out[k]) out[k] = v;
@@ -143,7 +193,12 @@
 
       var label = null, value = '';
       var ci2 = L.indexOf(':');
+      var si  = L.indexOf(';');
       var qi  = L.indexOf('?');
+
+      /* נקודה-פסיק מתנהגת כנקודתיים. מאמן שכותב "משקל עדכני ; 65"
+         מתכוון בדיוק לאותו דבר, וזה מקלדת ולא כוונה. */
+      if (ci2 < 0 && si > -1) ci2 = si;
 
       if (ci2 > -1) {
         label = L.slice(0, ci2);
@@ -152,7 +207,19 @@
         label = L.slice(0, qi + 1);
         value = clean(L.slice(qi + 1).replace(/\([^)]*\)/g, ' '));
       } else {
-        continue;
+        /* מקף כמפריד — אבל רק כשמה שלפניו הוא תווית מוכרת.
+           "בטן - 73" הוא היקף; "058-627-5182" הוא טלפון, ואסור
+           לפרק אותו. ההבחנה היא בצד שמאל, לא בתו עצמו. */
+        var dm = L.match(/^([^0-9\-–—]{2,20})[\-–—]\s*(.+)$/);
+        if (dm && matchKey(dm[1])) {
+          label = dm[1];
+          value = clean(dm[2]);
+        } else {
+          /* שורה בלי מפריד. עד היום היא נזרקה בשקט — וזה בדיוק
+             איפה שיושבים "חיטוב", "בריאה לחלוטין" והטלפון. */
+          bare.push(L);
+          continue;
+        }
       }
 
       if (!value) {
@@ -165,6 +232,26 @@
       if (key) { if (!out[key]) out[key] = value; }
       else unknown.push({ label: labelKey(label), value: value });
     }
+
+    /* ---------- שורות חופשיות ----------
+       טקסט שנשלח בלי תוויות הוא הרוב במציאות: מתאמן כותב שם, תאריך,
+       טלפון ומטרה בשורות נפרדות, בלי "שם:" לפניהן. עד היום כל זה
+       נמחק, והמאמן קיבל טופס ריק.
+
+       הזיהוי נעשה לפי צורת הערך ולא לפי מיקומו, ורק כשהיא חד-משמעית:
+       דוא״ל, טלפון ישראלי ותאריך. שם נלקח מהשורה הראשונה רק אם היא
+       מילים עבריות בלי ספרות — אחרת הוא נשאר ריק לאישור. */
+    bare.forEach(function (L, idx) {
+      if (!out.email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(L)) { out.email = L; return; }
+      if (!out.phone && /^0\d[\d\-\s]{7,12}$/.test(L)) { out.phone = L.replace(/[\s]/g,''); return; }
+      if (!out.birthOrAge && /^\d{1,2}[./]\d{1,2}[./]\d{2,4}$/.test(L)) { out.birthOrAge = L; return; }
+      if (!out.name && idx === 0 && /^[֐-׿\s'"״׳]{3,40}$/.test(L) && L.split(/\s+/).length <= 4) {
+        out.name = L; return;
+      }
+      var bk = bareKey(L);
+      if (bk && !out[bk]) { out[bk] = L; return; }
+      unknown.push({ label: '', value: L });
+    });
 
     out._unknown = unknown;
     return normalize(out);
