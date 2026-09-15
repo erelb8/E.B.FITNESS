@@ -15,7 +15,7 @@
   'use strict';
 
   // חותמת גרסה — index.html משווה אליה כדי לזהות קובץ ישן במטמון
-  (window.EB_MOD = window.EB_MOD || {})['sync'] = 'v119';
+  (window.EB_MOD = window.EB_MOD || {})['sync'] = 'v120';
 
   const CFG      = window.EBFIT_CONFIG || { URL: '', ANON: '' };
   const SNAP_KEY = 'ebfit_sync_v1';
@@ -94,8 +94,14 @@
       files: t.files || [],
       meals: t.meals || [],
       status: t.status || 'active',
-      private: priv,
-      deleted: false
+      private: priv
+      /* deleted לא נשלח, ובכוונה. הוא היה נשלח כ-false בכל דחיפה,
+         ולכן מכשיר עם עותק ישן החזיר לחיים כל מה שנמחק במכשיר אחר:
+         המחיקות לא התפשטו — הן בוטלו. זה מה שהחזיר את הכפילויות
+         שוב ושוב אחרי שנמחקו.
+
+         בעמודה יש default false, ולכן רשומה חדשה נוצרת פעילה כרגיל,
+         ורשומה שנמחקה נשארת מחוקה עד שמישהו יחזיר אותה במפורש. */
     };
   }
   function traineeFromRow(r) {
@@ -135,8 +141,8 @@
       // תאריך מקומי, לא UTC — ראה ההערה ב-index.html ליד isoOf
       date: o.date || (function(){ const d=new Date();
         return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); })(),
-      data: data,
-      deleted: false
+      data: data
+      // ראה ההערה ב-traineeToRow: deleted אינו נשלח מאותה סיבה
     };
   }
   function childFromRow(r) {
