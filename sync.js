@@ -15,7 +15,7 @@
   'use strict';
 
   // חותמת גרסה — index.html משווה אליה כדי לזהות קובץ ישן במטמון
-  (window.EB_MOD = window.EB_MOD || {})['sync'] = 'v133';
+  (window.EB_MOD = window.EB_MOD || {})['sync'] = 'v134';
 
   const CFG      = window.EBFIT_CONFIG || { URL: '', ANON: '' };
   const SNAP_KEY = 'ebfit_sync_v1';
@@ -171,40 +171,6 @@
   }
   function writeSnap(snap) {
     try { localStorage.setItem(SNAP_KEY, JSON.stringify(snap)); } catch (e) {}
-  }
-
-  /* ---------- חותמות זמן של השרת ----------
-     "הכתיבה האחרונה מנצחת" מומש לפי סדר הדחיפה ולא לפי זמן, ולכן
-     מכשיר שלא סונכרן זמן מה ניצח נתונים טריים יותר: הוא דחף את כל
-     מה שאצלו שונה מהתצלום, והשרת קיבל את הישן.
-
-     ב-15.9.2026 כך התאפסה תוכנית בת חמישה ימים כמה שעות אחרי
-     שהוחזרה — היעדים באותה שורה שרדו, כי הרשומה הישנה נשאה אותם.
-
-     עכשיו שומרים את updated_at של כל שורה כפי שנמשכה. לפני הדחיפה
-     שולפים את החותמות הנוכחיות, ושורה שהשתנתה בשרת מאז — מדלגים
-     עליה. המשיכה שמיד אחרי תביא את הגרסה החדשה, והמאמן יראה אותה
-     ויוכל לערוך מחדש. עדיף לאבד עריכה מקומית אחת מאשר לדרוס את
-     מה שמכשיר אחר כבר כתב. */
-  const STAMP_KEY = 'ebfit_sync_stamps';
-  function readStamps() {
-    try { return JSON.parse(localStorage.getItem(STAMP_KEY)) || {}; }
-    catch (e) { return {}; }
-  }
-  function writeStamps(s) {
-    try { localStorage.setItem(STAMP_KEY, JSON.stringify(s)); } catch (e) {}
-  }
-  /* מי מהשורות בטוח לדחיפה. שורה בלי חותמת בשרת היא חדשה — נדחפת.
-     שורה שחותמת השרת שלה זהה לזו שמשכנו — שלנו טרייה יותר, נדחפת.
-     שורה שהשתנתה בשרת מאז — מדלגים. */
-  function splitStale(rows, mine, live) {
-    const send = [], stale = [];
-    (rows || []).forEach(r => {
-      const now = live && live[r.id];
-      if (!now || !mine || mine[r.id] === undefined || mine[r.id] === now) send.push(r);
-      else stale.push(r.id);
-    });
-    return { send: send, stale: stale };
   }
 
   /* ---------- מצבות מחיקה ----------
@@ -392,13 +358,6 @@
           window.toast('הסנכרון הושלם. דילגתי על מחיקה של ' + skipped.deletes.join(', ')
             + ' — היא נראתה כמו רשימה שהתכווצה ולא כמו מחיקה שלך. שום דבר לא נמחק.');
         }
-        /* השרת היה טרי יותר מהמכשיר. מדווחים במפורש, כי המאמן
-           עשוי לראות עכשיו ערך אחר ממה שהקליד לפני רגע. */
-        if (skipped.stale && skipped.stale.length) {
-          window.toast('הסנכרון הושלם. ' + skipped.stale.join(', ')
-            + ' עודכנו במקום אחר אחרי שהמכשיר הזה משך אותם, '
-            + 'ולכן לא דחפתי עליהם. מה שמוצג עכשיו הוא הגרסה מהשרת.');
-        }
       }
     } catch (e) {
       lastError = (e && e.message) || String(e);
@@ -472,7 +431,7 @@
   async function push(snap) {
     /* מה שדולג, כדי לדווח אחרי שהסנכרון הצליח ולא במקומו */
     const skippedDeletes = [];
-    const skippedStale   = [];
+
     for (const key of ARRAYS) {
       const list = window.S[key] || [];
       const prev = snap[key] || {};
@@ -488,27 +447,11 @@
       if (rows.length) {
         /* מה מצב השורות האלה בשרת ברגע זה. רק המזהה והחותמת —
            מטען זניח לעומת מה שהוא מונע. */
-        let live = null;
-        try {
-          const { data } = await sb.from(TABLE[key])
-            .select('id,updated_at').eq('trainer_id', user.id)
-            .in('id', rows.map(r => r.id));
-          live = {};
-          (data || []).forEach(r => { live[r.id] = r.updated_at; });
-        } catch (e) { live = null; }   // בלי חותמות ממשיכים כרגיל
-
-        const part = splitStale(rows, (readStamps()[key] || {}), live);
-        if (part.stale.length) {
-          logError('push skipped — server row is newer',
-                   { table: key, ids: part.stale });
-          skippedStale.push(part.stale.length + ' ב"' + key + '"');
-        }
-
         // נתחים קטנים — המגבלה הקודמת של 200 שורות יצרה פקודת upsert
         // אחת ענקית שהשרת הרג (57014). trainees מטופלת שורה-שורה ב-upsertRows.
         const CHUNK = 25;
-        for (let i = 0; i < part.send.length; i += CHUNK) {
-          await upsertRows(TABLE[key], part.send.slice(i, i + CHUNK));
+        for (let i = 0; i < rows.length; i += CHUNK) {
+          await upsertRows(TABLE[key], rows.slice(i, i + CHUNK));
         }
       }
 
@@ -579,7 +522,7 @@
         .upsert({ trainer_id: user.id, data: JSON.parse(prefs) }, { onConflict: 'trainer_id' });
       if (error) throw error;
     }
-    return { deletes: skippedDeletes, stale: skippedStale };
+    return { deletes: skippedDeletes };
   }
 
   // מושך את האמת מהשרת ומחליף את המערכים המקומיים
@@ -665,21 +608,6 @@
       const cur = (window.S.trainees || []).find(x => x.id === window.PROGRAM_BASE_ID);
       if (cur) window.PROGRAM_BASE = JSON.parse(JSON.stringify(cur.program || { days: [] }));
     }
-    /* חותמות הזמן כפי שהן ברגע זה בשרת. הדחיפה הבאה תשווה אליהן
-       כדי לדעת אם מישהו אחר כתב בינתיים. נרשמות רק אחרי משיכה
-       מוצלחת — משיכה שדולגה משאירה את החותמות הישנות, וזה הנכון:
-       המכשיר באמת לא ראה את הגרסה החדשה. */
-    const stamps = {};
-    const stampOf = rows => {
-      const o = {}; (rows || []).forEach(r => { o[r.id] = r.updated_at; }); return o;
-    };
-    stamps.trainees = stampOf(fetched.trainees);
-    stamps.sessions = stampOf(fetched.sessions);
-    stamps.payments = stampOf(fetched.payments);
-    stamps.measures = stampOf(fetched.measures);
-    stamps.daily    = stamps.measures;     // אותה טבלה, מזהים ייחודיים
-    writeStamps(stamps);
-
     if (typeof window.rawSave === 'function') window.rawSave();
     if (typeof window.render === 'function') window.render();
     log('pull completed', {
@@ -881,7 +809,7 @@
     checkAdmin,
     /* מצבת מחיקה. חייבת להיקרא לפני שהשורה מוסרת מ-S, אחרת
        הדחיפה תראה היעלמות בלי כוונה ותדלג עליה. */
-    tomb, partitionGone, splitStale,
+    tomb, partitionGone,
     adminState: () => adminState, lastError: () => lastError,
     signIn, signUp, signOut,
     traineeLogin,
