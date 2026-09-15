@@ -10,7 +10,7 @@
   'use strict';
 
   // חותמת גרסה — index.html משווה אליה כדי לזהות קובץ ישן במטמון
-  (window.EB_MOD = window.EB_MOD || {})['intake'] = 'v116';
+  (window.EB_MOD = window.EB_MOD || {})['intake'] = 'v117';
 
   /* ---------- מילון: תווית בשאלון -> שדה במערכת ---------- */
   /* הסדר משנה — הביטוי הראשון שמתאים מנצח, ולכן ביטויים ארוכים
@@ -23,6 +23,7 @@
     ['occupation',  ['עיסוק', 'שגרת יום']],
     ['weight',      ['משקל עדכני', 'משקל נוכחי', 'משקל']],
     ['height',      ['גובה']],
+    ['gender',      ['מין', 'מגדר']],
     ['waist',       ['בטן']],
     ['chest',       ['חזה']],
     ['arm',         ['זרוע']],
@@ -49,7 +50,7 @@
   /* תוויות לתצוגה */
   var HE = {
     name:'שם מלא', birthOrAge:'תאריך לידה / גיל', phone:'טלפון', email:'דוא״ל',
-    occupation:'עיסוק ושגרת יום', weight:'משקל (ק״ג)', height:'גובה (ס״מ)',
+    occupation:'עיסוק ושגרת יום', weight:'משקל (ק״ג)', height:'גובה (ס״מ)', gender:'מין',
     waist:'היקף בטן', chest:'היקף חזה', arm:'היקף זרוע', thigh:'היקף ירך',
     goal:'מטרה מרכזית', goal2:'מטרה משנית', success3m:'הגדרת הצלחה ל-3 חודשים',
     injuries:'פציעות', medical:'רקע רפואי', pain:'כאבים במאמץ', medCert:'אישור רפואי',
@@ -60,7 +61,7 @@
   };
 
   /* שדות שנכנסים לכרטיס המתאמן עצמו; השאר נשמר ברשומת השאלון */
-  var CORE = ['name','phone','height','birthOrAge','goal','experience'];
+  var CORE = ['name','phone','height','birthOrAge','goal','experience','gender'];
 
   /* ---------- כלי עזר ---------- */
   function clean(v) {
@@ -246,6 +247,15 @@
       + f('משקל (ק״ג)','ik_weight', p.weight || '')
       + f('מטרה','ik_goal', p.goal || '')
       + f('תאריך לידה','ik_birth', p.birth || '', 'date')
+      /* מין. בלעדיו BMR מחושב כממוצע בין נוסחת הגבר לנוסחת האישה,
+         והפער ביניהן הוא כ-166 קק״ל ליום — כלומר כל מתאמן שנקלט
+         מהשאלון קיבל יעד עם שגיאה מובנית. שדה אחד סוגר את זה. */
+      + '<div><label class="f" style="display:block;font-size:12px;margin-bottom:4px">מין</label>'
+      + '<select class="f" id="ik_gender" style="width:100%">'
+      + '<option value="">לא צוין</option>'
+      + '<option value="זכר"' + (p.gender === 'זכר' ? ' selected' : '') + '>זכר</option>'
+      + '<option value="נקבה"' + (p.gender === 'נקבה' ? ' selected' : '') + '>נקבה</option>'
+      + '</select></div>'
       + '</div>';
     if (p.birthApprox)
       h += '<div class="muted" style="font-size:12px;margin-top:6px">תאריך הלידה נגזר מגיל בלבד — מדויק לשנה, לא ליום.</div>';
@@ -315,6 +325,7 @@
       height: n('ik_height'),
       goal: g('ik_goal'),
       birth: g('ik_birth'),
+      gender: g('ik_gender'),
       level: p.level || 'מתחיל',
       status: 'active',
       joined: todayISO(),
