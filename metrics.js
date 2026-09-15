@@ -20,7 +20,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['metrics'] = 'v123';
+  (window.EB_MOD = window.EB_MOD || {})['metrics'] = 'v124';
 
   var r1 = function (x) { return Math.round(x * 10) / 10; };
   var r2 = function (x) { return Math.round(x * 100) / 100; };
@@ -220,21 +220,41 @@
     if (w && o.kcal) {
       /* חלבון לפי ISSN: 1.4–2.0 ג׳/ק״ג לרוב המתאמנים, ו-2.3–3.1
          בגירעון קלורי כדי לשמר מסה רזה. */
-      var pk = g==='cut' ? 2.4 : g==='mass' ? 1.9 : 1.6;
-      o.protein = Math.round(w * pk);
-      o.proteinPerKg = pk;
+      /* החלבון מחושב על מסה רזה כשהיא ידועה, ולא על משקל הגוף.
+         2.4 ג׳/ק״ג על מתאמן 110 ק״ג עם 35% שומן הם 264 ג׳ — מספר
+         שנגזר מרקמה שאינה זקוקה לחלבון. ההמלצות של ISSN מנוסחות
+         לפי משקל גוף אצל מאומנים רזים, ושם ההפרש זניח; אצל מי
+         שאחוז השומן שלו גבוה הוא עצום. */
+      var base = o.leanKg || w;
+      var onLean = !!o.leanKg;
+      var pk = onLean
+        ? (g==='cut' ? 2.8 : g==='mass' ? 2.2 : 1.9)   // לכל ק״ג מסה רזה
+        : (g==='cut' ? 2.4 : g==='mass' ? 1.9 : 1.6);  // לכל ק״ג משקל גוף
+      o.protein = Math.round(base * pk);
+      o.proteinPerKg = r1(o.protein / w);
       o.proteinRange = g==='cut' ? [Math.round(w*2.3), Math.round(w*3.1)] : [Math.round(w*1.4), Math.round(w*2.0)];
-      o.f.protein = w + ' × ' + pk + ' ג׳/ק״ג  (ISSN: ' + (g==='cut' ? '2.3–3.1 בגירעון' : '1.4–2.0') + ')';
+      o.f.protein = base + ' × ' + pk + ' ג׳/ק״ג '
+                  + (onLean ? 'מסה רזה' : 'משקל גוף')
+                  + '  (ISSN: ' + (g==='cut' ? '2.3–3.1 בגירעון' : '1.4–2.0') + ' לק״ג גוף)';
       o.perMeal = [Math.round(w*0.25), 40];
       o.f.perMeal = w + ' × 0.25 ג׳/ק״ג למנה, או 20–40 ג׳';
 
-      /* שומן: לא פחות מ-20% מהקלוריות ולא פחות מ-0.8 ג׳/ק״ג —
-         מתחת לזה נפגעת יצירת הורמוני מין וספיגת ויטמינים מסיסי שומן. */
-      var fatByW = w * 0.9, fatMin = Math.max(w*0.8, o.kcal*0.20/9);
-      o.fatG = Math.round(Math.max(fatByW, fatMin));
+      /* שומן: נתח מהקלוריות ולא הרצפה שלהן.
+         קודם נלקח המקסימום בין 0.9 ג׳/ק״ג לבין 20% מהקלוריות —
+         ושניהם נמוכים, ולכן השומן נתקע על כ-20% גם כשהקלוריות עלו,
+         והפחמימה בלעה את כל ההפרש (515 ג׳ למתאמן 82 ק״ג).
+
+         הטווח המקובל הוא 20–35%. 27% הוא אמצע שמרני: מספיק גבוה
+         לתפקוד הורמונלי ולספיגת ויטמינים, ומשאיר פחמימה בשפע
+         לאימוני התנגדות. הרצפה של 0.8 ג׳/ק״ג נשמרת כגבול תחתון. */
+      var fatPctTarget = 0.27;
+      var fatByPct = o.kcal * fatPctTarget / 9;
+      var fatFloor = Math.max(w * 0.8, o.kcal * 0.20 / 9);
+      o.fatG = Math.round(Math.max(fatByPct, fatFloor));
       o.fatPct = Math.round(o.fatG*9 / o.kcal * 100);
-      o.f.fatG = 'הגבוה מבין: ' + w + '×0.9 = ' + Math.round(fatByW)
-               + ' · מינימום ' + Math.round(fatMin) + ' (20% מהקלוריות או 0.8 ג׳/ק״ג)';
+      o.f.fatG = Math.round(fatPctTarget*100) + '% מ-' + o.kcal + ' קק״ל ÷ 9 = '
+               + Math.round(fatByPct) + ' ג׳  ·  רצפה ' + Math.round(fatFloor)
+               + ' (0.8 ג׳/ק״ג או 20% מהקלוריות)';
 
       o.carbs = Math.max(0, Math.round((o.kcal - o.protein*4 - o.fatG*9) / 4));
       o.carbsPct = Math.round(o.carbs*4 / o.kcal * 100);
