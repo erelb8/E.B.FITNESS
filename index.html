@@ -427,8 +427,8 @@ tbody tr:hover{background:var(--panel)}
 <div id="toast"></div>
 
 <!-- ספריית Supabase מקומית (לא מ-CDN) כדי שהאפליקציה תעבוד גם בלי רשת -->
-<script src="vendor/supabase.js?v=v122"></script>
-<script src="config.js?v=v122"></script>
+<script src="vendor/supabase.js?v=v123"></script>
+<script src="config.js?v=v123"></script>
 
 <script>
 /* =======================================================================
@@ -463,7 +463,7 @@ function age(b){ if(!b) return null; const d=new Date(b), t=new Date(); let a=t.
 
 /* ---------------- אחסון ---------------- */
 const KEY='ebfit_v1';
-const EB_VERSION='v122';   // חייב להתאים ל-VERSION ב-sw.js
+const EB_VERSION='v123';   // חייב להתאים ל-VERSION ב-sw.js
 let mem=null, canStore=true;
 function load(){
   try{ const r=localStorage.getItem(KEY); return r?JSON.parse(r):null; }
@@ -898,7 +898,7 @@ function render(){
 
 /* ---------- מילוי מהיר של מין ----------
    בלי מין, BMR מחושב כממוצע בין שתי הנוסחאות — פער של 166 קק״ל
-   ליום. השדה נוסף לשאלון ב-v122, אבל מי שנקלט לפניו נשאר בלעדיו.
+   ליום. השדה נוסף לשאלון ב-v123, אבל מי שנקלט לפניו נשאר בלעדיו.
 
    שני כפתורים לכל מתאמן ולא טופס: זו לחיצה אחת, והכרטיס נעלם לבד
    כשכולם מולאו. ניחוש לפי שם לא בא בחשבון — יעד קלורי שגוי הוא
@@ -1114,9 +1114,13 @@ function saveTrainee(id){
   const name=gv('tf_name'); if(!name){ toast('צריך למלא שם'); return; }
   /* אימייל, תגיות ויתרת חוב הוסרו מהטופס. הם לא נכללים כאן בכוונה —
      כך ערכים שכבר הוזנו בעבר נשמרים ולא נדרסים ב-Object.assign למטה. */
+  /* הכרטיסייה אינה בטופס, ולכן נלקחת מהרשומה הקיימת כדי לא לאפס
+     אותה בשמירה. קודם נכתב כאן t, שאינו קיים בפונקציה — כל שמירה
+     זרקה ReferenceError ולא נשמר דבר. */
+  const cur = id ? (tById(id) || {}) : {};
   const o={ name, phone:gv('tf_phone'), height:gn('tf_height'), birth:gv('tf_birth'), gender:gv('tf_gender'),
     goal:gv('tf_goal'), level:gv('tf_level'), status:gv('tf_status'), joined:gv('tf_joined'),
-    pkgTotal:t.pkgTotal||0, pkgUsed:t.pkgUsed||0, pricePerSession:gn('tf_price'),
+    pkgTotal:cur.pkgTotal||0, pkgUsed:cur.pkgUsed||0, pricePerSession:gn('tf_price'),
     notes:gv('tf_notes') };
   if(S.features.health){ o.health=gv('tf_health'); const c=document.getElementById('tf_hok'); o.healthOk=c?c.checked:false; }
   if(S.features.nutrition){ o.kcal=gn('tf_kcal'); o.prot=gn('tf_prot'); o.steps=gn('tf_steps'); }
@@ -2521,30 +2525,30 @@ if (location.protocol === 'file:') {
 }
 </script>
 
-<script src="health.js?v=v122"></script>
-<script src="privacy.js?v=v122"></script>
-<script src="backup.js?v=v122"></script>
-<script src="reorder.js?v=v122"></script>
-<script src="access.js?v=v122"></script>
-<script src="analysis.js?v=v122"></script>
-<script src="reports.js?v=v122"></script>
-<script src="business.js?v=v122"></script>
-<script src="intake.js?v=v122"></script>
-<script src="files.js?v=v122"></script>
-<script src="builder.js?v=v122"></script>
-<script src="import-program.js?v=v122"></script>
-<script src="tracking.js?v=v122"></script>
-<script src="metrics.js?v=v122"></script>
-<script src="targets.js?v=v122"></script>
-<script src="meal-library.js?v=v122"></script>
-<script src="library-ui.js?v=v122"></script>
-<script src="export-plan.js?v=v122"></script>
-<script src="cardio.js?v=v122"></script>
-<script src="cardio-ui.js?v=v122"></script>
-<script src="exercise-library.js?v=v122"></script>
-<script src="exercise-ui.js?v=v122"></script>
-<script src="meals.js?v=v122"></script>
-<script src="sync.js?v=v122"></script>
+<script src="health.js?v=v123"></script>
+<script src="privacy.js?v=v123"></script>
+<script src="backup.js?v=v123"></script>
+<script src="reorder.js?v=v123"></script>
+<script src="access.js?v=v123"></script>
+<script src="analysis.js?v=v123"></script>
+<script src="reports.js?v=v123"></script>
+<script src="business.js?v=v123"></script>
+<script src="intake.js?v=v123"></script>
+<script src="files.js?v=v123"></script>
+<script src="builder.js?v=v123"></script>
+<script src="import-program.js?v=v123"></script>
+<script src="tracking.js?v=v123"></script>
+<script src="metrics.js?v=v123"></script>
+<script src="targets.js?v=v123"></script>
+<script src="meal-library.js?v=v123"></script>
+<script src="library-ui.js?v=v123"></script>
+<script src="export-plan.js?v=v123"></script>
+<script src="cardio.js?v=v123"></script>
+<script src="cardio-ui.js?v=v123"></script>
+<script src="exercise-library.js?v=v123"></script>
+<script src="exercise-ui.js?v=v123"></script>
+<script src="meals.js?v=v123"></script>
+<script src="sync.js?v=v123"></script>
 <script>
 /* =================== חיבור הסנכרון לאפליקציה =================== */
 

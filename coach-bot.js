@@ -18,7 +18,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['bot'] = 'v122';
+  (window.EB_MOD = window.EB_MOD || {})['bot'] = 'v123';
 
   var LOGS = [], WEIGH = [], PROGRAM = null, GOAL = '', HABITS = null;
 
