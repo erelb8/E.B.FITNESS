@@ -15,7 +15,7 @@
   'use strict';
 
   // חותמת גרסה — index.html משווה אליה כדי לזהות קובץ ישן במטמון
-  (window.EB_MOD = window.EB_MOD || {})['sync'] = 'v136';
+  (window.EB_MOD = window.EB_MOD || {})['sync'] = 'v137';
 
   const CFG      = window.EBFIT_CONFIG || { URL: '', ANON: '' };
   const SNAP_KEY = 'ebfit_sync_v1';
@@ -171,6 +171,55 @@
   }
   function writeSnap(snap) {
     try { localStorage.setItem(SNAP_KEY, JSON.stringify(snap)); } catch (e) {}
+  }
+
+  /* ---------- מונה גרסה לכל שורה ----------
+     "הכתיבה האחרונה מנצחת" מומש לפי סדר הדחיפה ולא לפי גרסה, ולכן
+     מכשיר שמחזיק עותק ישן ניצח נתונים טריים יותר. ב-15.9.2026 זה
+     קרה שלוש פעמים באותו יום: המין של אחד-עשר מתאמנים נמחק והוחזר
+     שוב ושוב, ובכל פעם חזר בדיוק אותו מצב ישן. באותו יום כך גם
+     התאפסה תוכנית שלמה, שעות אחרי שהוחזרה.
+
+     מונה ולא שעון, ובכוונה: שעוני שני מכשירים אינם מסונכרנים, והפרש
+     של דקות היה הופך את ההגנה להימור. מונה עולה רק כשמישהו כותב,
+     והשוואה בין שני מונים אינה תלויה בשום שעון.
+
+     הכלל: דוחפים רק אם השרת לא התקדם מאז המשיכה שלנו. אם התקדם —
+     המכשיר הזה מפגר לגבי השורה הזאת, והמשיכה שמיד אחרי תביא את
+     הגרסה החדשה.
+
+     ההבדל מהניסיון שנכשל ב-v133: שם הושווה updated_at של השרת, והוא
+     משתנה בכל כתיבה — כולל כתיבה שלנו וכולל תיקון ידני במסד. לכן
+     גם שמירה חיה של המאמן נראתה כמו התנגשות ודולגה, והתוכנית שהרגע
+     נשמרה נמחקה. כאן הבסיס להשוואה הוא המונה שראינו במשיכה האחרונה,
+     ולכן שמירה על מכשיר מעודכן תמיד עוברת.
+
+     rev יושב בתוך private/data שכבר מסונכרנים — בלי מיגרציה בשרת.
+     שורה בלי מונה נחשבת 0, ולכן ההגנה תופסת מיד גם על הנתונים
+     הקיימים, בלי צעד המרה. */
+  const REVCOL = { trainees:'private', sessions:'data', measures:'data',
+                   payments:'data', daily:'data' };
+
+  function revOf(o) {
+    const n = Number(o && o.rev);
+    return (isFinite(n) && n > 0) ? n : 0;
+  }
+  // המונה שראינו במשיכה האחרונה, מתוך התצלום
+  function baseRev(prevJson) {
+    if (!prevJson) return 0;
+    try { return revOf(JSON.parse(prevJson)); } catch (e) { return 0; }
+  }
+  /* טהורה בכוונה, כמו partitionGone: זו ההחלטה שקובעת אם עריכה
+     נכתבת או נזרקת, והיא חייבת להיבדק בלי שרת. */
+  function splitByRev(rows, prev, srv) {
+    const send = [], stale = [];
+    (rows || []).forEach(o => {
+      const s = srv ? srv[o.id] : undefined;
+      if (s === undefined || s === null) { send.push(o); return; }  // חדשה, או אין מידע
+      if (s > baseRev(prev && prev[o.id])) stale.push(o.id);
+      else send.push(o);
+    });
+    return { send: send, stale: stale };
   }
 
   /* ---------- מצבות מחיקה ----------
@@ -358,6 +407,14 @@
           window.toast('הסנכרון הושלם. דילגתי על מחיקה של ' + skipped.deletes.join(', ')
             + ' — היא נראתה כמו רשימה שהתכווצה ולא כמו מחיקה שלך. שום דבר לא נמחק.');
         }
+        /* מכשיר אחר כתב אחרי שהמכשיר הזה משך. מדווחים במפורש, כי
+           המאמן עלול לראות עכשיו ערך אחר ממה שהקליד לפני רגע —
+           ועדיף שיבין למה, מאשר שיחשוב שהשמירה נעלמה. */
+        if (skipped.stale && skipped.stale.length) {
+          window.toast('הסנכרון הושלם. ' + skipped.stale.join(', ')
+            + ' עודכנו במכשיר אחר אחרי שהמכשיר הזה משך אותם, ולכן לא דחפתי עליהם. '
+            + 'מה שמוצג עכשיו הוא הגרסה העדכנית.');
+        }
       }
     } catch (e) {
       lastError = (e && e.message) || String(e);
@@ -431,22 +488,48 @@
   async function push(snap) {
     /* מה שדולג, כדי לדווח אחרי שהסנכרון הצליח ולא במקומו */
     const skippedDeletes = [];
+    const skippedStale   = [];
 
     for (const key of ARRAYS) {
       const list = window.S[key] || [];
       const prev = snap[key] || {};
-      const rows = [];
       const seen = new Set();
+      const changed = [];
 
       list.forEach(o => {
         if (!o || !o.id) return;
         seen.add(o.id);
-        if (prev[o.id] !== JSON.stringify(o)) rows.push(MAP[key].to(o));
+        if (prev[o.id] !== JSON.stringify(o)) changed.push(o);
       });
 
-      if (rows.length) {
-        /* מה מצב השורות האלה בשרת ברגע זה. רק המזהה והחותמת —
-           מטען זניח לעומת מה שהוא מונע. */
+      if (changed.length) {
+        /* מונה הגרסה של השורות האלה בשרת ברגע זה. נשלף רק לשורות
+           שעומדות להידחף, ולכן זו שאילתה של שורה או שתיים. */
+        const col = REVCOL[key];
+        let srv = null;
+        try {
+          const { data } = await sb.from(TABLE[key])
+            .select('id,' + col).eq('trainer_id', user.id)
+            .in('id', changed.map(o => o.id));
+          srv = {};
+          (data || []).forEach(r => { srv[r.id] = revOf(r[col]); });
+        } catch (e) { srv = null; }   // בלי מידע ממשיכים כרגיל
+
+        const part = splitByRev(changed, prev, srv);
+        if (part.stale.length) {
+          logError('push skipped — device is behind', { table: key, ids: part.stale });
+          skippedStale.push(part.stale.length + ' ב"' + key + '"');
+        }
+
+        /* המונה מועלה רק על מה שבאמת נשלח, ורק אחרי שהוכח שאיננו
+           מפגרים. הוא נכתב על האובייקט החי כדי שגם התצלום הבא
+           יישא אותו — אחרת הדחיפה הבאה הייתה חוזרת לבסיס ישן. */
+        part.send.forEach(o => {
+          const base = (srv && srv[o.id] != null) ? srv[o.id] : baseRev(prev[o.id]);
+          o.rev = base + 1;
+        });
+        const rows = part.send.map(MAP[key].to);
+
         // נתחים קטנים — המגבלה הקודמת של 200 שורות יצרה פקודת upsert
         // אחת ענקית שהשרת הרג (57014). trainees מטופלת שורה-שורה ב-upsertRows.
         const CHUNK = 25;
@@ -522,7 +605,7 @@
         .upsert({ trainer_id: user.id, data: JSON.parse(prefs) }, { onConflict: 'trainer_id' });
       if (error) throw error;
     }
-    return { deletes: skippedDeletes };
+    return { deletes: skippedDeletes, stale: skippedStale };
   }
 
   // מושך את האמת מהשרת ומחליף את המערכים המקומיים
@@ -809,7 +892,7 @@
     checkAdmin,
     /* מצבת מחיקה. חייבת להיקרא לפני שהשורה מוסרת מ-S, אחרת
        הדחיפה תראה היעלמות בלי כוונה ותדלג עליה. */
-    tomb, partitionGone,
+    tomb, partitionGone, splitByRev,
     adminState: () => adminState, lastError: () => lastError,
     signIn, signUp, signOut,
     traineeLogin,
