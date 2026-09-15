@@ -427,8 +427,8 @@ tbody tr:hover{background:var(--panel)}
 <div id="toast"></div>
 
 <!-- ספריית Supabase מקומית (לא מ-CDN) כדי שהאפליקציה תעבוד גם בלי רשת -->
-<script src="vendor/supabase.js?v=v131"></script>
-<script src="config.js?v=v131"></script>
+<script src="vendor/supabase.js?v=v132"></script>
+<script src="config.js?v=v132"></script>
 
 <script>
 /* =======================================================================
@@ -463,7 +463,7 @@ function age(b){ if(!b) return null; const d=new Date(b), t=new Date(); let a=t.
 
 /* ---------------- אחסון ---------------- */
 const KEY='ebfit_v1';
-const EB_VERSION='v131';   // חייב להתאים ל-VERSION ב-sw.js
+const EB_VERSION='v132';   // חייב להתאים ל-VERSION ב-sw.js
 let mem=null, canStore=true;
 function load(){
   try{ const r=localStorage.getItem(KEY); return r?JSON.parse(r):null; }
@@ -1529,7 +1529,20 @@ function closeAllDays(){
   render();
 }
 
-function saveProgram(id){ save(); window.PROGRAM_BASE_ID=id; window.PROGRAM_BASE=JSON.parse(JSON.stringify(tById(id).program||{days:[]})); toast('התוכנית נשמרה'); render(); }
+/* תוכנית שלמה שנשמרת כריקה היא כמעט תמיד תקלה ולא כוונה: ימים
+   שנמחקו בטעות, בסיס השוואה שהתיישן, או טיוטה שלא נטענה. שמירה
+   כזו נדחפת לשרת ומוחקת את התוכנית בכל המכשירים ואצל המתאמן.
+
+   ב-15.9.2026 תוכנית בת חמישה ימים התאפסה כך, יום אחרי שהוחזרה.
+   מי שבאמת רוצה לרוקן — מאשר, ועובר. */
+function saveProgram(id){
+  const t=tById(id); if(!t) return;
+  const now=((t.program||{}).days||[]).length;
+  const was=((window.PROGRAM_BASE||{}).days||[]).length;
+  if(!now && was && !confirm('התוכנית של '+(t.name||'המתאמן')+' עומדת להישמר ריקה.\n\n'
+      +'היו בה '+was+' ימי אימון, והם יימחקו גם אצל המתאמן ובכל המכשירים.\n\n'
+      +'לשמור ריקה?')) return;
+  save(); window.PROGRAM_BASE_ID=id; window.PROGRAM_BASE=JSON.parse(JSON.stringify(t.program||{days:[]})); toast('התוכנית נשמרה'); render(); }
 function discardProgram(id){ revertProgram(id); }
 function revertProgram(id){ const t=tById(id); if(t&&window.PROGRAM_BASE_ID===id) t.program=JSON.parse(JSON.stringify(window.PROGRAM_BASE)); toast('השינויים שוחזרו'); render(); }
 function addDay(id){ const t=tById(id); t.program=t.program||{days:[]}; t.program.days.push({name:'יום '+String.fromCharCode(65+t.program.days.length),exercises:[]}); render(); }
@@ -2665,30 +2678,30 @@ if (location.protocol === 'file:') {
 }
 </script>
 
-<script src="health.js?v=v131"></script>
-<script src="privacy.js?v=v131"></script>
-<script src="backup.js?v=v131"></script>
-<script src="reorder.js?v=v131"></script>
-<script src="access.js?v=v131"></script>
-<script src="analysis.js?v=v131"></script>
-<script src="reports.js?v=v131"></script>
-<script src="business.js?v=v131"></script>
-<script src="intake.js?v=v131"></script>
-<script src="files.js?v=v131"></script>
-<script src="builder.js?v=v131"></script>
-<script src="import-program.js?v=v131"></script>
-<script src="tracking.js?v=v131"></script>
-<script src="metrics.js?v=v131"></script>
-<script src="targets.js?v=v131"></script>
-<script src="meal-library.js?v=v131"></script>
-<script src="library-ui.js?v=v131"></script>
-<script src="export-plan.js?v=v131"></script>
-<script src="cardio.js?v=v131"></script>
-<script src="cardio-ui.js?v=v131"></script>
-<script src="exercise-library.js?v=v131"></script>
-<script src="exercise-ui.js?v=v131"></script>
-<script src="meals.js?v=v131"></script>
-<script src="sync.js?v=v131"></script>
+<script src="health.js?v=v132"></script>
+<script src="privacy.js?v=v132"></script>
+<script src="backup.js?v=v132"></script>
+<script src="reorder.js?v=v132"></script>
+<script src="access.js?v=v132"></script>
+<script src="analysis.js?v=v132"></script>
+<script src="reports.js?v=v132"></script>
+<script src="business.js?v=v132"></script>
+<script src="intake.js?v=v132"></script>
+<script src="files.js?v=v132"></script>
+<script src="builder.js?v=v132"></script>
+<script src="import-program.js?v=v132"></script>
+<script src="tracking.js?v=v132"></script>
+<script src="metrics.js?v=v132"></script>
+<script src="targets.js?v=v132"></script>
+<script src="meal-library.js?v=v132"></script>
+<script src="library-ui.js?v=v132"></script>
+<script src="export-plan.js?v=v132"></script>
+<script src="cardio.js?v=v132"></script>
+<script src="cardio-ui.js?v=v132"></script>
+<script src="exercise-library.js?v=v132"></script>
+<script src="exercise-ui.js?v=v132"></script>
+<script src="meals.js?v=v132"></script>
+<script src="sync.js?v=v132"></script>
 <script>
 /* =================== חיבור הסנכרון לאפליקציה =================== */
 
