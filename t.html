@@ -369,17 +369,17 @@ button{cursor:pointer}
 
 <div id="toast"></div>
 
-<script src="vendor/supabase.js?v=v127"></script>
-<script src="config.js?v=v127"></script>
-<script src="meal-library.js?v=v127"></script>
-<script src="exercise-library.js?v=v127"></script>
-<script src="progress.js?v=v127"></script>
-<script src="habits.js?v=v127"></script>
-<script src="coach-bot.js?v=v127"></script>
-<script src="workout-log.js?v=v127"></script>
-<script src="targets.js?v=v127"></script>
-<script src="health.js?v=v127"></script>
-<script src="privacy.js?v=v127"></script>
+<script src="vendor/supabase.js?v=v128"></script>
+<script src="config.js?v=v128"></script>
+<script src="meal-library.js?v=v128"></script>
+<script src="exercise-library.js?v=v128"></script>
+<script src="progress.js?v=v128"></script>
+<script src="habits.js?v=v128"></script>
+<script src="coach-bot.js?v=v128"></script>
+<script src="workout-log.js?v=v128"></script>
+<script src="targets.js?v=v128"></script>
+<script src="health.js?v=v128"></script>
+<script src="privacy.js?v=v128"></script>
 <script>
 (function () {
   'use strict';
@@ -789,9 +789,22 @@ button{cursor:pointer}
       if (error) throw error;
       mergeMy(data);
     } catch (e) {
-      /* בלי הפונקציה בשרת ההוספה נשארת במכשיר. עדיין עובד למתאמן,
-         רק שהמאמן לא רואה — ולכן הודעה אחת ולא כישלון. */
-      toast('נשמר במכשיר. המאמן יראה אחרי שיסיים את ההגדרה.');
+      /* שני סוגי כישלון, ועד היום שניהם קיבלו את אותה הודעה:
+
+         השרת ענה ודחה — למשל תקרת הארוחות. ההוספה לא נשמרה בשום
+         מקום, והודעת "נשמר במכשיר" הייתה שקר שגרם לרשימה המקומית
+         לגדול מעבר למה שבשרת. כאן מחזירים אותה ואומרים מה קרה.
+
+         השרת לא ענה בכלל — אין רשת או שה-SQL לא הורץ. שם ההוספה
+         באמת נשמרת במכשיר, וההודעה נכונה. */
+      var msg = String((e && e.message) || '');
+      if (msg) {
+        MY_MEALS = MY_MEALS.filter(function (x) { return x.libId !== libId; });
+        writeMy(); refreshLib(libId);
+        toast(msg);
+      } else {
+        toast('נשמר במכשיר. המאמן יראה אחרי שיסיים את ההגדרה.');
+      }
     }
   }
 
