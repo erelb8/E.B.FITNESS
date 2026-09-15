@@ -14,7 +14,7 @@
   'use strict';
 
   // חותמת גרסה — index.html משווה אליה כדי לזהות קובץ ישן במטמון
-  (window.EB_MOD = window.EB_MOD || {})['builder'] = 'v129';
+  (window.EB_MOD = window.EB_MOD || {})['builder'] = 'v130';
 
   /* ---------- דפוסי תנועה ----------
      החלוקה לפי דפוס ולא לפי שריר, כי כך בונים פיצולים מאוזנים
@@ -128,6 +128,30 @@
          { t:'רגליים B',    pat:[P.HINGE,P.SQUAT,P.HINGE,P.CORE] } ]
   };
 
+  /* ---------- פיצול לפי תבנית הנשים ----------
+     אותם דפוסי תנועה, חלוקה אחרת: יותר ימי ירך וברך, ועליון מרוכז
+     ליום אחד בפיצולים הקצרים. משמש רק כשתבנית הבית לנשים היא
+     ההתייחסות בפועל — ראה build(). */
+  var SPLITS_F = {
+    2: [ { t:'תחתון וליבה', pat:[P.HINGE,P.SQUAT,P.HINGE,P.CORE,P.CORE] },
+         { t:'עליון וליבה', pat:[P.VPULL,P.HPUSH,P.HPULL,P.SHLD,P.CORE] } ],
+
+    3: [ { t:'תחתון — ירך וישבן', pat:[P.HINGE,P.HINGE,P.SQUAT,P.CORE,P.CORE] },
+         { t:'עליון',             pat:[P.VPULL,P.HPULL,P.VPUSH,P.HPUSH,P.SHLD,P.ARMS] },
+         { t:'תחתון — ברך וליבה', pat:[P.SQUAT,P.SQUAT,P.HINGE,P.CORE,P.CORE] } ],
+
+    4: [ { t:'תחתון A — ירך',  pat:[P.HINGE,P.HINGE,P.SQUAT,P.CORE,P.CORE] },
+         { t:'עליון A',        pat:[P.VPULL,P.HPUSH,P.HPULL,P.SHLD,P.ARMS] },
+         { t:'תחתון B — ברך',  pat:[P.SQUAT,P.SQUAT,P.HINGE,P.CORE,P.CORE] },
+         { t:'עליון B',        pat:[P.HPULL,P.VPUSH,P.VPULL,P.SHLD,P.ARMS] } ],
+
+    5: [ { t:'תחתון A — ירך',   pat:[P.HINGE,P.HINGE,P.SQUAT,P.CORE] },
+         { t:'עליון — משיכה',   pat:[P.VPULL,P.HPULL,P.HPULL,P.SHLD] },
+         { t:'תחתון B — ברך',   pat:[P.SQUAT,P.SQUAT,P.HINGE,P.CORE] },
+         { t:'עליון — דחיפה',   pat:[P.HPUSH,P.VPUSH,P.SHLD,P.ARMS] },
+         { t:'ישבן וליבה',      pat:[P.HINGE,P.SQUAT,P.CORE,P.CORE] } ]
+  };
+
   /* ---------- מטרה -> סטים, חזרות ומנוחה ---------- */
   var GOALS = {
     mass:  { t:'מסת שריר',        sets:4, reps:'8-12', rest:90,  cardio:0 },
@@ -144,6 +168,52 @@
   }
   var LVL = { 'מתחיל':1, 'בינוני':2, 'מתקדם':3 };
 
+  /* ---------- תבנית הבית לנשים ----------
+     תוכנית דמה מובנית, שמשמשת התייחסות ברירת מחדל למתאמנות כל עוד
+     לא נבחרה אחרת. היא נחוצה כי המנוע לומד מהתוכניות הקיימות, וכל
+     עוד רובן נכתבו לגברים — מתאמנת ראשונה מקבלת פיצול שנבנה על
+     סגנון אחר לגמרי.
+
+     הבהרה מקצועית שחשוב שתישאר כתובה: אין הבדל פיזיולוגי שמחייב
+     תרגילים אחרים לנשים. מה שהתבנית מקודדת הוא העדפה — נפח גבוה
+     יותר לפלג התחתון ולירך, טווחי חזרות ארוכים ומנוחות קצרות —
+     וזו העדפה של המאמן ושל רוב המתאמנות שפונות אליו, לא כלל
+     ביולוגי. מתאמנת שרוצה אחרת תקבל אחרת: הבחירה בתפריט גוברת.
+
+     השמות זהים לאלה שב-LIB, אחרת הדירוג לא יזהה אותם. */
+  var TEMPLATE_F_ID = '__f__';
+  var TEMPLATE_F = {
+    name: 'תבנית הבית — נשים',
+    days: [
+      { name: 'תחתון — דגש ירך וישבן', exercises: [
+        { name:'היפ ת׳רסט',          sets:'4', reps:'12-15', rest:'75' },
+        { name:'דדליפט רומני',       sets:'3', reps:'12-15', rest:'75' },
+        { name:'מכרעים בולגריים',    sets:'3', reps:'12',    rest:'60' },
+        { name:'לחיצת רגליים',       sets:'3', reps:'12-15', rest:'60' },
+        { name:'גשר ירכיים',         sets:'3', reps:'15',    rest:'45' },
+        { name:'פלאנק צד',           sets:'3', reps:'30 שנ׳', rest:'45' }
+      ] },
+      { name: 'עליון', exercises: [
+        { name:'פולי עליון',            sets:'3', reps:'12-15', rest:'75' },
+        { name:'חתירה בכבל',            sets:'3', reps:'12-15', rest:'75' },
+        { name:'לחיצת כתפיים בדמבלים',  sets:'3', reps:'12',    rest:'60' },
+        { name:'לחיצת חזה בדמבלים',     sets:'3', reps:'12',    rest:'60' },
+        { name:'הרחקות צד בדמבלים',     sets:'3', reps:'15',    rest:'45' },
+        { name:'פשיטת מרפקים בכבל',     sets:'3', reps:'12-15', rest:'45' },
+        { name:'דד באג',                sets:'3', reps:'12',    rest:'45' }
+      ] },
+      { name: 'תחתון וליבה', exercises: [
+        { name:'סקוואט גובלט',        sets:'4', reps:'12-15', rest:'75' },
+        { name:'דדליפט רומני',        sets:'3', reps:'12',    rest:'75' },
+        { name:'עלייה על ספסל',       sets:'3', reps:'12',    rest:'60' },
+        { name:'כפיפת ברכיים במכונה', sets:'3', reps:'12-15', rest:'60' },
+        { name:'היפ ת׳רסט',           sets:'3', reps:'15',    rest:'60' },
+        { name:'כפיפות בטן בכבל',     sets:'3', reps:'15',    rest:'45' },
+        { name:'פלאנק',               sets:'3', reps:'40 שנ׳', rest:'45' }
+      ] }
+    ]
+  };
+
   /* =====================================================================
      לימוד מהתוכניות הקיימות של המאמן
      ===================================================================== */
@@ -156,8 +226,21 @@
      זו הטיה מכוונת ולא באג. היא אינה מוחקת את שאר התוכניות — מתאמן
      עם מגבלה עדיין יקבל תרגיל חלופי, כי הסינון קודם לדירוג. */
   var HOUSE_WEIGHT = 6;
+
+  /* המתאמן שעבורו בונים כרגע. נקרא מ-FOR ולא מפרמטר, כי גם open()
+     וגם build() רצים אחרי שהוא נקבע. */
+  function isFemale() {
+    var t = (typeof tById === 'function' && FOR) ? tById(FOR) : null;
+    return !!t && t.gender === 'נקבה';
+  }
+  /* שתי התייחסויות נפרדות: אחת כללית ואחת לנשים. למתאמנת, ברירת
+     המחדל כשלא נבחר דבר היא תבנית הבית לנשים ולא "ללא" — זה כל
+     הטעם בתבנית. גבר לא מושפע מכלום מזה. */
   function houseId() {
     var st = (window.S && window.S.settings) || {};
+    if (isFemale()) {
+      return st.refProgramIdF === undefined ? TEMPLATE_F_ID : (st.refProgramIdF || '');
+    }
     return st.refProgramId || '';
   }
   function learn() {
@@ -165,10 +248,18 @@
                 house: null };
     var ref = houseId();
 
-    (window.S.trainees || []).forEach(function (t) {
+    /* התבנית המובנית אינה מתאמנת ולכן אינה ברשימה — מקפלים אותה
+       פנימה בעצמנו, באותו משקל שתוכנית התייחסות אמיתית מקבלת. */
+    var pool = (window.S.trainees || []).slice();
+    if (ref === TEMPLATE_F_ID) pool.push({ id: TEMPLATE_F_ID, name: TEMPLATE_F.name,
+                                           program: { days: TEMPLATE_F.days } });
+
+    pool.forEach(function (t) {
       var days = (t.program && t.program.days) || [];
       if (!days.length) return;
-      out.programs++;
+      /* התבנית המובנית אינה נספרת: המונה מוצג כ"תוכניות שכתבת",
+         ולספור בו תוכנית שהמאמן לא כתב זו הטעיה. */
+      if (t.id !== TEMPLATE_F_ID) out.programs++;
       var w = (ref && t.id === ref) ? HOUSE_WEIGHT : 1;
       if (w > 1) out.house = t.name || '';
       days.forEach(function (d) {
@@ -205,7 +296,12 @@
   function build(opt) {
     var g    = GOALS[opt.goal] || GOALS.fit;
     var lvl  = LVL[opt.level] || 1;
-    var days = SPLITS[opt.days] || SPLITS[3];
+    /* פיצול הנשים נכנס רק כשהתבנית המובנית היא ההתייחסות בפועל.
+       בחר המאמן תוכנית אמיתית כהתייחסות — הפיצול הרגיל חוזר, כי אז
+       הכוונה היא ללכת אחרי אותה תוכנית ולא אחרי התבנית. */
+    var useF = isFemale() && houseId() === TEMPLATE_F_ID;
+    var tbl  = useF ? SPLITS_F : SPLITS;
+    var days = tbl[opt.days] || tbl[3] || SPLITS[3];
     var L    = learn();
 
     // ברירות המחדל של המאמן מנצחות את שלי
@@ -395,19 +491,26 @@
   /* בוחר תוכנית ההתייחסות. נשמר בהגדרות ולא בתוכנית, כי הוא חל על
      כל בנייה עתידית ולא על מתאמן מסוים. */
   function houseSelect(skipId) {
+    var fem = isFemale();
     var opts = (window.S.trainees || []).filter(function (t) {
       return t.id !== skipId && !t.deleted
           && ((t.program || {}).days || []).some(function (d) {
                return ((d.exercises || []).length);
              });
     });
-    if (!opts.length) return '';
+    /* למתאמנת התפריט מוצג גם בלי אף תוכנית קיימת — התבנית המובנית
+       לבדה כבר נותנת ממה לבחור. */
+    if (!opts.length && !fem) return '';
     var cur = houseId();
     return '<div style="margin:12px 0 4px">'
       + '<label class="f" style="display:block;margin-bottom:4px">תוכנית התייחסות</label>'
       + '<select class="f" id="bd_house" style="width:100%" '
       + 'onchange="EBBuild.setHouse(this.value)">'
-      + '<option value="">ללא — ללמוד מכל התוכניות באותו משקל</option>'
+      + (fem ? '<option value="' + TEMPLATE_F_ID + '"'
+             + (cur === TEMPLATE_F_ID ? ' selected' : '') + '>'
+             + esc(TEMPLATE_F.name) + ' (ברירת מחדל)</option>' : '')
+      + '<option value=""' + (cur === '' ? ' selected' : '') + '>'
+      + 'ללא — ללמוד מכל התוכניות באותו משקל</option>'
       + opts.map(function (t) {
           return '<option value="' + esc(t.id) + '"' + (t.id === cur ? ' selected' : '') + '>'
                + esc(t.name || 'ללא שם') + '</option>';
@@ -415,12 +518,17 @@
       + '</select>'
       + '<div class="muted" style="font-size:11.5px;margin-top:5px;line-height:1.6">'
       + 'התוכנית שנבחרה תשפיע פי ' + HOUSE_WEIGHT + ' משאר התוכניות — התרגילים שלה '
-      + 'יעלו לראש, והסטים והחזרות שלה יקבעו את ברירת המחדל. הבחירה נשמרת '
-      + 'לכל הבניות הבאות.</div></div>';
+      + 'יעלו לראש, והסטים והחזרות שלה יקבעו את ברירת המחדל. '
+      + (fem ? 'הבחירה כאן נשמרת למתאמנות בלבד ואינה משנה את הבנייה לגברים.'
+             : 'הבחירה נשמרת לכל הבניות הבאות.')
+      + '</div></div>';
   }
   function setHouse(id) {
     window.S.settings = window.S.settings || {};
-    window.S.settings.refProgramId = id || '';
+    /* שתי הגדרות נפרדות, אחרת בחירה למתאמנת הייתה דורסת את
+       ההתייחסות של כל השאר. */
+    if (isFemale()) window.S.settings.refProgramIdF = id || '';
+    else            window.S.settings.refProgramId  = id || '';
     if (typeof save === 'function') save();
     if (FOR) { closeModal(); open(FOR); }
   }
