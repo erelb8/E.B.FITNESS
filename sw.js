@@ -2,7 +2,7 @@
    נותן לאפליקציה לעבוד לגמרי בלי אינטרנט אחרי הפתיחה הראשונה.
    כשמעדכנים את האפליקציה — מעלים את המספר ב-VERSION. */
 
-const VERSION = 'ebfit-v140';
+const VERSION = 'ebfit-v141';
 const SHELL   = VERSION + '-shell';
 const FONTS   = VERSION + '-fonts';
 
@@ -48,7 +48,8 @@ const SHELL_FILES = [
   './icons/icon-256.png',
   './icons/icon-512.png',
   './icons/maskable-512.png',
-  './icons/favicon-64.png'
+  './icons/favicon-64.png',
+  './icons/logo-96.png'
 ];
 
 // ---------- התקנה: שמירת שלד האפליקציה ----------

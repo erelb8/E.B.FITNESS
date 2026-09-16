@@ -11,7 +11,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['libraryUi'] = 'v140';
+  (window.EB_MOD = window.EB_MOD || {})['libraryUi'] = 'v141';
 
   var Q = '', TYPE = 'all', OPEN = {}, TAB = 'meals';
 
