@@ -67,6 +67,8 @@ a{color:var(--or);text-decoration:none}
 .brand{display:flex;align-items:baseline;gap:6px;font-family:'Heebo';font-weight:900;font-size:15px;letter-spacing:.06em}
 .brand .dot{width:7px;height:7px;border-radius:50%;background:var(--or);display:inline-block;transform:translateY(-1px)}
 .brand small{font-family:'Heebo';font-weight:400;font-size:10px;color:var(--dim);letter-spacing:.14em}
+/* הלוגו ליד השם. align-self כי .brand מיושר לקו הבסיס של הכתב */
+.brand-logo{width:30px;height:30px;border-radius:8px;align-self:center;margin-inline-end:4px;flex:0 0 auto}
 .top .spacer{flex:1}
 .top .now{font-size:12px;color:var(--mut);white-space:nowrap}
 
@@ -409,7 +411,7 @@ tbody tr:hover{background:var(--panel)}
 </head>
 <body>
 <header class="top">
-  <div class="brand">E.B<span class="dot"></span>FIT <small id="brandSub">ניהול מתאמנים</small></div>
+  <div class="brand"><img class="brand-logo" src="icons/icon-192.png" alt="" width="30" height="30">E.B<span class="dot"></span>FIT <small id="brandSub">ניהול מתאמנים</small></div>
   <div class="spacer"></div>
   <button class="syncpill s-off" id="syncPill" onclick="go('settings')" title="מצב סנכרון">מקומי בלבד</button>
   <span class="now" id="topDate"></span>
@@ -427,8 +429,8 @@ tbody tr:hover{background:var(--panel)}
 <div id="toast"></div>
 
 <!-- ספריית Supabase מקומית (לא מ-CDN) כדי שהאפליקציה תעבוד גם בלי רשת -->
-<script src="vendor/supabase.js?v=v139"></script>
-<script src="config.js?v=v139"></script>
+<script src="vendor/supabase.js?v=v140"></script>
+<script src="config.js?v=v140"></script>
 
 <script>
 /* =======================================================================
@@ -463,7 +465,7 @@ function age(b){ if(!b) return null; const d=new Date(b), t=new Date(); let a=t.
 
 /* ---------------- אחסון ---------------- */
 const KEY='ebfit_v1';
-const EB_VERSION='v139';   // חייב להתאים ל-VERSION ב-sw.js
+const EB_VERSION='v140';   // חייב להתאים ל-VERSION ב-sw.js
 let mem=null, canStore=true;
 function load(){
   try{ const r=localStorage.getItem(KEY); return r?JSON.parse(r):null; }
@@ -2407,6 +2409,27 @@ async function doTweak(id){
 </script>
 <script>
 /* =================== הגדרות =================== */
+/* הלוגו של העסק, להורדה. הקבצים יושבים ב-brand-assets ונבנים מ-brand/
+   (build-final.js ואז build-app-icons.js). הכתב בהם כבר הומר לצורות,
+   ולכן הם ייראו זהה בכל מקום — בהדפסה, על חולצה, אצל גרפיקאי. */
+function logoCard(){
+  const f=[
+    ['brand-assets/eb-fit-logo-1200.png','לוגו PNG','לאינסטגרם, לווטסאפ ולפוסטים'],
+    ['brand-assets/eb-fit-logo.svg','לוגו SVG','להדפסה, לחולצות ולגרפיקאי — לא מאבד איכות בשום גודל'],
+    ['brand-assets/eb-fit-icon-512.png','אייקון PNG','לתמונת פרופיל']
+  ];
+  return '<div class="card" style="margin-bottom:12px">'
+   +'<div class="row" style="align-items:center;gap:12px;margin-bottom:10px">'
+   +'<img src="brand-assets/eb-fit-icon-512.png" alt="" width="56" height="56" style="border-radius:12px">'
+   +'<div style="flex:1"><h3 style="font-size:15px;margin:0">הלוגו</h3>'
+   +'<div class="muted" style="font-size:12.5px">לשמירה במכשיר. בטלפון: לחיצה על הקובץ, ואז לחיצה ארוכה על התמונה ← שמירה.</div></div></div>'
+   +f.map(x=>'<div class="line-item" style="align-items:center;gap:10px">'
+     +'<span style="flex:1;font-size:13.5px"><b>'+x[1]+'</b><div class="muted" style="font-size:12px">'+x[2]+'</div></span>'
+     +'<a class="btn sm ghost" href="'+x[0]+'" target="_blank" rel="noopener">פתיחה</a>'
+     +'<a class="btn sm" href="'+x[0]+'" download>הורדה</a></div>').join('')
+   +'</div>';
+}
+
 function vSettings(){
   let h=head('הגדרות','פרטי העסק, גיבוי מידע וחיבור הבוט','');
   h+='<div class="grid g2"><div class="card"><h3 style="font-size:15px;margin-bottom:12px">פרטי העסק</h3><div class="grid g2">'
@@ -2420,6 +2443,7 @@ function vSettings(){
    +'<p class="muted" style="font-size:13px;margin:0 0 12px">כל המידע נשמר בדפדפן הזה בלבד. כדאי לייצא גיבוי מדי פעם, וגם כדי לעבור בין מכשירים.</p>'
    +diagCard()
    +(window.EBBackup?EBBackup.card():'')
+   +logoCard()
    +'<div class="row"><button class="btn ghost" onclick="exportJSON()">ייצוא מקומי בלבד</button>'
    +'<label class="btn ghost">ייבוא גיבוי<input type="file" accept="application/json" hidden onchange="importJSON(event)"></label>'
    +'<button class="btn ghost" onclick="seedDemo()">טעינת נתוני דוגמה</button>'
@@ -2712,30 +2736,30 @@ if (location.protocol === 'file:') {
 }
 </script>
 
-<script src="health.js?v=v139"></script>
-<script src="privacy.js?v=v139"></script>
-<script src="backup.js?v=v139"></script>
-<script src="reorder.js?v=v139"></script>
-<script src="access.js?v=v139"></script>
-<script src="analysis.js?v=v139"></script>
-<script src="reports.js?v=v139"></script>
-<script src="business.js?v=v139"></script>
-<script src="intake.js?v=v139"></script>
-<script src="files.js?v=v139"></script>
-<script src="builder.js?v=v139"></script>
-<script src="import-program.js?v=v139"></script>
-<script src="tracking.js?v=v139"></script>
-<script src="metrics.js?v=v139"></script>
-<script src="targets.js?v=v139"></script>
-<script src="meal-library.js?v=v139"></script>
-<script src="library-ui.js?v=v139"></script>
-<script src="export-plan.js?v=v139"></script>
-<script src="cardio.js?v=v139"></script>
-<script src="cardio-ui.js?v=v139"></script>
-<script src="exercise-library.js?v=v139"></script>
-<script src="exercise-ui.js?v=v139"></script>
-<script src="meals.js?v=v139"></script>
-<script src="sync.js?v=v139"></script>
+<script src="health.js?v=v140"></script>
+<script src="privacy.js?v=v140"></script>
+<script src="backup.js?v=v140"></script>
+<script src="reorder.js?v=v140"></script>
+<script src="access.js?v=v140"></script>
+<script src="analysis.js?v=v140"></script>
+<script src="reports.js?v=v140"></script>
+<script src="business.js?v=v140"></script>
+<script src="intake.js?v=v140"></script>
+<script src="files.js?v=v140"></script>
+<script src="builder.js?v=v140"></script>
+<script src="import-program.js?v=v140"></script>
+<script src="tracking.js?v=v140"></script>
+<script src="metrics.js?v=v140"></script>
+<script src="targets.js?v=v140"></script>
+<script src="meal-library.js?v=v140"></script>
+<script src="library-ui.js?v=v140"></script>
+<script src="export-plan.js?v=v140"></script>
+<script src="cardio.js?v=v140"></script>
+<script src="cardio-ui.js?v=v140"></script>
+<script src="exercise-library.js?v=v140"></script>
+<script src="exercise-ui.js?v=v140"></script>
+<script src="meals.js?v=v140"></script>
+<script src="sync.js?v=v140"></script>
 <script>
 /* =================== חיבור הסנכרון לאפליקציה =================== */
 

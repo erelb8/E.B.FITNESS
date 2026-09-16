@@ -52,6 +52,9 @@ button{cursor:pointer}
 }
 .brand{font-family:'Heebo';font-weight:900;font-size:12px;letter-spacing:.14em;color:var(--dim)}
 .brand .dot{width:6px;height:6px;border-radius:50%;background:var(--or);display:inline-block}
+/* הלוגו מעל השם — המתאמן רואה את המותג של המאמן שלו */
+.brand{display:flex;align-items:center;gap:8px}
+.brand-logo{width:34px;height:34px;border-radius:9px;flex:0 0 auto}
 .top h1{font-size:22px;margin-top:3px}
 .top .sub{color:var(--mut);font-size:13px;margin-top:2px}
 .top:after{content:'';display:block;position:absolute;right:0;left:0;bottom:-1px;height:1px;background:linear-gradient(90deg,transparent,var(--or),transparent);opacity:.45}
@@ -358,7 +361,7 @@ button{cursor:pointer}
 <body>
 
 <header class="top">
-  <div class="brand">E.B<span class="dot"></span>FIT</div>
+  <div class="brand"><img class="brand-logo" src="icons/icon-192.png" alt="" width="34" height="34"><span>E.B<span class="dot"></span>FIT</span></div>
   <h1 id="hTitle">טוען…</h1>
   <div class="sub" id="hSub"></div>
 </header>
@@ -369,17 +372,17 @@ button{cursor:pointer}
 
 <div id="toast"></div>
 
-<script src="vendor/supabase.js?v=v139"></script>
-<script src="config.js?v=v139"></script>
-<script src="meal-library.js?v=v139"></script>
-<script src="exercise-library.js?v=v139"></script>
-<script src="progress.js?v=v139"></script>
-<script src="habits.js?v=v139"></script>
-<script src="coach-bot.js?v=v139"></script>
-<script src="workout-log.js?v=v139"></script>
-<script src="targets.js?v=v139"></script>
-<script src="health.js?v=v139"></script>
-<script src="privacy.js?v=v139"></script>
+<script src="vendor/supabase.js?v=v140"></script>
+<script src="config.js?v=v140"></script>
+<script src="meal-library.js?v=v140"></script>
+<script src="exercise-library.js?v=v140"></script>
+<script src="progress.js?v=v140"></script>
+<script src="habits.js?v=v140"></script>
+<script src="coach-bot.js?v=v140"></script>
+<script src="workout-log.js?v=v140"></script>
+<script src="targets.js?v=v140"></script>
+<script src="health.js?v=v140"></script>
+<script src="privacy.js?v=v140"></script>
 <script>
 (function () {
   'use strict';
