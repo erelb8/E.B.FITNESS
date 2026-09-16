@@ -369,17 +369,17 @@ button{cursor:pointer}
 
 <div id="toast"></div>
 
-<script src="vendor/supabase.js?v=v137"></script>
-<script src="config.js?v=v137"></script>
-<script src="meal-library.js?v=v137"></script>
-<script src="exercise-library.js?v=v137"></script>
-<script src="progress.js?v=v137"></script>
-<script src="habits.js?v=v137"></script>
-<script src="coach-bot.js?v=v137"></script>
-<script src="workout-log.js?v=v137"></script>
-<script src="targets.js?v=v137"></script>
-<script src="health.js?v=v137"></script>
-<script src="privacy.js?v=v137"></script>
+<script src="vendor/supabase.js?v=v138"></script>
+<script src="config.js?v=v138"></script>
+<script src="meal-library.js?v=v138"></script>
+<script src="exercise-library.js?v=v138"></script>
+<script src="progress.js?v=v138"></script>
+<script src="habits.js?v=v138"></script>
+<script src="coach-bot.js?v=v138"></script>
+<script src="workout-log.js?v=v138"></script>
+<script src="targets.js?v=v138"></script>
+<script src="health.js?v=v138"></script>
+<script src="privacy.js?v=v138"></script>
 <script>
 (function () {
   'use strict';
@@ -446,9 +446,24 @@ button{cursor:pointer}
     try {
       const { data, error } = await sb.rpc('trainee_program', { p_token: TOKEN });
       if (error) throw error;
+      /* השרת ענה, והתשובה ריקה: הקישור לא קיים או בוטל. זו תשובה
+         ודאית, לא תקלת רשת — ולכן אסור ליפול לעותק השמור.
+
+         קודם לכן העותק הוצג כאן עם ההודעה "אין חיבור". מתאמנת שקיבלה
+         קישור שבוטל ראתה תוכנית ישנה, בלי סוף, ובלי שום סימן לכך
+         שהמאמן כבר בנה לה חדשה. היא לא ידעה לבקש קישור חדש, והמאמן
+         לא ידע שהיא לא רואה את מה שבנה.
+
+         מוחקים גם את הטוקן השמור: אחרת אייקון במסך הבית, שנפתח בלי
+         טוקן בכתובת, היה חוזר אליו שוב ושוב. */
       if (!data || !data.length) {
-        if (cached) return toast('אין חיבור — מוצגת הגרסה השמורה');
-        return screen(msg('הקישור לא פעיל', 'ייתכן שהמאמן ביטל את הגישה. פנה אליו.'));
+        try {
+          if (CACHE) localStorage.removeItem(CACHE);
+          if (localStorage.getItem('ebfit_t_token') === TOKEN) localStorage.removeItem('ebfit_t_token');
+        } catch (e) {}
+        DATA = null;
+        return screen(msg('הקישור הזה כבר לא פעיל',
+          'המאמן שלך כנראה שלח לך קישור חדש. בקש/י ממנו את הקישור העדכני, ואם שמרת את הדף כאייקון במסך הבית — מחק/י אותו ושמור/י מחדש מהקישור החדש.'));
       }
       DATA = data[0];
       mergeMy(DATA.meals_self);
