@@ -12,7 +12,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['meals'] = 'v143';
+  (window.EB_MOD = window.EB_MOD || {})['meals'] = 'v144';
 
   var BUCKET = 'programs';
   var MAXW   = 900;          // רוחב מרבי אחרי הקטנה
@@ -248,10 +248,13 @@
       + '</div>'
       + '<button class="btn sm ghost" style="margin-top:10px" onclick="EBMeals.calcKcal()">חישוב קלוריות מהמאקרו</button>'
       + '</div><div class="mf">'
-      + '<button class="btn" onclick="EBMeals.save(\'' + traineeId + '\',' + (mealId ? '\'' + mealId + '\'' : 'null') + ')">שמירה</button>'
-      + '<button class="btn ghost" onclick="closeModal()">ביטול</button>'
+      + '<button class="btn" onclick="closeModal()">סגירה</button>'
+      + '<span class="muted" style="font-size:12px;align-self:center">' + (mealId ? 'נשמר אוטומטית' : 'נשמר אוטומטית ברגע שיש שם') + '</span>'
       + (mealId ? '<div style="flex:1"></div><button class="btn danger" onclick="EBMeals.del(\'' + traineeId + '\',\'' + mealId + '\')">מחיקה</button>' : '')
       + '</div>', true);
+    /* ארוחה חדשה נוצרת בשמירה הראשונה שיש בה שם, ומשם מתעדכנת. */
+    var cur = mealId || null;
+    autoModal(function () { cur = save(traineeId, cur, true) || cur; });
   }
 
   function photoBox(url) {
@@ -277,6 +280,7 @@
         var r = await uploadPhoto(tid, f);
         PENDING = r;
         box.innerHTML = photoBox(r.url);
+        touched();
         toast('התמונה הועלתה · ' + Math.round(r.size/1024) + 'KB');
       } catch (e) {
         box.innerHTML = photoBox(null);
@@ -290,21 +294,29 @@
     inp.click();
   }
   function currentTrainee(){ return window.ARG; }
+  /* תמונה וחישוב קלוריות משנים את הטופס בלי אירוע הקלדה, ולכן
+     מודיעים לשמירה האוטומטית בעצמנו. */
+  function touched() {
+    var el = document.getElementById('ml_name');
+    if (el) el.dispatchEvent(new Event('change', { bubbles: true }));
+  }
 
   function calcKcal() {
     var p = num(gv('ml_p')), c = num(gv('ml_c')), f = num(gv('ml_f'));
     if (!p && !c && !f) { toast('צריך למלא לפחות מאקרו אחד'); return; }
     document.getElementById('ml_kcal').value = Math.round(p*4 + c*4 + f*9);
+    touched();
     toast('חושב: חלבון ופחמימה 4 קק״ל לגרם, שומן 9');
   }
 
-  function save(traineeId, mealId) {
+  function save(traineeId, mealId, silent) {
     var t = tById(traineeId); if (!t) return;
     var name = gv('ml_name');
-    if (!name) { toast('צריך שם לארוחה'); return; }
+    if (!name) { if (!silent) toast('צריך שם לארוחה'); return; }
 
     t.meals = t.meals || [];
     var m = mealId ? t.meals.find(function (x) { return x.id === mealId; }) : null;
+    if (mealId && !m) return;      // נמחקה בינתיים — לא מחזירים אותה
     if (!m) { m = { id: rand() }; t.meals.push(m); }
 
     m.name    = name;
@@ -316,8 +328,11 @@
     m.fat     = gv('ml_f');
     if (PENDING) { m.photo = PENDING.url; m.photoPath = PENDING.path; PENDING = null; }
 
-    save_(); closeModal(); render();
+    save_();
+    if (silent) return m.id;
+    closeModal(); render();
     toast(mealId ? 'הארוחה עודכנה' : 'הארוחה נוספה');
+    return m.id;
   }
   function save_(){ if (typeof window.save === 'function') window.save(); }
 
@@ -330,6 +345,7 @@
     if (m.photoPath && window.EBSync && EBSync.client()) {
       try { await EBSync.client().storage.from(BUCKET).remove([m.photoPath]); } catch (e) {}
     }
+    if (typeof cancelAuto === 'function') cancelAuto();
     t.meals = t.meals.filter(function (x) { return x.id !== mealId; });
     save_(); closeModal(); render();
     toast('הארוחה נמחקה');

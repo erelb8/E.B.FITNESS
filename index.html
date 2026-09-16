@@ -429,8 +429,8 @@ tbody tr:hover{background:var(--panel)}
 <div id="toast"></div>
 
 <!-- ספריית Supabase מקומית (לא מ-CDN) כדי שהאפליקציה תעבוד גם בלי רשת -->
-<script src="vendor/supabase.js?v=v143"></script>
-<script src="config.js?v=v143"></script>
+<script src="vendor/supabase.js?v=v144"></script>
+<script src="config.js?v=v144"></script>
 
 <script>
 /* =======================================================================
@@ -465,7 +465,7 @@ function age(b){ if(!b) return null; const d=new Date(b), t=new Date(); let a=t.
 
 /* ---------------- אחסון ---------------- */
 const KEY='ebfit_v1';
-const EB_VERSION='v143';   // חייב להתאים ל-VERSION ב-sw.js
+const EB_VERSION='v144';   // חייב להתאים ל-VERSION ב-sw.js
 let mem=null, canStore=true;
 function load(){
   try{ const r=localStorage.getItem(KEY); return r?JSON.parse(r):null; }
@@ -765,6 +765,10 @@ function authNoticeBox(){
 /* ---------------- מודאל ---------------- */
 var MODAL_SNAPSHOT = null;
 function openModal(html, wide){
+  /* חלון שנפתח מתוך חלון (למשל חזרה משלב לשלב) — קודם שומרים את
+     מה שהוקלד בקודם, ואז החלון החדש מתחיל בלי שמירה אוטומטית עד
+     שהפונקציה שפתחה אותו תבקש. */
+  flushAuto(); MODAL_AUTO=null;
   try { MODAL_SNAPSHOT = JSON.parse(JSON.stringify(S)); } catch(e) { MODAL_SNAPSHOT = null; }
   $('#modal').className = 'modal' + (wide?' wide':'');
   $('#modal').innerHTML = html;
@@ -781,10 +785,71 @@ function openModal(html, wide){
   document.body.style.overflow='hidden';
   const f=$('#modal').querySelector('input,select,textarea'); if(f) setTimeout(()=>f.focus(),60);
 }
-function closeModal(){ $('#mask').classList.remove('on'); document.body.style.overflow=''; }
+function closeModal(){
+  /* שומרים את מה שהוקלד רגע לפני הסגירה, ומרעננים את המסך שמתחת
+     רק אם משהו נשמר בזמן שהחלון היה פתוח. */
+  flushAuto();
+  const changed=MODAL_AUTO_SAVED;
+  MODAL_AUTO=null; MODAL_AUTO_SAVED=false;
+  $('#mask').classList.remove('on'); document.body.style.overflow='';
+  if(changed) render();
+}
+/* ---------- שמירה אוטומטית בטפסים ----------
+   ביקשו שכל עריכה תישמר מעצמה, כמו התוכנית (ראה commitProgram).
+   כל שינוי בשדה מתזמן שמירה אחרי השהיה קצרה, וכל סגירת חלון,
+   מעבר מסך, render או מעבר לרקע שומרים מיד את מה שממתין.
+
+   שני סוגי טפסים:
+   - חלון (מודאל): הפונקציה שפתחה אותו קוראת ל-autoModal עם פונקציית
+     השמירה השקטה שלו. השמירה השקטה לא סוגרת, לא מציגה הודעה ולא
+     מרנדרת — אחרת כל אות שמוקלדת הייתה קופצת.
+   - שדה בתוך המסך: מסומן data-auto="שם:מזהה", והטיפול ב-AUTO_INLINE.
+     כאן אסור render בשמירה: הוא היה בונה מחדש את השדה שמקלידים בו.
+
+   "ביטול" כבר אינו אפשרי במובן הישן, כי השינוי כבר נשמר. במקומו
+   "שחזור" (revertModal) מחזיר את המצב שלפני פתיחת החלון ושומר אותו. */
+let MODAL_AUTO=null, MODAL_AUTO_SAVED=false;
+const AUTO_PENDING={};   // מפתח → {t, fn}
+var AUTO_INLINE=window.AUTO_INLINE||(window.AUTO_INLINE={});   // שם → פונקציה(מזהה); גם מודולים רושמים כאן
+function autoModal(fn){ MODAL_AUTO=fn; MODAL_AUTO_SAVED=false; }
+function scheduleAuto(key,fn){
+  const p=AUTO_PENDING[key]||(AUTO_PENDING[key]={});
+  clearTimeout(p.t); p.fn=fn;
+  p.t=setTimeout(()=>{ delete AUTO_PENDING[key]; fn(); },700);
+}
+function flushAuto(){
+  Object.keys(AUTO_PENDING).forEach(k=>{
+    const p=AUTO_PENDING[k]; delete AUTO_PENDING[k];
+    clearTimeout(p.t); try{ p.fn(); }catch(e){ console.error('[EB] autosave',e); }
+  });
+}
+function dropAuto(){ Object.keys(AUTO_PENDING).forEach(k=>{ clearTimeout(AUTO_PENDING[k].t); delete AUTO_PENDING[k]; }); }
+/* ביטול שמירה ממתינה, לפני מחיקה מתוך חלון — אחרת הסגירה הייתה שומרת
+   מחדש את מה שנמחק זה עתה. */
+function cancelAuto(){ dropAuto(); MODAL_AUTO=null; }
+function onAutoEdit(e){
+  const el=e.target; if(!el||!el.closest) return;
+  if(el.closest('#modal')){
+    if(!MODAL_AUTO || !$('#mask').classList.contains('on')) return;
+    const fn=MODAL_AUTO;
+    scheduleAuto('modal',()=>{ if(MODAL_AUTO===fn){ fn(); MODAL_AUTO_SAVED=true; } });
+    return;
+  }
+  const box=el.closest('[data-auto]'); if(!box) return;
+  const spec=box.getAttribute('data-auto'), i=spec.indexOf(':');
+  const name=i<0?spec:spec.slice(0,i), arg=i<0?'':spec.slice(i+1);
+  if(AUTO_INLINE[name]) scheduleAuto('inline:'+spec,()=>AUTO_INLINE[name](arg));
+}
+document.addEventListener('input',onAutoEdit,true);
+document.addEventListener('change',onAutoEdit,true);
 function revertModal(){
+  dropAuto(); MODAL_AUTO=null;
+  const had=!!MODAL_SNAPSHOT;
   if(MODAL_SNAPSHOT) S=JSON.parse(JSON.stringify(MODAL_SNAPSHOT));
   MODAL_SNAPSHOT=null;
+  /* השינויים כבר נשמרו בדרך, ולכן גם החזרה צריכה להישמר. */
+  if(had) save();
+  MODAL_AUTO_SAVED=false;
   closeModal();
   toast('השינויים שוחזרו');
   render();
@@ -832,6 +897,7 @@ function go(v, arg){
   /* לפני מעבר מסך שומרים את מה שממתין בתוכנית — בלי שאלה.
      ראה commitProgram. */
   if(typeof commitProgram==='function') commitProgram();
+  flushAuto();
   VIEW=v; ARG=arg||null; if(v!=='trainee') SUBTAB='details'; window.scrollTo(0,0); render();
 }
 
@@ -881,6 +947,8 @@ function vNoAdmin(){
 }
 
 function render(){
+  /* שדה שהוקלד בו ועוד לא נשמר נקרא לפני שהמסך נבנה מחדש ומוחק אותו. */
+  flushAuto();
   /* הוספה ומחיקה של ימים ותרגילים קוראות ל-render בלי לשמור. כאן הן
      נתפסות במקום אחד, במקום לתקן כל פעולה בנפרד ולשכוח אחת. */
   if(typeof scheduleProgramAutosave==='function') scheduleProgramAutosave();
@@ -1116,9 +1184,13 @@ function editTrainee(id){
   +'</div>'
   +(S.features.health?'<div class="sep"></div><label class="f">הצהרת בריאות — מגבלות, פציעות, תרופות</label><textarea class="f" id="tf_health">'+esc(t.health||'')+'</textarea><div class="row" style="margin-top:8px"><label style="font-size:13px"><input type="checkbox" id="tf_hok" '+(t.healthOk?'checked':'')+'> ההצהרה נחתמה ואושרה</label></div>':'')
   +(S.features.nutrition?'<div class="sep"></div><div class="grid g3">'+fld('יעד קלוריות','tf_kcal','number',t.kcal||'')+fld('יעד חלבון (ג׳)','tf_prot','number',t.prot||'')+fld('יעד צעדים','tf_steps','number',t.steps||'')+'</div>':'')
-  +'</div><div class="mf"><button class="btn" onclick="saveTrainee('+(id?'\''+id+'\'':'null')+')">שמירה</button>'
-  +'<button class="btn ghost" onclick="closeModal()">ביטול</button>'
+  +'</div><div class="mf"><button class="btn" onclick="closeModal()">סגירה</button>'
+  +'<span class="muted" style="font-size:12px;align-self:center">'+(id?'נשמר אוטומטית':'נשמר אוטומטית ברגע שיש שם')+'</span>'
   +(id?'<div style="flex:1"></div><button class="btn danger" onclick="delTrainee(\''+id+'\')">מחיקה</button>':'')+'</div>', true);
+  /* מתאמן חדש נוצר בשמירה הראשונה שיש בה שם, ומשם כל שמירה מעדכנת
+     אותו — לא יוצרת עוד אחד. */
+  let cur=id||null;
+  autoModal(()=>{ const r=saveTrainee(cur,true); if(r) cur=r; });
 }
 function fld(l,id,type,v){ return '<div><label class="f">'+l+'</label><input class="f" id="'+id+'" type="'+type+'" value="'+esc(v==null?'':v)+'"></div>'; }
 function sel(l,id,opts,v){
@@ -1129,8 +1201,8 @@ function sel(l,id,opts,v){
 const gv = id => { const e=document.getElementById(id); return e?e.value.trim():''; };
 const passwordValue = id => { const e=document.getElementById(id); return e?String(e.value):''; };
 const gn = id => Number(gv(id)||0);
-function saveTrainee(id){
-  const name=gv('tf_name'); if(!name){ toast('צריך למלא שם'); return; }
+function saveTrainee(id,silent){
+  const name=gv('tf_name'); if(!name){ if(!silent) toast('צריך למלא שם'); return; }
   /* אימייל, תגיות ויתרת חוב הוסרו מהטופס. הם לא נכללים כאן בכוונה —
      כך ערכים שכבר הוזנו בעבר נשמרים ולא נדרסים ב-Object.assign למטה. */
   /* הכרטיסייה אינה בטופס, ולכן נלקחת מהרשומה הקיימת כדי לא לאפס
@@ -1154,14 +1226,26 @@ function saveTrainee(id){
      משך ההצטרפות נבחר בטופס (ברירת מחדל שלושה חודשים), ותאריך
      ההתחלה הוא תאריך ההצטרפות. שניהם נערכים בכרטיס תקופת התוכנית. */
   let months=3;
-  if(id){ Object.assign(tById(id), o); }
+  if(id && !tById(id)) return;
+  if(id){
+    Object.assign(tById(id), o);
+    /* משך ההצטרפות מופיע רק בטופס מתאמן חדש. כשהוא קיים כאן, זו
+       שמירה חוזרת של מתאמן שנוצר זה עתה באותו חלון. */
+    const tp=tById(id).program;
+    if(document.getElementById('tf_months') && tp){
+      tp.planMonths=Math.min(60,Math.max(1,gn('tf_months')||3));
+      tp.planStart=(o.joined||todayISO()).slice(0,10);
+    }
+  }
   else {
     o.id=uid();
     months=Math.min(60,Math.max(1,gn('tf_months')||3));
     o.program={ days:[], planStart:(o.joined||todayISO()).slice(0,10), planMonths:months };
     S.trainees.push(o);
   }
+  if(silent){ save(); return id||o.id; }
   save(); closeModal(); toast(id?'המתאמן עודכן':'המתאמן נוסף — מעקב ל'+monthsLabel(months)); render();
+  return id||o.id;
 }
 /* ---------- מחיקה מסונכרנת ----------
    הסרה מהמערך המקומי לבדה אינה מספיקה. הדחיפה מזהה מחיקה לפי מה
@@ -1523,12 +1607,14 @@ function editExercise(tid,di,ei){
    +fld('משקל','ex_weight','text',e.weight)
    +fld('מנוחה (שניות)','ex_rest','number',e.rest)
    +'</div><label class="f" style="margin-top:12px">הערה</label><textarea class="f" id="ex_note">'+esc(e.note||'')+'</textarea></div>'
-   +'<div class="mf"><button class="btn" onclick="saveExercise(\''+tid+'\','+di+','+ei+')">שמירה</button><button class="btn ghost" onclick="closeModal()">ביטול</button></div>',true);
+   +'<div class="mf"><button class="btn" onclick="closeModal()">סגירה</button></div>',true);
+  autoModal(()=>saveExercise(tid,di,ei,true));
 }
-function saveExercise(tid,di,ei){
+function saveExercise(tid,di,ei,silent){
   const t=tById(tid), e=t&&t.program&&t.program.days[di]&&t.program.days[di].exercises[ei];
   if(!e) return;
   Object.assign(e,{name:gv('ex_name'),sets:gv('ex_sets'),reps:gv('ex_reps'),weight:gv('ex_weight'),rest:gv('ex_rest'),note:gv('ex_note')});
+  if(silent){ updateProgramDock(tid); return; }
   closeModal(); updateProgramDock(tid); toast('התרגיל עודכן'); render();
 }
 /* מצב הפתיחה של ימי האימון. לא נשמר בין רענונים בכוונה — זו העדפת
@@ -1887,18 +1973,26 @@ function editMeasure(id,tid){
   +fld('הליכון Bruce (דק׳)','m_bruceMin','number',m.bruceMin)+'</div>'
   +'<div class="muted" style="font-size:12px;margin-top:8px">כל מבחן נותן אומדן צח״מ עצמאי. ככל שיש יותר — האומדן יציב יותר, והמערכת לוקחת את החציון.</div>'
   +'<div style="margin-top:12px"><label class="f">הערה</label><input class="f" id="m_note" value="'+esc(m.note||'')+'"></div></div>'
-  +'<div class="mf"><button class="btn" onclick="saveMeasure('+(id?'\''+id+'\'':'null')+',\''+(m.traineeId)+'\')">שמירה</button><button class="btn ghost" onclick="closeModal()">ביטול</button>'
-  +(id?'<div style="flex:1"></div><button class="btn danger" onclick="delRow(\'measures\',\''+id+'\');save();closeModal();render()">מחיקה</button>':'')+'</div>');
+  +'<div class="mf"><button class="btn" onclick="closeModal()">סגירה</button>'
+  +(id?'<div style="flex:1"></div><button class="btn danger" onclick="delMeasure(\''+id+'\')">מחיקה</button>':'')+'</div>');
+  let cur=id||null;
+  autoModal(()=>{ cur=saveMeasure(cur,m.traineeId,true)||cur; });
 }
-function saveMeasure(id,tid){
+/* מחיקה מתוך החלון: קודם מבטלים שמירה ממתינה, אחרת הסגירה הייתה
+   שומרת את המדידה מחדש אחרי שנמחקה. */
+function delMeasure(id){ cancelAuto(); delRow('measures',id); save(); closeModal(); render(); }
+function saveMeasure(id,tid,silent){
   const o={traineeId:tid,date:gv('m_date'),weight:gv('m_weight'),fat:gv('m_fat'),chest:gv('m_chest'),
     waist:gv('m_waist'),hips:gv('m_hips'),arm:gv('m_arm'),thigh:gv('m_thigh'),neck:gv('m_neck'),
     restHr:gv('m_restHr'),bpSys:gv('m_bpSys'),bpDia:gv('m_bpDia'),
     cooper12:gv('m_cooper12'),run15:gv('m_run15'),stepHr:gv('m_stepHr'),
     walkMin:gv('m_walkMin'),walkHr:gv('m_walkHr'),bruceMin:gv('m_bruceMin'),
     note:gv('m_note')};
-  if(id) Object.assign(S.measures.find(x=>x.id===id),o); else { o.id=uid(); S.measures.push(o); }
-  save(); closeModal(); toast('המדידה נשמרה'); render();
+  if(id){ const old=S.measures.find(x=>x.id===id); if(!old) return; Object.assign(old,o); }
+  else { o.id=uid(); S.measures.push(o); }
+  save();
+  if(silent) return id||o.id;
+  closeModal(); toast('המדידה נשמרה'); render();
 }
 
 /* --------- נוכחות + תשלומים בתיק --------- */
@@ -1946,12 +2040,19 @@ function openPR(tid){
   openModal('<div class="mh"><h3>שיא אישי</h3><button class="iconbtn" onclick="closeModal()">✕</button></div><div class="mb"><div class="grid g2">'
   +fld('תרגיל','pr_ex','text','')+fld('תאריך','pr_date','date',todayISO())
   +fld('משקל / ערך','pr_val','number','')+fld('חזרות','pr_reps','number',1)+'</div></div>'
-  +'<div class="mf"><button class="btn" onclick="savePR(\''+tid+'\')">שמירה</button><button class="btn ghost" onclick="closeModal()">ביטול</button></div>');
+  +'<div class="mf"><button class="btn" onclick="closeModal()">סגירה</button>'
+  +'<span class="muted" style="font-size:12px;align-self:center">נשמר אוטומטית ברגע שיש שם תרגיל</span></div>');
+  let cur=null;
+  autoModal(()=>{ cur=savePR(tid,cur,true)||cur; });
 }
-function savePR(tid){
-  if(!gv('pr_ex')){ toast('צריך שם תרגיל'); return; }
-  S.prs.push({id:uid(),traineeId:tid,exercise:gv('pr_ex'),date:gv('pr_date'),value:gv('pr_val'),reps:gv('pr_reps'),unit:'ק״ג'});
-  save(); closeModal(); toast('שיא נרשם'); render();
+function savePR(tid,id,silent){
+  if(!gv('pr_ex')){ if(!silent) toast('צריך שם תרגיל'); return; }
+  const o={traineeId:tid,exercise:gv('pr_ex'),date:gv('pr_date'),value:gv('pr_val'),reps:gv('pr_reps'),unit:'ק״ג'};
+  const old=id&&S.prs.find(x=>x.id===id);
+  if(old) Object.assign(old,o); else { o.id=uid(); S.prs.push(o); }
+  save();
+  if(silent) return old?id:o.id;
+  closeModal(); toast('שיא נרשם'); render();
 }
 function tabPhotos(t){
   const ph=S.photos.filter(p=>p.traineeId===t.id).sort((a,b)=>b.date.localeCompare(a.date));
@@ -2048,17 +2149,16 @@ function tabNutri(t){
    +stat('יעד צעדים',t.steps?Number(t.steps).toLocaleString('he-IL'):'—','ליום')+'</div>';
   h+=calcNutriCard(t);
   h+='<div class="card" style="margin-top:14px"><h3 style="font-size:15px;margin-bottom:10px">תפריט / הנחיות תזונה</h3>'
-   +'<textarea class="f" style="min-height:200px" id="nutri_txt" placeholder="ארוחות, חלוקה יומית, הנחיות לפני ואחרי אימון...">'+esc(t.menu||'')+'</textarea>'
-   +'<div class="row" style="margin-top:10px"><button class="btn sm" onclick="saveNutri(\''+t.id+'\')">שמירה</button><button class="btn sm ghost" onclick="render()">ביטול</button><button class="btn sm ghost" onclick="resetNutri(\''+t.id+'\')">שחזור</button></div>'
-   +'<div class="muted" style="font-size:12px;margin-top:8px">השינוי יישמר במכשיר ויסונכרן למסד הנתונים לאחר לחיצה על שמירה.</div></div>';
+   +'<div data-auto="nutri:'+t.id+'"><textarea class="f" style="min-height:200px" id="nutri_txt" placeholder="ארוחות, חלוקה יומית, הנחיות לפני ואחרי אימון...">'+esc(t.menu||'')+'</textarea></div>'
+   +'<div class="muted" style="font-size:12px;margin-top:8px">נשמר אוטומטית תוך כדי כתיבה, ומסונכרן למסד הנתונים.</div></div>';
   return h;
 }
 function saveNutri(id){
-  const t=tById(id); if(!t) return;
-  t.menu=($('#nutri_txt')||{}).value||'';
-  save(); toast('התפריט נשמר'); render();
+  const t=tById(id), el=$('#nutri_txt'); if(!t||!el) return;
+  if((t.menu||'')===el.value) return;
+  t.menu=el.value; save();
 }
-function resetNutri(id){ render(); toast('השינויים שוחזרו'); }
+AUTO_INLINE.nutri=saveNutri;
 
 /* --------- ווטסאפ --------- */
 function waMsg(id){
@@ -2123,23 +2223,27 @@ function editSession(id,tid,date){
   +(S.features.rpe?fld('RPE (1-10)','s_rpe','number',s.rpe||''):'<div></div>')+'</div>'
   +'<div style="margin-top:12px"><label class="f">הערה לאימון</label><input class="f" id="s_note" value="'+esc(s.note||'')+'"></div>'
   +'</div>'
-  +'<div class="mf"><button class="btn" onclick="saveSession('+(id?'\''+id+'\'':'null')+')">שמירה</button><button class="btn ghost" onclick="closeModal()">ביטול</button>'
+  +'<div class="mf"><button class="btn" onclick="closeModal()">סגירה</button>'
   +(id?'<div style="flex:1"></div><button class="btn danger" onclick="delSession(\''+id+'\')">מחיקה</button>':'')+'</div>');
+  let cur=id||null;
+  autoModal(()=>{ cur=saveSession(cur,true)||cur; });
 }
-function saveSession(id){
+function saveSession(id,silent){
   const o={traineeId:gv('s_t'),date:gv('s_date'),time:gv('s_time'),type:gv('s_type'),status:gv('s_status'),note:gv('s_note')};
   if(S.features.rpe) o.rpe=gv('s_rpe');
-  if(id){ const old=S.sessions.find(x=>x.id===id);
+  if(id){ const old=S.sessions.find(x=>x.id===id); if(!old) return;
     if(old.status!=='done' && o.status==='done') bump(o.traineeId,1);
     if(old.status==='done' && o.status!=='done') bump(old.traineeId,-1);
     Object.assign(old,o);
   } else { o.id=uid(); if(o.status==='done') bump(o.traineeId,1); S.sessions.push(o); }
-  save(); closeModal(); toast('האימון נשמר'); render();
+  save();
+  if(silent) return id||o.id;
+  closeModal(); toast('האימון נשמר'); render();
 }
 /* הכרטיסיות ירדו מהמערכת; הפונקציה נשארת כדי שקריאות קיימות
    לא ייפלו, אבל היא כבר לא משנה נתונים. */
 function bump(){}
-function delSession(id){ const s=S.sessions.find(x=>x.id===id); if(s&&s.status==='done') bump(s.traineeId,-1);
+function delSession(id){ cancelAuto(); const s=S.sessions.find(x=>x.id===id); if(s&&s.status==='done') bump(s.traineeId,-1);
   delRow('sessions', id); save(); closeModal(); render(); }
 
 /* =================== תשלומים =================== */
@@ -2177,14 +2281,23 @@ function openPay(tid){
   +sel('אמצעי','p_m',['ביט','העברה בנקאית','מזומן','אשראי','אפליקציה'],'ביט')
   +fld('הערה','p_note','text','')+'</div>'
   +'<label style="display:block;margin-top:12px;font-size:13px"><input type="checkbox" id="p_clear" checked> לאפס את יתרת החוב של המתאמן</label></div>'
-  +'<div class="mf"><button class="btn" onclick="savePay()">שמירה</button><button class="btn ghost" onclick="closeModal()">ביטול</button></div>');
+  +'<div class="mf"><button class="btn" onclick="closeModal()">סגירה</button>'
+  +'<span class="muted" style="font-size:12px;align-self:center">נרשם אוטומטית עם השינוי הראשון</span></div>');
+  let cur=null;
+  autoModal(()=>{ cur=savePay(cur,true)||cur; });
 }
-function savePay(){
+/* התשלום נרשם בשינוי הראשון בחלון ומתעדכן בכל שינוי אחריו. חלון
+   שנפתח ונסגר בלי לגעת בכלום אינו רושם תשלום. */
+function savePay(id,silent){
   const tid=gv('p_t'), add=0;
-  S.payments.push({id:uid(),traineeId:tid,date:gv('p_date'),amount:gn('p_amt'),method:gv('p_m'),sessions:add,note:gv('p_note')});
+  const o={traineeId:tid,date:gv('p_date'),amount:gn('p_amt'),method:gv('p_m'),sessions:add,note:gv('p_note')};
+  const old=id&&S.payments.find(x=>x.id===id);
+  if(old) Object.assign(old,o); else { o.id=uid(); S.payments.push(o); }
   const t=tById(tid);
   if(t){ const c=document.getElementById('p_clear'); if(c&&c.checked) t.balanceDue=0; }
-  save(); closeModal(); toast('התשלום נרשם'); render();
+  save();
+  if(silent) return old?id:o.id;
+  closeModal(); toast('התשלום נרשם'); render();
 }
 
 /* =================== התקדמות כללית =================== */
@@ -2454,12 +2567,12 @@ function logoCard(){
 
 function vSettings(){
   let h=head('הגדרות','פרטי העסק, גיבוי מידע וחיבור הבוט','');
-  h+='<div class="grid g2"><div class="card"><h3 style="font-size:15px;margin-bottom:12px">פרטי העסק</h3><div class="grid g2">'
+  h+='<div class="grid g2"><div class="card" data-auto="settings"><h3 style="font-size:15px;margin-bottom:12px">פרטי העסק</h3><div class="grid g2">'
    +fld('שם העסק','st_biz','text',S.settings.business)+fld('שם המאמן','st_trainer','text',S.settings.trainer)
    +fld('טלפון','st_phone','tel',S.settings.phone)+fld('מטבע','st_cur','text',S.settings.currency)
    +fld('מחיר ברירת מחדל לאימון','st_price','number',S.settings.sessionPrice)
   +'</div>'
-  +'<div class="row" style="margin-top:12px"><button class="btn" onclick="saveSettings()">שמירה</button><button class="btn ghost" onclick="render()">ביטול</button><button class="btn ghost" onclick="resetSettings()">שחזור</button></div></div>';
+  +'<div class="muted" style="font-size:12px;margin-top:10px">נשמר אוטומטית עם כל שינוי.</div></div>';
 
   h+='<div class="card"><h3 style="font-size:15px;margin-bottom:12px">גיבוי ושחזור</h3>'
    +'<p class="muted" style="font-size:13px;margin:0 0 12px">כל המידע נשמר בדפדפן הזה בלבד. כדאי לייצא גיבוי מדי פעם, וגם כדי לעבור בין מכשירים.</p>'
@@ -2478,8 +2591,7 @@ function vSettings(){
    +'זה שירות בתשלום לפי שימוש (בערך 10–30 סנט לפיצ׳ר). '
    +'בלי מפתח — 8 המודולים המוכנים עובדים, והרעיונות שתכתוב לבוט נשמרים ברשימה. '
    +'המפתח נשמר בדפדפן הזה בלבד ולא מסונכרן לשרת.</p>'
-   +'<div class="row"><input class="f" id="st_key" type="password" placeholder="sk-ant-..." value="'+esc(S.settings.apiKey||'')+'" style="flex:1;min-width:180px">'
-   +'<button class="btn" onclick="S.settings.apiKey=gv(\'st_key\');save();toast(\'המפתח נשמר\')">שמירה</button></div>'
+   +'<div class="row" data-auto="apikey"><input class="f" id="st_key" type="password" placeholder="sk-ant-..." value="'+esc(S.settings.apiKey||'')+'" style="flex:1;min-width:180px"></div>'
    +'<div class="muted" style="font-size:12px;margin-top:10px">'+(canStore?'שמירה אוטומטית פעילה בדפדפן הזה.':'הדפדפן חוסם שמירה מקומית — המידע קיים רק עד לרענון. כדאי לייצא גיבוי.')+'</div>'
    +'</div></div>';
 
@@ -2489,12 +2601,16 @@ function vSettings(){
    +stat('מתאמנים',S.trainees.length,'')+stat('אימונים',S.sessions.length,'')+stat('מדידות',S.measures.length,'')+stat('גרסה',EB_VERSION,'')+'</div>'+'<div class="muted" style="font-size:12px;margin-top:10px">אם הגרסה כאן שונה מזו שבפיתוח — הדפדפן מציג עותק ישן. '+'<button class="btn sm ghost" onclick="forceUpdate()">רענון מלא</button></div></div>';
   return h;
 }
+/* defaultPack אינו בטופס. קודם נכתב כאן gn('st_pack'), שמחזיר 0 כשאין
+   שדה — כל שמירת הגדרות איפסה אותו בשקט. */
 function saveSettings(){
+  if(!document.getElementById('st_biz')) return;
   Object.assign(S.settings,{business:gv('st_biz'),trainer:gv('st_trainer'),phone:gv('st_phone'),
-    currency:gv('st_cur')||'₪',sessionPrice:gn('st_price'),defaultPack:gn('st_pack')});
-  save(); toast('ההגדרות נשמרו'); render();
+    currency:gv('st_cur')||'₪',sessionPrice:gn('st_price')});
+  save();
 }
-function resetSettings(){ render(); toast('השינויים שוחזרו'); }
+AUTO_INLINE.settings=saveSettings;
+AUTO_INLINE.apikey=()=>{ const e=document.getElementById('st_key'); if(!e) return; S.settings.apiKey=e.value.trim(); save(); };
 function exportJSON(){
   const b=new Blob([JSON.stringify(S,null,2)],{type:'application/json'});
   const a=document.createElement('a'); a.href=URL.createObjectURL(b);
@@ -2695,12 +2811,15 @@ window.addEventListener('beforeunload',(e)=>{
   /* שומרים מה שממתין בתוכנית ואז את הכל. בלי אזהרת דפדפן — אין עוד
      טיוטה שיכולה ללכת לאיבוד. */
   if(typeof commitProgram==='function') commitProgram();
+  flushAuto();
   save();
 });
 /* בטלפון סגירת האפליקציה לא תמיד מפעילה beforeunload. מעבר לרקע
    כן מפעיל visibilitychange, ושם נתפסת השמירה האחרונה. */
 document.addEventListener('visibilitychange',()=>{
-  if(document.visibilityState==='hidden' && typeof commitProgram==='function') commitProgram();
+  if(document.visibilityState!=='hidden') return;
+  flushAuto();
+  if(typeof commitProgram==='function') commitProgram();
 });
 </script>
 
@@ -2758,30 +2877,30 @@ if (location.protocol === 'file:') {
 }
 </script>
 
-<script src="health.js?v=v143"></script>
-<script src="privacy.js?v=v143"></script>
-<script src="backup.js?v=v143"></script>
-<script src="reorder.js?v=v143"></script>
-<script src="access.js?v=v143"></script>
-<script src="analysis.js?v=v143"></script>
-<script src="reports.js?v=v143"></script>
-<script src="business.js?v=v143"></script>
-<script src="intake.js?v=v143"></script>
-<script src="files.js?v=v143"></script>
-<script src="builder.js?v=v143"></script>
-<script src="import-program.js?v=v143"></script>
-<script src="tracking.js?v=v143"></script>
-<script src="metrics.js?v=v143"></script>
-<script src="targets.js?v=v143"></script>
-<script src="meal-library.js?v=v143"></script>
-<script src="library-ui.js?v=v143"></script>
-<script src="export-plan.js?v=v143"></script>
-<script src="cardio.js?v=v143"></script>
-<script src="cardio-ui.js?v=v143"></script>
-<script src="exercise-library.js?v=v143"></script>
-<script src="exercise-ui.js?v=v143"></script>
-<script src="meals.js?v=v143"></script>
-<script src="sync.js?v=v143"></script>
+<script src="health.js?v=v144"></script>
+<script src="privacy.js?v=v144"></script>
+<script src="backup.js?v=v144"></script>
+<script src="reorder.js?v=v144"></script>
+<script src="access.js?v=v144"></script>
+<script src="analysis.js?v=v144"></script>
+<script src="reports.js?v=v144"></script>
+<script src="business.js?v=v144"></script>
+<script src="intake.js?v=v144"></script>
+<script src="files.js?v=v144"></script>
+<script src="builder.js?v=v144"></script>
+<script src="import-program.js?v=v144"></script>
+<script src="tracking.js?v=v144"></script>
+<script src="metrics.js?v=v144"></script>
+<script src="targets.js?v=v144"></script>
+<script src="meal-library.js?v=v144"></script>
+<script src="library-ui.js?v=v144"></script>
+<script src="export-plan.js?v=v144"></script>
+<script src="cardio.js?v=v144"></script>
+<script src="cardio-ui.js?v=v144"></script>
+<script src="exercise-library.js?v=v144"></script>
+<script src="exercise-ui.js?v=v144"></script>
+<script src="meals.js?v=v144"></script>
+<script src="sync.js?v=v144"></script>
 <script>
 /* =================== חיבור הסנכרון לאפליקציה =================== */
 
@@ -3190,6 +3309,13 @@ if(window.EBSync && EBSync.enabled()){
       EBBackup.refreshAuto();
       setTimeout(()=>EBBackup.auto(),  20000);
       setTimeout(()=>EBBackup.auto(), 120000);
+      /* אפליקציה שנשארת פתוחה ימים (מחשב שלא נסגר, טלפון ברקע) לא
+         נפתחת מחדש, ולכן לא הייתה מגבה שוב. בדיקה כל שעה ובכל חזרה
+         לאפליקציה; auto עצמה יוצאת מיד אם כבר רצה היום. */
+      setInterval(()=>EBBackup.auto(), 3600000);
+      document.addEventListener('visibilitychange',()=>{
+        if(document.visibilityState==='visible') setTimeout(()=>EBBackup.auto(), 5000);
+      });
     }
   });
 }else{

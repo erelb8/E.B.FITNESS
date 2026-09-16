@@ -22,7 +22,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['backup'] = 'v143';
+  (window.EB_MOD = window.EB_MOD || {})['backup'] = 'v144';
 
   var LAST_KEY = 'ebfit_backup_at';
   var TABLES = ['trainees', 'sessions', 'measures', 'payments'];
@@ -253,7 +253,9 @@
         data: out
       });
       try { localStorage.setItem(AUTO_KEY, new Date().toDateString()); } catch (e) {}
-      if (typeof render === 'function') render();
+      /* refreshAuto ולא render בלבד: בלי לקרוא מחדש את הרשימה, הכרטיס
+         בהגדרות המשיך להציג את העותקים של אתמול. */
+      refreshAuto();
     } catch (e) {
       if (window.console) console.warn('[EBBackup] גיבוי אוטומטי נכשל', e);
     }

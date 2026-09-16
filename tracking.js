@@ -20,7 +20,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['tracking'] = 'v143';
+  (window.EB_MOD = window.EB_MOD || {})['tracking'] = 'v144';
 
   /* ---------- חישוב היעדים ---------- */
   var ACT = [
@@ -161,7 +161,7 @@
     }
 
     /* --- הזנה להיום --- */
-    h += '<div class="card" style="margin-top:14px">'
+    h += '<div class="card" style="margin-top:14px" data-auto="trackday:' + t.id + '">'
       + '<div class="row" style="margin-bottom:10px"><h3 style="flex:1;font-size:15px">היום · ' + fmtFull(today) + '</h3>'
       + (row && row.complete ? '<span class="pill ok">הוזן במלואו</span>' : '') + '</div>'
       + '<div class="grid g4">'
@@ -191,7 +191,7 @@
     }
 
     h += '<div class="row" style="margin-top:12px">'
-      + '<button class="btn" onclick="EBTrack.saveDay(\'' + t.id + '\')">שמירה</button>'
+      + '<span class="muted" style="font-size:12px">נשמר אוטומטית</span>'
       + '<label style="font-size:13.5px;display:flex;align-items:center;gap:7px;margin-inline-start:8px">'
       + '<input type="checkbox" id="tr_complete"' + (row && row.complete ? ' checked' : '') + '> הכל הוזן להיום</label>'
       + '<div style="flex:1"></div>'
@@ -259,8 +259,11 @@
   }
 
   /* ---------- פעולות ---------- */
+  /* נשמר אוטומטית מתוך השדות (data-auto), ולכן בלי render ובלי הודעה —
+     אחרת השדה שמקלידים בו היה נבנה מחדש באמצע ההקלדה. */
   function saveDay(id) {
     var t = tById(id); if (!t) return;
+    if (!document.getElementById('tr_dk')) return;
     var r = ensureRow(id, todayISO());
     var g = function (x) { var e = document.getElementById('tr_' + x); return e ? e.value.trim() : ''; };
 
@@ -271,9 +274,9 @@
     var c = document.getElementById('tr_complete');
     r.complete = c ? c.checked : false;
 
-    save(); render();
-    toast(r.complete ? 'נשמר וסומן כהוזן במלואו' : 'נשמר');
+    save();
   }
+  (window.AUTO_INLINE = window.AUTO_INLINE || {}).trackday = saveDay;
 
   function editSupps(id) {
     var t = tById(id); if (!t) return;
@@ -285,13 +288,16 @@
       + '<div class="muted" style="font-size:12px;margin-top:10px">'
       + 'המערכת לא קובעת מינונים — מינון ויטמינים ומינרלים תלוי בבדיקות דם ובתרופות, '
       + 'וזו החלטה של רופא או דיאטן.</div>'
-      + '</div><div class="mf"><button class="btn" onclick="EBTrack.saveSupps(\'' + id + '\')">שמירה</button>'
-      + '<button class="btn ghost" onclick="closeModal()">ביטול</button></div>');
+      + '</div><div class="mf"><button class="btn" onclick="closeModal()">סגירה</button>'
+      + '<span class="muted" style="font-size:12px;align-self:center">נשמר אוטומטית</span></div>');
+    autoModal(function () { saveSupps(id, true); });
   }
-  function saveSupps(id) {
+  function saveSupps(id, silent) {
     var t = tById(id); if (!t) return;
     t.supplements = gv('sp_list');
-    save(); closeModal(); render(); toast('רשימת התוספים נשמרה');
+    save();
+    if (silent) return;
+    closeModal(); render(); toast('רשימת התוספים נשמרה');
   }
 
   function editTargets(id) {
@@ -307,20 +313,25 @@
       + (T.missing && T.missing.length ? '' :
          '<div class="muted" style="font-size:12px;margin-top:10px">המחושב כרגע: '
          + T.kcal + ' קק״ל · ' + T.protein + ' ג׳ חלבון · ' + T.carbs + ' ג׳ פחמימות · ' + T.fat + ' ג׳ שומן</div>')
-      + '</div><div class="mf"><button class="btn" onclick="EBTrack.saveTargets(\'' + id + '\')">שמירה</button>'
+      + '</div><div class="mf"><button class="btn" onclick="closeModal()">סגירה</button>'
       + '<button class="btn ghost" onclick="EBTrack.clearTargets(\'' + id + '\')">חזרה לחישוב</button></div>');
+    autoModal(function () { saveTargets(id, true); });
   }
-  function saveTargets(id) {
+  function saveTargets(id, silent) {
     var t = tById(id); if (!t) return;
     t.targets = {};
     ['kcal','protein','carbs','fat','water'].forEach(function (k) {
       var v = gv('mt_' + k);
       if (v) t.targets[k] = Number(v);
     });
-    save(); closeModal(); render(); toast('היעדים נשמרו');
+    save();
+    if (silent) return;
+    closeModal(); render(); toast('היעדים נשמרו');
   }
   function clearTargets(id) {
     var t = tById(id); if (!t) return;
+    /* בלי זה שמירה ממתינה הייתה כותבת את היעדים הידניים מחדש בסגירה. */
+    if (typeof cancelAuto === 'function') cancelAuto();
     delete t.targets;
     save(); closeModal(); render(); toast('חזרה לחישוב אוטומטי');
   }
