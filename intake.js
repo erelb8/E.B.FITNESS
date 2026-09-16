@@ -10,7 +10,7 @@
   'use strict';
 
   // חותמת גרסה — index.html משווה אליה כדי לזהות קובץ ישן במטמון
-  (window.EB_MOD = window.EB_MOD || {})['intake'] = 'v142';
+  (window.EB_MOD = window.EB_MOD || {})['intake'] = 'v143';
 
   /* ---------- מילון: תווית בשאלון -> שדה במערכת ---------- */
   /* הסדר משנה — הביטוי הראשון שמתאים מנצח, ולכן ביטויים ארוכים
@@ -343,6 +343,14 @@
       + '<option value="זכר"' + (p.gender === 'זכר' ? ' selected' : '') + '>זכר</option>'
       + '<option value="נקבה"' + (p.gender === 'נקבה' ? ' selected' : '') + '>נקבה</option>'
       + '</select></div>'
+      /* משך ההצטרפות. מאותה רשימה כמו בטופס מתאמן חדש, כדי ששני
+         המסלולים יציעו בדיוק את אותן אפשרויות. */
+      + '<div><label class="f">משך ההצטרפות</label>'
+      + '<select class="f" id="ik_months" style="width:100%">'
+      + planMonthOpts(3).map(function (o) {
+          return '<option value="' + o[0] + '"' + (o[0] === '3' ? ' selected' : '') + '>' + o[1] + '</option>';
+        }).join('')
+      + '</select></div>'
       + '</div>';
     if (p.birthApprox)
       h += '<div class="muted" style="font-size:12px;margin-top:6px">תאריך הלידה נגזר מגיל בלבד — מדויק לשנה, לא ליום.</div>';
@@ -398,6 +406,7 @@
 
     var g = function (id) { var e = document.getElementById(id); return e ? e.value.trim() : ''; };
     var n = function (id) { return Number(g(id) || 0); };
+    var months = Math.min(60, Math.max(1, Math.round(n('ik_months')) || 3));
 
     // רשומת השאלון — כל מה שאין לו שדה ייעודי
     var intake = { date: todayISO(), answers: {}, extra: p._unknown || [] };
@@ -419,10 +428,10 @@
       pkgTotal: S.settings.defaultPack, pkgUsed: 0,
       pricePerSession: S.settings.sessionPrice,
       notes: '',
-      /* מעקב מתחיל מיד, לשלושה חודשים. מתאמן שנוצר מהשאלון הוא חדש
-         בהגדרה, ולכן תאריך ההצטרפות הוא גם תחילת התקופה. שניהם
-         ברירת מחדל ונערכים בכרטיס תקופת התוכנית. */
-      program: { days: [], planStart: todayISO(), planMonths: 3 },
+      /* מעקב מתחיל מיד, למשך שנבחר (ברירת מחדל שלושה חודשים). מתאמן
+         שנוצר מהשאלון הוא חדש בהגדרה, ולכן תאריך ההצטרפות הוא גם
+         תחילת התקופה. שניהם נערכים בכרטיס תקופת התוכנית. */
+      program: { days: [], planStart: todayISO(), planMonths: months },
       intake: intake
     };
 
@@ -446,7 +455,7 @@
     }
 
     save(); closeModal();
-    toast(name + ' נקלט/ה מהשאלון');
+    toast(name + ' נקלט/ה מהשאלון — מעקב ל' + monthsLabel(months));
     go('trainee', t.id);
   }
 
