@@ -427,8 +427,8 @@ tbody tr:hover{background:var(--panel)}
 <div id="toast"></div>
 
 <!-- ספריית Supabase מקומית (לא מ-CDN) כדי שהאפליקציה תעבוד גם בלי רשת -->
-<script src="vendor/supabase.js?v=v138"></script>
-<script src="config.js?v=v138"></script>
+<script src="vendor/supabase.js?v=v139"></script>
+<script src="config.js?v=v139"></script>
 
 <script>
 /* =======================================================================
@@ -463,7 +463,7 @@ function age(b){ if(!b) return null; const d=new Date(b), t=new Date(); let a=t.
 
 /* ---------------- אחסון ---------------- */
 const KEY='ebfit_v1';
-const EB_VERSION='v138';   // חייב להתאים ל-VERSION ב-sw.js
+const EB_VERSION='v139';   // חייב להתאים ל-VERSION ב-sw.js
 let mem=null, canStore=true;
 function load(){
   try{ const r=localStorage.getItem(KEY); return r?JSON.parse(r):null; }
@@ -827,11 +827,9 @@ const NAV=[
   {id:'settings',ic:'⚙', t:'הגדרות'}
 ];
 function go(v, arg){
-  /* ניווט משאיר מאחור עריכת תוכנית שלא נשמרה, והיא תאבד במשיכה
-     הבאה מהשרת. שואלים לפני, ורק כשעוזבים את המתאמן שנערך. */
-  if(typeof confirmLeaveProgram==='function' && window.PROGRAM_BASE_ID
-     && !(v==='trainee' && arg===window.PROGRAM_BASE_ID)
-     && !confirmLeaveProgram()) return;
+  /* לפני מעבר מסך שומרים את מה שממתין בתוכנית — בלי שאלה.
+     ראה commitProgram. */
+  if(typeof commitProgram==='function') commitProgram();
   VIEW=v; ARG=arg||null; if(v!=='trainee') SUBTAB='details'; window.scrollTo(0,0); render();
 }
 
@@ -881,6 +879,9 @@ function vNoAdmin(){
 }
 
 function render(){
+  /* הוספה ומחיקה של ימים ותרגילים קוראות ל-render בלי לשמור. כאן הן
+     נתפסות במקום אחד, במקום לתקן כל פעולה בנפרד ולשכוח אחת. */
+  if(typeof scheduleProgramAutosave==='function') scheduleProgramAutosave();
   if(window.EBSync && EBSync.enabled()){
     if(!window.EB_AUTH_READY){
       $('#rail').innerHTML=''; $('#mobnav').innerHTML=''; $('#view').innerHTML='<section class="empty" style="margin:20vh auto;text-align:center"><h1>בודק התחברות…</h1></section>';
@@ -1465,40 +1466,47 @@ function tabProgram(t){
 function exCell(tid,di,ei,k,v,ph){
   return '<td><input class="f" style="background:transparent;border-color:transparent;padding:5px 6px" placeholder="'+(ph||'—')+'" value="'+esc(v==null?'':v)+'" onchange="setEx(\''+tid+'\','+di+','+ei+',\''+k+'\',this.value)"></td>';
 }
-/* ---------- שמירה על עריכת תוכנית שלא נשמרה ----------
-   עריכת תוכנית אינה נשמרת אוטומטית: היא מחכה לכפתור ברצועה
-   "יש שינויים שטרם נשמרו". זו החלטה נכונה — עריכה היא טיוטה —
-   אבל היא פתחה דרך לאבד עבודה בשקט: ניווט למתאמן אחר, רענון,
-   או משיכה מהשרת, והכל נעלם בלי אזהרה.
-
-   ב-15.9.2026 כך אבדה תוכנית שנבנתה במלואה.
-
-   שתי הגנות: שאלה לפני שעוזבים מסך עם שינויים פתוחים, ואזהרת
-   דפדפן לפני רענון או סגירה. */
+/* ---------- האם יש בתוכנית שינוי שעוד לא נכתב ----------
+   משווה את התוכנית בזיכרון לבסיס שנשמר לאחרונה. משמש את השמירה
+   האוטומטית למטה, ואת המשיכה מהשרת כדי לא לדרוס שינוי שממתין
+   לשמירה בחלון ההשהיה הקצר. */
 function hasUnsavedProgram(){
   const id=window.PROGRAM_BASE_ID; if(!id) return false;
   const t=tById(id); if(!t) return false;
   return JSON.stringify(t.program||{days:[]}) !== JSON.stringify(window.PROGRAM_BASE||{days:[]});
 }
-function confirmLeaveProgram(){
-  if(!hasUnsavedProgram()) return true;
-  const t=tById(window.PROGRAM_BASE_ID);
-  return confirm('יש שינויים בתוכנית של '+((t&&t.name)||'המתאמן')+' שטרם נשמרו.\n\n'
-    +'אם תעזוב עכשיו הם יאבדו.\n\nלעזוב בכל זאת?');
-}
+/* ---------- שמירה אוטומטית של התוכנית ----------
+   עריכת תוכנית הייתה טיוטה עד ללחיצה על "שמירה", ולכן נוספו עליה
+   שאלה לפני כל מעבר מסך ופס "יש שינויים שטרם נשמרו". בפועל זה עבד
+   הפוך: המאמן נשאל כל כמה שניות, התרגל ללחוץ "לעזוב", ותרגילים
+   שהוסיף ליום שלם לא הגיעו לשרת. ב-16.9.2026 יום אימון נשמר ריק
+   בדיוק כך — היום נשמר, התרגילים שבתוכו לא.
 
-function programDock(id,dirty){
-  return '<div class="program-dock noprint" id="programDock_'+id+'" style="display:'+(dirty?'flex':'none')+'">'
-   +'<span class="dock-label">יש שינויים שטרם נשמרו</span><div class="dock-actions">'
-   +'<button class="btn sm" onclick="saveProgram(\''+id+'\')">שמירה</button>'
-   +'<button class="btn sm ghost" onclick="discardProgram(\''+id+'\')">ביטול</button>'
-   +'<button class="btn sm ghost" onclick="revertProgram(\''+id+'\')">שחזור</button></div></div>';
+   עכשיו כל שינוי נשמר מעצמו, בלי שאלה ובלי כפתור. ההשהיה הקצרה
+   מאחדת כמה שינויים רצופים לכתיבה אחת, וכל מעבר מסך או סגירה
+   שומרים מיד את מה שנשאר ממתין.
+
+   מה שהשמירה הידנית הגנה עליו מוגן היום במקום אחר: מחיקת יום
+   שואלת לפני, ומכשיר עם עותק ישן נחסם במסד עצמו. */
+let PROG_AUTOSAVE_T=null;
+function commitProgram(){
+  clearTimeout(PROG_AUTOSAVE_T); PROG_AUTOSAVE_T=null;
+  const id=window.PROGRAM_BASE_ID; if(!id) return;
+  const t=tById(id); if(!t) return;
+  if(!hasUnsavedProgram()) return;
+  save();
+  window.PROGRAM_BASE=JSON.parse(JSON.stringify(t.program||{days:[]}));
 }
-function updateProgramDock(id){
-  const dock=document.getElementById('programDock_'+id); if(!dock) return;
-  const t=tById(id), dirty=t&&JSON.stringify(t.program||{days:[]})!==JSON.stringify(window.PROGRAM_BASE||{days:[]});
-  dock.style.display=dirty?'flex':'none';
+function scheduleProgramAutosave(){
+  if(!window.PROGRAM_BASE_ID || !hasUnsavedProgram()) return;
+  clearTimeout(PROG_AUTOSAVE_T);
+  PROG_AUTOSAVE_T=setTimeout(commitProgram, 800);
 }
+/* נשאר בשם הישן כי ניווט קורא לו. כבר לא שואל — שומר ומאשר מעבר. */
+function confirmLeaveProgram(){ commitProgram(); return true; }
+
+function programDock(){ return ''; }
+function updateProgramDock(){ scheduleProgramAutosave(); }
 function editExercise(tid,di,ei){
   const t=tById(tid), e=t&&t.program&&t.program.days[di]&&t.program.days[di].exercises[ei];
   if(!e) return;
@@ -2638,13 +2646,15 @@ function seedDemo(){
 /* =================== התחלה =================== */
 window.addEventListener('beforeunload',(e)=>{
   if(!canStore) return;
+  /* שומרים מה שממתין בתוכנית ואז את הכל. בלי אזהרת דפדפן — אין עוד
+     טיוטה שיכולה ללכת לאיבוד. */
+  if(typeof commitProgram==='function') commitProgram();
   save();
-  /* עריכת תוכנית פתוחה אינה נכללת ב-save, כי היא טיוטה עד ללחיצה
-     על "שמירה". בלי האזהרה הזאת רענון מוחק אותה בלי סימן. */
-  if(typeof hasUnsavedProgram==='function' && hasUnsavedProgram()){
-    e.preventDefault(); e.returnValue='';
-    return '';
-  }
+});
+/* בטלפון סגירת האפליקציה לא תמיד מפעילה beforeunload. מעבר לרקע
+   כן מפעיל visibilitychange, ושם נתפסת השמירה האחרונה. */
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='hidden' && typeof commitProgram==='function') commitProgram();
 });
 </script>
 
@@ -2702,30 +2712,30 @@ if (location.protocol === 'file:') {
 }
 </script>
 
-<script src="health.js?v=v138"></script>
-<script src="privacy.js?v=v138"></script>
-<script src="backup.js?v=v138"></script>
-<script src="reorder.js?v=v138"></script>
-<script src="access.js?v=v138"></script>
-<script src="analysis.js?v=v138"></script>
-<script src="reports.js?v=v138"></script>
-<script src="business.js?v=v138"></script>
-<script src="intake.js?v=v138"></script>
-<script src="files.js?v=v138"></script>
-<script src="builder.js?v=v138"></script>
-<script src="import-program.js?v=v138"></script>
-<script src="tracking.js?v=v138"></script>
-<script src="metrics.js?v=v138"></script>
-<script src="targets.js?v=v138"></script>
-<script src="meal-library.js?v=v138"></script>
-<script src="library-ui.js?v=v138"></script>
-<script src="export-plan.js?v=v138"></script>
-<script src="cardio.js?v=v138"></script>
-<script src="cardio-ui.js?v=v138"></script>
-<script src="exercise-library.js?v=v138"></script>
-<script src="exercise-ui.js?v=v138"></script>
-<script src="meals.js?v=v138"></script>
-<script src="sync.js?v=v138"></script>
+<script src="health.js?v=v139"></script>
+<script src="privacy.js?v=v139"></script>
+<script src="backup.js?v=v139"></script>
+<script src="reorder.js?v=v139"></script>
+<script src="access.js?v=v139"></script>
+<script src="analysis.js?v=v139"></script>
+<script src="reports.js?v=v139"></script>
+<script src="business.js?v=v139"></script>
+<script src="intake.js?v=v139"></script>
+<script src="files.js?v=v139"></script>
+<script src="builder.js?v=v139"></script>
+<script src="import-program.js?v=v139"></script>
+<script src="tracking.js?v=v139"></script>
+<script src="metrics.js?v=v139"></script>
+<script src="targets.js?v=v139"></script>
+<script src="meal-library.js?v=v139"></script>
+<script src="library-ui.js?v=v139"></script>
+<script src="export-plan.js?v=v139"></script>
+<script src="cardio.js?v=v139"></script>
+<script src="cardio-ui.js?v=v139"></script>
+<script src="exercise-library.js?v=v139"></script>
+<script src="exercise-ui.js?v=v139"></script>
+<script src="meals.js?v=v139"></script>
+<script src="sync.js?v=v139"></script>
 <script>
 /* =================== חיבור הסנכרון לאפליקציה =================== */
 
