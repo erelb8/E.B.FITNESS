@@ -22,7 +22,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['backup'] = 'v144';
+  (window.EB_MOD = window.EB_MOD || {})['backup'] = 'v145';
 
   var LAST_KEY = 'ebfit_backup_at';
   var TABLES = ['trainees', 'sessions', 'measures', 'payments'];
@@ -233,7 +233,12 @@
      הריצה הזאת, והכרטיס בהגדרות כבר אומר מתי הגיבוי האחרון ירד. */
   async function auto() {
     try {
-      if (ranToday()) return;
+      /* שני יעדים, וכל אחד פעם ביום בנפרד: עותק בדפדפן ועותק בתיקייה.
+         תיקייה שהגישה אליה חסרה היום לא מונעת את העותק בדפדפן, ולהפך. */
+      var needSnap = !ranToday();
+      var dir = await folderReady();
+      var needFolder = !!dir && !folderToday();
+      if (!needSnap && !needFolder) return;
       if (!window.EBSync || !EBSync.enabled()) return;
       if (!(EBSync.client && EBSync.client()) || !(EBSync.user && EBSync.user())) return;
       if (!navigator.onLine) return;
@@ -244,6 +249,12 @@
       /* גיבוי ריק אינו גיבוי. שמירתו הייתה דוחקת עותק תקין מהתור
          של שבעת האחרונים — כלומר הורסת בדיוק את מה שבאנו לשמור. */
       if (!((out.טבלאות || {}).trainees || []).length) return;
+
+      if (needFolder) {
+        try { await writeFolder(dir, out); }
+        catch (e) { if (window.console) console.warn('[EBBackup] כתיבה לתיקייה נכשלה', e); }
+      }
+      if (!needSnap) { refreshAuto(); return; }
 
       await putSnap({
         at: new Date().toISOString(),
@@ -259,6 +270,186 @@
     } catch (e) {
       if (window.console) console.warn('[EBBackup] גיבוי אוטומטי נכשל', e);
     }
+  }
+
+  /* =====================================================================
+     גיבוי יומי לתיקייה במחשב
+     ---------------------------------------------------------------------
+     העותקים בדפדפן נעלמים יחד עם הדפדפן, והגיבוי הידני תלוי בזיכרון.
+     כאן המאמן בוחר פעם אחת תיקייה — רצוי בתוך OneDrive — והאפליקציה
+     כותבת אליה בעצמה גיבוי מלא פעם ביום. כך יש עותק על הדיסק וגם
+     בענן, בלי לזכור כלום.
+
+     File System Access API: קיים בכרום ובאדג' במחשב בלבד. בטלפון
+     ובספארי הכרטיס פשוט אומר שזה לא זמין.
+
+     ההרשאה: הדפדפן זוכר את התיקייה, אבל אחרי סגירה מלאה עשוי לבקש
+     אישור מחדש, ואישור דורש לחיצה של אדם. לכן הגיבוי האוטומטי אינו
+     מבקש — רק בודק. כשחסר אישור, הכרטיס מציג כפתור אחד שמאשר וכותב
+     מיד. בכרום אפשר לבחור "לאפשר בכל ביקור", ואז זה לא חוזר.
+
+     רק קבצים בשם ebfit-backup-YYYY-MM-DD.json נגזמים, ורק מעבר ל-60
+     האחרונים. שום קובץ אחר בתיקייה לא נוגעים בו. */
+  var DIR_DB = 'ebfit_backup_dir', DIR_KEY = 'folder', FOLDER_KEEP = 60;
+  var FOLDER_ON = 'ebfit_folder_on';       // תאריך היום שבו כבר נכתב
+  var FOLDER_AT = 'ebfit_folder_at';       // מתי ואיך נכתב לאחרונה
+  var FOLDER_RX = /^ebfit-backup-\d{4}-\d{2}-\d{2}\.json$/;
+  var FOLDER_STATE = { supported: typeof window.showDirectoryPicker === 'function', name: '', perm: '' };
+
+  function openDirDB() {
+    return new Promise(function (res, rej) {
+      if (!window.indexedDB) return rej(new Error('אין IndexedDB'));
+      var rq = indexedDB.open(DIR_DB, 1);
+      rq.onupgradeneeded = function () { rq.result.createObjectStore('kv'); };
+      rq.onsuccess = function () { res(rq.result); };
+      rq.onerror = function () { rej(rq.error); };
+    });
+  }
+  async function getDir() {
+    try {
+      var db = await openDirDB();
+      var h = await asPromise(db.transaction('kv', 'readonly').objectStore('kv').get(DIR_KEY));
+      db.close();
+      return h || null;
+    } catch (e) { return null; }
+  }
+  async function setDir(h) {
+    var db = await openDirDB();
+    await asPromise(db.transaction('kv', 'readwrite').objectStore('kv').put(h, DIR_KEY));
+    db.close();
+  }
+  async function clearDir() {
+    try {
+      var db = await openDirDB();
+      await asPromise(db.transaction('kv', 'readwrite').objectStore('kv').delete(DIR_KEY));
+      db.close();
+    } catch (e) {}
+  }
+  function folderToday() {
+    try { return localStorage.getItem(FOLDER_ON) === new Date().toDateString(); }
+    catch (e) { return false; }
+  }
+  function folderAt() {
+    try { return localStorage.getItem(FOLDER_AT) || ''; } catch (e) { return ''; }
+  }
+  // מחזיר את התיקייה רק אם כבר יש הרשאת כתיבה. לא מבקש.
+  async function folderReady() {
+    if (!FOLDER_STATE.supported) return null;
+    var h = await getDir();
+    if (!h) { FOLDER_STATE.name = ''; FOLDER_STATE.perm = ''; return null; }
+    FOLDER_STATE.name = h.name;
+    try { FOLDER_STATE.perm = await h.queryPermission({ mode: 'readwrite' }); }
+    catch (e) { FOLDER_STATE.perm = 'denied'; }
+    return FOLDER_STATE.perm === 'granted' ? h : null;
+  }
+  function dayName() {
+    var d = new Date(), p = function (n) { return String(n).padStart(2, '0'); };
+    return 'ebfit-backup-' + d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + '.json';
+  }
+  async function writeFolder(dir, out) {
+    var name = dayName();
+    var fh = await dir.getFileHandle(name, { create: true });
+    var w = await fh.createWritable();
+    await w.write(JSON.stringify(out, null, 2));
+    await w.close();
+
+    // גיזום: רק קבצי הגיבוי שלנו, רק מעבר ל-60 האחרונים
+    try {
+      var names = [];
+      for await (var entry of dir.values()) {
+        if (entry.kind === 'file' && FOLDER_RX.test(entry.name)) names.push(entry.name);
+      }
+      names.sort().reverse().slice(FOLDER_KEEP).forEach(function (n) {
+        dir.removeEntry(n).catch(function () {});
+      });
+    } catch (e) {}
+
+    var now = new Date();
+    try {
+      localStorage.setItem(FOLDER_ON, now.toDateString());
+      localStorage.setItem(FOLDER_AT, now.toISOString());
+      // קובץ על הדיסק הוא גיבוי לכל דבר — הכרטיס לא יתריע לשווא
+      localStorage.setItem(LAST_KEY, now.toISOString());
+    } catch (e) {}
+    return name;
+  }
+
+  // כותב עכשיו, מתוך לחיצה. משמש גם לבחירה וגם לאישור מחדש.
+  async function writeNow(dir) {
+    if (!window.EBSync || !EBSync.enabled() || !(EBSync.user && EBSync.user())) {
+      toast('התיקייה נשמרה. הגיבוי הראשון ייכתב אחרי התחברות'); refreshAuto(); return;
+    }
+    try {
+      toast('כותב גיבוי לתיקייה…');
+      var out = await collect();
+      delete out._counts;
+      if (!((out.טבלאות || {}).trainees || []).length) { toast('השרת החזיר רשימה ריקה — לא נכתב גיבוי'); return; }
+      var name = await writeFolder(dir, out);
+      toast('הגיבוי נכתב: ' + name);
+    } catch (e) {
+      toast('הכתיבה לתיקייה נכשלה: ' + ((e && e.message) || 'שגיאה'));
+    }
+    refreshAuto();
+  }
+
+  async function pickFolder() {
+    if (!FOLDER_STATE.supported) { toast('זמין רק בכרום או באדג׳ במחשב'); return; }
+    var h;
+    try { h = await window.showDirectoryPicker({ id: 'ebfit-backup', mode: 'readwrite', startIn: 'documents' }); }
+    catch (e) { return; }   // המאמן ביטל את הבחירה
+    await setDir(h);
+    try { localStorage.removeItem(FOLDER_ON); } catch (e) {}
+    FOLDER_STATE.name = h.name; FOLDER_STATE.perm = 'granted';
+    await writeNow(h);
+  }
+  async function allowFolder() {
+    var h = await getDir();
+    if (!h) { pickFolder(); return; }
+    var p;
+    try { p = await h.requestPermission({ mode: 'readwrite' }); } catch (e) { p = 'denied'; }
+    FOLDER_STATE.perm = p;
+    if (p !== 'granted') { toast('לא ניתנה גישה לתיקייה'); refreshAuto(); return; }
+    await writeNow(h);
+  }
+  async function forgetFolder() {
+    if (!confirm('להפסיק לגבות לתיקייה? הקבצים שכבר נכתבו נשארים בה.')) return;
+    await clearDir();
+    FOLDER_STATE.name = ''; FOLDER_STATE.perm = '';
+    refreshAuto();
+  }
+
+  function folderHTML() {
+    var box = '<div class="sep" style="margin:12px 0"></div>'
+      + '<div style="font-family:Heebo;font-weight:700;font-size:13.5px;margin-bottom:6px">גיבוי יומי לתיקייה במחשב</div>';
+    if (!FOLDER_STATE.supported) {
+      return box + '<div class="muted" style="font-size:12px;line-height:1.6">'
+        + 'זמין בכרום או באדג׳ במחשב. בטלפון ובספארי הדפדפן לא מאפשר לאפליקציה לכתוב לתיקייה.</div>';
+    }
+    if (!FOLDER_STATE.name) {
+      return box + '<div class="muted" style="font-size:12px;line-height:1.6;margin-bottom:8px">'
+        + 'בוחרים פעם אחת תיקייה, רצוי בתוך OneDrive, והאפליקציה כותבת אליה גיבוי מלא פעם ביום — '
+        + 'עותק על הדיסק וגם בענן, בלי לזכור כלום. הגיבוי כולל הצהרות בריאות, ולכן לבחור תיקייה פרטית.</div>'
+        + '<button class="btn sm" onclick="EBBackup.pickFolder()">בחירת תיקייה</button>';
+    }
+    var at = folderAt(), when = '';
+    if (at) {
+      var d = new Date(at), p = function (n) { return String(n).padStart(2, '0'); };
+      when = p(d.getDate()) + '.' + p(d.getMonth() + 1) + ' · ' + p(d.getHours()) + ':' + p(d.getMinutes());
+    }
+    var ok = FOLDER_STATE.perm === 'granted';
+    return box + '<div style="font-size:13px;line-height:1.6;margin-bottom:8px">'
+      + 'תיקייה: <b>' + esc(FOLDER_STATE.name) + '</b>'
+      + (when ? '<span class="muted"> · נכתב לאחרונה ' + esc(when) + '</span>' : '<span class="muted"> · עוד לא נכתב</span>')
+      + '</div>'
+      + (ok ? '' : '<div style="font-size:12.5px;color:var(--warn);margin-bottom:8px;line-height:1.6">'
+          + 'הדפדפן צריך אישור מחדש לכתוב לתיקייה. בלי אישור הגיבוי היומי לא נכתב אליה. '
+          + 'בחלון האישור אפשר לבחור "לאפשר בכל ביקור" כדי שזה לא יחזור.</div>')
+      + '<div class="row" style="gap:8px;flex-wrap:wrap">'
+      + (ok ? '<button class="btn sm ghost" onclick="EBBackup.allowFolder()">גיבוי לתיקייה עכשיו</button>'
+            : '<button class="btn sm" onclick="EBBackup.allowFolder()">אישור וגיבוי עכשיו</button>')
+      + '<button class="btn sm ghost" onclick="EBBackup.pickFolder()">החלפת תיקייה</button>'
+      + '<button class="btn sm ghost" onclick="EBBackup.forgetFolder()">הפסקה</button>'
+      + '</div>';
   }
 
   // הורדת עותק אוטומטי כקובץ, כדי שיישמר מחוץ לדפדפן
@@ -284,7 +475,8 @@
   var AUTO_HTML = '';
   async function refreshAuto() {
     var list = await listSnaps();
-    AUTO_HTML = autoHTML(list);
+    await folderReady();
+    AUTO_HTML = folderHTML() + autoHTML(list);
     if (typeof render === 'function') render();
   }
   function autoHTML(list) {
@@ -342,5 +534,6 @@
 
   window.EBBackup = { run: run, card: card, lastAt: lastAt, daysSince: daysSince,
                       auto: auto, refreshAuto: refreshAuto, list: listSnaps,
-                      download: download, restore: restore };
+                      download: download, restore: restore,
+                      pickFolder: pickFolder, allowFolder: allowFolder, forgetFolder: forgetFolder };
 })();
