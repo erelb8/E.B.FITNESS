@@ -429,8 +429,8 @@ tbody tr:hover{background:var(--panel)}
 <div id="toast"></div>
 
 <!-- ספריית Supabase מקומית (לא מ-CDN) כדי שהאפליקציה תעבוד גם בלי רשת -->
-<script src="vendor/supabase.js?v=v141"></script>
-<script src="config.js?v=v141"></script>
+<script src="vendor/supabase.js?v=v142"></script>
+<script src="config.js?v=v142"></script>
 
 <script>
 /* =======================================================================
@@ -465,7 +465,7 @@ function age(b){ if(!b) return null; const d=new Date(b), t=new Date(); let a=t.
 
 /* ---------------- אחסון ---------------- */
 const KEY='ebfit_v1';
-const EB_VERSION='v141';   // חייב להתאים ל-VERSION ב-sw.js
+const EB_VERSION='v142';   // חייב להתאים ל-VERSION ב-sw.js
 let mem=null, canStore=true;
 function load(){
   try{ const r=localStorage.getItem(KEY); return r?JSON.parse(r):null; }
@@ -1112,6 +1112,7 @@ function editTrainee(id){
   +sel('מין','tf_gender',['','זכר','נקבה'],t.gender)+sel('רמה','tf_level',['מתחיל','בינוני','מתקדם'],t.level)
   +fld('תאריך הצטרפות','tf_joined','date',t.joined)
   +fld('מחיר לאימון','tf_price','number',t.pricePerSession)
+  +(id?'':sel('משך ההצטרפות','tf_months',planMonthOpts(3),3))
   +'</div>'
   +(S.features.health?'<div class="sep"></div><label class="f">הצהרת בריאות — מגבלות, פציעות, תרופות</label><textarea class="f" id="tf_health">'+esc(t.health||'')+'</textarea><div class="row" style="margin-top:8px"><label style="font-size:13px"><input type="checkbox" id="tf_hok" '+(t.healthOk?'checked':'')+'> ההצהרה נחתמה ואושרה</label></div>':'')
   +(S.features.nutrition?'<div class="sep"></div><div class="grid g3">'+fld('יעד קלוריות','tf_kcal','number',t.kcal||'')+fld('יעד חלבון (ג׳)','tf_prot','number',t.prot||'')+fld('יעד צעדים','tf_steps','number',t.steps||'')+'</div>':'')
@@ -1150,15 +1151,17 @@ function saveTrainee(id){
      אינו אמור לקפוץ לשבוע 52 רק כי הצטרף לפני שנה — אצלו ההפעלה
      נשארת ידנית, ושם היא הבחירה הנכונה.
 
-     שלושה חודשים ותאריך ההצטרפות הם ברירת מחדל, לא החלטה: שניהם
-     נערכים בכרטיס תקופת התוכנית. */
+     משך ההצטרפות נבחר בטופס (ברירת מחדל שלושה חודשים), ותאריך
+     ההתחלה הוא תאריך ההצטרפות. שניהם נערכים בכרטיס תקופת התוכנית. */
+  let months=3;
   if(id){ Object.assign(tById(id), o); }
   else {
     o.id=uid();
-    o.program={ days:[], planStart:(o.joined||todayISO()).slice(0,10), planMonths:3 };
+    months=Math.min(60,Math.max(1,gn('tf_months')||3));
+    o.program={ days:[], planStart:(o.joined||todayISO()).slice(0,10), planMonths:months };
     S.trainees.push(o);
   }
-  save(); closeModal(); toast(id?'המתאמן עודכן':'המתאמן נוסף — מעקב לשלושה חודשים החל היום'); render();
+  save(); closeModal(); toast(id?'המתאמן עודכן':'המתאמן נוסף — מעקב ל'+monthsLabel(months)); render();
 }
 /* ---------- מחיקה מסונכרנת ----------
    הסרה מהמערך המקומי לבדה אינה מספיקה. הדחיפה מזהה מחיקה לפי מה
@@ -1607,6 +1610,21 @@ function startPlan(id){
   t.program.planMonths=t.program.planMonths||3;
   save(); render(); toast('תקופת התוכנית הוגדרה');
 }
+function monthsLabel(m){ return m===1?'חודש אחד':m===2?'חודשיים':m+' חודשים'; }
+/* 1–12 ואז 18 ו-24. ערך קיים שאינו ברשימה (למשל 5 אחרי הארכות)
+   נוסף לה, כדי שהבחירה תציג את מה ששמור ולא תקפוץ לערך אחר. */
+function planMonthOpts(cur){
+  const list=[1,2,3,4,5,6,7,8,9,10,11,12,18,24];
+  cur=Number(cur); if(cur>0&&list.indexOf(cur)<0){ list.push(cur); list.sort((a,b)=>a-b); }
+  return list.map(m=>[String(m),monthsLabel(m)]);
+}
+/* קובע משך מדויק. בדיוק כמו הארכה, תאריך ההתחלה לא נוגע. */
+function setPlanMonths(id,v){
+  const t=tById(id); if(!t.program) return;
+  const m=Math.min(60,Math.max(1,Math.round(Number(v)||0)));
+  if(!m) return;
+  t.program.planMonths=m; save(); render(); toast('משך התוכנית: '+monthsLabel(m));
+}
 function setPlanStart(id,v){
   const t=tById(id); t.program=t.program||{days:[]};
   t.program.planStart=String(v||'').slice(0,10); save(); render();
@@ -1644,6 +1662,10 @@ function planCard(t){
    +'<label class="muted" style="font-size:12.5px">התחלה</label>'
    +'<input class="f" type="date" style="width:150px" value="'+esc(p.start)+'" '
    +'onchange="setPlanStart(&#39;'+t.id+'&#39;,this.value)">'
+   +'<label class="muted" style="font-size:12.5px">משך</label>'
+   +'<select class="f" style="width:auto" onchange="setPlanMonths(&#39;'+t.id+'&#39;,this.value)">'
+   +planMonthOpts(p.months).map(o=>'<option value="'+o[0]+'"'+(Number(o[0])===p.months?' selected':'')+'>'+o[1]+'</option>').join('')
+   +'</select>'
    +'<div style="flex:1"></div>'
    +'<span class="muted" style="font-size:12.5px">הארכה</span>'
    +[1,3,6].map(m=>'<button class="btn sm ghost" onclick="extendPlan(&#39;'+t.id+'&#39;,'+m+')">+'+m+'</button>').join('')
@@ -2736,30 +2758,30 @@ if (location.protocol === 'file:') {
 }
 </script>
 
-<script src="health.js?v=v141"></script>
-<script src="privacy.js?v=v141"></script>
-<script src="backup.js?v=v141"></script>
-<script src="reorder.js?v=v141"></script>
-<script src="access.js?v=v141"></script>
-<script src="analysis.js?v=v141"></script>
-<script src="reports.js?v=v141"></script>
-<script src="business.js?v=v141"></script>
-<script src="intake.js?v=v141"></script>
-<script src="files.js?v=v141"></script>
-<script src="builder.js?v=v141"></script>
-<script src="import-program.js?v=v141"></script>
-<script src="tracking.js?v=v141"></script>
-<script src="metrics.js?v=v141"></script>
-<script src="targets.js?v=v141"></script>
-<script src="meal-library.js?v=v141"></script>
-<script src="library-ui.js?v=v141"></script>
-<script src="export-plan.js?v=v141"></script>
-<script src="cardio.js?v=v141"></script>
-<script src="cardio-ui.js?v=v141"></script>
-<script src="exercise-library.js?v=v141"></script>
-<script src="exercise-ui.js?v=v141"></script>
-<script src="meals.js?v=v141"></script>
-<script src="sync.js?v=v141"></script>
+<script src="health.js?v=v142"></script>
+<script src="privacy.js?v=v142"></script>
+<script src="backup.js?v=v142"></script>
+<script src="reorder.js?v=v142"></script>
+<script src="access.js?v=v142"></script>
+<script src="analysis.js?v=v142"></script>
+<script src="reports.js?v=v142"></script>
+<script src="business.js?v=v142"></script>
+<script src="intake.js?v=v142"></script>
+<script src="files.js?v=v142"></script>
+<script src="builder.js?v=v142"></script>
+<script src="import-program.js?v=v142"></script>
+<script src="tracking.js?v=v142"></script>
+<script src="metrics.js?v=v142"></script>
+<script src="targets.js?v=v142"></script>
+<script src="meal-library.js?v=v142"></script>
+<script src="library-ui.js?v=v142"></script>
+<script src="export-plan.js?v=v142"></script>
+<script src="cardio.js?v=v142"></script>
+<script src="cardio-ui.js?v=v142"></script>
+<script src="exercise-library.js?v=v142"></script>
+<script src="exercise-ui.js?v=v142"></script>
+<script src="meals.js?v=v142"></script>
+<script src="sync.js?v=v142"></script>
 <script>
 /* =================== חיבור הסנכרון לאפליקציה =================== */
 
