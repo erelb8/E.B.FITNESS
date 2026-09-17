@@ -429,8 +429,8 @@ tbody tr:hover{background:var(--panel)}
 <div id="toast"></div>
 
 <!-- ספריית Supabase מקומית (לא מ-CDN) כדי שהאפליקציה תעבוד גם בלי רשת -->
-<script src="vendor/supabase.js?v=v146"></script>
-<script src="config.js?v=v146"></script>
+<script src="vendor/supabase.js?v=v147"></script>
+<script src="config.js?v=v147"></script>
 
 <script>
 /* =======================================================================
@@ -465,7 +465,7 @@ function age(b){ if(!b) return null; const d=new Date(b), t=new Date(); let a=t.
 
 /* ---------------- אחסון ---------------- */
 const KEY='ebfit_v1';
-const EB_VERSION='v146';   // חייב להתאים ל-VERSION ב-sw.js
+const EB_VERSION='v147';   // חייב להתאים ל-VERSION ב-sw.js
 let mem=null, canStore=true;
 function load(){
   try{ const r=localStorage.getItem(KEY); return r?JSON.parse(r):null; }
@@ -1511,6 +1511,7 @@ function tabProgram(t){
   h+=macroCard(t);
   h+=targetsCard(t);
   h+=noteBox(t,'note','הערה כללית לתוכנית','למשל: להתחמם 10 דקות לפני כל אימון, ולשתות לפחות 3 ליטר ביום.');
+  h+=warmupCard(t);
   h+=mobilityCard(t);
   if(!p.days.length) return h+'<div class="empty"><div class="big">🏋</div>אין עדיין תוכנית מוקלדת. אפשר לפתוח יום אימון ראשון (A), או לצרף תוכנית מוכנה כקובץ למטה.</div>'+EBFiles.card(t);
   h+=selfExBlock(t);
@@ -1890,6 +1891,43 @@ function noteBox(t,k,title,ph){
    +'<textarea class="f" rows="3" style="width:100%;resize:vertical;line-height:1.6" placeholder="'+esc(ph)+'" '
    +'onchange="setProgNote(&#39;'+t.id+'&#39;,&#39;'+k+'&#39;,this.value)">'+esc(v)+'</textarea>'
    +'<div class="muted" style="font-size:11.5px;margin-top:6px">מוצגת למתאמן בדף שלו. נשמרת עם התוכנית.</div></div>';
+}
+/* ---------- חימום ----------
+   הערה נפרדת מההערה הכללית, כי היא אותו טקסט אצל כולם וארוכה:
+   בתוך ההערה הכללית היא הייתה קוברת את מה שאישי לכל מתאמן.
+   בדף המתאמן היא מקופלת בראש חלון האימון ונפתחת בלחיצה.
+
+   יושבת ב-program.warmupNote — מסונכרנת עם התוכנית, בלי מיגרציה. */
+const WARMUP_TEXT = "חימום — 10 דקות לפני כל אימון\n\nזה לא בזבוז זמן. חימום טוב מעלה את טמפרטורת השריר,\nמשפר טווח תנועה, ומוריד סיכון לפציעה. הסט הראשון\nשלך יהיה חזק יותר בזכותו.\n\n■ חמשת הראשונים — לא מוותרים\n\n1. סיבובי מפרקים — ידיים ורגליים, 10 סיבובים לכל כיוון\n   קרסול, ברך, אגן, כתף, מרפק, שורש כף יד\n\n2. ישיבה בסקוואט נמוך — דקה עד שתיים\n   נשימות עמוקות, מרפקים דוחפים את הברכיים החוצה\n\n3. סיבובי ידיים בעמידה — חצי דקה קדימה, חצי דקה אחורה\n\n4. רוטציה לגב בעמידה — חצי דקה לכל צד\n\n5. סיבובי מקל מטאטא — 10 חזרות\n   אחיזה רחבה, ידיים ישרות, בלי לכופף מרפקים\n\nמכאן והלאה — תבנה את החימום האהוב עליך.\nתוסיף מה שעושה לך טוב, תוריד מה שלא מתחבר, תשחק\nעם הסדר. חימום שאתה אוהב הוא חימום שתעשה באמת.\n\nאבל על חמשת הראשונים אתה לא מוותר. הם לא המלצה.\n\n■ רעיונות להוסיף — ביום רגליים\n\n· גלגול כף הרגל על כדור טניס — דקה לכל רגל\n· סיבובי אגן 90/90 — דקה\n· ברך לקיר — 10 חזרות לכל רגל\n  קרסול תפוס מגביל את עומק הסקוואט יותר מהירך\n· גשר ירכיים — 10 חזרות\n  מעיר את העכוז כדי שהוא יעבוד, ולא הגב התחתון\n\n■ רעיונות להוסיף — ביום פלג גוף עליון\n\n· פתיחות עם גומייה — 15 חזרות\n· החלקות בקיר — 10 חזרות\n· תלייה על מוט — 20-30 שניות\n· חתול־פרה — 8 חזרות\n\n■ סטים מקדימים — החלק שהכי מדלגים עליו\n\nלפני התרגיל הכבד הראשון, שני-שלושה סטים עולים:\n   סט 1 — 50% מהמשקל, 8 חזרות\n   סט 2 — 70% מהמשקל, 5 חזרות\n   סט 3 — 85% מהמשקל, 3 חזרות\nאלה לא נספרים בתוכנית. הם מכינים את המערכת.\n\n■ כלל אחד\n\nחימום לא אמור לעייף. אם יצאת ממנו מותש — עשית אימון,\nלא חימום. קצר, נעים, ועם תחושה שהגוף מוכן.";
+function warmupCard(t){
+  const v=((t.program||{}).warmupNote)||'';
+  return '<div class="card" style="margin-bottom:12px">'
+   +'<div class="row" style="align-items:center;margin-bottom:6px;gap:8px;flex-wrap:wrap">'
+   +'<div style="flex:1;font-family:Heebo;font-weight:700;font-size:14px">🔥 חימום</div>'
+   +(v.trim()?'':'<button class="btn sm ghost" onclick="warmupFill(&#39;'+t.id+'&#39;)">הכנסת טקסט החימום</button>')
+   +'<button class="btn sm ghost" onclick="warmupAll()">לכל המתאמנים</button></div>'
+   +'<textarea class="f" rows="'+(v.trim()?8:3)+'" style="width:100%;resize:vertical;line-height:1.6" placeholder="הוראות חימום — מוצגות למתאמן בראש חלון האימון" '
+   +'onchange="setProgNote(&#39;'+t.id+'&#39;,&#39;warmupNote&#39;,this.value)">'+esc(v)+'</textarea>'
+   +'<div class="muted" style="font-size:11.5px;margin-top:6px">הערה נפרדת מההערה הכללית. אצל המתאמן היא מקופלת בראש חלון האימון.</div></div>';
+}
+function warmupFill(id){
+  const t=tById(id); if(!t) return;
+  t.program=t.program||{days:[]}; t.program.warmupNote=WARMUP_TEXT;
+  updateProgramDock(id); render(); toast('טקסט החימום נוסף');
+}
+/* ממלא רק למי שאין לו חימום. מי שהמאמן כבר כתב לו חימום משלו לא
+   נדרס — זה בדיוק ההבדל בין "להוסיף לכולם" לבין "למחוק לכולם". */
+function warmupAll(){
+  const list=S.trainees.filter(t=>t.status!=='archived');
+  const empty=list.filter(t=>!String(((t.program||{}).warmupNote)||'').trim());
+  const custom=list.length-empty.length;
+  if(!empty.length){ toast('לכל המתאמנים הפעילים כבר יש חימום'); return; }
+  if(!confirm('להוסיף את טקסט החימום ל-'+empty.length+' מתאמנים?'
+     +(custom?'\n'+custom+' שכבר יש להם חימום לא ישתנו.':''))) return;
+  empty.forEach(t=>{ t.program=t.program||{days:[]}; t.program.warmupNote=WARMUP_TEXT; });
+  save();
+  if(window.PROGRAM_BASE_ID){ const cur=tById(window.PROGRAM_BASE_ID); if(cur) window.PROGRAM_BASE=JSON.parse(JSON.stringify(cur.program||{days:[]})); }
+  render(); toast('החימום נוסף ל-'+empty.length+' מתאמנים');
 }
 function addEx(id,di){ tById(id).program.days[di].exercises.push({name:'',sets:'3',reps:'10',weight:'',rest:'60',note:''}); render(); }
 function delEx(id,di,ei){ tById(id).program.days[di].exercises.splice(ei,1); render(); }
@@ -2877,30 +2915,30 @@ if (location.protocol === 'file:') {
 }
 </script>
 
-<script src="health.js?v=v146"></script>
-<script src="privacy.js?v=v146"></script>
-<script src="backup.js?v=v146"></script>
-<script src="reorder.js?v=v146"></script>
-<script src="access.js?v=v146"></script>
-<script src="analysis.js?v=v146"></script>
-<script src="reports.js?v=v146"></script>
-<script src="business.js?v=v146"></script>
-<script src="intake.js?v=v146"></script>
-<script src="files.js?v=v146"></script>
-<script src="builder.js?v=v146"></script>
-<script src="import-program.js?v=v146"></script>
-<script src="tracking.js?v=v146"></script>
-<script src="metrics.js?v=v146"></script>
-<script src="targets.js?v=v146"></script>
-<script src="meal-library.js?v=v146"></script>
-<script src="library-ui.js?v=v146"></script>
-<script src="export-plan.js?v=v146"></script>
-<script src="cardio.js?v=v146"></script>
-<script src="cardio-ui.js?v=v146"></script>
-<script src="exercise-library.js?v=v146"></script>
-<script src="exercise-ui.js?v=v146"></script>
-<script src="meals.js?v=v146"></script>
-<script src="sync.js?v=v146"></script>
+<script src="health.js?v=v147"></script>
+<script src="privacy.js?v=v147"></script>
+<script src="backup.js?v=v147"></script>
+<script src="reorder.js?v=v147"></script>
+<script src="access.js?v=v147"></script>
+<script src="analysis.js?v=v147"></script>
+<script src="reports.js?v=v147"></script>
+<script src="business.js?v=v147"></script>
+<script src="intake.js?v=v147"></script>
+<script src="files.js?v=v147"></script>
+<script src="builder.js?v=v147"></script>
+<script src="import-program.js?v=v147"></script>
+<script src="tracking.js?v=v147"></script>
+<script src="metrics.js?v=v147"></script>
+<script src="targets.js?v=v147"></script>
+<script src="meal-library.js?v=v147"></script>
+<script src="library-ui.js?v=v147"></script>
+<script src="export-plan.js?v=v147"></script>
+<script src="cardio.js?v=v147"></script>
+<script src="cardio-ui.js?v=v147"></script>
+<script src="exercise-library.js?v=v147"></script>
+<script src="exercise-ui.js?v=v147"></script>
+<script src="meals.js?v=v147"></script>
+<script src="sync.js?v=v147"></script>
 <script>
 /* =================== חיבור הסנכרון לאפליקציה =================== */
 

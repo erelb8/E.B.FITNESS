@@ -372,17 +372,17 @@ button{cursor:pointer}
 
 <div id="toast"></div>
 
-<script src="vendor/supabase.js?v=v146"></script>
-<script src="config.js?v=v146"></script>
-<script src="meal-library.js?v=v146"></script>
-<script src="exercise-library.js?v=v146"></script>
-<script src="progress.js?v=v146"></script>
-<script src="habits.js?v=v146"></script>
-<script src="coach-bot.js?v=v146"></script>
-<script src="workout-log.js?v=v146"></script>
-<script src="targets.js?v=v146"></script>
-<script src="health.js?v=v146"></script>
-<script src="privacy.js?v=v146"></script>
+<script src="vendor/supabase.js?v=v147"></script>
+<script src="config.js?v=v147"></script>
+<script src="meal-library.js?v=v147"></script>
+<script src="exercise-library.js?v=v147"></script>
+<script src="progress.js?v=v147"></script>
+<script src="habits.js?v=v147"></script>
+<script src="coach-bot.js?v=v147"></script>
+<script src="workout-log.js?v=v147"></script>
+<script src="targets.js?v=v147"></script>
+<script src="health.js?v=v147"></script>
+<script src="privacy.js?v=v147"></script>
 <script>
 (function () {
   'use strict';
@@ -1859,9 +1859,20 @@ button{cursor:pointer}
       + esc(txt) + '</div></div>';
   }
 
+  /* החימום מקופל: הוא ארוך וזהה בכל אימון, ופתוח הוא היה דוחף את
+     התוכנית עצמה אל מתחת למסך. נפתח בלחיצה. */
+  function warmupNote(txt) {
+    if (!txt || !String(txt).trim()) return '';
+    return '<details class="card" style="margin-bottom:12px;border-color:var(--or);background:var(--or-soft)">'
+      + '<summary style="cursor:pointer;font-family:Heebo;font-weight:700;font-size:14px;color:var(--or);list-style-position:inside">'
+      + '🔥 חימום — לפני כל אימון</summary>'
+      + '<div style="font-size:13.5px;line-height:1.7;white-space:pre-wrap;margin-top:10px">'
+      + esc(txt) + '</div></details>';
+  }
+
   function planBlock(days) {
     if (!days.length && !EDIT_W) return '';
-    let h = trainerNote((DATA.program || {}).note, 'הערה מהמאמן')
+    let h = warmupNote((DATA.program || {}).warmupNote) + trainerNote((DATA.program || {}).note, 'הערה מהמאמן')
       + '<div class="section-head"><h3>תוכנית האימון</h3><span>' + days.length + ' ימים · ' + days.reduce((n, d) => n + (d.exercises || []).length, 0) + ' תרגילים</span></div>';
 
     days.forEach((d, i) => {
