@@ -372,17 +372,17 @@ button{cursor:pointer}
 
 <div id="toast"></div>
 
-<script src="vendor/supabase.js?v=v147"></script>
-<script src="config.js?v=v147"></script>
-<script src="meal-library.js?v=v147"></script>
-<script src="exercise-library.js?v=v147"></script>
-<script src="progress.js?v=v147"></script>
-<script src="habits.js?v=v147"></script>
-<script src="coach-bot.js?v=v147"></script>
-<script src="workout-log.js?v=v147"></script>
-<script src="targets.js?v=v147"></script>
-<script src="health.js?v=v147"></script>
-<script src="privacy.js?v=v147"></script>
+<script src="vendor/supabase.js?v=v148"></script>
+<script src="config.js?v=v148"></script>
+<script src="meal-library.js?v=v148"></script>
+<script src="exercise-library.js?v=v148"></script>
+<script src="progress.js?v=v148"></script>
+<script src="habits.js?v=v148"></script>
+<script src="coach-bot.js?v=v148"></script>
+<script src="workout-log.js?v=v148"></script>
+<script src="targets.js?v=v148"></script>
+<script src="health.js?v=v148"></script>
+<script src="privacy.js?v=v148"></script>
 <script>
 (function () {
   'use strict';
@@ -1573,7 +1573,7 @@ button{cursor:pointer}
      ולא ברור אם זו התוכנית המלאה או קטע ממנה. */
   function openerBlock(days) {
     const first = (DATA.name || '').trim().split(/\s+/)[0] || '';
-    const ex    = days.reduce((a, d) => a + ((d.exercises || []).length), 0);
+    const ex    = days.reduce((a, d) => a + realOf(d).length, 0);
     const meals = (DATA.meals || []).length;
     const t     = todayTargets();
     const done = days.reduce((a, d, i) => a + (d.exercises || []).filter((_, j) => (STATE[i + ':' + j] || {}).done).length, 0);
@@ -1581,7 +1581,7 @@ button{cursor:pointer}
        מתאמן קורא "כל ביצוע קטן מצטבר" פעם אחת, ומהפעם השנייה
        מדלג על האזור כולו — כולל המספרים שיושבים בו. */
     const logs = EXTRAS.logs || [];
-    const planned = days.length;
+    const planned = days.filter(d => realOf(d).length).length;
     let weekDone = 0, lastVol = 0, lastWhen = null;
     try {
       const wkStart = new Date();
@@ -1870,22 +1870,38 @@ button{cursor:pointer}
       + esc(txt) + '</div></details>';
   }
 
+  /* מה מוצג כתרגיל — ראה EBWLog.isReal. השורות נשארות בנתונים ובאינדקס
+     שלהן, כי סימוני "בוצע" והיומן שמורים לפי מיקום; רק התצוגה מדלגת. */
+  const isReal = e => (typeof EBWLog !== 'undefined' ? EBWLog.isReal(e) : !!String((e || {}).name || '').trim());
+  const isInfo = e => (typeof EBWLog !== 'undefined' ? EBWLog.isInfo(e) : false);
+  const realOf = d => ((d || {}).exercises || []).filter(isReal);
+  /* יום מוצג אם יש בו תרגיל אמיתי, או לפחות הנחיה אחת לקרוא */
+  const dayShown = d => realOf(d).length > 0 || ((d || {}).exercises || []).some(isInfo) || !!String((d || {}).note || '').trim();
+  function firstRealDay(days) { const k = days.findIndex(d => realOf(d).length); return k < 0 ? 0 : k; }
+
   function planBlock(days) {
     if (!days.length && !EDIT_W) return '';
+    if (!EDIT_W && days.length && !realOf(days[DAY]).length) DAY = firstRealDay(days);
+    const shown = EDIT_W ? days.map((_, i) => i) : days.map((d, i) => i).filter(i => dayShown(days[i]));
+    if (!shown.length && !EDIT_W) return '';
+    let vn = 0;
     let h = warmupNote((DATA.program || {}).warmupNote) + trainerNote((DATA.program || {}).note, 'הערה מהמאמן')
-      + '<div class="section-head"><h3>תוכנית האימון</h3><span>' + days.length + ' ימים · ' + days.reduce((n, d) => n + (d.exercises || []).length, 0) + ' תרגילים</span></div>';
+      + '<div class="section-head"><h3>תוכנית האימון</h3><span>' + (EDIT_W ? days.length : days.filter(d => realOf(d).length).length) + ' ימים · ' + days.reduce((n, d) => n + (EDIT_W ? (d.exercises || []).length : realOf(d).length), 0) + ' תרגילים</span></div>';
 
     days.forEach((d, i) => {
+      if (!EDIT_W && !dayShown(d)) return;
+      vn++;
       const ex   = d.exercises || [];
+      const real = EDIT_W ? ex.length : realOf(d).length;
       const open = EDIT_W ? true : DAY === i;
-      const done = ex.filter((_, j) => (STATE[i + ':' + j] || {}).done).length;
-      const full = ex.length > 0 && done === ex.length;
+      const done = ex.filter((e, j) => (EDIT_W || isReal(e)) && (STATE[i + ':' + j] || {}).done).length;
+      const full = real > 0 && done === real;
 
       h += '<div class="dayc' + (open ? ' on' : '') + (full ? ' full' : '') + (i === DAY ? ' today' : '') + '" data-d="' + i + '">'
         + '<button class="dayh" data-day="' + i + '">'
-        + '<span class="daynum">' + (i + 1) + '</span>'
-        + '<span class="dayt"><span class="dayn">' + esc(d.name || ('יום ' + (i + 1))) + '</span>'
-        + '<span class="daym">' + (done ? '<em>' + done + '</em>/' : '') + ex.length + ' תרגילים</span></span>'
+        + '<span class="daynum">' + (EDIT_W ? i + 1 : vn) + '</span>'
+        + '<span class="dayt"><span class="dayn">' + esc(d.name || ('יום ' + (EDIT_W ? i + 1 : vn))) + '</span>'
+        + '<span class="daym">' + (real ? (done ? '<em>' + done + '</em>/' : '') + real + ' תרגילים' : 'הנחיות') + '</span></span>'
         + '<span class="daychev"></span></button>'
         + '<div class="dayb">';
 
@@ -1908,7 +1924,7 @@ button{cursor:pointer}
         ? ex.map((e, j) => exCard(e, j, i)).join('')
         : '<div class="mt" style="text-align:center;padding:14px;font-size:13.5px">אין תרגילים ליום הזה</div>';
 
-      if (ex.length && !EDIT_W) {
+      if (real && !EDIT_W) {
         h += '<div class="card" style="margin:4px 0 10px;background:var(--ink)">'
           + '<label style="font-size:13px;color:var(--mut)">איך היה?</label>'
           + '<div class="feel">' + ['קל', 'בסדר', 'קשה'].map(f =>
@@ -1951,6 +1967,7 @@ button{cursor:pointer}
     const days = wlDays();
     if (WL_DAY != null && days[WL_DAY]) return WL_DAY;
     try { WL_DAY = EBWLog.suggestDay(DATA.program, EXTRAS.logs); } catch (e) { WL_DAY = 0; }
+    if (days.length && !realOf(days[WL_DAY]).length) WL_DAY = firstRealDay(days);
     return WL_DAY;
   }
   function wlDraft() { return EBWLog.draftOf(wlAll(), wlIdx()); }
@@ -1974,7 +1991,7 @@ button{cursor:pointer}
       return '<div class="card">היומן לא נטען. משוך את הדף למטה כדי לרענן.</div>';
     }
     const days = wlDays();
-    if (!days.length) {
+    if (!days.some(d => realOf(d).length)) {
       return '<div class="card" style="text-align:center;padding:28px 16px">'
         + '<div style="font-size:16px;font-weight:700;margin-bottom:7px">עוד אין תוכנית</div>'
         + '<div class="mt" style="font-size:13px;line-height:1.7">ברגע שהמאמן יבנה לך תוכנית אימון, '
@@ -1992,10 +2009,11 @@ button{cursor:pointer}
       + '<div class="wl-big"><span id="wlVol">' + vol.toLocaleString('en-US') + '</span>'
       + '<small>ק״ג נפח</small></div>'
       + '<div class="wl-sub" id="wlSub">' + (entries.length
-          ? (entries.length === 1 ? 'תרגיל אחד' : entries.length + ' תרגילים') + ' מתוך ' + ex.length + (entries.length === 1 ? ' נרשם' : ' נרשמו')
+          ? (entries.length === 1 ? 'תרגיל אחד' : entries.length + ' תרגילים') + ' מתוך ' + realOf(day).length + (entries.length === 1 ? ' נרשם' : ' נרשמו')
           : 'רשום משקל וחזרות לכל סט שסיימת') + '</div></div>';
 
     h += '<div class="wl-days">' + days.map(function (d, j) {
+      if (!realOf(d).length) return '';
       return '<button data-wlday="' + j + '"' + (j === i ? ' class="on"' : '') + '>'
         + esc(d.name || ('יום ' + (j + 1))) + '</button>';
     }).join('') + '</div>';
@@ -2006,6 +2024,7 @@ button{cursor:pointer}
     }
 
     ex.forEach(function (e, j) {
+      if (!isReal(e)) return;
       const n = EBWLog.setCount(e);
       const last = EBWLog.lastTimeOf(EXTRAS.logs, e.name);
       let filled = 0;
@@ -2092,11 +2111,11 @@ button{cursor:pointer}
     const entries = wlEntries();
     const volEl = document.getElementById('wlVol');
     if (volEl) volEl.textContent = EBWLog.volumeOf(entries).toLocaleString('en-US');
-    const ex = (wlDays()[wlIdx()] || {}).exercises || [];
+    const realN = realOf(wlDays()[wlIdx()]).length;
     const subEl = document.getElementById('wlSub');
     if (subEl) {
       subEl.textContent = entries.length
-        ? (entries.length === 1 ? 'תרגיל אחד' : entries.length + ' תרגילים') + ' מתוך ' + ex.length + (entries.length === 1 ? ' נרשם' : ' נרשמו')
+        ? (entries.length === 1 ? 'תרגיל אחד' : entries.length + ' תרגילים') + ' מתוך ' + realN + (entries.length === 1 ? ' נרשם' : ' נרשמו')
         : 'רשום משקל וחזרות לכל סט שסיימת';
     }
     const btn = document.querySelector('[data-wlsave]');
@@ -2634,6 +2653,15 @@ button{cursor:pointer}
         + '<input class="exnote" data-ef="note" data-i="' + i + '" data-d="' + d + '" value="' + esc(e.note || '') + '" placeholder="הערה (אופציונלי)">'
         + '</div>';
     }
+    /* שורה ריקה לא מוצגת; הנחיה מוצגת כהנחיה, בלי תיבת סימון ושדות */
+    if (!isReal(e)) {
+      if (!isInfo(e)) return '';
+      const nm = String(e.name || '').trim();
+      return '<div style="margin:6px 12px 8px;padding:9px 11px;border-radius:9px;border:1px dashed var(--line2);'
+        + 'font-size:12.5px;line-height:1.65;color:var(--mut);white-space:pre-wrap">'
+        + (/^[\s·•\-–—.]*$/.test(nm) ? '' : '<b style="color:var(--tx)">' + esc(nm) + '</b> · ')
+        + esc(e.note || '') + '</div>';
+    }
     const st = STATE[d + ':' + i] || {};
     const meta = [e.sets && e.sets + ' סטים', e.reps && e.reps + ' חזרות',
                   e.rest && 'מנוחה ' + e.rest + 'שנ'].filter(Boolean).join(' · ');
@@ -2656,8 +2684,8 @@ button{cursor:pointer}
     let tot = 0, done = 0;
     days.forEach((d, i) => {
       const ex = d.exercises || [];
-      tot += ex.length;
-      done += ex.filter((_, j) => (STATE[i + ':' + j] || {}).done).length;
+      tot += realOf(d).length;
+      done += ex.filter((e, j) => isReal(e) && (STATE[i + ':' + j] || {}).done).length;
     });
     let b = document.querySelector('.bar');
     if (!tot) { if (b) b.remove(); return; }
@@ -2954,9 +2982,10 @@ button{cursor:pointer}
     if (btn) { btn.disabled = true; btn.textContent = 'שולח…'; }
     const day = (DATA.program.days || [])[i] || {};
     const entries = (day.exercises || []).map((e, j) => {
+      if (!isReal(e)) return null;   // הנחיות ושורות ריקות לא נשלחות כתרגיל
       const st = STATE[i + ':' + j] || {};
       return { ex: e.name || '', done: !!st.done, weight: st.weight || '', reps: st.reps || '' };
-    });
+    }).filter(Boolean);
     try {
       const { error } = await sb.rpc('trainee_log', {
         p_token: TOKEN, p_day_index: i,
@@ -2981,11 +3010,12 @@ button{cursor:pointer}
   function dayMeta(i) {
     const card = document.querySelector('.dayc[data-d="' + i + '"]');
     if (!card) return;
-    const ex = ((DATA.program.days || [])[i] || {}).exercises || [];
-    const done = ex.filter((_, j) => (STATE[i + ':' + j] || {}).done).length;
+    const day = (DATA.program.days || [])[i] || {}, ex = day.exercises || [];
+    const real = realOf(day).length;
+    const done = ex.filter((e, j) => isReal(e) && (STATE[i + ':' + j] || {}).done).length;
     const meta = card.querySelector('.daym');
-    if (meta) meta.innerHTML = (done ? '<em>' + done + '</em>/' : '') + ex.length + ' תרגילים';
-    card.classList.toggle('full', ex.length > 0 && done === ex.length);
+    if (meta) meta.innerHTML = real ? (done ? '<em>' + done + '</em>/' : '') + real + ' תרגילים' : 'הנחיות';
+    card.classList.toggle('full', real > 0 && done === real);
     const fin = card.querySelector('[data-fin]');
     if (fin) fin.disabled = !done;
   }

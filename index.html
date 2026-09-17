@@ -429,8 +429,8 @@ tbody tr:hover{background:var(--panel)}
 <div id="toast"></div>
 
 <!-- ספריית Supabase מקומית (לא מ-CDN) כדי שהאפליקציה תעבוד גם בלי רשת -->
-<script src="vendor/supabase.js?v=v147"></script>
-<script src="config.js?v=v147"></script>
+<script src="vendor/supabase.js?v=v148"></script>
+<script src="config.js?v=v148"></script>
 
 <script>
 /* =======================================================================
@@ -465,7 +465,7 @@ function age(b){ if(!b) return null; const d=new Date(b), t=new Date(); let a=t.
 
 /* ---------------- אחסון ---------------- */
 const KEY='ebfit_v1';
-const EB_VERSION='v147';   // חייב להתאים ל-VERSION ב-sw.js
+const EB_VERSION='v148';   // חייב להתאים ל-VERSION ב-sw.js
 let mem=null, canStore=true;
 function load(){
   try{ const r=localStorage.getItem(KEY); return r?JSON.parse(r):null; }
@@ -1507,6 +1507,7 @@ function tabProgram(t){
       +'📝 הערה מ'+esc(t.name||'המתאמן')+'</div>'
       +'<div style="font-size:13.5px;line-height:1.7;white-space:pre-wrap">'+esc(tn)+'</div></div>';
   }
+  h+=programHealthCard(t);
   h+=planCard(t);
   h+=macroCard(t);
   h+=targetsCard(t);
@@ -1892,6 +1893,88 @@ function noteBox(t,k,title,ph){
    +'onchange="setProgNote(&#39;'+t.id+'&#39;,&#39;'+k+'&#39;,this.value)">'+esc(v)+'</textarea>'
    +'<div class="muted" style="font-size:11.5px;margin-top:6px">מוצגת למתאמן בדף שלו. נשמרת עם התוכנית.</div></div>';
 }
+/* ---------- בריאות התוכנית ----------
+   בבדיקה של כל התוכניות (17.9.2026) נמצאו שלושה סוגי זבל שהפריעו
+   למתאמנים: ימים ריקים ("יום D" עד "יום N" — 9 כאלה אצל מתאמן אחד),
+   שורות תרגיל בלי שם, והנחיות שנכנסו כתרגיל ("שינה", "היד", "·").
+   דף המתאמן כבר מדלג עליהם בתצוגה; כאן מנקים את הנתונים עצמם.
+
+   אותו כלל כמו EBWLog.isInfo ב-workout-log.js — אם משנים, בשניהם.
+   הנחיה לא נמחקת: שורת "·" מצטרפת להערה של התרגיל שלפניה, ושורה
+   עם שם עוברת להערה של היום. יום שנשאר רק עם הנחיות — ההנחיות
+   עוברות להערה הכללית, והיום יורד. */
+const PH_DOT=/^[\s·•\-–—.]*$/;
+function phInfo(e){ e=e||{}; const n=String(e.name||'').trim(), note=String(e.note||'').trim();
+  if(PH_DOT.test(n)) return !!note;
+  return !String(e.sets||'').trim()&&!String(e.reps||'').trim()&&!String(e.weight||'').trim()&&!!note; }
+function phBlank(e){ e=e||{}; return PH_DOT.test(String(e.name||'').trim()) && !String(e.note||'').trim(); }
+function programIssues(t){
+  const days=((t.program||{}).days)||[];
+  let empty=0, blank=0, info=0;
+  days.forEach(d=>{ const ex=d.exercises||[];
+    if(!ex.some(e=>!phBlank(e)&&!phInfo(e)) && !ex.some(phInfo) && !String(d.note||'').trim()) empty++;
+    ex.forEach(e=>{ if(phBlank(e)) blank++; else if(phInfo(e)) info++; }); });
+  return {empty, blank, info, total: empty+blank+info};
+}
+function cleanProgram(t){
+  const p=t.program; if(!p||!Array.isArray(p.days)) return 0;
+  const before=programIssues(t).total; if(!before) return 0;
+  const general=[];
+  p.days.forEach(d=>{
+    const keep=[], dayNotes=[];
+    (d.exercises||[]).forEach(e=>{
+      if(phBlank(e)) return;
+      if(phInfo(e)){
+        const n=String(e.name||'').trim(), note=String(e.note||'').trim();
+        if(PH_DOT.test(n) && keep.length){ const prev=keep[keep.length-1]; prev.note=(String(prev.note||'').trim()?prev.note+'\n':'')+note; }
+        else dayNotes.push((PH_DOT.test(n)?'':n+' — ')+note);
+        return;
+      }
+      keep.push(e);
+    });
+    d.exercises=keep;
+    if(dayNotes.length){
+      if(keep.length) d.note=(String(d.note||'').trim()?d.note+'\n':'')+dayNotes.join('\n');
+      else general.push((d.name?d.name+':\n':'')+[String(d.note||'').trim()].concat(dayNotes).filter(Boolean).join('\n'));
+    }
+  });
+  p.days=p.days.filter(d=>(d.exercises||[]).length);
+  if(general.length) p.note=(String(p.note||'').trim()?p.note+'\n\n':'')+general.join('\n\n');
+  return before;
+}
+function programHealthCard(t){
+  const is=programIssues(t); if(!is.total) return '';
+  const parts=[is.empty&&(is.empty===1?'יום ריק':is.empty+' ימים ריקים'),
+    is.blank&&(is.blank===1?'שורת תרגיל בלי שם':is.blank+' שורות תרגיל בלי שם'),
+    is.info&&(is.info===1?'הנחיה שרשומה כתרגיל':is.info+' הנחיות שרשומות כתרגיל')].filter(Boolean);
+  const others=S.trainees.filter(x=>x.status!=='archived'&&x.id!==t.id&&programIssues(x).total).length;
+  return '<div class="card" style="margin-bottom:12px;border-color:var(--warn);background:rgba(217,164,65,.07)">'
+   +'<div style="font-family:Heebo;font-weight:700;font-size:14px;color:var(--warn);margin-bottom:5px">🧹 התוכנית צריכה ניקוי</div>'
+   +'<div style="font-size:13px;line-height:1.7;margin-bottom:10px">נמצאו: '+esc(parts.join(', '))+'. '
+   +'המתאמן כבר לא רואה אותם, אבל הם עדיין בתוכנית. הניקוי מוחק ימים ושורות ריקים, '
+   +'ומעביר הנחיות להערה — שום טקסט לא נמחק.</div>'
+   +'<div class="row" style="gap:8px;flex-wrap:wrap">'
+   +'<button class="btn sm" onclick="cleanOne(&#39;'+t.id+'&#39;)">ניקוי התוכנית</button>'
+   +(others?'<button class="btn sm ghost" onclick="cleanAll()">ניקוי כל התוכניות ('+(others+1)+')</button>':'')
+   +'</div></div>';
+}
+function cleanOne(id){
+  const t=tById(id); if(!t) return;
+  const n=cleanProgram(t); if(!n) return;
+  save();
+  if(window.PROGRAM_BASE_ID===id) window.PROGRAM_BASE=JSON.parse(JSON.stringify(t.program||{days:[]}));
+  render(); toast('התוכנית נוקתה — '+n+' תיקונים');
+}
+function cleanAll(){
+  const list=S.trainees.filter(t=>t.status!=='archived'&&programIssues(t).total);
+  if(!list.length){ toast('כל התוכניות תקינות'); return; }
+  if(!confirm('לנקות '+list.length+' תוכניות?\nימים ושורות ריקים יימחקו, והנחיות יעברו להערות.')) return;
+  let n=0; list.forEach(t=>{ n+=cleanProgram(t); });
+  save();
+  if(window.PROGRAM_BASE_ID){ const cur=tById(window.PROGRAM_BASE_ID); if(cur) window.PROGRAM_BASE=JSON.parse(JSON.stringify(cur.program||{days:[]})); }
+  render(); toast(list.length+' תוכניות נוקו — '+n+' תיקונים');
+}
+
 /* ---------- חימום ----------
    הערה נפרדת מההערה הכללית, כי היא אותו טקסט אצל כולם וארוכה:
    בתוך ההערה הכללית היא הייתה קוברת את מה שאישי לכל מתאמן.
@@ -2915,30 +2998,30 @@ if (location.protocol === 'file:') {
 }
 </script>
 
-<script src="health.js?v=v147"></script>
-<script src="privacy.js?v=v147"></script>
-<script src="backup.js?v=v147"></script>
-<script src="reorder.js?v=v147"></script>
-<script src="access.js?v=v147"></script>
-<script src="analysis.js?v=v147"></script>
-<script src="reports.js?v=v147"></script>
-<script src="business.js?v=v147"></script>
-<script src="intake.js?v=v147"></script>
-<script src="files.js?v=v147"></script>
-<script src="builder.js?v=v147"></script>
-<script src="import-program.js?v=v147"></script>
-<script src="tracking.js?v=v147"></script>
-<script src="metrics.js?v=v147"></script>
-<script src="targets.js?v=v147"></script>
-<script src="meal-library.js?v=v147"></script>
-<script src="library-ui.js?v=v147"></script>
-<script src="export-plan.js?v=v147"></script>
-<script src="cardio.js?v=v147"></script>
-<script src="cardio-ui.js?v=v147"></script>
-<script src="exercise-library.js?v=v147"></script>
-<script src="exercise-ui.js?v=v147"></script>
-<script src="meals.js?v=v147"></script>
-<script src="sync.js?v=v147"></script>
+<script src="health.js?v=v148"></script>
+<script src="privacy.js?v=v148"></script>
+<script src="backup.js?v=v148"></script>
+<script src="reorder.js?v=v148"></script>
+<script src="access.js?v=v148"></script>
+<script src="analysis.js?v=v148"></script>
+<script src="reports.js?v=v148"></script>
+<script src="business.js?v=v148"></script>
+<script src="intake.js?v=v148"></script>
+<script src="files.js?v=v148"></script>
+<script src="builder.js?v=v148"></script>
+<script src="import-program.js?v=v148"></script>
+<script src="tracking.js?v=v148"></script>
+<script src="metrics.js?v=v148"></script>
+<script src="targets.js?v=v148"></script>
+<script src="meal-library.js?v=v148"></script>
+<script src="library-ui.js?v=v148"></script>
+<script src="export-plan.js?v=v148"></script>
+<script src="cardio.js?v=v148"></script>
+<script src="cardio-ui.js?v=v148"></script>
+<script src="exercise-library.js?v=v148"></script>
+<script src="exercise-ui.js?v=v148"></script>
+<script src="meals.js?v=v148"></script>
+<script src="sync.js?v=v148"></script>
 <script>
 /* =================== חיבור הסנכרון לאפליקציה =================== */
 

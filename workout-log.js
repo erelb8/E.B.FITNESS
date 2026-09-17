@@ -18,7 +18,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['wlog'] = 'v147';
+  (window.EB_MOD = window.EB_MOD || {})['wlog'] = 'v148';
 
   function esc(s) {
     return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
@@ -46,9 +46,38 @@
      לא "היום הבא ברשימה" אלא היום שהכי מזמן לא אומן. מי שמדלג על
      יום רגליים שבועיים ברציפות יקבל אותו כהצעה, במקום להמשיך
      להתגלגל בין החזה והגב. */
+  /* ---------- מה נחשב תרגיל ----------
+     בתוכניות האמיתיות נמצאו שורות שאינן תרגיל: הנחיות שייבוא או
+     "התאמה למטרה" הפכו לתרגיל ("שינה", "היד", "·" עם הערה), שורות
+     ריקות שנוספו ולא מולאו, וימים ריקים ("יום D" עד "יום N").
+     אצל המתאמן הן הופיעו ככרטיס עם תיבת סימון, נספרו בהתקדמות,
+     וחסמו את "סיימתי" — כי אי אפשר לסמן את "שינה" כבוצע.
+
+     הערה: שורה עם שם ובלי סטים, חזרות ומשקל, אבל עם הערה — או שורה
+     ששמה רק נקודה או קו. שורה עם שם בלבד היא תרגיל שהמאמן שכח
+     למלא, ולכן נשארת תרגיל. */
+  var DOT = /^[\s·•\-–—.]*$/;
+  function isInfo(e) {
+    e = e || {};
+    var n = String(e.name || '').trim();
+    var note = String(e.note || '').trim();
+    if (DOT.test(n)) return !!note;
+    return !String(e.sets || '').trim() && !String(e.reps || '').trim()
+        && !String(e.weight || '').trim() && !!note;
+  }
+  function isReal(e) {
+    e = e || {};
+    return !DOT.test(String(e.name || '').trim()) && !isInfo(e);
+  }
+  function realCount(day) {
+    return ((day || {}).exercises || []).filter(isReal).length;
+  }
+
   function suggestDay(program, logs) {
     var days = ((program || {}).days || []);
     if (!days.length) return 0;
+    var firstReal = -1;
+    days.forEach(function (d, i) { if (firstReal < 0 && realCount(d)) firstReal = i; });
     var lastByName = {};
     (logs || []).forEach(function (l) {
       var k = String(l.day_name || l.dayName || '').trim();
@@ -56,8 +85,9 @@
       if (!k || !d) return;
       if (!lastByName[k] || d > lastByName[k]) lastByName[k] = d;
     });
-    var bestIdx = 0, bestAge = -1;
+    var bestIdx = Math.max(0, firstReal), bestAge = -1;
     days.forEach(function (d, i) {
+      if (firstReal > -1 && !realCount(d)) return;   // יום ריק לא מוצע
       var name = String(d.name || ('יום ' + (i + 1))).trim();
       var last = lastByName[name];
       var age = last ? (dayGap(last) || 0) : 9999;   // מעולם לא אומן — ראשון בתור
@@ -93,6 +123,7 @@
   function buildEntries(day, draft) {
     var ex = (day || {}).exercises || [];
     return ex.map(function (e, i) {
+      if (!isReal(e)) return { done: false };
       var n = setCount(e), log = [], heaviest = null;
       for (var s = 0; s < n; s++) {
         var cell = (draft.sets || {})[setKey(i, s)];
@@ -151,6 +182,7 @@
   window.EBWLog = {
     localISO: localISO, dayGap: dayGap,
     suggestDay: suggestDay, setCount: setCount,
+    isInfo: isInfo, isReal: isReal, realCount: realCount,
     draftOf: draftOf, setKey: setKey,
     buildEntries: buildEntries, volumeOf: volumeOf, lastTimeOf: lastTimeOf,
     esc: esc, num: num, r1: r1
