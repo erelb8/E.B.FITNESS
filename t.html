@@ -188,7 +188,7 @@ button{cursor:pointer}
 .category-icon svg{display:block;width:100%;height:100%}
 .category-tile strong{display:block;font-size:14px}.category-tile span{display:block;color:var(--mut);font-size:11px;margin-top:2px}
 .category-modal{position:fixed;inset:0;z-index:90;background:rgba(18,13,9,.78);backdrop-filter:blur(12px);display:flex;align-items:flex-end;justify-content:center;padding:18px}
-.category-dialog{width:min(720px,100%);max-height:min(88vh,820px);overflow:auto;background:var(--ink);border:1px solid var(--line2);border-radius:18px 18px 8px 8px;box-shadow:0 24px 70px rgba(0,0,0,.48);padding:18px 16px 28px;animation:modalIn .2s ease-out}
+.category-dialog{width:min(720px,100%);max-height:min(88vh,820px);max-height:min(86dvh,820px);overflow:auto;-webkit-overflow-scrolling:touch;background:var(--ink);border:1px solid var(--line2);border-radius:18px 18px 8px 8px;box-shadow:0 24px 70px rgba(0,0,0,.48);padding:18px 16px calc(28px + env(safe-area-inset-bottom,0px));animation:modalIn .2s ease-out}
 .category-dialog-head{display:flex;align-items:center;gap:10px;padding-bottom:13px;margin-bottom:4px;border-bottom:1px solid var(--line)}
 .category-dialog-head h2{font-size:22px;flex:1}.category-dialog-head p{margin:2px 0 0;color:var(--mut);font-size:12px}
 .category-close{width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:var(--card);color:var(--tx);font-size:18px}
@@ -350,7 +350,7 @@ button{cursor:pointer}
 .hero{padding:20px 18px 18px;background:var(--card);box-shadow:none}
 .hero:before{display:none}
 .hero h2{font-size:25px}
-.hero-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:18px}
+.hero-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:0}
 .hstat b{display:block;font-family:'Frank Ruhl Libre',Georgia,serif;font-size:27px;font-weight:900;
   line-height:1;font-variant-numeric:tabular-nums}
 .hstat span{display:block;color:var(--mut);font-size:10.5px;margin-top:5px;line-height:1.35}
@@ -372,17 +372,17 @@ button{cursor:pointer}
 
 <div id="toast"></div>
 
-<script src="vendor/supabase.js?v=v145"></script>
-<script src="config.js?v=v145"></script>
-<script src="meal-library.js?v=v145"></script>
-<script src="exercise-library.js?v=v145"></script>
-<script src="progress.js?v=v145"></script>
-<script src="habits.js?v=v145"></script>
-<script src="coach-bot.js?v=v145"></script>
-<script src="workout-log.js?v=v145"></script>
-<script src="targets.js?v=v145"></script>
-<script src="health.js?v=v145"></script>
-<script src="privacy.js?v=v145"></script>
+<script src="vendor/supabase.js?v=v146"></script>
+<script src="config.js?v=v146"></script>
+<script src="meal-library.js?v=v146"></script>
+<script src="exercise-library.js?v=v146"></script>
+<script src="progress.js?v=v146"></script>
+<script src="habits.js?v=v146"></script>
+<script src="coach-bot.js?v=v146"></script>
+<script src="workout-log.js?v=v146"></script>
+<script src="targets.js?v=v146"></script>
+<script src="health.js?v=v146"></script>
+<script src="privacy.js?v=v146"></script>
 <script>
 (function () {
   'use strict';
@@ -722,9 +722,9 @@ button{cursor:pointer}
 
   function libButton() {
     if (typeof EBLib === 'undefined') return '';
-    return '<button class="btn ghost" style="width:100%;margin-bottom:12px;font-size:14px" '
-      + 'onclick="__libOpen()">כל הארוחות · ' + EBLib.MEALS.length + ' עם ערכים מלאים'
-      + (MY_MEALS.length ? ' · <b style="color:var(--or)">' + MY_MEALS.length + ' שלי</b>' : '')
+    return '<button class="btn" style="width:100%;margin-bottom:12px;font-size:15px;padding:13px" '
+      + 'onclick="__libOpen()">🍽 ספריית הארוחות · ' + EBLib.MEALS.length + ' עם ערכים מלאים'
+      + (MY_MEALS.length ? ' · <b>' + MY_MEALS.length + ' שלי</b>' : '')
       + '</button>';
   }
 
@@ -1055,9 +1055,9 @@ button{cursor:pointer}
 
   function exButton() {
     if (typeof EBEx === 'undefined') return '';
-    return '<button class="btn ghost" style="width:100%;margin-bottom:12px;font-size:14px" '
-      + 'onclick="__exOpen()">ספריית התרגילים · ' + EBEx.count
-      + (MY_EX.length ? ' · <b style="color:var(--or)">' + MY_EX.length + ' שלי</b>' : '')
+    return '<button class="btn" style="width:100%;margin-bottom:12px;font-size:15px;padding:13px" '
+      + 'onclick="__exOpen()">🏋 ספריית התרגילים · ' + EBEx.count
+      + (MY_EX.length ? ' · <b>' + MY_EX.length + ' שלי</b>' : '')
       + '</button>';
   }
 
@@ -1339,7 +1339,13 @@ button{cursor:pointer}
                              const el = document.getElementById('exq');
                              if (el) { el.focus(); el.setSelectionRange(v.length, v.length); } };
 
+  /* הספרייה היא מסך מלא, וחלון התזונה נשאר פתוח מעליה — כך המתאמנת
+     לחצה, הספרייה נפתחה מאחורי החלון, ולא קרה כלום לעיניה. סוגרים את
+     החלון לפני הפתיחה, וחוזרים אליו בסגירת הספרייה. */
+  let LIB_FROM = null;
   window.__libOpen   = (type) => { LIB_OPEN = true; LIB_TAB = 'meals';
+    LIB_FROM = OPEN_CATEGORY;
+    if (OPEN_CATEGORY) closeCategory();
     /* נפתחת מסוננת לתא שממנו נלחצה — מתאמן שלחץ 'הוספה לבוקר'
        לא צריך לחפש שוב בין 400 ארוחות. */
     LIB_TYPE = (typeof type === 'string' && type && type !== 'other') ? type : 'all';
@@ -1350,6 +1356,7 @@ button{cursor:pointer}
     LIB_OPEN = false;
     if (DATA) paint(); else loginScreen();
     window.scrollTo(0,0);
+    if (DATA && LIB_FROM) { const k = LIB_FROM; LIB_FROM = null; openCategory(k); }
   };
   window.__libSearch = v => { LIB_Q = v; screen(libScreen());
                               const el = document.getElementById('lq');
@@ -1523,8 +1530,11 @@ button{cursor:pointer}
   function categoryContent(key) {
     const days=(DATA.program&&DATA.program.days)||[], files=DATA.files||[];
     if(key==='log') return logScreen();
-    if(key==='workout') return editBar()+planBlock(days)+exBlockSafe()+exButton();
-    if(key==='food') return nutritionDisclaimer()+targetsBlock()+nutritionPlan()+libButton();
+    /* כפתורי הספריות למעלה, לא בתחתית. בסוף חלון ארוך הם נעלמו
+       מתחת לסרגל של ספארי באייפון, ומתאמנות דיווחו שהספרייה "לא
+       נפתחת" — היא נפתחה, רק שאי אפשר היה להגיע לכפתור. */
+    if(key==='workout') return editBar()+exButton()+planBlock(days)+exBlockSafe();
+    if(key==='food') return libButton()+nutritionDisclaimer()+targetsBlock()+nutritionPlan();
     if(key==='body') return botBody()+bodyMetricsBlock()+healthAlert()+healthFolder()+filesBlock(files);
     if(key==='habits') return habitsScreen();
     return botBlock({skipWeight:true})+progBlock();
@@ -1597,14 +1607,13 @@ button{cursor:pointer}
     const sinceTxt = lastWhen === null ? '—' : lastWhen === 0 ? 'היום' : lastWhen === 1 ? 'אתמול' : lastWhen;
     const sinceLbl = (lastWhen === null || lastWhen <= 1) ? 'האימון האחרון' : 'ימים מאז אימון';
 
+    /* השם והמטרה כבר בכותרת שמעל. פעמיים ברצף זה נראה כמו תקלה. */
     return '<section class="hero">'
-      + '<div class="hero-kicker">' + (DATA.goal ? esc(DATA.goal) : 'E.B FIT') + '</div>'
-      + '<h2>' + (first ? esc(first) : 'התוכנית שלך') + '</h2>'
       + '<div class="hero-stats">'
       + stat(weekDone, planned ? 'מתוך ' + planned + ' השבוע' : 'אימונים השבוע', !weekDone)
       + stat(sinceTxt, sinceLbl, lastWhen !== null && lastWhen > 3)
       + stat(logs.length, 'אימונים בסך הכול', !logs.length)
-      + stat(lastVol ? lastVol.toLocaleString('en-US') : '—', 'ק״ג באימון האחרון', !lastVol)
+      + stat(lastVol ? lastVol.toLocaleString('en-US') : '—', 'ק״ג באימון', !lastVol)
       + '</div></section>';
   }
 
