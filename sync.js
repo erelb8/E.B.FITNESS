@@ -15,7 +15,7 @@
   'use strict';
 
   // חותמת גרסה — index.html משווה אליה כדי לזהות קובץ ישן במטמון
-  (window.EB_MOD = window.EB_MOD || {})['sync'] = 'v151';
+  (window.EB_MOD = window.EB_MOD || {})['sync'] = 'v152';
 
   const CFG      = window.EBFIT_CONFIG || { URL: '', ANON: '' };
   const SNAP_KEY = 'ebfit_sync_v1';
@@ -768,7 +768,7 @@
                 + '-' + String(d.getDate()).padStart(2, '0');
     const { data, error } = await sb.from('workout_logs')
       .select('id,trainee_id,date,day_name,entries,feel,note,created_at')
-      .gte('date', since).order('created_at', { ascending: false }).limit(600);
+      .gte('date', since).order('created_at', { ascending: false }).limit(2000);
     if (error) return null;
     return data || [];
   }

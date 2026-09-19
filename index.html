@@ -461,8 +461,8 @@ tbody tr:hover{background:var(--panel)}
 <div id="toast"></div>
 
 <!-- ספריית Supabase מקומית (לא מ-CDN) כדי שהאפליקציה תעבוד גם בלי רשת -->
-<script src="vendor/supabase.js?v=v151"></script>
-<script src="config.js?v=v151"></script>
+<script src="vendor/supabase.js?v=v152"></script>
+<script src="config.js?v=v152"></script>
 
 <script>
 /* =======================================================================
@@ -497,7 +497,7 @@ function age(b){ if(!b) return null; const d=new Date(b), t=new Date(); let a=t.
 
 /* ---------------- אחסון ---------------- */
 const KEY='ebfit_v1';
-const EB_VERSION='v151';   // חייב להתאים ל-VERSION ב-sw.js
+const EB_VERSION='v152';   // חייב להתאים ל-VERSION ב-sw.js
 let mem=null, canStore=true;
 function load(){
   try{ const r=localStorage.getItem(KEY); return r?JSON.parse(r):null; }
@@ -1073,7 +1073,8 @@ function genderFixCard(){
    בדף שלו, מי נשקל, ומה כתב. אחריו — מי פעיל השבוע ומי נעלם.
 
    הדיווחים יושבים ב-workout_logs ולא ב-S, ולכן נמשכים כאן בשאילתה אחת
-   ל-14 הימים האחרונים ונשמרים בזיכרון דקה וחצי. בלי חיבור לשרת הלוח
+   ל-8 השבועות האחרונים (בשביל הגרף) ונשמרים בזיכרון דקה וחצי. הפיד
+   מציג מהם רק את 14 הימים האחרונים. בלי חיבור לשרת הלוח
    עובד על מה שיש במכשיר: אימונים ביומן ושקילות.
    ===================================================================== */
 const DASH = { logs:null, at:0, loading:false, more:false };
@@ -1081,7 +1082,7 @@ function dashSynced(){ return !!(window.EBSync && EBSync.enabled && EBSync.enabl
 function dashLoad(){
   if(DASH.loading || Date.now()-DASH.at < 90000 || !dashSynced()) return;
   DASH.loading=true;
-  EBSync.recentLogs(14).then(rows=>{
+  EBSync.recentLogs(56).then(rows=>{
     if(rows) DASH.logs=rows;
     DASH.at=Date.now(); DASH.loading=false;
     if(VIEW==='dash') render();
@@ -1101,7 +1102,7 @@ function dashEvents(){
   const since=addDays(todayISO(),-14), ev=[];
   const live=new Map(activeTrainees().map(t=>[t.id,t]));
   (DASH.logs||[]).forEach(l=>{
-    const t=live.get(l.trainee_id); if(!t) return;
+    const t=live.get(l.trainee_id); if(!t || String(l.date).slice(0,10)<since) return;
     const n=(l.entries||[]).length;
     ev.push({t, kind:'log', when:l.created_at||l.date, day:l.date,
       what:'השלים אימון'+(l.day_name?' · '+l.day_name:'')+(n?' · '+n+' תרגילים':''),
@@ -1209,6 +1210,17 @@ function vDash(){
   /* התראות */
   h+='<div class="card"><h3 style="font-size:16px;margin-bottom:10px">דורש טיפול</h3>';
   let alerts='';
+  /* תקופת תוכנית שהסתיימה או מסתיימת בשבועיים הקרובים — הזמן לדבר
+     על המשך, לפני שהמתאמן מגיע לסוף ונעלם. */
+  act.filter(x=>x.status==='active').map(x=>({x,p:planOf(x)})).filter(o=>o.p&&o.p.left<=2)
+    .sort((a,b)=>a.p.left-b.p.left).forEach(o=>{
+      const txt = o.p.ended ? 'התוכנית של '+esc(o.x.name)+' הסתיימה ב-'+fmtDate(o.p.endISO)
+                : 'התוכנית של '+esc(o.x.name)+(o.p.left===1?' מסתיימת השבוע':' מסתיימת בעוד שבועיים');
+      alerts+=alertRow('⏳',txt,'הארכה','go(\'trainee\',\''+o.x.id+'\');SUBTAB=\'program\';render()');
+    });
+  act.filter(x=>x.status==='active' && !(((x.program||{}).days)||[]).length && !(x.meals||[]).length).forEach(x=>{
+    alerts+=alertRow('📋','ל'+esc(x.name)+' אין עדיין תוכנית אימון','בניית תוכנית','go(\'trainee\',\''+x.id+'\');SUBTAB=\'program\';render()');
+  });
   act.filter(x=>x.balanceDue>0).forEach(x=>{ alerts+=alertRow('₪','ל'+esc(x.name)+' יתרת חוב '+money(x.balanceDue),'רישום תשלום','openPay(\''+x.id+'\')'); });
   /* "לא פעיל" לפי כל מקור — דיווח בדף, שקילה ואימון ביומן. מחכים
      לדיווחים לפני שמכריזים על מישהו שנעלם, אחרת כולם נראים נעלמים
@@ -1229,7 +1241,8 @@ function vDash(){
   h+='</div></div>';
 
   /* גרף שבועי */
-  h+='<div class="card" style="margin-top:14px"><h3 style="font-size:16px;margin-bottom:16px">אימונים שבוצעו — 8 שבועות אחרונים</h3>'+weekBars()+'</div>';
+  h+='<div class="card" style="margin-top:14px"><div class="row" style="margin-bottom:16px"><h3 style="flex:1;font-size:16px">אימונים שבוצעו — 8 שבועות אחרונים</h3>'
+    +'<span class="muted" style="font-size:12px">דיווחים בדף ואימונים ביומן</span></div>'+weekBars()+'</div>';
 
   if(S.features.calc) h+=calcCard();
   return h;
@@ -1284,7 +1297,8 @@ function weekBars(){
   const t=todayISO(); let bars=[],max=1;
   for(let i=7;i>=0;i--){
     const end=addDays(t,-7*i), start=addDays(end,-6);
-    const n=S.sessions.filter(s=>s.status==='done'&&s.date>=start&&s.date<=end).length;
+    const n=S.sessions.filter(s=>s.status==='done'&&s.date>=start&&s.date<=end).length
+           +(DASH.logs||[]).filter(l=>{ const d=String(l.date).slice(0,10); return d>=start&&d<=end; }).length;
     max=Math.max(max,n); bars.push({n, lbl:fmtDate(start)});
   }
   return '<div class="bars">'+bars.map(b=>'<div class="b" style="height:'+Math.max(3,(b.n/max)*100)+'%"><b>'+b.n+'</b><span>'+b.lbl+'</span></div>').join('')+'</div><div style="height:22px"></div>';
@@ -3161,30 +3175,30 @@ if (location.protocol === 'file:') {
 }
 </script>
 
-<script src="health.js?v=v151"></script>
-<script src="privacy.js?v=v151"></script>
-<script src="backup.js?v=v151"></script>
-<script src="reorder.js?v=v151"></script>
-<script src="access.js?v=v151"></script>
-<script src="analysis.js?v=v151"></script>
-<script src="reports.js?v=v151"></script>
-<script src="business.js?v=v151"></script>
-<script src="intake.js?v=v151"></script>
-<script src="files.js?v=v151"></script>
-<script src="builder.js?v=v151"></script>
-<script src="import-program.js?v=v151"></script>
-<script src="tracking.js?v=v151"></script>
-<script src="metrics.js?v=v151"></script>
-<script src="targets.js?v=v151"></script>
-<script src="meal-library.js?v=v151"></script>
-<script src="library-ui.js?v=v151"></script>
-<script src="export-plan.js?v=v151"></script>
-<script src="cardio.js?v=v151"></script>
-<script src="cardio-ui.js?v=v151"></script>
-<script src="exercise-library.js?v=v151"></script>
-<script src="exercise-ui.js?v=v151"></script>
-<script src="meals.js?v=v151"></script>
-<script src="sync.js?v=v151"></script>
+<script src="health.js?v=v152"></script>
+<script src="privacy.js?v=v152"></script>
+<script src="backup.js?v=v152"></script>
+<script src="reorder.js?v=v152"></script>
+<script src="access.js?v=v152"></script>
+<script src="analysis.js?v=v152"></script>
+<script src="reports.js?v=v152"></script>
+<script src="business.js?v=v152"></script>
+<script src="intake.js?v=v152"></script>
+<script src="files.js?v=v152"></script>
+<script src="builder.js?v=v152"></script>
+<script src="import-program.js?v=v152"></script>
+<script src="tracking.js?v=v152"></script>
+<script src="metrics.js?v=v152"></script>
+<script src="targets.js?v=v152"></script>
+<script src="meal-library.js?v=v152"></script>
+<script src="library-ui.js?v=v152"></script>
+<script src="export-plan.js?v=v152"></script>
+<script src="cardio.js?v=v152"></script>
+<script src="cardio-ui.js?v=v152"></script>
+<script src="exercise-library.js?v=v152"></script>
+<script src="exercise-ui.js?v=v152"></script>
+<script src="meals.js?v=v152"></script>
+<script src="sync.js?v=v152"></script>
 <script>
 /* =================== חיבור הסנכרון לאפליקציה =================== */
 
