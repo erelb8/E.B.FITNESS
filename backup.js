@@ -22,7 +22,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['backup'] = 'v172';
+  (window.EB_MOD = window.EB_MOD || {})['backup'] = 'v173';
 
   var LAST_KEY = 'ebfit_backup_at';
   var TABLES = ['trainees', 'sessions', 'measures', 'payments'];
@@ -590,7 +590,7 @@
     var list = await listSnaps();
     await folderReady();
     AUTO_HTML = folderHTML() + autoHTML(list);
-    /* הכרטיס הזה מופיע רק בהגדרות. עד v172 רץ כאן ציור של כל המסך פעם
+    /* הכרטיס הזה מופיע רק בהגדרות. עד v173 רץ כאן ציור של כל המסך פעם
        בשעה ובכל חזרה לאפליקציה — גם באמצע בניית תוכנית, ומחק את מה
        שהוקלד בתא. */
     if (window.VIEW === 'settings') {

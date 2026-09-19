@@ -26,7 +26,8 @@ function log(days, dayName, rows) {
   return { date: ago(days), dayName: dayName,
            entries: rows.map(r => ({ ex: r[0], weight: r[1], reps: r[2], done: r[3] !== false })) };
 }
-const PROGRAM = { days: [{ name: 'יום A' }, { name: 'יום B' }] };
+const PROGRAM = { days: [{ name: 'יום A', exercises: [{ name: 'סקוואט', sets: '3', reps: '8' }] },
+                         { name: 'יום B', exercises: [{ name: 'לחיצה', sets: '3', reps: '8' }] }] };
 
 /* ---------- 1RM משוער ---------- */
 console.log('=== 1RM משוער ===');
@@ -190,6 +191,53 @@ B.load({ logs: [{ date: ago(1) }, { date: ago(8) }, { date: ago(15) }, { date: a
          program: { planStart: ago(200), planMonths: 3 } });
 t('תוכנית שהסתיימה', B.plan().ended, true);
 t('הרצף שרד את סוף התוכנית', B.streak().weeks >= 4, true);
+
+/* ---------- v173: מה שמאמן אמיתי היה אומר ---------- */
+console.log('=== מאמן אמיתי ===');
+const titles = () => B.messages({ skipWeight: true }).map(m => m.title).join(' | ');
+const RANGE = { days: [{ name: 'יום A', exercises: [{ name: 'סקוואט', sets: '3', reps: '8-10' }] }] };
+const withNote = (d, w, r, feel, note) => Object.assign(log(d, 'יום A', [['סקוואט', w, r]]), { feel: feel, note: note });
+
+// אותו משקל ארבע פעמים — לא "שיא"
+B.load({ logs: [12, 9, 5, 2].map(d => log(d, 'יום A', [['סקוואט', 60, 8]])), program: RANGE });
+t('חזרה על אותו משקל אינה שיא', /שיא חדש/.test(titles()), false);
+
+// שיפור אמיתי — כן שיא
+B.load({ logs: [[12, 55], [9, 57.5], [5, 60], [2, 62.5]].map(x => log(x[0], 'יום A', [['סקוואט', x[1], 8]])), program: RANGE });
+t('שיפור אמיתי הוא שיא', /שיא חדש/.test(titles()), true);
+
+// הקצה העליון של הטווח — להעלות משקל
+B.load({ logs: [5, 2].map(d => log(d, 'יום A', [['סקוואט', 60, 10]])), program: RANGE });
+t('10 מתוך 8-10 — זמן להעלות', /זמן להעלות משקל בסקוואט/.test(titles()), true);
+t('ההמלצה 62.5', /62\.5/.test(B.messages({ skipWeight: true }).map(m => m.text).join(' ')), true);
+B.load({ logs: [log(2, 'יום A', [['סקוואט', 60, 9]])], program: RANGE });
+t('9 מתוך 8-10 — עוד לא', /זמן להעלות/.test(titles()), false);
+
+// כאב בהערה — ההודעה הראשונה
+B.load({ logs: [withNote(5, 60, 8), withNote(2, 60, 8, 'בסדר', 'כואבת לי הברך בסקוואט')], program: RANGE });
+t('כאב הוא ההודעה הראשונה', B.messages({ skipWeight: true })[0].title, 'כתבת שמשהו כאב');
+t('עם כאב — לא מציעים להעלות', /זמן להעלות/.test(titles()), false);
+B.load({ logs: [withNote(2, 60, 8, 'בסדר', 'הלבן היה טוב, תרגילים קלים')], program: RANGE });
+t('"לבן" ו"תרגילים" אינם כאב', /כאב/.test(titles()), false);
+
+// "קשה" ברצף וביצועים יורדים — מנוחה
+B.load({ logs: [withNote(9, 60, 8, 'קשה'), withNote(5, 60, 7, 'קשה'), withNote(2, 55, 6, 'קשה')], program: RANGE });
+t('קשה ויורד — הגוף מבקש מנוחה', /הגוף מבקש מנוחה/.test(titles()), true);
+
+// day_name מהשרת — היום שאומן אינו "מוזנח"
+B.load({ logs: [{ date: ago(2), day_name: 'יום A', entries: [] }], program: PROGRAM });
+t('day_name מהשרת נספר', B.neglectedDays().join(','), 'יום B');
+
+// ימים ריקים לא נספרים לתדירות
+B.load({ logs: [], program: { days: PROGRAM.days.concat([{ name: 'יום F', exercises: [] }, { name: 'יום G', exercises: [] }]) } });
+t('ימים ריקים לא נספרים', B.consistency().planned, 2);
+
+// תוכנית מחזורית — שבוע אחד ולא 12 אימונים בשבוע
+const cyc = [];
+[1, 2, 3].forEach(c => ['A', 'B', 'C', 'D'].forEach(x => cyc.push({ name: 'מחזור ' + c + ' · אימון ' + x, exercises: [{ name: 'x', sets: '3', reps: '8' }] })));
+B.load({ logs: [], program: { days: cyc } });
+t('מחזורית — 4 בשבוע', B.consistency().planned, 4);
+t('מחזורית — אין "יום מוזנח"', B.neglectedDays().length, 0);
 
 console.log(fail ? '\n' + fail + ' נכשלו  |  עברו: ' + pass
                  : '\nהכל עבר  |  עברו: ' + pass);

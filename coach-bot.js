@@ -18,7 +18,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['bot'] = 'v172';
+  (window.EB_MOD = window.EB_MOD || {})['bot'] = 'v173';
 
   var LOGS = [], WEIGH = [], PROGRAM = null, GOAL = '', HABITS = null;
 
@@ -108,6 +108,35 @@
   }
 
   /* השבוע הנוכחי מול המתוכנן */
+  /* ימים אמיתיים בתוכנית — לא ימים ריקים ולא ימי הנחיות. עד v173 כל
+     יום נספר, ומתאמן עם 14 ימים בתוכנית (9 מהם ריקים) "היה צריך"
+     להתאמן 14 פעמים בשבוע, וקיבל "פחות אימונים מהתוכנית" על כל שבוע. */
+  function realDays() {
+    return ((PROGRAM || {}).days || []).filter(function (d) {
+      return (d.exercises || []).some(function (e) {
+        if (window.EBWLog && EBWLog.isReal) return EBWLog.isReal(e);
+        return String(e.name || '').trim() && (e.sets || e.reps || e.weight);
+      });
+    });
+  }
+  /* תוכנית מחזורית ("מחזור 1 · אימון A", "שבוע ב׳ · יום 1") היא כמה
+     שבועות ברצף, לא 13 אימונים בשבוע. מקבצים לפי הקידומת, והשבוע הוא
+     הקבוצה הגדולה. עד 6 בשבוע — מעבר לזה זו תוכנית ולא תדירות. */
+  function cycleKey(name) {
+    var m = String(name || '').match(/^\s*((?:מחזור|שבוע)\s*[^·\-—:|]{0,6})\s*[·\-—:|]/);
+    return m ? m[1].replace(/\s+/g, ' ').trim() : null;
+  }
+  function isCycle() {
+    var keys = {};
+    realDays().forEach(function (d) { var k = cycleKey(d.name); if (k) keys[k] = (keys[k] || 0) + 1; });
+    return Object.keys(keys).length >= 2 ? keys : null;
+  }
+  function plannedPerWeek() {
+    var cyc = isCycle();
+    var n = cyc ? Math.max.apply(null, Object.keys(cyc).map(function (k) { return cyc[k]; })) : realDays().length;
+    return Math.min(6, n);
+  }
+
   function thisWeek() {
     var start = weekStart(localISO(new Date()));
     var n = 0;
@@ -115,7 +144,7 @@
       var d = String(l.date || '').slice(0, 10);
       if (d && weekStart(d) === start) n++;
     });
-    var planned = ((PROGRAM || {}).days || []).length;
+    var planned = plannedPerWeek();
     return { done: n, planned: planned, left: Math.max(0, planned - n) };
   }
 
@@ -191,7 +220,9 @@
       out.push({
         name: name, points: pts, sessions: pts.length,
         last: last, best: best, gainPct: gain,
-        isPR: last.est >= best.est - 0.01 && pts.length > 1,
+        /* שיא = טוב מכל אימון קודם. עד v173 גם חזרה על אותו משקל נקראה
+           "שיא חדש", יחד עם "נתקע" על אותו תרגיל. */
+        isPR: pts.length > 1 && last.est > pts.slice(0, -1).reduce(function (a, p) { return Math.max(a, p.est); }, 0) + 0.01,
         stalled: stalled,
         daysSince: daysAgo(last.date)
       });
@@ -289,7 +320,7 @@
       if (isFinite(t) && t >= cut) days[d] = 1;
     });
     var n = Object.keys(days).length;
-    var planned = ((PROGRAM || {}).days || []).length;
+    var planned = plannedPerWeek();
     return {
       last4Weeks: n,
       perWeek: r1(n / 4),
@@ -301,12 +332,16 @@
 
   /* ימים בתוכנית שלא אומנו בשלושה שבועות */
   function neglectedDays() {
-    var planned = ((PROGRAM || {}).days || []);
+    /* בתוכנית מחזורית רוב הימים עוד לא הגיעו — זה לא הזנחה */
+    if (isCycle()) return [];
+    var planned = realDays();
     if (!planned.length) return [];
     var seen = {};
     LOGS.forEach(function (l) {
       var d = daysAgo(l.date);
-      if (d !== null && d <= 21) seen[String(l.dayName || '').trim()] = 1;
+      /* בשרת השדה הוא day_name. עד v173 נקרא רק dayName, ולכן כל יום
+         נראה מוזנח — גם כזה שאומן יומיים קודם. */
+      if (d !== null && d <= 21) seen[String(l.day_name || l.dayName || '').trim()] = 1;
     });
     return planned
       .map(function (d) { return String(d.name || '').trim(); })
@@ -366,6 +401,66 @@
     return out;
   }
 
+  /* ---------- כאב ועייפות ----------
+     מאמן שרואה "כואבת לי הברך" פעמיים ושלושה אימונים "קשה" ברצף לא
+     מדבר על שיאים. עד v173 הבוט לא קרא את ההערות ואת ה"איך היה" בכלל.
+     הגבול בעברית מפורש — \b של JS לא מכיר אותיות עבריות. */
+  var PAIN = /(^|[^\u05D0-\u05EA])[והבלמשכ]{0,2}(כאב|כאבים|כואב|כואבת|כואבים|כאבה|פציעה|פצוע|פצועה|נפצע|נפצעה|נפצעתי|דלקת|נקע|נפיחות|נפוח|נפוחה|סחרחורת|נתפס|נתפסה|נתפסו|צריבה|חבלה)(?=$|[^\u05D0-\u05EA])/;
+  function painNote() {
+    for (var i = LOGS.length - 1; i >= 0; i--) {
+      var l = LOGS[i], d = daysAgo(l.date);
+      if (d === null || d > 14) break;
+      if (PAIN.test(String(l.note || ''))) return { note: String(l.note).trim(), day: l.day_name || l.dayName || '', ago: d };
+    }
+    return null;
+  }
+  function fatigue() {
+    var last = LOGS.slice(-3);
+    if (last.length < 2) return null;
+    var hard = last.filter(function (l) { return l.feel === 'קשה'; }).length;
+    if (hard < 2) return null;
+    /* קשה + ירידה בביצועים = עייפות אמיתית, לא רק אימון מאתגר */
+    var dropped = trends().some(function (x) {
+      var p = x.points; if (p.length < 2) return false;
+      return p[p.length - 1].est < p[p.length - 2].est * 0.97 && x.daysSince !== null && x.daysSince <= 10;
+    });
+    return { hard: hard, of: last.length, dropped: dropped };
+  }
+  /* ---------- מתי להעלות משקל ----------
+     התקדמות כפולה: עובדים בטווח חזרות (8-10), וכשכל הסטים מגיעים
+     לקצה העליון — מעלים משקל ומתחילים שוב מלמטה. זה מה שמאמן היה
+     אומר אחרי אימון כזה, והבוט לא אמר. */
+  function topReps(v) {
+    var m = String(v || '').match(/(\d+)\s*(?:[-–—]\s*(\d+))?/);
+    if (!m || /[\u05D0-\u05EA]/.test(String(v))) return null;   // "לכשל", "30 שנ׳" — לא טווח חזרות
+    return Number(m[2] || m[1]);
+  }
+  function readyToAdd() {
+    var target = {};
+    realDays().forEach(function (d) {
+      (d.exercises || []).forEach(function (e) {
+        var n = String(e.name || '').trim(), top = topReps(e.reps);
+        if (n && top && top <= 20) target[n] = top;
+      });
+    });
+    var out = [];
+    for (var i = LOGS.length - 1, seen = {}; i >= 0; i--) {
+      var l = LOGS[i]; if ((daysAgo(l.date) || 0) > 21) break;
+      (l.entries || []).forEach(function (e) {
+        var n = String(e.ex || '').trim();
+        if (!n || seen[n] || !target[n] || !e.done) return;
+        seen[n] = 1;                                   // רק האימון האחרון בכל תרגיל
+        var sets = (e.setLog || []).filter(function (x) { return num(x.w) && num(x.r); });
+        var w = num(e.weight), allTop;
+        if (sets.length) { w = Math.max.apply(null, sets.map(function (x) { return num(x.w); }));
+          allTop = sets.filter(function (x) { return num(x.w) >= w; }).every(function (x) { return num(x.r) >= target[n]; }); }
+        else allTop = num(e.reps) >= target[n];
+        if (w && allTop) out.push({ name: n, w: w, top: target[n], next: r1(w + (w >= 40 ? 2.5 : w >= 12 ? 2 : 1)) });
+      });
+    }
+    return out;
+  }
+
   function messages(opts) {
     opts = opts || {};
     var out = [];
@@ -381,11 +476,29 @@
       return out.concat(habitWatch());
     }
 
+    /* הגוף קודם לכל דבר אחר */
+    var pn = painNote();
+    if (pn) {
+      out.push({ tone: 'warn', icon: '🩹', title: 'כתבת שמשהו כאב',
+        text: '"' + (pn.note.length > 70 ? pn.note.slice(0, 70) + '…' : pn.note) + '"'
+            + (pn.day ? ' (' + pn.day + ')' : '') + '. לא ממשיכים דרך כאב: להוריד משקל בתרגיל שכואב או לדלג עליו, '
+            + 'ואם זה לא עובר — להפסיק ולעדכן. המאמן רואה את ההערה.' });
+    }
+    var fg = fatigue();
+    if (fg) {
+      out.push({ tone: 'warn', icon: '🔋', title: fg.dropped ? 'הגוף מבקש מנוחה' : 'כמה אימונים קשים ברצף',
+        text: fg.hard + ' מתוך ' + fg.of + ' האימונים האחרונים סומנו "קשה"'
+            + (fg.dropped ? ' והביצועים ירדו' : '') + '. '
+            + (fg.dropped ? 'זה סימן לעייפות מצטברת, לא לחולשה. שבוע קל — משקלים 10% פחות — ושינה טובה יחזירו אותך חזק יותר.'
+                          : 'שינה, אוכל ושתייה לפני שמעלים עומס. אם זה ממשיך — שווה לדבר עם המאמן על שבוע קל.') });
+    }
+
     /* נעלם */
+    var twNow = thisWeek(), weekFull = twNow.planned && twNow.done >= twNow.planned;
     if (c.lastAt !== null && c.lastAt >= 10) {
       out.push({ tone: 'warn', icon: '⏳', title: 'לא התאמנת ' + c.lastAt + ' ימים',
         text: 'הכושר לא נעלם בשבוע, אבל ההרגל כן. תחזור לאימון אחד קצר — זה מספיק כדי לחזור למסלול.' });
-    } else if (c.planned && c.perWeek + 0.01 < c.planned * 0.6) {
+    } else if (c.planned && c.perWeek + 0.01 < c.planned * 0.6 && !weekFull) {
       out.push({ tone: 'warn', icon: '📉', title: 'פחות אימונים מהתוכנית',
         text: 'בחודש האחרון ' + c.last4Weeks + ' אימונים, בערך ' + c.perWeek
             + ' בשבוע, מול ' + c.planned + ' שתוכננו. עדיף להוריד ליעד שאתה עומד בו מלפספס אותו כל שבוע.' });
@@ -400,6 +513,16 @@
             + (p.last.reps ? ' ל-' + p.last.reps + ' חזרות' : '') + '. '
             + (prs.length > 1 ? 'ועוד ' + (prs.length - 1) + ' תרגילים בשיא. ' : '')
             + 'זה בדיוק איך שזה אמור להיראות.' });
+    }
+
+    /* מוכן להעלות משקל — המשפט שאפשר לפעול לפיו באימון הבא */
+    var ra = pn ? [] : readyToAdd();
+    if (ra.length) {
+      var a = ra[0];
+      out.push({ tone: 'good', icon: '⬆️', title: 'זמן להעלות משקל ב' + a.name,
+        text: 'באימון האחרון ' + r1(a.w) + ' ק״ג ל-' + a.top + ' חזרות בכל הסטים — הקצה העליון של הטווח. '
+            + 'באימון הבא: ' + a.next + ' ק״ג, ובונים שוב עד ' + a.top + '.'
+            + (ra.length > 1 ? ' (וגם ' + ra.slice(1, 3).map(function (x) { return x.name; }).join(', ') + ')' : '') });
     }
 
     /* עלייה מצטברת */

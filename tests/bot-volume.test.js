@@ -45,7 +45,7 @@ t('ישן וחדש יחד',
 
 /* ---------- מעקב יומי ---------- */
 console.log('=== מעקב יומי ===');
-const PROGRAM = { days: [{ name: 'יום A' }, { name: 'יום B' }, { name: 'יום C' }] };
+const PROGRAM = { days: ['יום A', 'יום B', 'יום C'].map(n => ({ name: n, exercises: [{ name: 'סקוואט', sets: '3', reps: '8' }] })) };
 B.load({
   logs: [
     { date: ago(0), dayName: 'יום A', day_name: 'יום A', entries: [{ ex: 'סקוואט', done: true, setLog: [{ w: 100, r: 5 }] }] },
