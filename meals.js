@@ -12,7 +12,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['meals'] = 'v167';
+  (window.EB_MOD = window.EB_MOD || {})['meals'] = 'v168';
 
   var BUCKET = 'programs';
   var MAXW   = 900;          // רוחב מרבי אחרי הקטנה
@@ -117,6 +117,29 @@
   function isoDay(back) {
     var d = new Date(); d.setDate(d.getDate() - back);
     return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+  /* מה המתאמן אכל ביום מסוים, לפי הסימונים והרישום החופשי שלו.
+     משותף לתיק המתאמן וללוח הבקרה, כדי ששניהם יראו אותו מספר. */
+  function knownMeals(t) {
+    var known = {};
+    (t.meals || []).forEach(function (m) { known[hid(m.type, m.name)] = { name: m.name, k: num(m.kcal) }; });
+    if (typeof EBLib !== 'undefined') {
+      (t.mealsSelf || []).forEach(function (x) {
+        var m = EBLib.byId(x.libId); if (!m) return;
+        known[hid(m.type, m.name)] = { name: m.name, k: EBLib.calc(m.items).total.k };
+      });
+    }
+    (t.mealsCustom || []).forEach(function (x) { if (x && x.custom) known[hid('other', x.name)] = { name: x.name, k: num(x.k) }; });
+    return known;
+  }
+  function dayEaten(t, iso, known) {
+    known = known || knownMeals(t);
+    var day = (((t.habitsLog || {}).marks) || {})[iso] || {};
+    var ids = Object.keys(day.meals || {});
+    var free = ((t.foodLog || {})[iso] || []).map(function (x) { return { name: x.name + ' ✎', k: num(x.k) }; });
+    var items = ids.map(function (id) { return known[id] || { name: id.split('|').slice(1).join('|'), k: 0 }; }).concat(free);
+    return { items: items, k: items.reduce(function (a, x) { return a + (x.k || 0); }, 0),
+             planOk: !!day.food, any: !!(items.length || day.food) };
   }
   function eatenBlock(t, goals) {
     var marks = (t.habitsLog && t.habitsLog.marks) || {};
@@ -403,6 +426,6 @@
     toast('הארוחה נמחקה');
   }
 
-  window.EBMeals = { tab:tab, edit:edit, save:save, del:del,
+  window.EBMeals = { tab:tab, edit:edit, save:save, del:del, dayEaten:dayEaten, knownMeals:knownMeals,
                      pickPhoto:pickPhoto, calcKcal:calcKcal, totals:totals, typeName:typeName };
 })();

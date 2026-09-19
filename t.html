@@ -13,8 +13,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="התוכנית שלי">
 <meta name="robots" content="noindex,nofollow">
-<link rel="apple-touch-icon" href="icons/icon-180.png?v=v167">
-<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=v167">
+<link rel="apple-touch-icon" href="icons/icon-180.png?v=v168">
+<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=v168">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -57,6 +57,13 @@ button{cursor:pointer}
 .brand-logo{width:34px;height:34px;border-radius:9px;flex:0 0 auto}
 .top h1{font-size:22px;margin-top:3px}
 .top .sub{color:var(--mut);font-size:13px;margin-top:2px}
+/* חיווי שמירה — המתאמן יודע שאפשר לסגור את האפליקציה */
+.savechip{position:absolute;left:16px;top:calc(14px + env(safe-area-inset-top));font-size:11.5px;
+  padding:4px 10px;border-radius:20px;border:1px solid var(--line2);color:var(--mut);background:rgba(0,0,0,.25);
+  transition:opacity .4s,color .2s,border-color .2s;opacity:0;pointer-events:none;white-space:nowrap}
+.savechip.on{opacity:1}
+.savechip.ok{color:var(--ok);border-color:rgba(221,191,142,.4)}
+.savechip.warn{color:var(--amber);border-color:rgba(184,144,31,.5)}
 .top:after{content:'';display:block;position:absolute;right:0;left:0;bottom:-1px;height:1px;background:linear-gradient(90deg,transparent,var(--or),transparent);opacity:.45}
 
 .wrap{padding:16px 14px 0;max-width:640px;margin:0 auto}
@@ -361,9 +368,10 @@ button{cursor:pointer}
 <body>
 
 <header class="top">
-  <div class="brand"><img class="brand-logo" src="icons/logo-96.png?v=v167" alt="" width="34" height="34"><span>E.B<span class="dot"></span>FIT</span></div>
+  <div class="brand"><img class="brand-logo" src="icons/logo-96.png?v=v168" alt="" width="34" height="34"><span>E.B<span class="dot"></span>FIT</span></div>
   <h1 id="hTitle">טוען…</h1>
   <div class="sub" id="hSub"></div>
+  <span class="savechip" id="saveChip" aria-live="polite"></span>
 </header>
 
 <div class="wrap" id="wrap">
@@ -372,17 +380,17 @@ button{cursor:pointer}
 
 <div id="toast"></div>
 
-<script src="vendor/supabase.js?v=v167"></script>
-<script src="config.js?v=v167"></script>
-<script src="meal-library.js?v=v167"></script>
-<script src="exercise-library.js?v=v167"></script>
-<script src="progress.js?v=v167"></script>
-<script src="habits.js?v=v167"></script>
-<script src="coach-bot.js?v=v167"></script>
-<script src="workout-log.js?v=v167"></script>
-<script src="targets.js?v=v167"></script>
-<script src="health.js?v=v167"></script>
-<script src="privacy.js?v=v167"></script>
+<script src="vendor/supabase.js?v=v168"></script>
+<script src="config.js?v=v168"></script>
+<script src="meal-library.js?v=v168"></script>
+<script src="exercise-library.js?v=v168"></script>
+<script src="progress.js?v=v168"></script>
+<script src="habits.js?v=v168"></script>
+<script src="coach-bot.js?v=v168"></script>
+<script src="workout-log.js?v=v168"></script>
+<script src="targets.js?v=v168"></script>
+<script src="health.js?v=v168"></script>
+<script src="privacy.js?v=v168"></script>
 <script>
 (function () {
   'use strict';
@@ -395,7 +403,7 @@ button{cursor:pointer}
     .replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
 
   let DATA = null, DAY = 0, STATE = {}, FEEL = null, sb = null;
-  /* הערה למאמן בסיום אימון, לפי יום. עד v167 שני כפתורי הסיום שלחו
+  /* הערה למאמן בסיום אימון, לפי יום. עד v168 שני כפתורי הסיום שלחו
      p_note: null, ולמתאמן לא הייתה שום דרך לכתוב למאמן על אימון —
      כולל "הברך כאבה", שלוח הבקרה של המאמן יודע להתריע עליו. */
   const FIN_NOTE = {};
@@ -434,6 +442,18 @@ button{cursor:pointer}
   async function boot() {
     if (!CFG.URL || !CFG.ANON) return screen(msg('המערכת עוד לא מחוברת', 'המאמן צריך לסיים את ההגדרה.'));
     sb = supabase.createClient(CFG.URL, CFG.ANON);
+    /* כל כתיבה לשרת עוברת כאן, ולכן החיווי מכסה את כולן — סימונים,
+       ארוחות, עריכת תוכנית, דיווח אימון — בלי לגעת בכל אחת בנפרד. */
+    const rpc0 = sb.rpc.bind(sb), READS = { trainee_program: 1, trainee_extras: 1, trainee_login: 1 };
+    sb.rpc = async function (fn, args) {
+      if (READS[fn]) return rpc0(fn, args);
+      saveChip('saving');
+      try {
+        const r = await rpc0(fn, args);
+        saveChip(r && r.error ? (navigator.onLine ? 'error' : 'offline') : 'saved');
+        return r;
+      } catch (e) { saveChip(navigator.onLine ? 'error' : 'offline'); throw e; }
+    };
 
     // אין טוקן בכתובת? אולי המכשיר כבר התחבר בעבר.
     if (!TOKEN) TOKEN = localStorage.getItem('ebfit_t_token') || '';
@@ -527,6 +547,21 @@ button{cursor:pointer}
     });
     window.addEventListener('focus', () => refreshData(true));
   }
+
+  let SAVE_T = null, SAVE_N = 0;
+  function saveChip(state) {
+    const el = document.getElementById('saveChip'); if (!el) return;
+    clearTimeout(SAVE_T);
+    if (state === 'saving') SAVE_N++; else SAVE_N = Math.max(0, SAVE_N - 1);
+    if (state === 'saved' && SAVE_N) return;            // עוד שמירות בדרך
+    const map = { saving: ['שומר…', ''], saved: ['✓ נשמר', 'ok'],
+                  offline: ['אין רשת — נשמר בטלפון', 'warn'], error: ['לא נשמר בשרת — ננסה שוב', 'warn'] };
+    const m = map[state] || map.saved;
+    el.textContent = m[0];
+    el.className = 'savechip on' + (m[1] ? ' ' + m[1] : '');
+    if (state === 'saved') SAVE_T = setTimeout(() => { el.className = 'savechip ok'; }, 2500);
+  }
+  window.addEventListener('offline', () => saveChip('offline'));
 
   function msg(h, p) { return '<div class="msg"><h2>' + esc(h) + '</h2>' + esc(p) + '</div>'; }
 
@@ -796,7 +831,7 @@ button{cursor:pointer}
   function mergeMy(fromServer) {
     if (!Array.isArray(fromServer)) return;      // העמודה עוד לא קיימת בשרת
     /* meals_self בשרת מחזיק רק ארוחות מהספרייה. ארוחה שהמתאמן בנה
-       בעצמו לא נמצאת שם — ועד v167 ההחלפה הזאת מחקה אותה בכל טעינה
+       בעצמו לא נמצאת שם — ועד v168 ההחלפה הזאת מחקה אותה בכל טעינה
        ובכל ריענון. היא נשמרת עכשיו ב-session_state (ראה syncCustom),
        וכאן פשוט לא נוגעים בה. */
     const mine = MY_MEALS.filter(x => x.custom);
@@ -1294,7 +1329,7 @@ button{cursor:pointer}
     toast('השינויים בוטלו');
   };
   /* ---------- שמירה אוטומטית של עריכת התוכנית ----------
-     עד v167 העריכה נצברה בדף ונשלחה רק בלחיצה על "שמירת השינויים",
+     עד v168 העריכה נצברה בדף ונשלחה רק בלחיצה על "שמירת השינויים",
      וסגירת החלון בלי ללחוץ מחקה הכל. עכשיו כל שינוי נשלח לבד, שנייה
      אחרי השינוי האחרון, ובכל יציאה מהמסך או מהאפליקציה. */
   let EDIT_TIMER = null, EDIT_BUSY = false, EDIT_AGAIN = false, EDIT_PUSHED = false;
@@ -1629,7 +1664,7 @@ button{cursor:pointer}
   }
   /* סגירה באמצע עריכה משמיטה את השינויים שלא נשמרו — כמו ביטול */
   function closeCategory(){
-    /* סגירה באמצע עריכה שומרת — עד v167 היא מחקה את כל השינויים */
+    /* סגירה באמצע עריכה שומרת — עד v168 היא מחקה את כל השינויים */
     if (EDIT_W) {
       const box = document.getElementById('tn_box');
       if (box && DATA.program) DATA.program.traineeNote = box.value;
@@ -2717,7 +2752,7 @@ button{cursor:pointer}
     if (!any && !lib) return '';
 
     /* סיכום היום מול היעדים — רק מה שסומן "אכלתי" היום.
-       עד v167 נספרה כל ארוחה בתפריט, כולל כל האפשרויות שהמאמן נתן
+       עד v168 נספרה כל ארוחה בתפריט, כולל כל האפשרויות שהמאמן נתן
        וכל מה שהמתאמן הוסיף מהספרייה, והמתאמן ראה שהוא "עובר" את
        היעד היומי בלי שאכל כלום. התפריט הוא רשימת אפשרויות, לא יומן.
        הסימון הוא אותו סימון של מסך ההרגלים (kind 'meals'). */
@@ -3208,8 +3243,12 @@ button{cursor:pointer}
   async function sendState() {
     if (!sb || !TOKEN || !SRV_LOADED) return;
     STATE_DIRTY = false;
-    try { await sb.rpc('trainee_save_state', { p_token: TOKEN, p_state: STATE }); }
-    catch (e) { STATE_DIRTY = true; }
+    /* rpc לא זורק כשהשרת דוחה — הוא מחזיר { error }. עד v168 דחייה
+       נחשבה הצלחה, ולא נוסה שוב. */
+    try {
+      const r = await sb.rpc('trainee_save_state', { p_token: TOKEN, p_state: STATE });
+      if (r && r.error) STATE_DIRTY = true;
+    } catch (e) { STATE_DIRTY = true; }
   }
   function queueStateSync() {
     STATE_DIRTY = true;
