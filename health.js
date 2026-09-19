@@ -25,7 +25,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['health'] = 'v150';
+  (window.EB_MOD = window.EB_MOD || {})['health'] = 'v151';
 
   /* ---------- שבע שאלות הסינון ---------- */
   /* כל אחת מהן, אם נענתה ב'כן', מחייבת אישור רופא לפני תחילת אימון. */
@@ -246,7 +246,7 @@
   var LABEL = {
     red:     { t: 'נדרש אישור רופא', c: '#C0392B', bg: 'rgba(192,57,43,.10)' },
     amber:   { t: 'התאמות נדרשות',   c: '#B9770E', bg: 'rgba(185,119,14,.10)' },
-    green:   { t: 'תקין',            c: '#1E8449', bg: 'rgba(30,132,73,.10)' },
+    green:   { t: 'תקין',            c: '#B08A5A', bg: 'rgba(176,138,90,.10)' },
     unknown: { t: 'חסר מידע',        c: '#6B5B47', bg: 'rgba(107,91,71,.10)' }
   };
   function badge(level) {

@@ -13,7 +13,7 @@
   'use strict';
 
   // חותמת גרסה — index.html משווה אליה כדי לזהות קובץ ישן במטמון
-  (window.EB_MOD = window.EB_MOD || {})['files'] = 'v150';
+  (window.EB_MOD = window.EB_MOD || {})['files'] = 'v151';
 
   var BUCKET = 'programs';
   var MAX    = 10 * 1024 * 1024;   // 10MB, תואם למגבלת הדלי
@@ -223,7 +223,7 @@
     }
     el.innerHTML =
       '<div style="border:2px dashed var(--or);border-radius:18px;padding:38px 54px;text-align:center;' +
-      'background:rgba(143,168,79,.07)">' +
+      'background:rgba(196,154,108,.07)">' +
       '<div style="font-size:38px;margin-bottom:10px">📎</div>' +
       '<div style="font-size:19px;font-weight:700;color:var(--tx)">' + esc(text) + '</div>' +
       '<div style="font-size:13px;color:var(--mut);margin-top:6px;font-family:Heebo,sans-serif">' +

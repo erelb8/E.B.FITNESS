@@ -18,7 +18,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['analysis'] = 'v150';
+  (window.EB_MOD = window.EB_MOD || {})['analysis'] = 'v151';
 
   /* ---------- כיוון המטרה ---------- */
   var DOWN = ['ירידה', 'להוריד', 'לרדת', 'חיטוב', 'לחטב', 'שריפת שומן', 'הרזיה', 'לרזות', 'אחוז שומן'];
@@ -398,7 +398,7 @@
   }
 
   var V = {
-    ontrack: { t: 'בכיוון',      c: '#1E8449' },
+    ontrack: { t: 'בכיוון',      c: '#B08A5A' },
     stalled: { t: 'נתקע',        c: '#B9770E' },
     offtrack:{ t: 'הולך אחורה',  c: '#C0392B' },
     unknown: { t: 'אין מטרה',    c: '#6B5B47' },
@@ -424,7 +424,7 @@
   var A = window.EBAnalyze;
 
   function pill(state, txt) {
-    var C = { good: '#1E8449', warn: '#B9770E', bad: '#C0392B', flat: '#6B5B47', unknown: '#6B5B47' };
+    var C = { good: '#B08A5A', warn: '#B9770E', bad: '#C0392B', flat: '#6B5B47', unknown: '#6B5B47' };
     var c = C[state] || C.unknown;
     return '<span style="display:inline-block;font-weight:800;font-size:12px;padding:3px 10px;border-radius:20px;'
          + 'color:' + c + ';background:' + c + '1A;border:1px solid ' + c + '33">' + esc(txt) + '</span>';

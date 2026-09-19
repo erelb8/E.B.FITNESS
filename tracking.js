@@ -20,7 +20,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['tracking'] = 'v150';
+  (window.EB_MOD = window.EB_MOD || {})['tracking'] = 'v151';
 
   /* ---------- חישוב היעדים ---------- */
   var ACT = [
@@ -254,7 +254,7 @@
   }
   function pill(txt, warn) {
     return '<span style="font-size:12px;padding:4px 10px;border-radius:20px;background:'
-      + (warn ? 'rgba(255,197,61,.12)' : 'var(--or-soft)') + ';color:'
+      + (warn ? 'rgba(184,144,31,.12)' : 'var(--or-soft)') + ';color:'
       + (warn ? 'var(--warn)' : 'var(--or)') + '">' + esc(txt) + '</span>';
   }
 

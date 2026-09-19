@@ -15,7 +15,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['business'] = 'v150';
+  (window.EB_MOD = window.EB_MOD || {})['business'] = 'v151';
 
   var DAY = 86400000;
   function iso(d) { return new Date(d).toISOString().slice(0, 10); }
@@ -128,7 +128,7 @@
     var prices = (S.trainees || []).filter(function (t) { return t.status !== 'archived' && n0(t.pricePerSession) > 0; })
                                    .map(function (t) { return n0(t.pricePerSession); });
     var avgPrice = prices.length ? prices.reduce(function (a, b) { return a + b; }, 0) / prices.length : 0;
-    var listPrice = n0(S.settings && S.settings.sessionPrice);
+    var listPrice = 0;   // אין מחיר ברירת מחדל — המחיר נקבע לכל מתאמן בנפרד
 
     var f = [];
     f.push(act('ok', Math.round(perWeek) + ' אימונים בשבוע בממוצע (' + done30 + ' ב-30 יום)', ''));
@@ -289,8 +289,8 @@
   'use strict';
   if (!window.EBBiz) return;
 
-  function col(s) { return s >= 85 ? '#1E8449' : s >= 70 ? '#5E7A2E' : s >= 55 ? '#B9770E' : '#C0392B'; }
-  var LC = { bad: '#C0392B', warn: '#B9770E', ok: '#6B5B47', good: '#1E8449' };
+  function col(s) { return s >= 85 ? '#B08A5A' : s >= 70 ? '#9C7B5B' : s >= 55 ? '#B9770E' : '#C0392B'; }
+  var LC = { bad: '#C0392B', warn: '#B9770E', ok: '#6B5B47', good: '#B08A5A' };
   function num(v) { var x = Number(v); return isFinite(x) ? x : 0; }
   function moneyLabel(v) { return '₪' + Math.round(v).toLocaleString('en-US'); }
   function daysAgo(n) { var d = new Date(Date.now() - n * 86400000); return d.toISOString().slice(0, 10); }

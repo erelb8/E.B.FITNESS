@@ -22,7 +22,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['backup'] = 'v150';
+  (window.EB_MOD = window.EB_MOD || {})['backup'] = 'v151';
 
   var LAST_KEY = 'ebfit_backup_at';
   var TABLES = ['trainees', 'sessions', 'measures', 'payments'];
@@ -623,7 +623,7 @@
   function card() {
     var d = daysSince(), a = lastAt();
     var warn = (d === null || d > 7);
-    var c = warn ? '#C0392B' : '#1E8449';
+    var c = warn ? '#C0392B' : '#B08A5A';
 
     return '<div class="card" style="border-color:' + c + '44;background:' + c + '0D">'
       + '<div class="row" style="margin-bottom:6px">'

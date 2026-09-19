@@ -7,7 +7,7 @@
 
 <!-- ===== PWA — הופך את האתר לאפליקציה במסך הבית ===== -->
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#221A12">
+<meta name="theme-color" content="#1C140E">
 <meta name="description" content="מערכת לניהול מתאמנים, תוכניות אימון, יומן ותשלומים">
 
 <!-- אייפון / אייפד -->
@@ -25,14 +25,14 @@
 <link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@500;700;900&family=Heebo:wght@300;400;500;700;800&display=swap" rel="stylesheet">
 <style>
 :root{
-  /* בזלת חומה · זית לפעולה · נחושת לנתונים.
-     הקרקע חמה באמת ולא אפורה, והפרדת שני הצבעים היא מה שנותן לכל
-     אחד מהם משמעות: זית = משהו שלוחצים, נחושת = משהו שנמדד. */
-  --ink:#221A12; --panel:#2B2119; --card:#34281E; --line:#48392B; --line2:#5F4C39;
-  --tx:#F2E8D8; --mut:#B3A48E; --dim:#7E7060;
-  --or:#8FA84F; --or-soft:rgba(143,168,79,.15); --amber:#D9A441;
-  --cop:#D19A55; --cop-soft:rgba(209,154,85,.14);
-  --ok:#A8C75E; --warn:#D9A441; --bad:#D9605A;
+  /* חום כהה לקרקע · חום בהיר לפעולה · צהוב כהה, במינון קטן, לנתונים.
+     לבן בהיר לטקסט ולבן כהה למשני. הפרדת שני הצבעים היא מה שנותן לכל
+     אחד מהם משמעות: חום בהיר = משהו שלוחצים, צהוב = משהו שנמדד. */
+  --ink:#1C140E; --panel:#261B14; --card:#30231A; --line:#47372A; --line2:#5E4A38;
+  --tx:#F7F2EA; --mut:#D6CBBB; --dim:#978774;
+  --or:#C49A6C; --or-soft:rgba(196,154,108,.15); --amber:#B8901F;
+  --cop:#B8901F; --cop-soft:rgba(184,144,31,.14);
+  --ok:#DDBF8E; --warn:#B8901F; --bad:#D9605A;
   --r:10px; --r-s:7px;
   --shadow:0 14px 38px rgba(0,0,0,.5);
 }
@@ -43,8 +43,8 @@ body{
   font-family:'Heebo',system-ui,sans-serif; font-size:15px; line-height:1.5;
   -webkit-font-smoothing:antialiased;
   background-image:
-    radial-gradient(1100px 560px at 88% -12%, rgba(143,168,79,.10), transparent 62%),
-    radial-gradient(900px 520px at 6% 104%, rgba(209,154,85,.07), transparent 60%);
+    radial-gradient(1100px 560px at 88% -12%, rgba(196,154,108,.10), transparent 62%),
+    radial-gradient(900px 520px at 6% 104%, rgba(184,144,31,.07), transparent 60%);
   background-attachment:fixed;
 }
 h1,h2,h3,h4{font-family:'Frank Ruhl Libre',Georgia,serif;margin:0;font-weight:700;letter-spacing:-.02em}
@@ -77,10 +77,10 @@ a{color:var(--or);text-decoration:none}
   font-size:11px;padding:4px 10px;border-radius:20px;white-space:nowrap;
   background:var(--card);border:1px solid var(--line);color:var(--mut);font-weight:500;
 }
-.syncpill.s-ok{color:var(--ok);border-color:rgba(168,199,94,.35);background:rgba(168,199,94,.08)}
+.syncpill.s-ok{color:var(--ok);border-color:rgba(221,191,142,.35);background:rgba(221,191,142,.08)}
 .syncpill.s-sync{color:var(--amber);border-color:rgba(255,176,58,.35);background:rgba(255,176,58,.08)}
 .syncpill.s-error{color:var(--bad);border-color:rgba(255,93,93,.4);background:rgba(255,93,93,.08)}
-.syncpill.s-out{color:var(--or);border-color:rgba(143,168,79,.4);background:var(--or-soft)}
+.syncpill.s-out{color:var(--or);border-color:rgba(196,154,108,.4);background:var(--or-soft)}
 .syncpill.s-offline{color:var(--dim)}
 @media(max-width:600px){ .syncpill{display:none} }
 .auth-error{
@@ -92,10 +92,10 @@ a{color:var(--or);text-decoration:none}
 .auth-error .mark{font-size:17px;line-height:1.2;color:var(--bad)}
 .auth-notice{
   display:flex;gap:10px;align-items:flex-start;text-align:right;
-  margin:0 0 14px;padding:11px 12px;border:1px solid rgba(168,199,94,.4);
-  border-radius:var(--r-s);background:rgba(168,199,94,.10);color:#D9EBA9;font-size:13px;
+  margin:0 0 14px;padding:11px 12px;border:1px solid rgba(221,191,142,.4);
+  border-radius:var(--r-s);background:rgba(221,191,142,.10);color:#EDE3D2;font-size:13px;
 }
-.auth-notice strong{display:block;color:#EFFFC5;font-size:13px;margin-bottom:2px}
+.auth-notice strong{display:block;color:#F7F2EA;font-size:13px;margin-bottom:2px}
 .auth-notice .mark{font-size:17px;line-height:1.2;color:var(--ok)}
 .mf .revert-btn{margin-inline-start:0}
 
@@ -123,10 +123,10 @@ a{color:var(--or);text-decoration:none}
 }
 .folder.on{
   background:var(--or-soft); border-color:var(--or); color:var(--or);
-  box-shadow:0 0 0 1px rgba(143,168,79,.18);
+  box-shadow:0 0 0 1px rgba(196,154,108,.18);
 }
 .folder.on .fic{filter:none}
-.folder.on .fct{color:var(--or); background:rgba(143,168,79,.16)}
+.folder.on .fct{color:var(--or); background:rgba(196,154,108,.16)}
 @media print{ .folders{display:none} }
 
 /* ---------- ימי אימון כתיקיות ---------- */
@@ -137,9 +137,9 @@ a{color:var(--or);text-decoration:none}
 .daynum{
   width:30px;height:30px;flex:none;border-radius:50%;display:grid;place-items:center;
   font-family:'Heebo';font-weight:900;font-size:13px;
-  background:var(--or-soft);color:var(--or);border:1px solid rgba(143,168,79,.3);
+  background:var(--or-soft);color:var(--or);border:1px solid rgba(196,154,108,.3);
 }
-.daycard.on .daynum{background:var(--or);color:#141A06;border-color:var(--or)}
+.daycard.on .daynum{background:var(--or);color:#1C140E;border-color:var(--or)}
 .daychev{
   width:8px;height:8px;flex:none;transform:rotate(45deg);transition:transform .22s;
   border-right:2px solid var(--dim);border-bottom:2px solid var(--dim);
@@ -175,7 +175,7 @@ a{color:var(--or);text-decoration:none}
   .program-dock .dock-actions .btn{width:100%}
 }
 .daycard .dayhead{background:rgba(255,255,255,.018)}
-.daycard.on .dayhead{background:rgba(143,168,79,.07)}
+.daycard.on .dayhead{background:rgba(196,154,108,.07)}
 .daycard table input{min-width:58px}
 .daycard table th{font-size:11.5px;color:var(--mut);white-space:nowrap}
 .daycard table td{padding:5px 3px}
@@ -217,7 +217,7 @@ main{flex:1;min-width:0;padding:22px 24px 90px}
 .page-head .spacer{flex:1}
 
 /* ---------- bits ---------- */
-.btn{background:var(--or);color:#141A06;border:0;border-radius:var(--r-s);padding:9px 16px;font-weight:700;font-family:'Heebo';font-size:14px}
+.btn{background:var(--or);color:#1C140E;border:0;border-radius:var(--r-s);padding:9px 16px;font-weight:700;font-family:'Heebo';font-size:14px}
 .btn:hover{filter:brightness(1.08)}
 .btn.ghost{background:var(--card);color:var(--tx);border:1px solid var(--line)}
 .btn.ghost:hover{border-color:var(--or);color:var(--or)}
@@ -240,7 +240,7 @@ main{flex:1;min-width:0;padding:22px 24px 90px}
 .stat .ic{
   width:42px;height:42px;border-radius:13px;display:grid;place-items:center;
   font-size:19px;line-height:1;margin-bottom:13px;
-  background:var(--or-soft);border:1px solid rgba(143,168,79,.28);
+  background:var(--or-soft);border:1px solid rgba(196,154,108,.28);
   color:var(--or);
 }
 .stat .lbl{font-size:12.5px;color:var(--mut);letter-spacing:0;order:3;margin-top:5px}
@@ -255,10 +255,10 @@ main{flex:1;min-width:0;padding:22px 24px 90px}
   .stat .ic{width:38px;height:38px;font-size:17px;margin-bottom:11px}
 }
 .pill{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;padding:3px 9px;border-radius:20px;border:1px solid var(--line2);color:var(--mut)}
-.pill.ok{color:var(--ok);border-color:rgba(168,199,94,.35);background:rgba(168,199,94,.08)}
-.pill.warn{color:var(--warn);border-color:rgba(255,197,61,.35);background:rgba(255,197,61,.08)}
+.pill.ok{color:var(--ok);border-color:rgba(221,191,142,.35);background:rgba(221,191,142,.08)}
+.pill.warn{color:var(--warn);border-color:rgba(184,144,31,.35);background:rgba(184,144,31,.08)}
 .pill.bad{color:var(--bad);border-color:rgba(255,93,93,.35);background:rgba(255,93,93,.08)}
-.pill.or{color:var(--or);border-color:rgba(143,168,79,.4);background:var(--or-soft)}
+.pill.or{color:var(--or);border-color:rgba(196,154,108,.4);background:var(--or-soft)}
 .muted{color:var(--mut)}
 .sep{height:1px;background:var(--line);margin:14px 0}
 label.f{display:block;font-size:11.5px;color:var(--mut);margin:0 0 5px 2px;letter-spacing:.04em}
@@ -287,7 +287,7 @@ textarea.f{resize:vertical;min-height:70px}
 /* signature: plate bar */
 .plates{display:flex;gap:3px;margin-top:12px;align-items:flex-end;height:22px}
 .plate{flex:1;height:100%;border-radius:3px;background:var(--line);position:relative}
-.plate.used{background:linear-gradient(180deg,var(--or),#6E8438)}
+.plate.used{background:linear-gradient(180deg,var(--or),#8E6A45)}
 .plate.next{background:var(--line2);box-shadow:inset 0 0 0 1px var(--or)}
 .plates-lbl{display:flex;justify-content:space-between;font-size:11px;color:var(--dim);margin-top:6px}
 .plates-lbl b{color:var(--tx);font-family:'Heebo'}
@@ -309,10 +309,10 @@ tbody tr:hover{background:var(--panel)}
 .ev-note{font-size:12.5px;color:var(--mut);margin-top:4px;padding:6px 9px;border-radius:8px;background:rgba(0,0,0,.18);white-space:pre-wrap;word-break:break-word}
 .ev-when{font-size:11.5px;color:var(--dim);white-space:nowrap;margin-top:2px}
 .ev-tag{display:inline-block;font-size:11px;padding:1px 7px;border-radius:20px;margin-inline-start:6px;vertical-align:1px;border:1px solid var(--line2);color:var(--mut)}
-.ev-tag.easy{color:var(--ok);border-color:rgba(168,199,94,.35)}
+.ev-tag.easy{color:var(--ok);border-color:rgba(221,191,142,.35)}
 .ev-tag.hard{color:var(--bad);border-color:rgba(217,96,90,.4)}
-.ev-tag.down{color:var(--ok);border-color:rgba(168,199,94,.35)}
-.ev-tag.up{color:var(--cop);border-color:rgba(209,154,85,.4)}
+.ev-tag.down{color:var(--ok);border-color:rgba(221,191,142,.35)}
+.ev-tag.up{color:var(--cop);border-color:rgba(184,144,31,.4)}
 .wk-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);cursor:pointer}
 .wk-row:last-child{border-bottom:0}
 .wk-row.idle{opacity:.55}
@@ -359,7 +359,7 @@ tbody tr:hover{background:var(--panel)}
 .chart .pt{fill:var(--ink);stroke:var(--or);stroke-width:2}
 .chart text{fill:var(--dim);font-size:10px;font-family:'Heebo'}
 .bars{display:flex;align-items:flex-end;gap:6px;height:150px}
-.bars .b{flex:1;background:linear-gradient(180deg,var(--or),rgba(143,168,79,.25));border-radius:5px 5px 0 0;min-height:3px;position:relative}
+.bars .b{flex:1;background:linear-gradient(180deg,var(--or),rgba(196,154,108,.25));border-radius:5px 5px 0 0;min-height:3px;position:relative}
 .bars .b span{position:absolute;bottom:-20px;right:0;left:0;text-align:center;font-size:10px;color:var(--dim)}
 .bars .b b{position:absolute;top:-17px;right:0;left:0;text-align:center;font-size:10.5px;color:var(--mut);font-family:'Heebo'}
 .analytics-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
@@ -367,7 +367,7 @@ tbody tr:hover{background:var(--panel)}
 .analytics-kpi span{display:block;color:var(--mut);font-size:12px}.analytics-kpi strong{display:block;font-family:Heebo;font-size:26px;line-height:1.15;margin-top:10px;color:var(--or)}.analytics-kpi small{display:block;color:var(--dim);font-size:11px;margin-top:5px}
 .analytics-grid{display:grid;grid-template-columns:1.35fr 1fr;gap:12px;margin-bottom:14px}.analytics-chart{margin:0;min-width:0}.analytics-chart:last-child{grid-column:1/-1}
 .analytics-head{display:flex;align-items:baseline;gap:8px;margin-bottom:12px}.analytics-head h3{font-size:15px;flex:1}.analytics-head span{font-size:11px;color:var(--dim)}
-.revenue-chart{height:190px;display:flex;align-items:flex-end;gap:9px;padding:22px 4px 22px;border-bottom:1px solid var(--line)}.revenue-col{height:100%;flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;position:relative}.revenue-col i{display:block;width:min(34px,72%);min-height:4px;background:linear-gradient(180deg,var(--or),rgba(143,168,79,.3));border-radius:6px 6px 2px 2px}.revenue-col b{font-family:Heebo;font-size:10px;color:var(--mut);font-weight:500;margin-bottom:5px;white-space:nowrap}.revenue-col span{position:absolute;bottom:-20px;color:var(--dim);font-size:10px}
+.revenue-chart{height:190px;display:flex;align-items:flex-end;gap:9px;padding:22px 4px 22px;border-bottom:1px solid var(--line)}.revenue-col{height:100%;flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;position:relative}.revenue-col i{display:block;width:min(34px,72%);min-height:4px;background:linear-gradient(180deg,var(--or),rgba(196,154,108,.3));border-radius:6px 6px 2px 2px}.revenue-col b{font-family:Heebo;font-size:10px;color:var(--mut);font-weight:500;margin-bottom:5px;white-space:nowrap}.revenue-col span{position:absolute;bottom:-20px;color:var(--dim);font-size:10px}
 .status-chart{display:flex;align-items:center;justify-content:center;gap:24px;min-height:190px}.donut{width:132px;height:132px;border-radius:50%;display:grid;place-items:center;background:conic-gradient(var(--or) 0 var(--active),var(--line) var(--active) 100%);position:relative}.donut:after{content:'';position:absolute;inset:17px;border-radius:50%;background:var(--card)}.donut strong{position:relative;z-index:1;font-family:Heebo;font-size:24px}.status-legend{display:grid;gap:10px;color:var(--mut);font-size:13px}.status-legend span{display:flex;align-items:center;gap:7px}.status-legend b{color:var(--tx);font-family:Heebo}.dot{width:9px;height:9px;border-radius:50%;display:inline-block}.dot.active{background:var(--or)}.dot.paused{background:var(--line2)}
 .metric-bars{display:grid;gap:13px}.metric-bars>div{display:grid;grid-template-columns:90px 45px 1fr;align-items:center;gap:10px;font-size:13px}.metric-bars span{color:var(--mut)}.metric-bars b{font-family:Heebo;text-align:left}.metric-bars i{height:9px;border-radius:20px;background:linear-gradient(90deg,var(--or),var(--cop));display:block}
 .analytics-grade{display:grid;grid-template-columns:1fr auto;align-items:center;gap:20px;margin:0 0 16px;padding:22px 24px;border:1px solid color-mix(in srgb,var(--grade) 40%,var(--line));border-radius:16px;background:linear-gradient(110deg,color-mix(in srgb,var(--grade) 12%,var(--card)),var(--card));box-shadow:0 14px 30px rgba(0,0,0,.14)}
@@ -379,14 +379,14 @@ tbody tr:hover{background:var(--panel)}
 
 /* ---------- lab ---------- */
 .mod{display:flex;gap:12px;align-items:flex-start;background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px}
-.mod.on{border-color:rgba(143,168,79,.5);background:linear-gradient(180deg,var(--or-soft),transparent)}
+.mod.on{border-color:rgba(196,154,108,.5);background:linear-gradient(180deg,var(--or-soft),transparent)}
 .mod .ic{font-size:20px;width:38px;height:38px;border-radius:11px;background:var(--panel);display:grid;place-items:center;border:1px solid var(--line)}
 .mod h4{font-size:14.5px}
 .mod p{margin:3px 0 0;font-size:12.5px;color:var(--mut);line-height:1.45}
 .sw{width:44px;height:25px;border-radius:20px;background:var(--line);border:0;position:relative;flex:0 0 44px;transition:.18s}
 .sw::after{content:'';position:absolute;top:3px;right:3px;width:19px;height:19px;border-radius:50%;background:var(--mut);transition:.18s}
 .sw.on{background:var(--or)}
-.sw.on::after{background:#141A06;transform:translateX(-19px)}
+.sw.on::after{background:#1C140E;transform:translateX(-19px)}
 .chat{display:flex;flex-direction:column;gap:12px;height:min(58vh,460px);overflow:auto;padding:4px 2px}
 .msg{max-width:82%;padding:10px 13px;border-radius:14px;font-size:14px;line-height:1.55;white-space:pre-wrap}
 .msg.bot{background:var(--card);border:1px solid var(--line);border-top-right-radius:4px;align-self:flex-start}
@@ -461,8 +461,8 @@ tbody tr:hover{background:var(--panel)}
 <div id="toast"></div>
 
 <!-- ספריית Supabase מקומית (לא מ-CDN) כדי שהאפליקציה תעבוד גם בלי רשת -->
-<script src="vendor/supabase.js?v=v150"></script>
-<script src="config.js?v=v150"></script>
+<script src="vendor/supabase.js?v=v151"></script>
+<script src="config.js?v=v151"></script>
 
 <script>
 /* =======================================================================
@@ -497,7 +497,7 @@ function age(b){ if(!b) return null; const d=new Date(b), t=new Date(); let a=t.
 
 /* ---------------- אחסון ---------------- */
 const KEY='ebfit_v1';
-const EB_VERSION='v150';   // חייב להתאים ל-VERSION ב-sw.js
+const EB_VERSION='v151';   // חייב להתאים ל-VERSION ב-sw.js
 let mem=null, canStore=true;
 function load(){
   try{ const r=localStorage.getItem(KEY); return r?JSON.parse(r):null; }
@@ -580,7 +580,7 @@ function macroCard(t){
         +'style="padding:7px 14px;border-radius:9px;font-family:inherit;font-size:13px;'
         +'font-weight:'+(on?'800':'600')+';cursor:pointer;'
         +'border:1px solid '+(on?'var(--cop)':'var(--line)')+';'
-        +'background:'+(on?'rgba(209,154,85,.14)':'transparent')+';'
+        +'background:'+(on?'rgba(184,144,31,.14)':'transparent')+';'
         +'color:'+(on?'var(--cop)':'var(--mut)')+'">'+esc(g[1])+'</button>';
     }).join('')
    +'</div>';
@@ -737,7 +737,7 @@ function dayTargetsBlock(t){
       +'style="flex:1;min-width:52px;padding:7px 4px;border-radius:9px;font-family:inherit;'
       +'font-size:12.5px;font-weight:'+(on?'800':'600')+';cursor:pointer;'
       +'border:1px solid '+(on?'var(--cop)':'var(--line)')+';'
-      +'background:'+(on?'rgba(209,154,85,.14)':'transparent')+';'
+      +'background:'+(on?'rgba(184,144,31,.14)':'transparent')+';'
       +'color:'+(on?'var(--cop)':has?'var(--tx)':'var(--mut)')+'">'
       +esc(name)+(has?' ·':'')+'</button>';
   });
@@ -894,7 +894,7 @@ document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeModal(); });
 /* ---------------- עזרי מתאמן ---------------- */
 /* גוונים מאותה משפחה: מבדילים בין מתאמנים בלי להפוך את המסך לקשת.
    שמונה ערכים כדי שגם ברשימה ארוכה שני שכנים לא ייראו זהים. */
-const PALETTE=['#8FA84F','#C08A4A','#A8894F','#7E9B6B','#C4744F','#8C9AA0','#B39A5B','#6F8F73'];
+const PALETTE=['#C49A6C','#C08A4A','#A8894F','#9C7B5B','#C4744F','#B8901F','#B39A5B','#8A6E52'];
 /* גיבוב על השם כולו ולא על אורכו: "אור שריקי", "נמרוד לרר" ו"הראל דביר"
    כולם באורך תשע, ולפי אורך שלושתם היו מקבלים בדיוק אותו צבע. */
 function tColor(t){
@@ -1332,7 +1332,7 @@ function tCard(t){
 /* --------- טופס מתאמן --------- */
 function editTrainee(id){
   const t = id?tById(id):{name:'',phone:'',email:'',birth:'',gender:'',goal:'',level:'מתחיל',status:'active',
-                          joined:todayISO(),pkgTotal:S.settings.defaultPack,pkgUsed:0,pricePerSession:S.settings.sessionPrice,notes:'',tags:[]};
+                          joined:todayISO(),pkgTotal:S.settings.defaultPack,pkgUsed:0,pricePerSession:'',notes:'',tags:[]};
   openModal('<div class="mh"><h3>'+(id?'עריכת מתאמן':'מתאמן חדש')+'</h3><button class="iconbtn" onclick="closeModal()">✕</button></div>'
   +'<div class="mb"><div class="grid g2">'
   +fld('שם מלא','tf_name','text',t.name)+fld('טלפון','tf_phone','tel',t.phone)
@@ -1666,7 +1666,7 @@ function tabProgram(t){
   /* מה שהמתאמן כתב לך במצב העריכה שלו. לקריאה בלבד — הוא הכותב. */
   {
     const tn=String((t.program||{}).traineeNote||'').trim();
-    if(tn) h+='<div class="card" style="margin-bottom:12px;border-color:var(--cop);background:rgba(209,154,85,.07)">'
+    if(tn) h+='<div class="card" style="margin-bottom:12px;border-color:var(--cop);background:rgba(184,144,31,.07)">'
       +'<div style="font-family:Heebo;font-weight:700;font-size:14px;color:var(--cop);margin-bottom:5px">'
       +'📝 הערה מ'+esc(t.name||'המתאמן')+'</div>'
       +'<div style="font-size:13.5px;line-height:1.7;white-space:pre-wrap">'+esc(tn)+'</div></div>';
@@ -2035,7 +2035,7 @@ async function runDiag(){
      +'<span style="flex:1;font-size:13px;line-height:1.6">'
      +'<b>'+esc(r.title)+'</b><br>'+esc(r.text)+'</span></div>').join('')
    +(firstFix?'<div class="card" style="margin-top:10px;border-color:var(--cop);'
-     +'background:rgba(209,154,85,.08);font-size:13px;line-height:1.7">'
+     +'background:rgba(184,144,31,.08);font-size:13px;line-height:1.7">'
      +'<b style="color:var(--cop)">מה לעשות</b><br>'+esc(firstFix)+'</div>':'');
 }
 function diagCard(){
@@ -2112,7 +2112,7 @@ function programHealthCard(t){
     is.blank&&(is.blank===1?'שורת תרגיל בלי שם':is.blank+' שורות תרגיל בלי שם'),
     is.info&&(is.info===1?'הנחיה שרשומה כתרגיל':is.info+' הנחיות שרשומות כתרגיל')].filter(Boolean);
   const others=S.trainees.filter(x=>x.status!=='archived'&&x.id!==t.id&&programIssues(x).total).length;
-  return '<div class="card" style="margin-bottom:12px;border-color:var(--warn);background:rgba(217,164,65,.07)">'
+  return '<div class="card" style="margin-bottom:12px;border-color:var(--warn);background:rgba(184,144,31,.07)">'
    +'<div style="font-family:Heebo;font-weight:700;font-size:14px;color:var(--warn);margin-bottom:5px">🧹 התוכנית צריכה ניקוי</div>'
    +'<div style="font-size:13px;line-height:1.7;margin-bottom:10px">נמצאו: '+esc(parts.join(', '))+'. '
    +'המתאמן כבר לא רואה אותם, אבל הם עדיין בתוכנית. הניקוי מוחק ימים ושורות ריקים, '
@@ -2228,7 +2228,7 @@ function lineChart(pts,unit){
   lb='<text x="'+(W-P)+'" y="14" text-anchor="end">'+mx+' '+unit+'</text><text x="'+(W-P)+'" y="'+(H-8)+'" text-anchor="end">'+mn+' '+unit+'</text>';
   lb+='<text x="'+P+'" y="'+(H-8)+'">'+fmtDate(pts[0].x)+'</text>';
   return '<svg class="chart" viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="xMidYMid meet" style="width:100%;height:auto">'
-   +'<defs><linearGradient id="gr" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#8FA84F" stop-opacity=".28"/><stop offset="1" stop-color="#8FA84F" stop-opacity="0"/></linearGradient></defs>'
+   +'<defs><linearGradient id="gr" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#C49A6C" stop-opacity=".28"/><stop offset="1" stop-color="#C49A6C" stop-opacity="0"/></linearGradient></defs>'
    +g+'<path class="ar" d="'+ar+'"/><path class="ln" d="'+d+'"/>'+pt+lb+'</svg>';
 }
 function editMeasure(id,tid){
@@ -2389,7 +2389,7 @@ function calcNutriCard(t){
         +'style="padding:7px 14px;border-radius:9px;font-family:inherit;font-size:13px;'
         +'font-weight:'+(on?'800':'600')+';cursor:pointer;'
         +'border:1px solid '+(on?'var(--cop)':'var(--line)')+';'
-        +'background:'+(on?'rgba(209,154,85,.14)':'transparent')+';'
+        +'background:'+(on?'rgba(184,144,31,.14)':'transparent')+';'
         +'color:'+(on?'var(--cop)':'var(--mut)')+'">'+esc(g[1])+'</button>';
     }).join('')+'</div>';
 
@@ -2562,7 +2562,7 @@ function openPay(tid){
   if(!opts.length){ toast('צריך להוסיף מתאמן קודם'); return; }
   openModal('<div class="mh"><h3>רישום תשלום</h3><button class="iconbtn" onclick="closeModal()">✕</button></div><div class="mb"><div class="grid g2">'
   +sel('מתאמן','p_t',opts,tid||opts[0][0])+fld('תאריך','p_date','date',todayISO())
-  +fld('סכום','p_amt','number',(S.settings.sessionPrice||0)*(S.settings.defaultPack||1))
+  +fld('סכום','p_amt','number','')
   +sel('אמצעי','p_m',['ביט','העברה בנקאית','מזומן','אשראי','אפליקציה'],'ביט')
   +fld('הערה','p_note','text','')+'</div>'
   +'<label style="display:block;margin-top:12px;font-size:13px"><input type="checkbox" id="p_clear" checked> לאפס את יתרת החוב של המתאמן</label></div>'
@@ -2762,7 +2762,7 @@ const BOT_SYS = 'אתה בונה מיני-אפליקציות לתוך מערכת
  +'החזר JSON בלבד, בלי טקסט לפני או אחרי, בלי גדרות קוד, במבנה: {"title":"שם קצר בעברית","icon":"אמוג׳י אחד","html":"..."}\n'
  +'ה-html הוא מקטע עצמאי הכולל <style> ו-<script> (בלי html/head/body). כללים:\n'
  +'1. עברית, dir="rtl", טקסט ברור.\n'
- +'2. עיצוב כהה תואם: רקע שקוף, כרטיסים #34281E, גבול #48392B, טקסט #F2E8D8, טקסט משני #B3A48E, צבע הדגשה #8FA84F, פונט Heebo, פינות 12px.\n'
+ +'2. עיצוב כהה תואם: רקע שקוף, כרטיסים #30231A, גבול #47372A, טקסט #F7F2EA, טקסט משני #D6CBBB, צבע הדגשה #C49A6C, פונט Heebo, פינות 12px.\n'
  +'3. אין רשת, אין ספריות חיצוניות, אין localStorage.\n'
  +'4. שמירת מידע: window.EB.data (הנתונים השמורים, יכול להיות null) ו-window.EB.save(obj). קריאה ל-save שומרת בתוך האפליקציה הראשית.\n'
  +'5. רשימת המתאמנים זמינה ב-window.EB.trainees (מערך של {id,name,goal,pkgTotal,pkgUsed,pricePerSession}). אם הפיצ׳ר קשור למתאמן — תן לבחור מתאמן מהרשימה.\n'
@@ -2803,7 +2803,7 @@ function mountCustom(){
   const doc='<!DOCTYPE html><html dir="rtl" lang="he"><head><meta charset="utf-8">'
    +'<meta name="viewport" content="width=device-width,initial-scale=1">'
    +'<link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@500;700;900&family=Heebo:wght@300;400;500;700;800&display=swap" rel="stylesheet">'
-   +'<style>body{margin:0;padding:16px;background:#2B2119;color:#F2E8D8;font-family:Heebo,sans-serif}'
+   +'<style>body{margin:0;padding:16px;background:#261B14;color:#F7F2EA;font-family:Heebo,sans-serif}'
    +'button{font-family:inherit;cursor:pointer}input,select,textarea{font-family:inherit}</style></head><body>'
    +boot+c.html+'</body></html>';
   $('#cframe').srcdoc=doc;
@@ -2855,7 +2855,6 @@ function vSettings(){
   h+='<div class="grid g2"><div class="card" data-auto="settings"><h3 style="font-size:15px;margin-bottom:12px">פרטי העסק</h3><div class="grid g2">'
    +fld('שם העסק','st_biz','text',S.settings.business)+fld('שם המאמן','st_trainer','text',S.settings.trainer)
    +fld('טלפון','st_phone','tel',S.settings.phone)+fld('מטבע','st_cur','text',S.settings.currency)
-   +fld('מחיר ברירת מחדל לאימון','st_price','number',S.settings.sessionPrice)
   +'</div>'
   +'<div class="muted" style="font-size:12px;margin-top:10px">נשמר אוטומטית עם כל שינוי.</div></div>';
 
@@ -2891,7 +2890,7 @@ function vSettings(){
 function saveSettings(){
   if(!document.getElementById('st_biz')) return;
   Object.assign(S.settings,{business:gv('st_biz'),trainer:gv('st_trainer'),phone:gv('st_phone'),
-    currency:gv('st_cur')||'₪',sessionPrice:gn('st_price')});
+    currency:gv('st_cur')||'₪'});
   save();
 }
 AUTO_INLINE.settings=saveSettings;
@@ -3067,9 +3066,9 @@ function seedDemo(){
   const t=todayISO();
   const mk=(name,goal,level,total,used,price,color,goalW)=>({id:uid(),name,goal,level,status:'active',joined:addDays(t,-90),
     pkgTotal:total,pkgUsed:used,pricePerSession:price,balanceDue:0,notes:'',tags:[],color,program:{days:[]}});
-  const a=mk('דניאל כהן','ירידה באחוזי שומן','בינוני',12,10,150,'#8FA84F');
+  const a=mk('דניאל כהן','ירידה באחוזי שומן','בינוני',12,10,150,'#C49A6C');
   const b=mk('מאיה לוי','חיזוק וכוח','מתחיל',10,3,150,'#8C9AA0');
-  const c=mk('אורי שריקי','עלייה במסת שריר','מתקדם',16,7,170,'#A8C75E');
+  const c=mk('אורי שריקי','עלייה במסת שריר','מתקדם',16,7,170,'#DDBF8E');
   a.phone='0501111111'; b.phone='0502222222'; c.phone='0503333333';
   a.program.days=[{name:'יום A — פלג גוף עליון',exercises:[
     {name:'לחיצת חזה במוט',sets:'4',reps:'8',weight:'60',rest:'90',note:''},
@@ -3162,30 +3161,30 @@ if (location.protocol === 'file:') {
 }
 </script>
 
-<script src="health.js?v=v150"></script>
-<script src="privacy.js?v=v150"></script>
-<script src="backup.js?v=v150"></script>
-<script src="reorder.js?v=v150"></script>
-<script src="access.js?v=v150"></script>
-<script src="analysis.js?v=v150"></script>
-<script src="reports.js?v=v150"></script>
-<script src="business.js?v=v150"></script>
-<script src="intake.js?v=v150"></script>
-<script src="files.js?v=v150"></script>
-<script src="builder.js?v=v150"></script>
-<script src="import-program.js?v=v150"></script>
-<script src="tracking.js?v=v150"></script>
-<script src="metrics.js?v=v150"></script>
-<script src="targets.js?v=v150"></script>
-<script src="meal-library.js?v=v150"></script>
-<script src="library-ui.js?v=v150"></script>
-<script src="export-plan.js?v=v150"></script>
-<script src="cardio.js?v=v150"></script>
-<script src="cardio-ui.js?v=v150"></script>
-<script src="exercise-library.js?v=v150"></script>
-<script src="exercise-ui.js?v=v150"></script>
-<script src="meals.js?v=v150"></script>
-<script src="sync.js?v=v150"></script>
+<script src="health.js?v=v151"></script>
+<script src="privacy.js?v=v151"></script>
+<script src="backup.js?v=v151"></script>
+<script src="reorder.js?v=v151"></script>
+<script src="access.js?v=v151"></script>
+<script src="analysis.js?v=v151"></script>
+<script src="reports.js?v=v151"></script>
+<script src="business.js?v=v151"></script>
+<script src="intake.js?v=v151"></script>
+<script src="files.js?v=v151"></script>
+<script src="builder.js?v=v151"></script>
+<script src="import-program.js?v=v151"></script>
+<script src="tracking.js?v=v151"></script>
+<script src="metrics.js?v=v151"></script>
+<script src="targets.js?v=v151"></script>
+<script src="meal-library.js?v=v151"></script>
+<script src="library-ui.js?v=v151"></script>
+<script src="export-plan.js?v=v151"></script>
+<script src="cardio.js?v=v151"></script>
+<script src="cardio-ui.js?v=v151"></script>
+<script src="exercise-library.js?v=v151"></script>
+<script src="exercise-ui.js?v=v151"></script>
+<script src="meals.js?v=v151"></script>
+<script src="sync.js?v=v151"></script>
 <script>
 /* =================== חיבור הסנכרון לאפליקציה =================== */
 

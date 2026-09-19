@@ -21,7 +21,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['cardio'] = 'v150';
+  (window.EB_MOD = window.EB_MOD || {})['cardio'] = 'v151';
 
   var r1 = function (x) { return Math.round(x * 10) / 10; };
   var r0 = function (x) { return Math.round(x); };

@@ -7,7 +7,7 @@
 
 <!-- הדף הזה מכוון למתאמן. בכוונה אין כאן link למניפסט של המאמן,
      כדי שהוספה למסך הבית תיצור אצלו קיצור לתוכנית שלו ולא לאפליקציית הניהול. -->
-<meta name="theme-color" content="#221A12">
+<meta name="theme-color" content="#1C140E">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -22,11 +22,11 @@
 <style>
 :root{
   /* זהה לאפליקציית הניהול, כדי שהמתאמן יראה אותו מותג */
-  --ink:#221A12; --card:#34281E; --line:#48392B; --line2:#5F4C39;
-  --tx:#F2E8D8; --mut:#B3A48E; --dim:#7E7060;
-  --or:#8FA84F; --or-soft:rgba(143,168,79,.15);
-  --cop:#D19A55; --gold:#E7B873; --glow:rgba(143,168,79,.18);
-  --ok:#A8C75E; --r:10px;
+  --ink:#1C140E; --card:#30231A; --line:#47372A; --line2:#5E4A38;
+  --tx:#F7F2EA; --mut:#D6CBBB; --dim:#978774;
+  --or:#C49A6C; --or-soft:rgba(196,154,108,.15);
+  --cop:#B8901F; --gold:#E6D3A8; --glow:rgba(196,154,108,.18);
+  --ok:#DDBF8E; --r:10px;
 }
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
@@ -35,8 +35,8 @@ body{
   font-family:'Heebo',system-ui,sans-serif; font-size:15px; line-height:1.5;
   -webkit-font-smoothing:antialiased;
   background-image:
-    radial-gradient(900px 500px at 92% -8%, rgba(143,168,79,.16), transparent 62%),
-    radial-gradient(760px 480px at 0% 42%, rgba(209,154,85,.08), transparent 64%),
+    radial-gradient(900px 500px at 92% -8%, rgba(196,154,108,.16), transparent 62%),
+    radial-gradient(760px 480px at 0% 42%, rgba(184,144,31,.08), transparent 64%),
     linear-gradient(155deg, rgba(255,255,255,.025), transparent 32%);
   background-attachment:fixed;
   padding-bottom:calc(96px + env(safe-area-inset-bottom));
@@ -86,16 +86,16 @@ button{cursor:pointer}
 /* ---- יום אימון כתיקייה ---- */
 .dayc{background:var(--card);border:1px solid var(--line);border-radius:var(--r);margin-bottom:10px;overflow:hidden}
 .dayc.on{border-color:var(--line2)}
-.dayc.full{border-color:rgba(168,199,94,.4)}
+.dayc.full{border-color:rgba(221,191,142,.4)}
 .dayc.today{box-shadow:0 0 0 1px rgba(231,184,115,.28),0 12px 30px rgba(0,0,0,.15)}
 .dayc.today .dayh:after{content:'היום';color:var(--gold);font-size:11px;border:1px solid rgba(231,184,115,.32);border-radius:20px;padding:3px 8px}
 .dayh{width:100%;background:none;border:0;padding:13px 14px;display:flex;align-items:center;gap:12px;text-align:right}
 .daynum{
   width:30px;height:30px;flex:none;border-radius:50%;display:grid;place-items:center;
   font-family:'Heebo';font-weight:800;font-size:13px;
-  background:var(--or-soft);color:var(--or);border:1px solid rgba(143,168,79,.32);
+  background:var(--or-soft);color:var(--or);border:1px solid rgba(196,154,108,.32);
 }
-.dayc.on .daynum{background:var(--or);color:#141A06;border-color:var(--or)}
+.dayc.on .daynum{background:var(--or);color:#1C140E;border-color:var(--or)}
 .dayc.full .daynum{background:var(--ok);color:#0D1503;border-color:var(--ok)}
 .dayt{flex:1;min-width:0}
 .dayn{display:block;font-family:'Frank Ruhl Libre',Georgia,serif;font-weight:700;font-size:16px;line-height:1.25}
@@ -110,7 +110,7 @@ button{cursor:pointer}
 .dayc.on .dayb{display:block}
 
 .ex{border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px;background:var(--card);transition:border-color .15s}
-.ex.done{border-color:rgba(168,199,94,.45);background:rgba(168,199,94,.05)}
+.ex.done{border-color:rgba(221,191,142,.45);background:rgba(221,191,142,.05)}
 .ex .hd{display:flex;align-items:flex-start;gap:11px}
 .ex .nm{font-weight:700;font-size:16px;flex:1;min-width:0;line-height:1.3}
 .ex .meta{color:var(--mut);font-size:13px;margin-top:3px}
@@ -123,11 +123,11 @@ button{cursor:pointer}
   -webkit-tap-highlight-color:transparent;cursor:pointer
 }
 .chk:active{transform:scale(.93)}
-.ex.done .chk{background:var(--ok);border-color:var(--ok);color:#141A06}
+.ex.done .chk{background:var(--ok);border-color:var(--ok);color:#1C140E}
 .hb-week{display:flex;gap:5px;justify-content:space-between;margin:10px 0 2px}
 .hb-day{flex:1;text-align:center}
 .hb-dot{height:26px;border-radius:8px;border:1.5px solid var(--line2);background:none;display:grid;place-items:center;font-size:13px;color:transparent}
-.hb-dot.on{background:var(--ok);border-color:var(--ok);color:#141A06}
+.hb-dot.on{background:var(--ok);border-color:var(--ok);color:#1C140E}
 .hb-day span{display:block;font-size:10px;color:var(--mut);margin-top:4px}
 .hb-add{display:flex;gap:8px;margin-top:10px}
 .hb-add input{flex:1;min-width:0}
@@ -153,7 +153,7 @@ button{cursor:pointer}
 .bar .prog b{color:var(--tx);font-family:'Heebo'}
 .bar .bar-title{font-size:11px;color:var(--gold);letter-spacing:.08em;margin-bottom:1px}
 .bar .bar-copy{font-size:13px;color:var(--mut)}
-.btn{background:var(--or);color:#141A06;border:0;border-radius:10px;padding:12px 20px;font-weight:700;font-family:'Heebo';font-size:15px}
+.btn{background:var(--or);color:#1C140E;border:0;border-radius:10px;padding:12px 20px;font-weight:700;font-family:'Heebo';font-size:15px}
 .btn:disabled{opacity:.4}
 .btn.ghost{background:var(--card);color:var(--tx);border:1px solid var(--line)}
 .login-shell{max-width:470px;margin:7vh auto 0}
@@ -163,7 +163,7 @@ button{cursor:pointer}
 .login-shell .login-intro{color:var(--mut);font-size:14px;margin:8px 0 20px}
 .login-shell label{display:block;color:var(--mut);font-size:13px;margin-top:12px}
 .login-shell input{margin-top:6px}
-.login-shell .login-mark{width:58px;height:58px;border-radius:18px;display:grid;place-items:center;background:var(--or-soft);border:1px solid rgba(143,168,79,.35);color:var(--or);font-size:25px;margin-bottom:16px}
+.login-shell .login-mark{width:58px;height:58px;border-radius:18px;display:grid;place-items:center;background:var(--or-soft);border:1px solid rgba(196,154,108,.35);color:var(--or);font-size:25px;margin-bottom:16px}
 
 .mt{color:var(--mut)}
 .mt b{color:var(--tx);font-family:'Heebo'}
@@ -230,7 +230,7 @@ button{cursor:pointer}
 :root{
   --warm:#3E2E20;            /* חום עמוק לקווים ולמסגרות */
   --warm-2:#4A3726;
-  --ring:rgba(209,154,85,.16);
+  --ring:rgba(184,144,31,.16);
 }
 
 /* הרקע נשאר שקט. הטבעות שהיו כאן הן מה שנתן לדף מראה של תבנית
@@ -250,7 +250,7 @@ button{cursor:pointer}
 .category-icon{position:relative}
 
 /* מספר היום: טבעת כפולה במקום עיגול שטוח */
-.daynum{box-shadow:0 0 0 3px rgba(209,154,85,.12), 0 0 0 4px rgba(209,154,85,.07)}
+.daynum{box-shadow:0 0 0 3px rgba(184,144,31,.12), 0 0 0 4px rgba(184,144,31,.07)}
 
 /* קו מנחה לשימוש חוזר */
 .rule{height:1px;border:0;margin:14px 0;
@@ -258,19 +258,19 @@ button{cursor:pointer}
 
 /* ═══════════ המאמן החכם ═══════════ */
 .bot-card{
-  border-color:rgba(209,154,85,.42);
+  border-color:rgba(184,144,31,.42);
   background:
-    radial-gradient(120px 120px at 96% -14%, rgba(209,154,85,.13), transparent 70%),
+    radial-gradient(120px 120px at 96% -14%, rgba(184,144,31,.13), transparent 70%),
     linear-gradient(168deg,rgba(74,55,38,.6),var(--card) 52%);
 }
 .bot-dot{
   width:9px;height:9px;border-radius:50%;background:var(--cop);flex:none;
-  box-shadow:0 0 0 3px rgba(209,154,85,.18), 0 0 0 6px rgba(209,154,85,.08);
+  box-shadow:0 0 0 3px rgba(184,144,31,.18), 0 0 0 6px rgba(184,144,31,.08);
   animation:botPulse 2.6s ease-in-out infinite;
 }
 @keyframes botPulse{
-  0%,100%{box-shadow:0 0 0 3px rgba(209,154,85,.18), 0 0 0 6px rgba(209,154,85,.08)}
-  50%    {box-shadow:0 0 0 4px rgba(209,154,85,.26), 0 0 0 9px rgba(209,154,85,.03)}
+  0%,100%{box-shadow:0 0 0 3px rgba(184,144,31,.18), 0 0 0 6px rgba(184,144,31,.08)}
+  50%    {box-shadow:0 0 0 4px rgba(184,144,31,.26), 0 0 0 9px rgba(184,144,31,.03)}
 }
 @media (prefers-reduced-motion:reduce){ .bot-dot{animation:none} }
 .bot-msg{padding:8px 11px;margin-top:8px;border-radius:0 9px 9px 0;background:rgba(0,0,0,.16)}
@@ -286,7 +286,7 @@ button{cursor:pointer}
 .bot-msg:first-of-type{margin-top:0}
 
 /* פתק ההערה של המתאמן עצמו */
-.tnote-mine{border-color:rgba(209,154,85,.4);background:rgba(209,154,85,.07)}
+.tnote-mine{border-color:rgba(184,144,31,.4);background:rgba(184,144,31,.07)}
 
 /* ═══════════ גרפים ═══════════ */
 .ch{width:100%;height:auto;display:block;margin-top:6px;overflow:visible}
@@ -297,7 +297,7 @@ button{cursor:pointer}
 
 /* ═══════════ המסע ═══════════ */
 .jr-card{
-  border-color:rgba(209,154,85,.4);
+  border-color:rgba(184,144,31,.4);
   background:
     radial-gradient(150px 150px at 94% -18%, rgba(231,184,115,.13), transparent 72%),
     linear-gradient(168deg,rgba(74,55,38,.55),var(--card) 54%);
@@ -311,7 +311,7 @@ button{cursor:pointer}
    מסך שעובדים בו תוך כדי מאמץ: מספר אחד גדול למעלה,
    שדות גדולים, וכל השאר שקט. */
 .wl-top{
-  position:relative;overflow:hidden;border-color:rgba(209,154,85,.4);
+  position:relative;overflow:hidden;border-color:rgba(184,144,31,.4);
   background:radial-gradient(150px 150px at 92% -20%,rgba(231,184,115,.14),transparent 72%),
              linear-gradient(168deg,rgba(74,55,38,.55),var(--card) 54%);
   padding:18px 16px;margin-bottom:14px;border-radius:var(--r);border:1px solid var(--line2);
@@ -326,7 +326,7 @@ button{cursor:pointer}
   padding:9px 14px;border-radius:11px;font-weight:600;white-space:nowrap;font-size:13.5px}
 .wl-days button.on{background:var(--or-soft);border-color:var(--or);color:var(--or);font-weight:800}
 .wl-ex{border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px;background:var(--card)}
-.wl-ex.has{border-color:rgba(168,199,94,.45);background:rgba(168,199,94,.05)}
+.wl-ex.has{border-color:rgba(221,191,142,.45);background:rgba(221,191,142,.05)}
 .wl-exname{font-weight:700;font-size:16px;line-height:1.3}
 .wl-last{color:var(--cop);font-size:12px;margin-top:3px}
 .wl-none{color:var(--dim);font-size:12px;margin-top:3px}
@@ -372,17 +372,17 @@ button{cursor:pointer}
 
 <div id="toast"></div>
 
-<script src="vendor/supabase.js?v=v150"></script>
-<script src="config.js?v=v150"></script>
-<script src="meal-library.js?v=v150"></script>
-<script src="exercise-library.js?v=v150"></script>
-<script src="progress.js?v=v150"></script>
-<script src="habits.js?v=v150"></script>
-<script src="coach-bot.js?v=v150"></script>
-<script src="workout-log.js?v=v150"></script>
-<script src="targets.js?v=v150"></script>
-<script src="health.js?v=v150"></script>
-<script src="privacy.js?v=v150"></script>
+<script src="vendor/supabase.js?v=v151"></script>
+<script src="config.js?v=v151"></script>
+<script src="meal-library.js?v=v151"></script>
+<script src="exercise-library.js?v=v151"></script>
+<script src="progress.js?v=v151"></script>
+<script src="habits.js?v=v151"></script>
+<script src="coach-bot.js?v=v151"></script>
+<script src="workout-log.js?v=v151"></script>
+<script src="targets.js?v=v151"></script>
+<script src="health.js?v=v151"></script>
+<script src="privacy.js?v=v151"></script>
 <script>
 (function () {
   'use strict';
@@ -2169,7 +2169,7 @@ button{cursor:pointer}
     HEALTH = HEALTH || hLoad();
     if (HEALTH && HEALTH.signedAt) return '';
     return '<button onclick="EBT.hJump()" style="width:100%;margin-bottom:12px;cursor:pointer;'
-      + 'background:rgba(209,154,85,.10);border:1px solid rgba(209,154,85,.45);border-radius:12px;'
+      + 'background:rgba(184,144,31,.10);border:1px solid rgba(184,144,31,.45);border-radius:12px;'
       + 'padding:10px 13px;font-family:inherit;font-size:13px;color:var(--cop);font-weight:600;'
       + 'text-align:right">חסרה הצהרת בריאות — דקה אחת, ואפשר להתחיל</button>';
   }
@@ -2361,9 +2361,9 @@ button{cursor:pointer}
   }
 
   function hBtn(k, val, label, on) {
-    var bg = on ? (val === 'yes' ? 'rgba(217,96,90,.18)' : 'rgba(143,168,79,.18)') : 'var(--ink)';
+    var bg = on ? (val === 'yes' ? 'rgba(217,96,90,.18)' : 'rgba(196,154,108,.18)') : 'var(--ink)';
     var fg = on ? (val === 'yes' ? '#D9605A' : 'var(--or)') : 'var(--mut)';
-    var bd = on ? (val === 'yes' ? '#D9605A66' : 'rgba(143,168,79,.5)') : 'var(--line)';
+    var bd = on ? (val === 'yes' ? '#D9605A66' : 'rgba(196,154,108,.5)') : 'var(--line)';
     return '<button onclick="EBT.hPick(\'' + k + '\',\'' + val + '\')" '
       + 'style="flex:1;padding:9px;border-radius:10px;cursor:pointer;font-family:inherit;font-size:13.5px;'
       + 'font-weight:' + (on ? '800' : '400') + ';background:' + bg + ';color:' + fg + ';border:1px solid ' + bd + '">'
@@ -2491,7 +2491,7 @@ button{cursor:pointer}
      וגם לעדכן אותי, אחרת אבנה לו שוב את אותו תפריט. */
   function nutritionDisclaimer() {
     return '<div class="card" style="margin-bottom:12px;border-color:var(--line2);'
-      + 'background:rgba(209,154,85,.06)">'
+      + 'background:rgba(184,144,31,.06)">'
       + '<div style="font-family:Heebo;font-weight:700;font-size:13.5px;color:var(--cop);'
       + 'margin-bottom:6px">המלצה, לא הוראה רפואית</div>'
       + '<div style="font-size:12.5px;line-height:1.75;color:var(--tx)">'
@@ -2565,7 +2565,7 @@ button{cursor:pointer}
           + '<div style="font-family:Heebo;font-weight:700;font-size:15px;line-height:1.3">'
           + esc(m.name)
           + (m.mine ? '<span style="font-size:10.5px;font-weight:700;color:var(--or);'
-              + 'background:rgba(143,168,79,.15);border-radius:20px;padding:2px 7px;margin-right:6px">שלי</span>' : '')
+              + 'background:rgba(196,154,108,.15);border-radius:20px;padding:2px 7px;margin-right:6px">שלי</span>' : '')
           + '</div>'
           + (m.desc ? '<div style="color:var(--mut);font-size:13px;margin-top:4px;line-height:1.5;'
               + 'white-space:pre-wrap">' + esc(m.desc) + '</div>' : '')

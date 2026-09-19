@@ -12,7 +12,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['meals'] = 'v150';
+  (window.EB_MOD = window.EB_MOD || {})['meals'] = 'v151';
 
   var BUCKET = 'programs';
   var MAXW   = 900;          // רוחב מרבי אחרי הקטנה
@@ -124,7 +124,7 @@
       var miss = (EBSync.missing().trainees || []);
       if (miss.indexOf('meals') > -1) {
         h += '<div class="card" style="margin-bottom:12px;border-color:var(--amber);'
-          + 'background:rgba(217,164,65,.07)">'
+          + 'background:rgba(184,144,31,.07)">'
           + '<div style="font-family:Heebo;font-weight:700;font-size:14px;color:var(--amber)">'
           + 'התפריט נשמר במכשיר הזה בלבד</div>'
           + '<div class="muted" style="font-size:13px;line-height:1.6;margin-top:6px">'

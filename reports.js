@@ -20,7 +20,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['reports'] = 'v150';
+  (window.EB_MOD = window.EB_MOD || {})['reports'] = 'v151';
 
   var DAY = 86400000;
 
@@ -131,7 +131,7 @@
 
   /* ---------- שורה אחת בדוח ---------- */
   function line(label, value, sub, tone) {
-    var C = { good: '#1E8449', warn: '#B9770E', bad: '#C0392B' };
+    var C = { good: '#B08A5A', warn: '#B9770E', bad: '#C0392B' };
     var c = C[tone] || 'var(--tx)';
     return '<div class="rep-row">'
       + '<span class="rep-lbl">' + esc(label) + '</span>'

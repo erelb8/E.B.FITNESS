@@ -15,7 +15,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['access'] = 'v150';
+  (window.EB_MOD = window.EB_MOD || {})['access'] = 'v151';
 
   /* מצב הגישה של מתאמן אחד */
   function check(t) {
@@ -109,7 +109,7 @@
         + '<td class="muted" style="font-size:12.5px;direction:ltr;text-align:right">'
         + esc(r.t._username || '—') + '</td>'
         + '<td>' + (c.ok
-            ? '<span style="color:#1E8449;font-weight:800;font-size:12.5px">תקין</span>'
+            ? '<span style="color:#B08A5A;font-weight:800;font-size:12.5px">תקין</span>'
             : '<span style="color:#C0392B;font-weight:800;font-size:12.5px">' + esc(c.why || 'חסום') + '</span>')
           + '</td>'
         + '<td style="white-space:nowrap">'

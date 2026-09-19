@@ -18,7 +18,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['bot'] = 'v150';
+  (window.EB_MOD = window.EB_MOD || {})['bot'] = 'v151';
 
   var LOGS = [], WEIGH = [], PROGRAM = null, GOAL = '', HABITS = null;
 
@@ -759,8 +759,8 @@
     }
     var prCount = trends().filter(function (x) { return x.isPR && x.sessions >= 2; }).length;
     if (prCount) {
-      chips.push('<span class="jr-chip" style="color:var(--ok);border-color:rgba(168,199,94,.45);'
-        + 'background:rgba(168,199,94,.1)">' + prCount + ' שיאים</span>');
+      chips.push('<span class="jr-chip" style="color:var(--ok);border-color:rgba(221,191,142,.45);'
+        + 'background:rgba(221,191,142,.1)">' + prCount + ' שיאים</span>');
     }
     var c = consistency();
     if (c.last4Weeks) {

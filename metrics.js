@@ -20,7 +20,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['metrics'] = 'v150';
+  (window.EB_MOD = window.EB_MOD || {})['metrics'] = 'v151';
 
   var r1 = function (x) { return Math.round(x * 10) / 10; };
   var r2 = function (x) { return Math.round(x * 100) / 100; };
@@ -384,7 +384,7 @@
       + '<button class="btn sm ghost" onclick="EBMetrics.rm(\'' + t.id + '\')">מחשבון 1RM</button></div>';
 
     if (o.missing.length || o.needForNavy) {
-      h += '<div class="card" style="border-color:rgba(255,197,61,.35)">'
+      h += '<div class="card" style="border-color:rgba(184,144,31,.35)">'
         + '<h3 style="font-size:15px;margin-bottom:6px">מה שחסר</h3>'
         + (o.missing.length ? '<p style="font-size:13.5px;margin:0 0 6px">לחישוב בסיסי: <b>' + esc(o.missing.join(' · ')) + '</b></p>' : '')
         + (o.needForNavy ? '<p style="font-size:13.5px;margin:0 0 6px">לאחוז שומן מדויק יותר: <b>' + esc(o.needForNavy) + '</b> — נוסחת US Navy מודדת היקפים ולא נשענת על BMI.</p>' : '')

@@ -77,7 +77,7 @@ t('לא מציג טופס', /h_sign/.test(c), false);
 console.log('=== תשובה נבחרת מסומנת ===');
 const d = render({ answers: { q1: 'yes', q2: 'no' } }, true);
 t('כן מסומן באדום',  /#D9605A/.test(d), true);
-t('לא מסומן בזית',   /rgba\(143,168,79,\.18\)/.test(d), true);
+t('לא מסומן בחום בהיר', /rgba\(196,154,108,\.18\)/.test(d), true);
 
 console.log('\n' + (fail ? '### נכשלו: ' + fail : 'הכל עבר') + '  |  עברו: ' + pass);
 process.exit(fail ? 1 : 0);

@@ -10,7 +10,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['cardioUi'] = 'v150';
+  (window.EB_MOD = window.EB_MOD || {})['cardioUi'] = 'v151';
 
   var SHOW_F = false;   // הצגת הנוסחאות
 
@@ -162,7 +162,7 @@
       + '</div>';
     if (b.cls.act) {
       h += '<div style="font-size:13px;margin-top:10px;padding:9px 11px;border-radius:9px;'
-        + 'background:' + (b.cls.cls === 'bad' ? 'rgba(217,96,90,.10)' : 'rgba(217,164,65,.09)')
+        + 'background:' + (b.cls.cls === 'bad' ? 'rgba(217,96,90,.10)' : 'rgba(184,144,31,.09)')
         + ';border:1px solid ' + col + ';color:' + col + '">' + esc(b.cls.act) + '</div>';
     }
     h += f('לחץ ממוצע = ' + b.fMap) + f('לחץ דופק = ' + b.fPp)
@@ -337,7 +337,7 @@
       h += '<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px">'
         + '<div style="font-size:10px;color:var(--mut);font-family:Heebo">' + ltr(w.min) + '</div>'
         + '<div style="width:100%;height:' + px + 'px;border-radius:5px 5px 0 0;background:'
-        + (w.deload ? 'var(--line2)' : 'linear-gradient(180deg,var(--or),rgba(143,168,79,.45))') + '"></div>'
+        + (w.deload ? 'var(--line2)' : 'linear-gradient(180deg,var(--or),rgba(196,154,108,.45))') + '"></div>'
         + '<div style="font-size:10px;color:' + (w.deload ? 'var(--amber)' : 'var(--dim)') + '">'
         + (w.deload ? 'הורדה' : ltr(w.week)) + '</div></div>';
     });
@@ -383,7 +383,7 @@
     var h = '';
     if (iv.caution) {
       h += '<div style="font-size:13px;padding:9px 11px;border-radius:9px;margin-bottom:12px;'
-        + 'background:rgba(217,164,65,.09);border:1px solid var(--amber);color:var(--amber)">'
+        + 'background:rgba(184,144,31,.09);border:1px solid var(--amber);color:var(--amber)">'
         + esc(iv.caution) + '</div>';
     }
     if (!iv.hasHr) {
