@@ -6,7 +6,7 @@
 <title>E.B FIT — ניהול מתאמנים</title>
 
 <!-- ===== PWA — הופך את האתר לאפליקציה במסך הבית ===== -->
-<link rel="manifest" href="manifest.json?v=v161">
+<link rel="manifest" href="manifest.json?v=v162">
 <meta name="theme-color" content="#1C140E">
 <meta name="description" content="מערכת לניהול מתאמנים, תוכניות אימון, יומן ותשלומים">
 
@@ -15,9 +15,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="E.B FIT">
-<link rel="apple-touch-icon" href="icons/icon-180.png?v=v161">
-<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=v161">
-<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=v161">
+<link rel="apple-touch-icon" href="icons/icon-180.png?v=v162">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=v162">
+<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=v162">
 <meta name="format-detection" content="telephone=no">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -444,7 +444,7 @@ tbody tr:hover{background:var(--panel)}
 </head>
 <body>
 <header class="top">
-  <div class="brand"><img class="brand-logo" src="icons/logo-96.png?v=v161" alt="" width="30" height="30">E.B<span class="dot"></span>FIT <small id="brandSub">ניהול מתאמנים</small></div>
+  <div class="brand"><img class="brand-logo" src="icons/logo-96.png?v=v162" alt="" width="30" height="30">E.B<span class="dot"></span>FIT <small id="brandSub">ניהול מתאמנים</small></div>
   <div class="spacer"></div>
   <button class="syncpill s-off" id="syncPill" onclick="go('settings')" title="מצב סנכרון">מקומי בלבד</button>
   <span class="now" id="topDate"></span>
@@ -462,8 +462,8 @@ tbody tr:hover{background:var(--panel)}
 <div id="toast"></div>
 
 <!-- ספריית Supabase מקומית (לא מ-CDN) כדי שהאפליקציה תעבוד גם בלי רשת -->
-<script src="vendor/supabase.js?v=v161"></script>
-<script src="config.js?v=v161"></script>
+<script src="vendor/supabase.js?v=v162"></script>
+<script src="config.js?v=v162"></script>
 
 <script>
 /* =======================================================================
@@ -498,7 +498,7 @@ function age(b){ if(!b) return null; const d=new Date(b), t=new Date(); let a=t.
 
 /* ---------------- אחסון ---------------- */
 const KEY='ebfit_v1';
-const EB_VERSION='v161';   // חייב להתאים ל-VERSION ב-sw.js
+const EB_VERSION='v162';   // חייב להתאים ל-VERSION ב-sw.js
 let mem=null, canStore=true;
 function load(){
   try{ const r=localStorage.getItem(KEY); return r?JSON.parse(r):null; }
@@ -2487,10 +2487,21 @@ AUTO_INLINE.nutri=saveNutri;
 /* --------- ווטסאפ --------- */
 function waMsg(id){
   const t=tById(id); if(!t) return;
+  const n=firstName(t), she=t.gender==='נקבה';
+  const link=(window.EBSync&&EBSync.traineeLink)?(EBSync.traineeLink(t)||''):'';
   const tpl=[
-    ['תזכורת לאימון','היי '+t.name+', מזכיר את האימון שלנו. נתראה!'],
-    ['חזרה אחרי הפסקה','היי '+t.name+', מזמן לא נפגשנו באימון. בא לך שנקבע משהו לשבוע הקרוב?'],
-    ['אחרי אימון','כל הכבוד על האימון היום '+t.name+'! שתייה, חלבון ומנוחה טובה.']
+    ['תזכורת שבועית','תזכורת קטנה לשבוע '+n+' 💪\n'
+      +'✅ מסמנים כל אימון ולוחצים *סיימתי את האימון הזה*\n'
+      +'🍽 אכלת ארוחה מהתפריט? *אכלתי?*\n'
+      +'⚖️ יום חמישי בבוקר — שקילה ב*מעקב*\n'
+      +'✍️ משהו כאב או הרגיש לא נכון? *הערה למאמן*\n'
+      +'ככה אני יודע בדיוק איפה את'+(she?'':'ה')+' ומתאים את התוכנית 🙌'],
+    ['לא דיווח/ה','היי '+n+', מה שלומך? 🙂\n'
+      +'ראיתי שהשבוע לא נכנסו דיווחים בדף. הכל בסדר?\n'
+      +'אם משהו לא עובד בקישור או שקשה לסמן — תגיד'+(she?'י':'')+' לי ונסדר.\n'
+      +'גם אימון אחד שמסומן עוזר לי להתאים לך את התוכנית 💪'],
+    ['כל הכבוד','כל הכבוד על האימון '+n+'! 🔥\nראיתי את הדיווח. שתייה, חלבון ומנוחה טובה.'],
+    ['מדריך + קישור', link ? traineeGuide(t, link) : 'היי '+n+'!']
   ];
   openModal('<div class="mh"><h3>הודעה ל'+esc(t.name)+'</h3><button class="iconbtn" onclick="closeModal()">✕</button></div><div class="mb">'
    +'<label class="f">תבניות מהירות</label><div class="row" style="margin-bottom:12px">'
@@ -3200,32 +3211,32 @@ if (location.protocol === 'file:') {
 }
 </script>
 
-<script src="health.js?v=v161"></script>
-<script src="privacy.js?v=v161"></script>
-<script src="backup.js?v=v161"></script>
-<script src="reorder.js?v=v161"></script>
-<script src="access.js?v=v161"></script>
-<script src="analysis.js?v=v161"></script>
-<script src="reports.js?v=v161"></script>
-<script src="business.js?v=v161"></script>
-<script src="intake.js?v=v161"></script>
-<script src="files.js?v=v161"></script>
-<script src="builder.js?v=v161"></script>
-<script src="import-program.js?v=v161"></script>
-<script src="tracking.js?v=v161"></script>
-<script src="metrics.js?v=v161"></script>
-<script src="targets.js?v=v161"></script>
-<script src="meal-library.js?v=v161"></script>
+<script src="health.js?v=v162"></script>
+<script src="privacy.js?v=v162"></script>
+<script src="backup.js?v=v162"></script>
+<script src="reorder.js?v=v162"></script>
+<script src="access.js?v=v162"></script>
+<script src="analysis.js?v=v162"></script>
+<script src="reports.js?v=v162"></script>
+<script src="business.js?v=v162"></script>
+<script src="intake.js?v=v162"></script>
+<script src="files.js?v=v162"></script>
+<script src="builder.js?v=v162"></script>
+<script src="import-program.js?v=v162"></script>
+<script src="tracking.js?v=v162"></script>
+<script src="metrics.js?v=v162"></script>
+<script src="targets.js?v=v162"></script>
+<script src="meal-library.js?v=v162"></script>
 <!-- חלקים של המאמן בלבד (תאילנדי, פירות). לא נטען ב-t.html בכוונה. -->
-<script src="meal-extra.js?v=v161"></script>
-<script src="library-ui.js?v=v161"></script>
-<script src="export-plan.js?v=v161"></script>
-<script src="cardio.js?v=v161"></script>
-<script src="cardio-ui.js?v=v161"></script>
-<script src="exercise-library.js?v=v161"></script>
-<script src="exercise-ui.js?v=v161"></script>
-<script src="meals.js?v=v161"></script>
-<script src="sync.js?v=v161"></script>
+<script src="meal-extra.js?v=v162"></script>
+<script src="library-ui.js?v=v162"></script>
+<script src="export-plan.js?v=v162"></script>
+<script src="cardio.js?v=v162"></script>
+<script src="cardio-ui.js?v=v162"></script>
+<script src="exercise-library.js?v=v162"></script>
+<script src="exercise-ui.js?v=v162"></script>
+<script src="meals.js?v=v162"></script>
+<script src="sync.js?v=v162"></script>
 <script>
 /* =================== חיבור הסנכרון לאפליקציה =================== */
 
@@ -3329,15 +3340,39 @@ function copyLink(url){
     .catch(()=>toast('לא הצלחנו להעתיק'));
 }
 
+/* ---------- ההודעות למתאמן ----------
+   ההסבר המלא נשלח יחד עם הקישור האישי, כדי שהמתאמן יקבל הכל בהודעה
+   אחת: איך שומרים כאפליקציה, איך מסמנים אימון, "אכלתי?", שקילה
+   והערה למאמן. השמות כאן הם השמות המדויקים של הכפתורים ב-t.html —
+   שינוי שם של כפתור שם מחייב שינוי גם כאן. */
+function firstName(t){ return String((t&&t.name)||'').trim().split(/\s+/)[0]||''; }
+function traineeGuide(t, link){
+  const days=((t.program&&t.program.days)||[]).length;
+  return 'היי '+firstName(t)+'! 💪\n'
+   +'התוכנית שלך ב-*E.B FIT* מוכנה'+(days?' — '+days+' ימי אימון':'')+'.\n'
+   +'הקישור האישי שלך:\n'+link+'\n\n'
+   +'*📲 פעם אחת בהתחלה — לשמור כאפליקציה*\n'
+   +'• אייפון: לפתוח ב*ספארי* ← שיתוף ← *הוסף למסך הבית*\n'
+   +'• אנדרואיד: לפתוח ב*כרום* ← ⋮ ← *הוספה למסך הבית*\n'
+   +'בכניסה הראשונה מאשרים את התקנון.\n\n'
+   +'*🏋️ באימון*\n'
+   +'1. *אימון* ← היום של היום\n'
+   +'2. ✓ על כל תרגיל, ורושמים משקל וחזרות\n'
+   +'3. *איך היה?* — קל / בסדר / קשה\n'
+   +'4. *הערה למאמן* — אם משהו כאב או הרגיש לא נכון\n'
+   +'5. *סיימתי את האימון הזה* — וזה מגיע אליי ✅\n\n'
+   +'*🍽 תזונה*\n'
+   +'התפריט הוא אפשרויות, לא חובה לאכול הכל. אכלתם ארוחה? לוחצים *אכלתי?* והיא נספרת מול היעד היומי.\n\n'
+   +'*⚖️ שקילה*\n'
+   +'פעם בשבוע ב*מעקב* — הכי מדויק ביום חמישי בבוקר, לפני שאוכלים.\n\n'
+   +'הכל נשמר לבד. אני רואה מה שמסמנים ומתאים את התוכנית לפי זה.\n'
+   +'הקישור אישי — לא להעביר הלאה. שאלות? אני כאן 🙌';
+}
 function sendProgram(id){
   const t=tById(id); if(!t) return;
   const link=EBSync.traineeLink(t);
   if(!link){ toast('הקישור עוד לא נוצר — סנכרן קודם'); return; }
-  const days=((t.program&&t.program.days)||[]).length;
-  const msg='היי '+t.name+'! 💪\n\nהתוכנית שלך מוכנה'
-    +(days?' — '+days+' ימי אימון':'')+'.\nהקישור אישי ושמור רק לך:\n'+link
-    +'\n\nאפשר לסמן בו מה ביצעת ולרשום משקלים, ואני רואה את זה.'
-    +'\nטיפ: בסאפארי → שיתוף → הוספה למסך הבית, וזה יישב לך כאפליקציה.';
+  const msg=traineeGuide(t, link);
   let p=(t.phone||'').replace(/\D/g,'');
   if(p.startsWith('0')) p='972'+p.slice(1);
   window.open('https://wa.me/'+p+'?text='+encodeURIComponent(msg),'_blank');
