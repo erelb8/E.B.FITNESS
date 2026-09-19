@@ -13,8 +13,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="התוכנית שלי">
 <meta name="robots" content="noindex,nofollow">
-<link rel="apple-touch-icon" href="icons/icon-180.png?v=v162">
-<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=v162">
+<link rel="apple-touch-icon" href="icons/icon-180.png?v=v163">
+<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=v163">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -361,7 +361,7 @@ button{cursor:pointer}
 <body>
 
 <header class="top">
-  <div class="brand"><img class="brand-logo" src="icons/logo-96.png?v=v162" alt="" width="34" height="34"><span>E.B<span class="dot"></span>FIT</span></div>
+  <div class="brand"><img class="brand-logo" src="icons/logo-96.png?v=v163" alt="" width="34" height="34"><span>E.B<span class="dot"></span>FIT</span></div>
   <h1 id="hTitle">טוען…</h1>
   <div class="sub" id="hSub"></div>
 </header>
@@ -372,17 +372,17 @@ button{cursor:pointer}
 
 <div id="toast"></div>
 
-<script src="vendor/supabase.js?v=v162"></script>
-<script src="config.js?v=v162"></script>
-<script src="meal-library.js?v=v162"></script>
-<script src="exercise-library.js?v=v162"></script>
-<script src="progress.js?v=v162"></script>
-<script src="habits.js?v=v162"></script>
-<script src="coach-bot.js?v=v162"></script>
-<script src="workout-log.js?v=v162"></script>
-<script src="targets.js?v=v162"></script>
-<script src="health.js?v=v162"></script>
-<script src="privacy.js?v=v162"></script>
+<script src="vendor/supabase.js?v=v163"></script>
+<script src="config.js?v=v163"></script>
+<script src="meal-library.js?v=v163"></script>
+<script src="exercise-library.js?v=v163"></script>
+<script src="progress.js?v=v163"></script>
+<script src="habits.js?v=v163"></script>
+<script src="coach-bot.js?v=v163"></script>
+<script src="workout-log.js?v=v163"></script>
+<script src="targets.js?v=v163"></script>
+<script src="health.js?v=v163"></script>
+<script src="privacy.js?v=v163"></script>
 <script>
 (function () {
   'use strict';
@@ -395,7 +395,7 @@ button{cursor:pointer}
     .replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
 
   let DATA = null, DAY = 0, STATE = {}, FEEL = null, sb = null;
-  /* הערה למאמן בסיום אימון, לפי יום. עד v162 שני כפתורי הסיום שלחו
+  /* הערה למאמן בסיום אימון, לפי יום. עד v163 שני כפתורי הסיום שלחו
      p_note: null, ולמתאמן לא הייתה שום דרך לכתוב למאמן על אימון —
      כולל "הברך כאבה", שלוח הבקרה של המאמן יודע להתריע עליו. */
   const FIN_NOTE = {};
@@ -796,7 +796,7 @@ button{cursor:pointer}
   function mergeMy(fromServer) {
     if (!Array.isArray(fromServer)) return;      // העמודה עוד לא קיימת בשרת
     /* meals_self בשרת מחזיק רק ארוחות מהספרייה. ארוחה שהמתאמן בנה
-       בעצמו לא נמצאת שם — ועד v162 ההחלפה הזאת מחקה אותה בכל טעינה
+       בעצמו לא נמצאת שם — ועד v163 ההחלפה הזאת מחקה אותה בכל טעינה
        ובכל ריענון. היא נשמרת עכשיו ב-session_state (ראה syncCustom),
        וכאן פשוט לא נוגעים בה. */
     const mine = MY_MEALS.filter(x => x.custom);
@@ -1624,6 +1624,8 @@ button{cursor:pointer}
   }
   function termsGate() {
     if (!TOKEN || termsOK() || !window.EBPrivacy) return;
+    // עוד לא ידוע אם בשרת יש אישור — בודקים שוב אחרי הקריאה
+    if (!SRV_LOADED) { setTimeout(termsGate, 400); return; }
     if (document.getElementById('termsGate')) return;
     var w = document.createElement('div');
     w.id = 'termsGate';
@@ -2531,7 +2533,7 @@ button{cursor:pointer}
     if (!any && !lib) return '';
 
     /* סיכום היום מול היעדים — רק מה שסומן "אכלתי" היום.
-       עד v162 נספרה כל ארוחה בתפריט, כולל כל האפשרויות שהמאמן נתן
+       עד v163 נספרה כל ארוחה בתפריט, כולל כל האפשרויות שהמאמן נתן
        וכל מה שהמתאמן הוסיף מהספרייה, והמתאמן ראה שהוא "עובר" את
        היעד היומי בלי שאכל כלום. התפריט הוא רשימת אפשרויות, לא יומן.
        הסימון הוא אותו סימון של מסך ההרגלים (kind 'meals'). */
@@ -2969,11 +2971,15 @@ button{cursor:pointer}
     return [fmtSets(e.sets), fmtReps(e.reps), withRest ? fmtRest(e.rest) : ''].filter(Boolean).join(' · ');
   }
 
-  let STATE_TIMER = null;
+  let STATE_TIMER = null, SRV_LOADED = false;
   function queueStateSync() {
     clearTimeout(STATE_TIMER);
     STATE_TIMER = setTimeout(async () => {
       if (!sb || !TOKEN) return;
+      /* trainee_save_state מחליף את כל הבלוב. לפני שקראנו את מה שבשרת
+         אנחנו לא יודעים מה יש שם (אישור תקנון, הרגלים, ארוחות שבנה),
+         ושליחה עכשיו הייתה מוחקת את זה. ממתינים לקריאה ואז שולחים. */
+      if (!SRV_LOADED) { queueStateSync(); return; }
       try { await sb.rpc('trainee_save_state', { p_token: TOKEN, p_state: STATE }); }
       catch (e) { /* אין רשת או שה-SQL לא הורץ — הרישום כבר במכשיר */ }
     }, 1500);
@@ -2983,7 +2989,7 @@ button{cursor:pointer}
      בכוונה — ראה ההסבר בראש supabase/trainee-notes-and-logs.sql. */
   let EXTRAS = { logs: [], weighins: [] };
   async function loadExtras() {
-    if (!sb || !TOKEN) return;
+    if (!sb || !TOKEN) { SRV_LOADED = true; return; }   // אין שרת — אין מה לחכות לו
     try {
       const { data, error } = await sb.rpc('trainee_extras', { p_token: TOKEN, p_limit: 200 });
       if (error) throw error;
@@ -2993,6 +2999,15 @@ button{cursor:pointer}
       /* טיוטה מהשרת — רק אם במכשיר הזה אין כלום, כדי לא לדרוס
          אימון שמתנהל ממש עכשיו במכשיר שביד. */
       const srv = row.session_state || {};
+      SRV_LOADED = true;
+      /* אישור התקנון שכבר נמצא בשרת. בלי זה מתאמן שעבר טלפון (או
+         שהדפדפן ניקה נתונים) נשאל שוב — ואם בינתיים סימן הרגל,
+         השמירה דרסה בשרת את רשומת האישור המקורית. */
+      if (srv.terms && !STATE.terms) {
+        STATE.terms = srv.terms; writeState();
+        const gate = document.getElementById('termsGate');
+        if (gate && termsOK()) gate.remove();
+      }
       if (hasDraft(srv) && !hasDraft(STATE)) {
         Object.keys(srv).forEach(k => { if (/^\d+:\d+$/.test(k)) STATE[k] = srv[k]; });
         writeState();
@@ -3008,7 +3023,13 @@ button{cursor:pointer}
       if (window.EBProg) EBProg.mergeServer(EXTRAS.weighins);
       feedBot();
       paint();
-    } catch (e) { feedBot(); }
+    } catch (e) {
+      feedBot();
+      /* השרת ענה בשגיאה (למשל פונקציה חסרה) — אין מה לחכות לו, ממשיכים
+         כמו פעם. אין רשת — מנסים שוב, ועד אז הכל נשמר במכשיר. */
+      if (e && (e.code || e.message) && navigator.onLine) SRV_LOADED = true;
+      else setTimeout(loadExtras, 15000);
+    }
   }
 
   function feedBot() {
