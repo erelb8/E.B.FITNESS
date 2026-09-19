@@ -13,8 +13,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="התוכנית שלי">
 <meta name="robots" content="noindex,nofollow">
-<link rel="apple-touch-icon" href="icons/icon-180.png?v=v160">
-<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=v160">
+<link rel="apple-touch-icon" href="icons/icon-180.png?v=v161">
+<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=v161">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -361,7 +361,7 @@ button{cursor:pointer}
 <body>
 
 <header class="top">
-  <div class="brand"><img class="brand-logo" src="icons/logo-96.png?v=v160" alt="" width="34" height="34"><span>E.B<span class="dot"></span>FIT</span></div>
+  <div class="brand"><img class="brand-logo" src="icons/logo-96.png?v=v161" alt="" width="34" height="34"><span>E.B<span class="dot"></span>FIT</span></div>
   <h1 id="hTitle">טוען…</h1>
   <div class="sub" id="hSub"></div>
 </header>
@@ -372,17 +372,17 @@ button{cursor:pointer}
 
 <div id="toast"></div>
 
-<script src="vendor/supabase.js?v=v160"></script>
-<script src="config.js?v=v160"></script>
-<script src="meal-library.js?v=v160"></script>
-<script src="exercise-library.js?v=v160"></script>
-<script src="progress.js?v=v160"></script>
-<script src="habits.js?v=v160"></script>
-<script src="coach-bot.js?v=v160"></script>
-<script src="workout-log.js?v=v160"></script>
-<script src="targets.js?v=v160"></script>
-<script src="health.js?v=v160"></script>
-<script src="privacy.js?v=v160"></script>
+<script src="vendor/supabase.js?v=v161"></script>
+<script src="config.js?v=v161"></script>
+<script src="meal-library.js?v=v161"></script>
+<script src="exercise-library.js?v=v161"></script>
+<script src="progress.js?v=v161"></script>
+<script src="habits.js?v=v161"></script>
+<script src="coach-bot.js?v=v161"></script>
+<script src="workout-log.js?v=v161"></script>
+<script src="targets.js?v=v161"></script>
+<script src="health.js?v=v161"></script>
+<script src="privacy.js?v=v161"></script>
 <script>
 (function () {
   'use strict';
@@ -395,7 +395,7 @@ button{cursor:pointer}
     .replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
 
   let DATA = null, DAY = 0, STATE = {}, FEEL = null, sb = null;
-  /* הערה למאמן בסיום אימון, לפי יום. עד v160 שני כפתורי הסיום שלחו
+  /* הערה למאמן בסיום אימון, לפי יום. עד v161 שני כפתורי הסיום שלחו
      p_note: null, ולמתאמן לא הייתה שום דרך לכתוב למאמן על אימון —
      כולל "הברך כאבה", שלוח הבקרה של המאמן יודע להתריע עליו. */
   const FIN_NOTE = {};
@@ -796,7 +796,7 @@ button{cursor:pointer}
   function mergeMy(fromServer) {
     if (!Array.isArray(fromServer)) return;      // העמודה עוד לא קיימת בשרת
     /* meals_self בשרת מחזיק רק ארוחות מהספרייה. ארוחה שהמתאמן בנה
-       בעצמו לא נמצאת שם — ועד v160 ההחלפה הזאת מחקה אותה בכל טעינה
+       בעצמו לא נמצאת שם — ועד v161 ההחלפה הזאת מחקה אותה בכל טעינה
        ובכל ריענון. היא נשמרת עכשיו ב-session_state (ראה syncCustom),
        וכאן פשוט לא נוגעים בה. */
     const mine = MY_MEALS.filter(x => x.custom);
@@ -2446,6 +2446,20 @@ button{cursor:pointer}
   function nz(v) { var x = Number(v); return isFinite(x) && x > 0 ? x : 0; }
 
   /* אוסף את כל הארוחות לתאים, משני המקורות */
+  function mealHabId(key, m) { return window.EBHabits ? EBHabits.idOf(key + '|' + m.name) : ''; }
+  function ateMeal(key, m) {
+    return !!(window.EBHabits && EBHabits.isMarked(HABITS, EBHabits.todayISO(), 'meals', mealHabId(key, m)));
+  }
+  function ateButton(key, m) {
+    if (!window.EBHabits) return '';
+    var on = ateMeal(key, m);
+    return '<button data-hab="' + esc(mealHabId(key, m)) + '" data-habkind="meals" style="margin-top:9px;'
+      + 'font-size:12.5px;padding:6px 13px;border-radius:20px;cursor:pointer;font-family:inherit;'
+      + 'border:1px solid ' + (on ? 'var(--or)' : 'var(--line2)') + ';'
+      + 'background:' + (on ? 'var(--or-soft)' : 'transparent') + ';color:' + (on ? 'var(--or)' : 'var(--mut)') + '">'
+      + (on ? '✓ אכלתי היום' : 'אכלתי?') + '</button>';
+  }
+
   function slots() {
     var by = {};
     SLOT_ORDER.forEach(function (k) { by[k] = []; });
@@ -2516,10 +2530,18 @@ button{cursor:pointer}
     var lib = (typeof EBLib !== 'undefined');
     if (!any && !lib) return '';
 
-    /* סיכום היום מול היעדים */
-    var tot = { k:0, p:0, c:0, f:0 }, cnt = 0;
+    /* סיכום היום מול היעדים — רק מה שסומן "אכלתי" היום.
+       עד v161 נספרה כל ארוחה בתפריט, כולל כל האפשרויות שהמאמן נתן
+       וכל מה שהמתאמן הוסיף מהספרייה, והמתאמן ראה שהוא "עובר" את
+       היעד היומי בלי שאכל כלום. התפריט הוא רשימת אפשרויות, לא יומן.
+       הסימון הוא אותו סימון של מסך ההרגלים (kind 'meals'). */
+    var tot = { k:0, p:0, c:0, f:0 }, cnt = 0, ate = 0;
     SLOT_ORDER.forEach(function (s) {
-      by[s].forEach(function (m) { tot.k += m.k; tot.p += m.p; tot.c += m.c; tot.f += m.f; cnt++; });
+      by[s].forEach(function (m) {
+        cnt++;
+        if (!ateMeal(s, m)) return;
+        ate++; tot.k += m.k; tot.p += m.p; tot.c += m.c; tot.f += m.f;
+      });
     });
     var tg = todayTargets() || {};
 
@@ -2529,14 +2551,17 @@ button{cursor:pointer}
 
     if (cnt) {
       h += '<div class="card" style="margin-bottom:12px">'
+        + '<div style="font-family:Heebo;font-weight:700;font-size:13.5px;margin-bottom:8px">אכלתי היום</div>'
         + '<div style="display:flex;gap:14px;flex-wrap:wrap;font-size:13px">'
         + macro('קק״ל', Math.round(tot.k), tg.kcal)
         + macro('חלבון', Math.round(tot.p), tg.protein)
         + macro('פחמימות', Math.round(tot.c), tg.carbs)
         + macro('שומן', Math.round(tot.f), tg.fat)
         + '</div>'
-        + '<div class="mt" style="font-size:11.5px;margin-top:8px">'
-        + cnt + ' ארוחות בתוכנית</div></div>';
+        + '<div class="mt" style="font-size:11.5px;margin-top:8px;line-height:1.6">'
+        + (ate ? 'סימנת ' + (ate === 1 ? 'ארוחה אחת' : ate + ' ארוחות') + ' היום, מתוך ' + cnt + ' בתפריט.'
+               : 'סמן ✓ "אכלתי" על ארוחה, והיא תיספר כאן מול היעד היומי. הארוחות בתפריט הן אפשרויות — לא הכול נאכל באותו יום.')
+        + '</div></div>';
     }
 
     SLOT_ORDER.forEach(function (key, i) {
@@ -2572,6 +2597,7 @@ button{cursor:pointer}
           + (m.mine ? '<button data-myrm="' + esc(m.key) + '" style="background:none;border:0;'
               + 'color:var(--dim);font-size:17px;cursor:pointer;padding:0 4px;line-height:1">✕</button>' : '')
           + '</div>'
+          + ateButton(key, m)
           + (m.k || m.p || m.c || m.f
               ? '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:9px">'
                 + (m.k ? tag(Math.round(m.k) + ' קק״ל', 1) : '')
@@ -2738,7 +2764,7 @@ button{cursor:pointer}
       const kind = hab.dataset.habkind === 'meals' ? 'meals' : 'mob';
       const id = hab.dataset.hab, iso = EBHabits.todayISO();
       EBHabits.mark(HABITS, iso, kind, id, !EBHabits.isMarked(HABITS, iso, kind, id));
-      saveHabits(); repaintHabits();
+      saveHabits(); repaintHabits(); repaintFood();
       return;
     }
     if (e.target.closest('[data-habfood]')) {
@@ -2909,6 +2935,11 @@ button{cursor:pointer}
   }
   function habitItems() {
     return window.EBHabits ? EBHabits.items(DATA && DATA.program, HABITS.own) : [];
+  }
+  function repaintFood() {
+    if (OPEN_CATEGORY !== 'food') return;
+    const body = document.querySelector('#categoryModal .category-dialog-body');
+    if (body) { const y = body.scrollTop; body.innerHTML = categoryContent('food'); body.scrollTop = y; }
   }
   function repaintHabits() {
     if (OPEN_CATEGORY !== 'habits') return;
