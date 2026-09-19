@@ -13,8 +13,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="התוכנית שלי">
 <meta name="robots" content="noindex,nofollow">
-<link rel="apple-touch-icon" href="icons/icon-180.png?v=v169">
-<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=v169">
+<link rel="apple-touch-icon" href="icons/icon-180.png?v=v170">
+<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=v170">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -368,7 +368,7 @@ button{cursor:pointer}
 <body>
 
 <header class="top">
-  <div class="brand"><img class="brand-logo" src="icons/logo-96.png?v=v169" alt="" width="34" height="34"><span>E.B<span class="dot"></span>FIT</span></div>
+  <div class="brand"><img class="brand-logo" src="icons/logo-96.png?v=v170" alt="" width="34" height="34"><span>E.B<span class="dot"></span>FIT</span></div>
   <h1 id="hTitle">טוען…</h1>
   <div class="sub" id="hSub"></div>
   <span class="savechip" id="saveChip" aria-live="polite"></span>
@@ -380,17 +380,17 @@ button{cursor:pointer}
 
 <div id="toast"></div>
 
-<script src="vendor/supabase.js?v=v169"></script>
-<script src="config.js?v=v169"></script>
-<script src="meal-library.js?v=v169"></script>
-<script src="exercise-library.js?v=v169"></script>
-<script src="progress.js?v=v169"></script>
-<script src="habits.js?v=v169"></script>
-<script src="coach-bot.js?v=v169"></script>
-<script src="workout-log.js?v=v169"></script>
-<script src="targets.js?v=v169"></script>
-<script src="health.js?v=v169"></script>
-<script src="privacy.js?v=v169"></script>
+<script src="vendor/supabase.js?v=v170"></script>
+<script src="config.js?v=v170"></script>
+<script src="meal-library.js?v=v170"></script>
+<script src="exercise-library.js?v=v170"></script>
+<script src="progress.js?v=v170"></script>
+<script src="habits.js?v=v170"></script>
+<script src="coach-bot.js?v=v170"></script>
+<script src="workout-log.js?v=v170"></script>
+<script src="targets.js?v=v170"></script>
+<script src="health.js?v=v170"></script>
+<script src="privacy.js?v=v170"></script>
 <script>
 (function () {
   'use strict';
@@ -403,7 +403,7 @@ button{cursor:pointer}
     .replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
 
   let DATA = null, DAY = 0, STATE = {}, FEEL = null, sb = null;
-  /* הערה למאמן בסיום אימון, לפי יום. עד v169 שני כפתורי הסיום שלחו
+  /* הערה למאמן בסיום אימון, לפי יום. עד v170 שני כפתורי הסיום שלחו
      p_note: null, ולמתאמן לא הייתה שום דרך לכתוב למאמן על אימון —
      כולל "הברך כאבה", שלוח הבקרה של המאמן יודע להתריע עליו. */
   const FIN_NOTE = {};
@@ -831,7 +831,7 @@ button{cursor:pointer}
   function mergeMy(fromServer) {
     if (!Array.isArray(fromServer)) return;      // העמודה עוד לא קיימת בשרת
     /* meals_self בשרת מחזיק רק ארוחות מהספרייה. ארוחה שהמתאמן בנה
-       בעצמו לא נמצאת שם — ועד v169 ההחלפה הזאת מחקה אותה בכל טעינה
+       בעצמו לא נמצאת שם — ועד v170 ההחלפה הזאת מחקה אותה בכל טעינה
        ובכל ריענון. היא נשמרת עכשיו ב-session_state (ראה syncCustom),
        וכאן פשוט לא נוגעים בה. */
     const mine = MY_MEALS.filter(x => x.custom);
@@ -1329,7 +1329,7 @@ button{cursor:pointer}
     toast('השינויים בוטלו');
   };
   /* ---------- שמירה אוטומטית של עריכת התוכנית ----------
-     עד v169 העריכה נצברה בדף ונשלחה רק בלחיצה על "שמירת השינויים",
+     עד v170 העריכה נצברה בדף ונשלחה רק בלחיצה על "שמירת השינויים",
      וסגירת החלון בלי ללחוץ מחקה הכל. עכשיו כל שינוי נשלח לבד, שנייה
      אחרי השינוי האחרון, ובכל יציאה מהמסך או מהאפליקציה. */
   let EDIT_TIMER = null, EDIT_BUSY = false, EDIT_AGAIN = false, EDIT_PUSHED = false;
@@ -1643,7 +1643,77 @@ button{cursor:pointer}
     if(key==='food') return libButton()+nutritionDisclaimer()+targetsBlock()+nutritionPlan();
     if(key==='body') return botBody()+bodyMetricsBlock()+healthAlert()+healthFolder()+filesBlock(files);
     if(key==='habits') return habitsScreen();
-    return botBlock({skipWeight:true})+progBlock();
+    return monthCard()+botBlock({skipWeight:true})+progBlock();
+  }
+
+  /* ---------- החודש שלי ----------
+     ארבעה שבועות אחרונים במקום אחד: אימונים שדווחו, משקל, תזונה
+     והרגלים. כל מספר כאן מגיע ממה שהמתאמן עצמו סימן ורשם — אין כאן
+     הערכה, ולכן גם אין מה לנחש כשחסר מידע: פשוט לא מציגים. */
+  function monthCard() {
+    if (!window.EBHabits) return '';
+    const today = EBHabits.todayISO(), from = EBHabits.shiftISO(today, 27);
+    const inRange = d => { d = String(d || '').slice(0, 10); return d >= from && d <= today; };
+    // אימונים לפי שבוע (4 עמודות, מהישן לחדש)
+    const weeks = [0, 0, 0, 0];
+    const logs = (EXTRAS.logs || []).filter(l => inRange(l.date));
+    logs.forEach(l => {
+      const back = Math.floor((new Date(today + 'T00:00') - new Date(String(l.date).slice(0, 10) + 'T00:00')) / 864e5);
+      const w = 3 - Math.min(3, Math.floor(back / 7)); weeks[w]++;
+    });
+    // משקל
+    const ws = ((window.EBProg && EBProg.db().logs) || []).filter(x => inRange(x.date) && +x.w > 0)
+      .sort((a, b) => String(a.date).localeCompare(String(b.date)));
+    const dw = ws.length > 1 ? Math.round((ws[ws.length - 1].w - ws[0].w) * 10) / 10 : null;
+    // תזונה
+    const by = slots(); let fDays = 0, fSum = 0, hDays = 0;
+    for (let b = 0; b < 28; b++) {
+      const iso = EBHabits.shiftISO(today, b), d = dayEaten(iso, by);
+      if (d.n) { fDays++; fSum += d.k; }
+      if (EBHabits.dayDone(HABITS, iso, 'mob') || EBHabits.dayDone(HABITS, iso, 'meals')) hDays++;
+    }
+    const goal = +((todayTargets() || {}).kcal) || 0, avg = fDays ? Math.round(fSum / fDays) : 0;
+    const total = weeks.reduce((a, b) => a + b, 0);
+    if (!total && !ws.length && !fDays && !hDays) {
+      return '<div class="card" style="margin-bottom:12px"><div style="font-family:Heebo;font-weight:700;font-size:14px;margin-bottom:6px">החודש שלי</div>'
+        + '<div class="mt" style="font-size:13px;line-height:1.6">כאן יופיע סיכום של ארבעת השבועות האחרונים — אימונים, משקל ותזונה. '
+        + 'הוא מתמלא ממה שמסמנים: "סיימתי את האימון הזה", שקילה ביום חמישי, ו"אכלתי?" בתזונה.</div></div>';
+    }
+    const stat = (v, l) => '<div style="flex:1;min-width:70px;text-align:center"><div style="font-family:Heebo;font-weight:800;font-size:22px;color:var(--or);line-height:1.1">'
+      + v + '</div><div class="mt" style="font-size:11.5px;margin-top:3px">' + l + '</div></div>';
+    const mx = Math.max(1, ...weeks);
+    let h = '<div class="card" style="margin-bottom:12px">'
+      + '<div style="display:flex;align-items:baseline;margin-bottom:12px"><div style="flex:1;font-family:Heebo;font-weight:700;font-size:14px">החודש שלי</div>'
+      + '<span class="mt" style="font-size:11.5px">4 שבועות אחרונים</span></div>'
+      + '<div style="display:flex;gap:6px;margin-bottom:14px">'
+      + stat(total, 'אימונים')
+      + stat(dw == null ? '—' : '<bdi dir="ltr">' + (dw > 0 ? '+' : '') + dw + '</bdi>', 'ק״ג שינוי')
+      + stat(fDays, 'ימי תזונה')
+      + stat(hDays, 'ימי הרגלים')
+      + '</div>'
+      + '<div class="mt" style="font-size:11.5px;margin-bottom:6px">אימונים בכל שבוע</div>'
+      + '<div style="display:flex;gap:8px;align-items:flex-end;height:54px">';
+    weeks.forEach((n, i) => {
+      h += '<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%">'
+        + '<span style="font-size:11px;color:var(--mut);margin-bottom:2px">' + (n || '') + '</span>'
+        + '<div style="width:100%;max-width:44px;height:' + (n ? Math.max(5, Math.round(n / mx * 40)) : 3) + 'px;border-radius:6px 6px 2px 2px;background:'
+        + (n ? 'var(--or)' : 'var(--line)') + '"></div></div>';
+    });
+    h += '</div><div style="display:flex;gap:8px;margin-top:4px">'
+      + ['לפני 3 שבועות', 'לפני שבועיים', 'שבוע שעבר', 'השבוע'].map((l, i) =>
+          '<span style="flex:1;text-align:center;font-size:10.5px;color:' + (i === 3 ? 'var(--or)' : 'var(--dim)') + '">' + l + '</span>').join('')
+      + '</div>';
+    if (fDays && avg) {
+      h += '<div class="mt" style="font-size:12.5px;margin-top:12px;line-height:1.6">בימים עם רישום תזונה — ממוצע של '
+        + '<b style="color:var(--tx)">' + avg.toLocaleString('he-IL') + '</b> קק״ל' + (goal ? ' — היעד שלך ' + Math.round(goal).toLocaleString('he-IL') + '.' : '.') + '</div>';
+    }
+    // משפט אחד, לפי מה שקרה באמת
+    let line = '';
+    if (weeks[3] && weeks[3] >= weeks[2] && weeks[2]) line = 'השבוע הקצב טוב יותר מהשבוע שעבר 💪';
+    else if (total >= 8) line = total + ' אימונים בחודש — עקביות אמיתית 🔥';
+    else if (!weeks[3] && total) line = 'השבוע עוד לא נרשם אימון — אימון אחד מחזיר את הרצף.';
+    if (line) h += '<div style="font-size:13px;margin-top:10px;color:var(--tx)">' + line + '</div>';
+    return h + '</div>';
   }
   function bodyMetricsBlock() {
     const bmi=bodyBmi();
@@ -1664,7 +1734,7 @@ button{cursor:pointer}
   }
   /* סגירה באמצע עריכה משמיטה את השינויים שלא נשמרו — כמו ביטול */
   function closeCategory(){
-    /* סגירה באמצע עריכה שומרת — עד v169 היא מחקה את כל השינויים */
+    /* סגירה באמצע עריכה שומרת — עד v170 היא מחקה את כל השינויים */
     if (EDIT_W) {
       const box = document.getElementById('tn_box');
       if (box && DATA.program) DATA.program.traineeNote = box.value;
@@ -2752,7 +2822,7 @@ button{cursor:pointer}
     if (!any && !lib) return '';
 
     /* סיכום היום מול היעדים — רק מה שסומן "אכלתי" היום.
-       עד v169 נספרה כל ארוחה בתפריט, כולל כל האפשרויות שהמאמן נתן
+       עד v170 נספרה כל ארוחה בתפריט, כולל כל האפשרויות שהמאמן נתן
        וכל מה שהמתאמן הוסיף מהספרייה, והמתאמן ראה שהוא "עובר" את
        היעד היומי בלי שאכל כלום. התפריט הוא רשימת אפשרויות, לא יומן.
        הסימון הוא אותו סימון של מסך ההרגלים (kind 'meals'). */
@@ -3243,7 +3313,7 @@ button{cursor:pointer}
   async function sendState() {
     if (!sb || !TOKEN || !SRV_LOADED) return;
     STATE_DIRTY = false;
-    /* rpc לא זורק כשהשרת דוחה — הוא מחזיר { error }. עד v169 דחייה
+    /* rpc לא זורק כשהשרת דוחה — הוא מחזיר { error }. עד v170 דחייה
        נחשבה הצלחה, ולא נוסה שוב. */
     try {
       const r = await sb.rpc('trainee_save_state', { p_token: TOKEN, p_state: STATE });
