@@ -12,7 +12,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['meals'] = 'v164';
+  (window.EB_MOD = window.EB_MOD || {})['meals'] = 'v165';
 
   var BUCKET = 'programs';
   var MAXW   = 900;          // רוחב מרבי אחרי הקטנה
@@ -134,9 +134,10 @@
     for (var b = 0; b < 7; b++) {
       var iso = isoDay(b), day = marks[iso] || {};
       var ids = Object.keys(day.meals || {});
-      if (!ids.length && !day.food) continue;
+      var free = ((t.foodLog || {})[iso] || []).map(function (x) { return { name: x.name + ' ✎', k: num(x.k) }; });
+      if (!ids.length && !day.food && !free.length) continue;
       anyDay++;
-      var items = ids.map(function (id) { return known[id] || { name: id.split('|').slice(1).join('|'), k: 0 }; });
+      var items = ids.map(function (id) { return known[id] || { name: id.split('|').slice(1).join('|'), k: 0 }; }).concat(free);
       var k = items.reduce(function (a, x) { return a + (x.k || 0); }, 0);
       var d = new Date(iso + 'T00:00');
       rows.push('<div class="row" style="padding:7px 0;border-top:1px solid var(--line);font-size:13px;align-items:flex-start">'
@@ -155,7 +156,8 @@
       return h + '<div class="muted" style="font-size:12.5px;line-height:1.6;margin-top:6px">'
         + 'אין סימונים בשבוע האחרון. בדף שלו יש "אכלתי?" על כל ארוחה, ו"אכלתי לפי התוכנית היום" בהרגלים.</div></div>';
     }
-    return h + rows.join('') + '</div>';
+    return h + rows.join('')
+      + '<div class="muted" style="font-size:11.5px;margin-top:8px">✎ — משהו שרשם בעצמו, לא מהתפריט.</div></div>';
   }
 
   /* ---------- כרטיס בתיק המאמן ---------- */
