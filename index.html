@@ -6,7 +6,7 @@
 <title>E.B FIT — ניהול מתאמנים</title>
 
 <!-- ===== PWA — הופך את האתר לאפליקציה במסך הבית ===== -->
-<link rel="manifest" href="manifest.json?v=v168">
+<link rel="manifest" href="manifest.json?v=v169">
 <meta name="theme-color" content="#1C140E">
 <meta name="description" content="מערכת לניהול מתאמנים, תוכניות אימון, יומן ותשלומים">
 
@@ -15,9 +15,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="E.B FIT">
-<link rel="apple-touch-icon" href="icons/icon-180.png?v=v168">
-<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=v168">
-<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=v168">
+<link rel="apple-touch-icon" href="icons/icon-180.png?v=v169">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=v169">
+<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=v169">
 <meta name="format-detection" content="telephone=no">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -444,7 +444,7 @@ tbody tr:hover{background:var(--panel)}
 </head>
 <body>
 <header class="top">
-  <div class="brand"><img class="brand-logo" src="icons/logo-96.png?v=v168" alt="" width="30" height="30">E.B<span class="dot"></span>FIT <small id="brandSub">ניהול מתאמנים</small></div>
+  <div class="brand"><img class="brand-logo" src="icons/logo-96.png?v=v169" alt="" width="30" height="30">E.B<span class="dot"></span>FIT <small id="brandSub">ניהול מתאמנים</small></div>
   <div class="spacer"></div>
   <button class="syncpill s-off" id="syncPill" onclick="go('settings')" title="מצב סנכרון">מקומי בלבד</button>
   <span class="now" id="topDate"></span>
@@ -462,8 +462,8 @@ tbody tr:hover{background:var(--panel)}
 <div id="toast"></div>
 
 <!-- ספריית Supabase מקומית (לא מ-CDN) כדי שהאפליקציה תעבוד גם בלי רשת -->
-<script src="vendor/supabase.js?v=v168"></script>
-<script src="config.js?v=v168"></script>
+<script src="vendor/supabase.js?v=v169"></script>
+<script src="config.js?v=v169"></script>
 
 <script>
 /* =======================================================================
@@ -498,7 +498,7 @@ function age(b){ if(!b) return null; const d=new Date(b), t=new Date(); let a=t.
 
 /* ---------------- אחסון ---------------- */
 const KEY='ebfit_v1';
-const EB_VERSION='v168';   // חייב להתאים ל-VERSION ב-sw.js
+const EB_VERSION='v169';   // חייב להתאים ל-VERSION ב-sw.js
 let mem=null, canStore=true;
 function load(){
   try{ const r=localStorage.getItem(KEY); return r?JSON.parse(r):null; }
@@ -2373,10 +2373,11 @@ function tabPay(t){
   let h='<div class="row noprint" style="margin-bottom:12px"><button class="btn sm" onclick="openPay(\''+t.id+'\')">+ תשלום</button></div>';
   if(!ps.length) return h+'<div class="empty"><div class="big">₪</div>לא נרשמו תשלומים.</div>';
   h+='<div class="card" style="padding-inline:0"><div style="overflow-x:auto;padding-inline:14px">'
-   +'<table style="min-width:480px"><thead><tr><th>תאריך</th><th>סכום</th><th>אמצעי</th><th>אימונים</th><th>הערה</th><th class="noprint"></th></tr></thead><tbody>';
-  ps.forEach(p=>{ h+='<tr><td>'+fmtFull(p.date)+'</td><td style="font-family:Heebo;font-weight:700">'+money(p.amount)+'</td><td>'+esc(p.method||'')+'</td><td>'+esc(p.sessions||'—')+'</td><td class="muted">'+esc(p.note||'')+'</td>'
-   +'<td class="noprint"><button class="iconbtn" style="width:28px;height:28px" onclick="delRow(\'payments\',\''+p.id+'\');save();render()">✕</button></td></tr>'; });
-  return h+'</tbody></table></div></div>';
+   +'<table style="min-width:520px"><thead><tr><th>תאריך</th><th>סכום</th><th>קטגוריה</th><th>אמצעי</th><th>הערה</th><th class="noprint"></th></tr></thead><tbody>';
+  ps.forEach(p=>{ h+=payRow(p,false); });
+  const sum=ps.reduce((a,p)=>a+Number(p.amount||0),0);
+  return h+'</tbody></table></div></div>'
+   +'<div class="muted" style="font-size:12.5px;margin-top:8px">סה״כ '+money(sum)+' ב-'+ps.length+' תשלומים.</div>';
 }
 
 /* --------- מודולים אופציונליים בתיק --------- */
@@ -2632,41 +2633,108 @@ function vMoney(){
   const mx=Math.max(1,...months.map(m=>m.sum));
   h+='<div class="card" style="margin-top:14px"><h3 style="font-size:15px;margin-bottom:16px">הכנסות ב־6 חודשים</h3><div class="bars">'
    +months.map(m=>'<div class="b" style="height:'+Math.max(3,m.sum/mx*100)+'%"><b>'+(m.sum?money(m.sum):'')+'</b><span>'+m.lbl+'</span></div>').join('')+'</div><div style="height:22px"></div></div>';
+  h+=payByCat(all);
   h+='<div class="card" style="margin-top:14px"><h3 style="font-size:15px;margin-bottom:10px">כל התשלומים</h3>';
   if(!all.length) h+='<div class="empty" style="padding:30px">לא נרשמו תשלומים.</div>';
-  else{ h+='<div style="overflow-x:auto"><table style="min-width:560px"><thead><tr><th>תאריך</th><th>מתאמן</th><th>סכום</th><th>אמצעי</th><th>אימונים</th><th>הערה</th><th class="noprint"></th></tr></thead><tbody>';
-    all.forEach(p=>{ const t=tById(p.traineeId);
-      h+='<tr><td>'+fmtFull(p.date)+'</td><td>'+esc(t?t.name:'—')+'</td><td style="font-family:Heebo;font-weight:700">'+money(p.amount)+'</td><td>'+esc(p.method||'')+'</td><td>'+esc(p.sessions||'—')+'</td><td class="muted">'+esc(p.note||'')+'</td>'
-       +'<td class="noprint"><button class="iconbtn" style="width:28px;height:28px" onclick="delRow(\'payments\',\''+p.id+'\');save();render()">✕</button></td></tr>'; });
+  else{ h+='<div style="overflow-x:auto"><table style="min-width:600px"><thead><tr><th>תאריך</th><th>מתאמן</th><th>סכום</th><th>קטגוריה</th><th>אמצעי</th><th>הערה</th><th class="noprint"></th></tr></thead><tbody>';
+    all.forEach(p=>{ h+=payRow(p,true); });
     h+='</tbody></table></div>'; }
   return h+'</div>';
 }
-function openPay(tid){
+/* =====================================================================
+   תשלומים
+   ---------------------------------------------------------------------
+   קטגוריה לכל תשלום — עד היום סוג התשלום נכתב בהערה ("תוכנית אימונים
+   ותזונה"), ואי אפשר היה לסכם לפיו. לתשלומים ישנים בלי קטגוריה היא
+   מנוחשת מההערה לתצוגה בלבד, ולא נכתבת עליהם.
+
+   תשלום נוצר רק כשיש סכום. קודם הוא נוצר בשינוי הראשון בחלון — בחירת
+   מתאמן או תאריך לפני הסכום השאירה תשלום של 0 ₪.
+
+   מחיקה שואלת לפני. ה-✕ מחק מיד, בלי שאלה, והקליק הלא נכון נעלם. */
+const PAY_CATS=['תוכנית אימונים','תוכנית תזונה','אימונים + תזונה','ליווי אונליין חודשי','אימון אישי','כרטיסייה','אחר'];
+function payCat(p){
+  if(p && p.category) return p.category;
+  const n=String((p&&p.note)||'');
+  const tr=/אימונ|אימון/.test(n), nu=/תזונה|תפריט/.test(n);
+  if(tr&&nu) return 'אימונים + תזונה';
+  if(nu) return 'תוכנית תזונה';
+  if(/ליווי/.test(n)) return 'ליווי אונליין חודשי';
+  if(/כרטיסי/.test(n)) return 'כרטיסייה';
+  if(tr) return 'תוכנית אימונים';
+  return '';
+}
+function lastCatFor(tid){
+  const ps=S.payments.filter(p=>p.traineeId===tid&&payCat(p)).sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  return ps.length?payCat(ps[0]):PAY_CATS[0];
+}
+function openPay(tid, payId){
   const opts=activeTrainees().map(t=>[t.id,t.name]);
   if(!opts.length){ toast('צריך להוסיף מתאמן קודם'); return; }
-  openModal('<div class="mh"><h3>רישום תשלום</h3><button class="iconbtn" onclick="closeModal()">✕</button></div><div class="mb"><div class="grid g2">'
-  +sel('מתאמן','p_t',opts,tid||opts[0][0])+fld('תאריך','p_date','date',todayISO())
-  +fld('סכום','p_amt','number','')
-  +sel('אמצעי','p_m',['ביט','העברה בנקאית','מזומן','אשראי','אפליקציה'],'ביט')
-  +fld('הערה','p_note','text','')+'</div>'
-  +'<label style="display:block;margin-top:12px;font-size:13px"><input type="checkbox" id="p_clear" checked> לאפס את יתרת החוב של המתאמן</label></div>'
+  const p=payId?S.payments.find(x=>x.id===payId):null;
+  const t0=p?p.traineeId:(tid||opts[0][0]);
+  if(p && !opts.some(o=>o[0]===t0)){ const t=tById(t0); if(t) opts.push([t.id,t.name]); }
+  openModal('<div class="mh"><h3>'+(p?'עריכת תשלום':'רישום תשלום')+'</h3><button class="iconbtn" onclick="closeModal()">✕</button></div><div class="mb"><div class="grid g2">'
+  +sel('מתאמן','p_t',opts,t0)+fld('תאריך','p_date','date',p?p.date:todayISO())
+  +fld('סכום','p_amt','number',p?p.amount:'')
+  +sel('קטגוריה','p_cat',PAY_CATS,p?(payCat(p)||'אחר'):lastCatFor(t0))
+  +sel('אמצעי','p_m',['ביט','העברה בנקאית','מזומן','אשראי','אפליקציה','פייבוקס'],p?(p.method||'ביט'):'ביט')
+  +fld('הערה','p_note','text',p?(p.note||''):'')+'</div>'
+  +(p?'':'<label style="display:block;margin-top:12px;font-size:13px"><input type="checkbox" id="p_clear" checked> לאפס את יתרת החוב של המתאמן</label>')
+  +'</div>'
   +'<div class="mf"><button class="btn" onclick="closeModal()">סגירה</button>'
-  +'<span class="muted" style="font-size:12px;align-self:center">נרשם אוטומטית עם השינוי הראשון</span></div>');
-  let cur=null;
+  +'<span class="muted" id="p_state" style="font-size:12px;align-self:center">'+(p?'נשמר אוטומטית':'נרשם אוטומטית כשיש סכום')+'</span>'
+  +(p?'<div style="flex:1"></div><button class="btn danger" onclick="delPay(\''+p.id+'\',true)">מחיקה</button>':'')
+  +'</div>');
+  let cur=p?p.id:null;
   autoModal(()=>{ cur=savePay(cur,true)||cur; });
 }
-/* התשלום נרשם בשינוי הראשון בחלון ומתעדכן בכל שינוי אחריו. חלון
-   שנפתח ונסגר בלי לגעת בכלום אינו רושם תשלום. */
 function savePay(id,silent){
-  const tid=gv('p_t'), add=0;
-  const o={traineeId:tid,date:gv('p_date'),amount:gn('p_amt'),method:gv('p_m'),sessions:add,note:gv('p_note')};
+  const tid=gv('p_t'), amount=gn('p_amt');
   const old=id&&S.payments.find(x=>x.id===id);
-  if(old) Object.assign(old,o); else { o.id=uid(); S.payments.push(o); }
+  if(!old && !(amount>0)){ if(!silent) toast('צריך סכום'); return null; }
+  const o={traineeId:tid,date:gv('p_date')||todayISO(),amount:amount,method:gv('p_m'),category:gv('p_cat'),note:gv('p_note')};
+  if(old) Object.assign(old,o); else { o.id=uid(); o.sessions=0; S.payments.push(o); }
   const t=tById(tid);
-  if(t){ const c=document.getElementById('p_clear'); if(c&&c.checked) t.balanceDue=0; }
+  if(t && !old){ const c=document.getElementById('p_clear'); if(c&&c.checked) t.balanceDue=0; }
   save();
+  const st=document.getElementById('p_state'); if(st) st.textContent='✓ נשמר · '+moneyTxt(amount);
   if(silent) return old?id:o.id;
   closeModal(); toast('התשלום נרשם'); render();
+}
+function delPay(id, fromModal){
+  const p=S.payments.find(x=>x.id===id); if(!p) return;
+  const t=tById(p.traineeId);
+  if(!confirm('למחוק את התשלום של '+(t?t.name:'—')+' — '+money(p.amount)+' מ-'+fmtFull(p.date)+'?')) return;
+  if(fromModal){ if(typeof cancelAuto==='function') cancelAuto(); closeModal(); }
+  delRow('payments',id); save(); render();
+  toast('התשלום נמחק');
+}
+function payRow(p, withName){
+  const t=tById(p.traineeId), c=payCat(p);
+  return '<tr style="cursor:pointer" onclick="openPay(null,\''+p.id+'\')"><td>'+fmtFull(p.date)+'</td>'
+   +(withName?'<td>'+esc(t?t.name:'—')+'</td>':'')
+   +'<td style="font-family:Heebo;font-weight:700">'+money(p.amount)+'</td>'
+   +'<td>'+(c?'<span class="pill'+(p.category?' or':'')+'">'+esc(c)+'</span>':'<span class="muted">—</span>')+'</td>'
+   +'<td>'+esc(p.method||'')+'</td><td class="muted">'+esc(p.note||'')+'</td>'
+   +'<td class="noprint" style="white-space:nowrap"><button class="iconbtn" style="width:28px;height:28px" title="עריכה" onclick="event.stopPropagation();openPay(null,\''+p.id+'\')">✎</button> '
+   +'<button class="iconbtn" style="width:28px;height:28px" title="מחיקה" onclick="event.stopPropagation();delPay(\''+p.id+'\')">✕</button></td></tr>';
+}
+/* הכנסות לפי קטגוריה — החודש ומתחילת הדרך */
+function payByCat(list){
+  const mon=todayISO().slice(0,7), by={};
+  list.forEach(p=>{ const c=payCat(p)||'ללא קטגוריה', a=Number(p.amount||0);
+    const x=by[c]||(by[c]={all:0,mon:0,n:0}); x.all+=a; x.n++; if((p.date||'').slice(0,7)===mon) x.mon+=a; });
+  const keys=Object.keys(by).sort((a,b)=>by[b].all-by[a].all);
+  if(!keys.length) return '';
+  const max=Math.max(1,...keys.map(k=>by[k].all));
+  return '<div class="card" style="margin-top:14px"><h3 style="font-size:15px;margin-bottom:12px">הכנסות לפי קטגוריה</h3>'
+   +keys.map(k=>'<div style="padding:7px 0;border-top:1px solid var(--line)">'
+     +'<div class="row" style="font-size:13.5px;margin-bottom:5px"><span style="flex:1">'+esc(k)+' <span class="muted" style="font-size:12px">· '+by[k].n+' תשלומים</span></span>'
+     +(by[k].mon?'<span class="muted" style="font-size:12px;margin-inline-end:10px">החודש '+money(by[k].mon)+'</span>':'')
+     +'<b style="font-family:Heebo">'+money(by[k].all)+'</b></div>'
+     +'<div style="height:5px;background:var(--panel);border-radius:20px;overflow:hidden"><div style="height:100%;width:'+Math.round(by[k].all/max*100)+'%;background:linear-gradient(90deg,var(--or),var(--amber))"></div></div></div>').join('')
+   +'<div class="muted" style="font-size:11.5px;margin-top:8px">לתשלומים ישנים בלי קטגוריה היא מנוחשת מההערה. לחיצה על תשלום פותחת אותו לעריכה.</div></div>';
 }
 
 /* =================== התקדמות כללית =================== */
@@ -3251,32 +3319,32 @@ if (location.protocol === 'file:') {
 }
 </script>
 
-<script src="health.js?v=v168"></script>
-<script src="privacy.js?v=v168"></script>
-<script src="backup.js?v=v168"></script>
-<script src="reorder.js?v=v168"></script>
-<script src="access.js?v=v168"></script>
-<script src="analysis.js?v=v168"></script>
-<script src="reports.js?v=v168"></script>
-<script src="business.js?v=v168"></script>
-<script src="intake.js?v=v168"></script>
-<script src="files.js?v=v168"></script>
-<script src="builder.js?v=v168"></script>
-<script src="import-program.js?v=v168"></script>
-<script src="tracking.js?v=v168"></script>
-<script src="metrics.js?v=v168"></script>
-<script src="targets.js?v=v168"></script>
-<script src="meal-library.js?v=v168"></script>
+<script src="health.js?v=v169"></script>
+<script src="privacy.js?v=v169"></script>
+<script src="backup.js?v=v169"></script>
+<script src="reorder.js?v=v169"></script>
+<script src="access.js?v=v169"></script>
+<script src="analysis.js?v=v169"></script>
+<script src="reports.js?v=v169"></script>
+<script src="business.js?v=v169"></script>
+<script src="intake.js?v=v169"></script>
+<script src="files.js?v=v169"></script>
+<script src="builder.js?v=v169"></script>
+<script src="import-program.js?v=v169"></script>
+<script src="tracking.js?v=v169"></script>
+<script src="metrics.js?v=v169"></script>
+<script src="targets.js?v=v169"></script>
+<script src="meal-library.js?v=v169"></script>
 <!-- חלקים של המאמן בלבד (תאילנדי, פירות). לא נטען ב-t.html בכוונה. -->
-<script src="meal-extra.js?v=v168"></script>
-<script src="library-ui.js?v=v168"></script>
-<script src="export-plan.js?v=v168"></script>
-<script src="cardio.js?v=v168"></script>
-<script src="cardio-ui.js?v=v168"></script>
-<script src="exercise-library.js?v=v168"></script>
-<script src="exercise-ui.js?v=v168"></script>
-<script src="meals.js?v=v168"></script>
-<script src="sync.js?v=v168"></script>
+<script src="meal-extra.js?v=v169"></script>
+<script src="library-ui.js?v=v169"></script>
+<script src="export-plan.js?v=v169"></script>
+<script src="cardio.js?v=v169"></script>
+<script src="cardio-ui.js?v=v169"></script>
+<script src="exercise-library.js?v=v169"></script>
+<script src="exercise-ui.js?v=v169"></script>
+<script src="meals.js?v=v169"></script>
+<script src="sync.js?v=v169"></script>
 <script>
 /* =================== חיבור הסנכרון לאפליקציה =================== */
 
