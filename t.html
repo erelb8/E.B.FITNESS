@@ -13,8 +13,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="התוכנית שלי">
 <meta name="robots" content="noindex,nofollow">
-<link rel="apple-touch-icon" href="icons/icon-180.png?v=v170">
-<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=v170">
+<link rel="apple-touch-icon" href="icons/icon-180.png?v=v171">
+<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=v171">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -368,7 +368,7 @@ button{cursor:pointer}
 <body>
 
 <header class="top">
-  <div class="brand"><img class="brand-logo" src="icons/logo-96.png?v=v170" alt="" width="34" height="34"><span>E.B<span class="dot"></span>FIT</span></div>
+  <div class="brand"><img class="brand-logo" src="icons/logo-96.png?v=v171" alt="" width="34" height="34"><span>E.B<span class="dot"></span>FIT</span></div>
   <h1 id="hTitle">טוען…</h1>
   <div class="sub" id="hSub"></div>
   <span class="savechip" id="saveChip" aria-live="polite"></span>
@@ -380,17 +380,17 @@ button{cursor:pointer}
 
 <div id="toast"></div>
 
-<script src="vendor/supabase.js?v=v170"></script>
-<script src="config.js?v=v170"></script>
-<script src="meal-library.js?v=v170"></script>
-<script src="exercise-library.js?v=v170"></script>
-<script src="progress.js?v=v170"></script>
-<script src="habits.js?v=v170"></script>
-<script src="coach-bot.js?v=v170"></script>
-<script src="workout-log.js?v=v170"></script>
-<script src="targets.js?v=v170"></script>
-<script src="health.js?v=v170"></script>
-<script src="privacy.js?v=v170"></script>
+<script src="vendor/supabase.js?v=v171"></script>
+<script src="config.js?v=v171"></script>
+<script src="meal-library.js?v=v171"></script>
+<script src="exercise-library.js?v=v171"></script>
+<script src="progress.js?v=v171"></script>
+<script src="habits.js?v=v171"></script>
+<script src="coach-bot.js?v=v171"></script>
+<script src="workout-log.js?v=v171"></script>
+<script src="targets.js?v=v171"></script>
+<script src="health.js?v=v171"></script>
+<script src="privacy.js?v=v171"></script>
 <script>
 (function () {
   'use strict';
@@ -403,7 +403,7 @@ button{cursor:pointer}
     .replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
 
   let DATA = null, DAY = 0, STATE = {}, FEEL = null, sb = null;
-  /* הערה למאמן בסיום אימון, לפי יום. עד v170 שני כפתורי הסיום שלחו
+  /* הערה למאמן בסיום אימון, לפי יום. עד v171 שני כפתורי הסיום שלחו
      p_note: null, ולמתאמן לא הייתה שום דרך לכתוב למאמן על אימון —
      כולל "הברך כאבה", שלוח הבקרה של המאמן יודע להתריע עליו. */
   const FIN_NOTE = {};
@@ -831,7 +831,7 @@ button{cursor:pointer}
   function mergeMy(fromServer) {
     if (!Array.isArray(fromServer)) return;      // העמודה עוד לא קיימת בשרת
     /* meals_self בשרת מחזיק רק ארוחות מהספרייה. ארוחה שהמתאמן בנה
-       בעצמו לא נמצאת שם — ועד v170 ההחלפה הזאת מחקה אותה בכל טעינה
+       בעצמו לא נמצאת שם — ועד v171 ההחלפה הזאת מחקה אותה בכל טעינה
        ובכל ריענון. היא נשמרת עכשיו ב-session_state (ראה syncCustom),
        וכאן פשוט לא נוגעים בה. */
     const mine = MY_MEALS.filter(x => x.custom);
@@ -1329,7 +1329,7 @@ button{cursor:pointer}
     toast('השינויים בוטלו');
   };
   /* ---------- שמירה אוטומטית של עריכת התוכנית ----------
-     עד v170 העריכה נצברה בדף ונשלחה רק בלחיצה על "שמירת השינויים",
+     עד v171 העריכה נצברה בדף ונשלחה רק בלחיצה על "שמירת השינויים",
      וסגירת החלון בלי ללחוץ מחקה הכל. עכשיו כל שינוי נשלח לבד, שנייה
      אחרי השינוי האחרון, ובכל יציאה מהמסך או מהאפליקציה. */
   let EDIT_TIMER = null, EDIT_BUSY = false, EDIT_AGAIN = false, EDIT_PUSHED = false;
@@ -1734,7 +1734,7 @@ button{cursor:pointer}
   }
   /* סגירה באמצע עריכה משמיטה את השינויים שלא נשמרו — כמו ביטול */
   function closeCategory(){
-    /* סגירה באמצע עריכה שומרת — עד v170 היא מחקה את כל השינויים */
+    /* סגירה באמצע עריכה שומרת — עד v171 היא מחקה את כל השינויים */
     if (EDIT_W) {
       const box = document.getElementById('tn_box');
       if (box && DATA.program) DATA.program.traineeNote = box.value;
@@ -2822,7 +2822,7 @@ button{cursor:pointer}
     if (!any && !lib) return '';
 
     /* סיכום היום מול היעדים — רק מה שסומן "אכלתי" היום.
-       עד v170 נספרה כל ארוחה בתפריט, כולל כל האפשרויות שהמאמן נתן
+       עד v171 נספרה כל ארוחה בתפריט, כולל כל האפשרויות שהמאמן נתן
        וכל מה שהמתאמן הוסיף מהספרייה, והמתאמן ראה שהוא "עובר" את
        היעד היומי בלי שאכל כלום. התפריט הוא רשימת אפשרויות, לא יומן.
        הסימון הוא אותו סימון של מסך ההרגלים (kind 'meals'). */
@@ -3313,7 +3313,7 @@ button{cursor:pointer}
   async function sendState() {
     if (!sb || !TOKEN || !SRV_LOADED) return;
     STATE_DIRTY = false;
-    /* rpc לא זורק כשהשרת דוחה — הוא מחזיר { error }. עד v170 דחייה
+    /* rpc לא זורק כשהשרת דוחה — הוא מחזיר { error }. עד v171 דחייה
        נחשבה הצלחה, ולא נוסה שוב. */
     try {
       const r = await sb.rpc('trainee_save_state', { p_token: TOKEN, p_state: STATE });

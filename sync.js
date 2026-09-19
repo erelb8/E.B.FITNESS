@@ -15,7 +15,7 @@
   'use strict';
 
   // חותמת גרסה — index.html משווה אליה כדי לזהות קובץ ישן במטמון
-  (window.EB_MOD = window.EB_MOD || {})['sync'] = 'v170';
+  (window.EB_MOD = window.EB_MOD || {})['sync'] = 'v171';
 
   const CFG      = window.EBFIT_CONFIG || { URL: '', ANON: '' };
   const SNAP_KEY = 'ebfit_sync_v1';
@@ -383,7 +383,7 @@
       if (ms == null || ms < backoff) ms = backoff;
     }
     clearTimeout(timer);
-    timer = setTimeout(() => { run().catch(() => {}); }, ms == null ? 1200 : ms);
+    timer = setTimeout(() => { run().catch(() => {}); }, ms == null ? 2000 : ms);
     pending = true;
   }
   /* יציאה מהאפליקציה: שולחים עכשיו ולא בעוד שנייה. בטלפון דף ברקע
@@ -672,6 +672,10 @@
       return;
     }
 
+    /* טביעה לפני ההחלפה — כדי לדעת אם משהו באמת הגיע מהשרת */
+    const fpOf = () => { try { return JSON.stringify([window.S.trainees, window.S.sessions, window.S.payments,
+                                                      window.S.measures, window.S.daily, window.S.settings]); } catch (e) { return ''; } };
+    const before = fpOf();
     window.S.trainees = fetched.trainees.map(traineeFromRow);
 
     if (unsavedProg) {
@@ -708,7 +712,14 @@
       if (cur) window.PROGRAM_BASE = JSON.parse(JSON.stringify(cur.program || { days: [] }));
     }
     if (typeof window.rawSave === 'function') window.rawSave();
-    if (typeof window.render === 'function') window.render();
+    /* מציירים מחדש רק אם משהו השתנה, ולא באמצע הקלדה. עד v171 כל
+       סנכרון צייר את כל המסך מחדש — גם בלי שום שינוי — והחליף את השדה
+       שהמאמן הקליד בו. בבניית תוכנית תא נשמר רק ביציאה ממנו, ולכן מה
+       שהוקלד נעלם. */
+    if (fpOf() !== before) {
+      if (typeof window.renderFromSync === 'function') window.renderFromSync();
+      else if (typeof window.render === 'function') window.render();
+    }
     log('pull completed', {
       trainees: fetched.trainees.length,
       sessions: fetched.sessions.length,
