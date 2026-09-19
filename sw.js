@@ -59,7 +59,7 @@ self.addEventListener('install', e => {
     // addAll נכשל כולו אם קובץ אחד חסר — לכן אחד־אחד
     /* cache:'reload' — בלי זה c.add לוקח את הקובץ ממטמון ה-HTTP של
        הדפדפן, ובגרסה חדשה נשמר שוב האייקון הישן. כך קרה בהחלפת
-       הלוגו ב-v158: המטמון החדש החזיק את התמונה הקודמת. */
+       הלוגו ב-19.9.2026: המטמון החדש החזיק את התמונה הקודמת. */
     await Promise.all(SHELL_FILES.map(u =>
       fetch(u, { cache: 'reload' })
         .then(r => r.ok ? c.put(u, r) : null)
