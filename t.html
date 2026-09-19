@@ -372,17 +372,17 @@ button{cursor:pointer}
 
 <div id="toast"></div>
 
-<script src="vendor/supabase.js?v=v153"></script>
-<script src="config.js?v=v153"></script>
-<script src="meal-library.js?v=v153"></script>
-<script src="exercise-library.js?v=v153"></script>
-<script src="progress.js?v=v153"></script>
-<script src="habits.js?v=v153"></script>
-<script src="coach-bot.js?v=v153"></script>
-<script src="workout-log.js?v=v153"></script>
-<script src="targets.js?v=v153"></script>
-<script src="health.js?v=v153"></script>
-<script src="privacy.js?v=v153"></script>
+<script src="vendor/supabase.js?v=v154"></script>
+<script src="config.js?v=v154"></script>
+<script src="meal-library.js?v=v154"></script>
+<script src="exercise-library.js?v=v154"></script>
+<script src="progress.js?v=v154"></script>
+<script src="habits.js?v=v154"></script>
+<script src="coach-bot.js?v=v154"></script>
+<script src="workout-log.js?v=v154"></script>
+<script src="targets.js?v=v154"></script>
+<script src="health.js?v=v154"></script>
+<script src="privacy.js?v=v154"></script>
 <script>
 (function () {
   'use strict';
@@ -1509,7 +1509,7 @@ button{cursor:pointer}
   /* ---------- תצוגה ---------- */
   function paint() {
     $('#hTitle').textContent = DATA.name || 'התוכנית שלי';
-    $('#hSub').textContent = [DATA.goal, DATA.trainer_name && 'מאמן: ' + DATA.trainer_name]
+    $('#hSub').textContent = [goalText(DATA.goal), DATA.trainer_name && 'מאמן: ' + DATA.trainer_name]
       .filter(Boolean).join(' · ');
 
     const days  = (DATA.program && DATA.program.days) || [];
@@ -2032,7 +2032,7 @@ button{cursor:pointer}
         const c = draft.sets[EBWLog.setKey(j, s)];
         if (c && (c.w || c.r)) filled++;
       }
-      const target = [e.sets && e.sets + ' סטים', e.reps && e.reps + ' חזרות'].filter(Boolean).join(' · ');
+      const target = fmtSpec(e, false);
       h += '<div class="wl-ex' + (filled ? ' has' : '') + '" data-wlex="' + j + '">'
         + '<div class="wl-exname">' + esc(e.name || 'תרגיל') + '</div>'
         + (target ? '<div class="mt" style="font-size:12.5px;margin-top:2px">' + esc(target) + '</div>' : '')
@@ -2663,8 +2663,7 @@ button{cursor:pointer}
         + esc(e.note || '') + '</div>';
     }
     const st = STATE[d + ':' + i] || {};
-    const meta = [e.sets && e.sets + ' סטים', e.reps && e.reps + ' חזרות',
-                  e.rest && 'מנוחה ' + e.rest + 'שנ'].filter(Boolean).join(' · ');
+    const meta = fmtSpec(e, true);
     return '<div class="ex' + (st.done ? ' done' : '') + '" data-ex="' + i + '" data-exd="' + d + '">'
       + '<div class="hd"><button class="chk" data-chk="' + i + '" data-chkd="' + d + '">✓</button>'
       + '<div style="flex:1;min-width:0"><div class="nm">' + esc(e.name || 'תרגיל') + '</div>'
@@ -2916,6 +2915,28 @@ button{cursor:pointer}
     if (OPEN_CATEGORY !== 'habits') return;
     const body = document.querySelector('#categoryModal .category-dialog-body');
     if (body) body.innerHTML = habitsScreen();
+  }
+
+  /* מטרה שנכנסה מייבוא שאלון שבור ("/ כושר כללי / שיקום פציעה)")
+     לא מוצגת למתאמן. מה שאחרי סוגר יתום הוא התשובה האמיתית. */
+  function goalText(g) {
+    var s = String(g || '').replace(/\([^)]*\/[^)]*\)/g, ' ');
+    var c = s.lastIndexOf(')');
+    if (c > -1 && s.indexOf('(') < 0 && (s.slice(0, c).indexOf('/') > -1 || !s.slice(0, c).trim())) s = s.slice(c + 1);
+    s = s.replace(/^[\s:*•\-–—\/.,]+/, '').replace(/[\s\/.,]+$/, '').replace(/\s+/g, ' ').trim();
+    return hasHeb(s) ? s : '';
+  }
+
+  /* סטים, חזרות ומנוחה כפי שהמאמן כתב אותם. ערך שכבר יש בו מילה
+     ("45 שנ׳", "לכשל", "12 לכל צד", "4 סבבים") מוצג כמו שהוא — בלי
+     זה יצא "מנוחה 180 שנ׳שנ" ו"לכשל חזרות". מנוחה 0 לא מוצגת. */
+  /* פונקציה ולא const: הציור הראשון עשוי לרוץ לפני שהשורה הזאת מבוצעת */
+  function hasHeb(v) { return /[א-ת]/.test(v); }
+  function fmtSets(v) { v = String(v || '').trim(); if (!v) return ''; return hasHeb(v) ? v : (v === '1' ? 'סט אחד' : v + ' סטים'); }
+  function fmtReps(v) { v = String(v || '').trim(); if (!v) return ''; return hasHeb(v) ? v : v + ' חזרות'; }
+  function fmtRest(v) { v = String(v || '').trim(); if (!v || /^0+$/.test(v)) return ''; return 'מנוחה ' + (hasHeb(v) ? v : v + ' שנ׳'); }
+  function fmtSpec(e, withRest) {
+    return [fmtSets(e.sets), fmtReps(e.reps), withRest ? fmtRest(e.rest) : ''].filter(Boolean).join(' · ');
   }
 
   let STATE_TIMER = null;

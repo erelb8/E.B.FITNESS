@@ -14,7 +14,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['exportPlan'] = 'v153';
+  (window.EB_MOD = window.EB_MOD || {})['exportPlan'] = 'v154';
 
   var esc2 = function (s) {
     return String(s == null ? '' : s)
@@ -58,7 +58,7 @@
           + '</div><div class="ex-spec">'
           + (spec ? '<span class="spec">' + esc2(spec) + '</span>' : '')
           + (e.weight ? '<span class="rest">' + esc2(e.weight) + '</span>' : '')
-          + (e.rest ? '<span class="rest">מנוחה ' + esc2(e.rest) + '</span>' : '')
+          + (e.rest && !/^0+$/.test(String(e.rest).trim()) ? '<span class="rest">מנוחה ' + esc2(e.rest) + (/[א-ת]/.test(e.rest) ? '' : ' שנ׳') + '</span>' : '')
           + '</div></li>';
       }).join('');
 
