@@ -122,6 +122,18 @@ const TRAINEE_DATA = {
         if (!add) throw new Error('no add button'); add.click();
         const n = tById('a1').program.days[0].exercises.length; if (n !== 3) throw new Error('not added: ' + n);
       });
+      await tryM('traineeReports', async () => {
+        const en = EBSync.enabled, lf = EBSync.logsFor;
+        EBSync.enabled = () => true;
+        EBSync.logsFor = async () => [{ date: iso(1), day_name: 'יום A — חזה', feel: 'קשה', note: 'כואבת לי הכתף',
+          entries: [{ ex: 'לחיצת חזה במוט', done: true, weight: 62.5, reps: 8, setLog: [{ w: 60, r: 10 }, { w: 62.5, r: 8 }] }] }];
+        const R1 = window.render; window.render = () => { V.innerHTML = vTrainee('a1'); };
+        VIEW = 'trainee'; ARG = 'a1'; SUBTAB = 'history'; window.render();
+        await wait(400); window.render();
+        const txt = V.innerText; window.render = R1; EBSync.enabled = en; EBSync.logsFor = lf;
+        if (!/כואבת לי הכתף/.test(txt)) throw new Error('note missing');
+        if (!/60×10 · 62.5×8/.test(txt)) throw new Error('sets missing: ' + txt.slice(0, 200));
+      });
       await tryM('importProgram', () => EBImport.fromText('<table><tr><th>תרגיל</th><th>סטים</th></tr><tr><td>מתח</td><td>3</td></tr></table>', 't.html', 'b1'));
       // ציור מסנכרון באמצע הקלדה — אסור
       VIEW = 'trainee'; ARG = 'a1'; SUBTAB = 'program'; let renders = 0;

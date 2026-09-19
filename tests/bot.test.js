@@ -192,7 +192,7 @@ B.load({ logs: [{ date: ago(1) }, { date: ago(8) }, { date: ago(15) }, { date: a
 t('תוכנית שהסתיימה', B.plan().ended, true);
 t('הרצף שרד את סוף התוכנית', B.streak().weeks >= 4, true);
 
-/* ---------- v176: מה שמאמן אמיתי היה אומר ---------- */
+/* ---------- v177: מה שמאמן אמיתי היה אומר ---------- */
 console.log('=== מאמן אמיתי ===');
 const titles = () => B.messages({ skipWeight: true }).map(m => m.title).join(' | ');
 const RANGE = { days: [{ name: 'יום A', exercises: [{ name: 'סקוואט', sets: '3', reps: '8-10' }] }] };
@@ -239,7 +239,7 @@ B.load({ logs: [], program: { days: cyc } });
 t('מחזורית — 4 בשבוע', B.consistency().planned, 4);
 t('מחזורית — אין "יום מוזנח"', B.neglectedDays().length, 0);
 
-/* ---------- v176: תזונה ---------- */
+/* ---------- v177: תזונה ---------- */
 console.log('=== תזונה ===');
 global.window.EBProg = { direction: g => /חיטוב|ירידה/.test(g) ? 'down' : /מסה|מסת/.test(g) ? 'up' : null };
 const food = (k, p, n, tk, tp) => ({ days: Array.from({ length: 14 }, (_, i) => ({ iso: ago(i), k: i ? k : 0, p: i ? p : 0, n: i ? n : 0 })), kcal: tk, protein: tp });

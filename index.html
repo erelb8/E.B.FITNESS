@@ -6,7 +6,7 @@
 <title>E.B FIT — ניהול מתאמנים</title>
 
 <!-- ===== PWA — הופך את האתר לאפליקציה במסך הבית ===== -->
-<link rel="manifest" href="manifest.json?v=v176">
+<link rel="manifest" href="manifest.json?v=v177">
 <meta name="theme-color" content="#1C140E">
 <meta name="description" content="מערכת לניהול מתאמנים, תוכניות אימון, יומן ותשלומים">
 
@@ -15,9 +15,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="E.B FIT">
-<link rel="apple-touch-icon" href="icons/icon-180.png?v=v176">
-<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=v176">
-<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=v176">
+<link rel="apple-touch-icon" href="icons/icon-180.png?v=v177">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=v177">
+<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=v177">
 <meta name="format-detection" content="telephone=no">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -444,7 +444,7 @@ tbody tr:hover{background:var(--panel)}
 </head>
 <body>
 <header class="top">
-  <div class="brand"><img class="brand-logo" src="icons/logo-96.png?v=v176" alt="" width="30" height="30">E.B<span class="dot"></span>FIT <small id="brandSub">ניהול מתאמנים</small></div>
+  <div class="brand"><img class="brand-logo" src="icons/logo-96.png?v=v177" alt="" width="30" height="30">E.B<span class="dot"></span>FIT <small id="brandSub">ניהול מתאמנים</small></div>
   <div class="spacer"></div>
   <button class="syncpill s-off" id="syncPill" onclick="go('settings')" title="מצב סנכרון">מקומי בלבד</button>
   <span class="now" id="topDate"></span>
@@ -462,8 +462,8 @@ tbody tr:hover{background:var(--panel)}
 <div id="toast"></div>
 
 <!-- ספריית Supabase מקומית (לא מ-CDN) כדי שהאפליקציה תעבוד גם בלי רשת -->
-<script src="vendor/supabase.js?v=v176"></script>
-<script src="config.js?v=v176"></script>
+<script src="vendor/supabase.js?v=v177"></script>
+<script src="config.js?v=v177"></script>
 
 <script>
 /* =======================================================================
@@ -498,7 +498,7 @@ function age(b){ if(!b) return null; const d=new Date(b), t=new Date(); let a=t.
 
 /* ---------------- אחסון ---------------- */
 const KEY='ebfit_v1';
-const EB_VERSION='v176';   // חייב להתאים ל-VERSION ב-sw.js
+const EB_VERSION='v177';   // חייב להתאים ל-VERSION ב-sw.js
 let mem=null, canStore=true;
 function load(){
   try{ const r=localStorage.getItem(KEY); return r?JSON.parse(r):null; }
@@ -1541,7 +1541,7 @@ function vTrainee(){
    +stat('הצטרף',fmtDate(t.joined),t.joined?(Math.round((Date.now()-new Date(t.joined))/86400000/7))+' שבועות':'')
    +'</div>';
 
-  const tabs=[['details','פרטים'],['program','תוכנית אימון'],['measures','מדידות'],['history','נוכחות'],['pay','תשלומים']];
+  const tabs=[['details','פרטים'],['program','תוכנית אימון'],['measures','מדידות'],['history','אימונים'],['pay','תשלומים']];
   if(S.features.prs) tabs.push(['prs','שיאים']);
   if(S.features.photos) tabs.push(['photos','תמונות']);
   if(S.features.nutrition) tabs.push(['nutri','תזונה']);
@@ -2356,10 +2356,59 @@ function saveMeasure(id,tid,silent){
 }
 
 /* --------- נוכחות + תשלומים בתיק --------- */
+/* ---------- מה המתאמן דיווח ----------
+   עד ספטמבר 2026 הדיווחים של המתאמן — כל אימון שסיים בדף שלו, עם
+   משקלים, חזרות, "איך היה" והערה — לא הופיעו בתיק בכלל. EBSync.logsFor
+   הייתה קיימת ואף מסך לא קרא לה. הם נטענים ברקע, והתיק נפתח מיד. */
+const TLOGS={};
+function loadTraineeLogs(tid){
+  const c=TLOGS[tid];
+  // תוצאה שכבר נטענה נשמרת לדקה. "אין חיבור עדיין" לא נשמר — בפעם הבאה מנסים שוב
+  if(c && (c.loading || (c.rows && Date.now()-c.at<60000))) return;
+  if(!(window.EBSync && EBSync.enabled && EBSync.enabled() && EBSync.logsFor)) return;
+  TLOGS[tid]=Object.assign(c||{rows:null},{loading:true});
+  EBSync.logsFor(tid,60).then(rows=>{
+    TLOGS[tid]={at:Date.now(),rows:rows||[],loading:false};
+    if(VIEW==='trainee' && ARG===tid && SUBTAB==='history') renderFromSync();
+  }).catch(()=>{ TLOGS[tid]={at:Date.now(),rows:(c&&c.rows)||[],loading:false}; });
+}
+function setsText(e){
+  const L=(e.setLog||[]).filter(x=>x&&(x.w||x.r));
+  if(L.length) return L.map(x=>(x.w?x.w:'')+(x.w&&x.r?'×':'')+(x.r?x.r:'')).join(' · ');
+  return [e.weight?e.weight+' ק״ג':'', e.reps?e.reps+' חזרות':''].filter(Boolean).join(' × ');
+}
+function traineeLogsCard(t){
+  loadTraineeLogs(t.id);
+  const c=TLOGS[t.id]||{};
+  let h='<div class="card" style="margin-bottom:14px"><div class="row" style="margin-bottom:8px">'
+   +'<h3 style="flex:1;font-size:15px">'+(t.gender==='נקבה'?'מה היא דיווחה':'מה הוא דיווח')+' מהדף</h3>'
+   +(c.rows&&c.rows.length?'<span class="muted" style="font-size:12px">'+c.rows.length+' אימונים אחרונים</span>':'')+'</div>';
+  if(c.rows===null||c.rows===undefined) return h+'<div class="muted" style="font-size:13px">'
+    +(c.loading?'טוען דיווחים…':'הדיווחים מופיעים כשהסנכרון מחובר.')+'</div></div>';
+  if(!c.rows.length) return h+'<div class="muted" style="font-size:13px;line-height:1.6">עוד אין דיווחים. כשהמתאמן לוחץ '
+    +'"סיימתי את האימון הזה" בדף שלו, האימון מופיע כאן — עם המשקלים, איך היה, וההערה אם כתב.</div></div>';
+  c.rows.forEach(l=>{
+    const ex=(l.entries||[]).filter(e=>e&&e.done!==false&&(e.ex||e.name));
+    const hurt=l.note && typeof painIn==='function' && painIn(l.note);
+    const feel=l.feel?'<span class="ev-tag '+(l.feel==='קל'?'easy':l.feel==='קשה'?'hard':'')+'">'+esc(l.feel)+'</span>':'';
+    h+='<details style="border-top:1px solid var(--line);padding:9px 0"'+(hurt?' open':'')+'>'
+     +'<summary style="cursor:pointer;display:flex;align-items:center;gap:8px;font-size:13.5px;list-style:none">'
+     +'<span class="muted" style="min-width:74px">'+fmtFull(String(l.date).slice(0,10))+'</span>'
+     +'<span style="flex:1;min-width:0;font-weight:600">'+esc(l.day_name||'אימון')+feel+'</span>'
+     +'<span class="muted" style="font-size:12px">'+(ex.length===1?'תרגיל אחד':ex.length+' תרגילים')+'</span></summary>'
+     +(l.note?'<div class="ev-note'+(hurt?' pain':'')+'" style="margin:8px 0">'+esc(l.note)+'</div>':'')
+     +ex.map(e=>'<div class="row" style="font-size:13px;padding:4px 0;gap:8px"><span style="flex:1;min-width:0">'+esc(e.ex||e.name)+'</span>'
+       +'<span class="muted" dir="ltr" style="font-variant-numeric:tabular-nums">'+esc(setsText(e))+'</span></div>').join('')
+     +'</details>';
+  });
+  return h+'</div>';
+}
 function tabHistory(t){
   const ss=S.sessions.filter(s=>s.traineeId===t.id).sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time));
-  let h='<div class="row noprint" style="margin-bottom:12px"><button class="btn sm" onclick="editSession(null,\''+t.id+'\')">+ אימון</button></div>';
-  if(!ss.length) return h+'<div class="empty"><div class="big">📋</div>אין היסטוריית אימונים.</div>';
+  let h=traineeLogsCard(t)
+   +'<div class="row noprint" style="margin-bottom:12px"><h3 style="flex:1;font-size:15px">אימונים ביומן</h3>'
+   +'<button class="btn sm" onclick="editSession(null,\''+t.id+'\')">+ אימון</button></div>';
+  if(!ss.length) return h+'<div class="empty" style="padding:24px"><div class="big">📋</div>אין אימונים ביומן.</div>';
   h+='<div class="card">';
   ss.forEach(s=>{ h+='<div class="line-item"><span style="width:86px;font-size:13px">'+fmtFull(s.date)+'</span>'+sessionBody(s)+'</div>'; });
   return h+'</div>';
@@ -3413,32 +3462,32 @@ if (location.protocol === 'file:') {
 }
 </script>
 
-<script src="health.js?v=v176"></script>
-<script src="privacy.js?v=v176"></script>
-<script src="backup.js?v=v176"></script>
-<script src="reorder.js?v=v176"></script>
-<script src="access.js?v=v176"></script>
-<script src="analysis.js?v=v176"></script>
-<script src="reports.js?v=v176"></script>
-<script src="business.js?v=v176"></script>
-<script src="intake.js?v=v176"></script>
-<script src="files.js?v=v176"></script>
-<script src="builder.js?v=v176"></script>
-<script src="import-program.js?v=v176"></script>
-<script src="tracking.js?v=v176"></script>
-<script src="metrics.js?v=v176"></script>
-<script src="targets.js?v=v176"></script>
-<script src="meal-library.js?v=v176"></script>
+<script src="health.js?v=v177"></script>
+<script src="privacy.js?v=v177"></script>
+<script src="backup.js?v=v177"></script>
+<script src="reorder.js?v=v177"></script>
+<script src="access.js?v=v177"></script>
+<script src="analysis.js?v=v177"></script>
+<script src="reports.js?v=v177"></script>
+<script src="business.js?v=v177"></script>
+<script src="intake.js?v=v177"></script>
+<script src="files.js?v=v177"></script>
+<script src="builder.js?v=v177"></script>
+<script src="import-program.js?v=v177"></script>
+<script src="tracking.js?v=v177"></script>
+<script src="metrics.js?v=v177"></script>
+<script src="targets.js?v=v177"></script>
+<script src="meal-library.js?v=v177"></script>
 <!-- חלקים של המאמן בלבד (תאילנדי, פירות). לא נטען ב-t.html בכוונה. -->
-<script src="meal-extra.js?v=v176"></script>
-<script src="library-ui.js?v=v176"></script>
-<script src="export-plan.js?v=v176"></script>
-<script src="cardio.js?v=v176"></script>
-<script src="cardio-ui.js?v=v176"></script>
-<script src="exercise-library.js?v=v176"></script>
-<script src="exercise-ui.js?v=v176"></script>
-<script src="meals.js?v=v176"></script>
-<script src="sync.js?v=v176"></script>
+<script src="meal-extra.js?v=v177"></script>
+<script src="library-ui.js?v=v177"></script>
+<script src="export-plan.js?v=v177"></script>
+<script src="cardio.js?v=v177"></script>
+<script src="cardio-ui.js?v=v177"></script>
+<script src="exercise-library.js?v=v177"></script>
+<script src="exercise-ui.js?v=v177"></script>
+<script src="meals.js?v=v177"></script>
+<script src="sync.js?v=v177"></script>
 <script>
 /* =================== חיבור הסנכרון לאפליקציה =================== */
 
