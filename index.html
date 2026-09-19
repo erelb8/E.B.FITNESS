@@ -307,6 +307,7 @@ tbody tr:hover{background:var(--panel)}
 .ev-name{font-weight:700;font-size:14px;transition:color .15s}
 .ev-what{font-size:13px;color:var(--tx);opacity:.88;margin-top:1px}
 .ev-note{font-size:12.5px;color:var(--mut);margin-top:4px;padding:6px 9px;border-radius:8px;background:rgba(0,0,0,.18);white-space:pre-wrap;word-break:break-word}
+.ev-note.pain{background:rgba(217,96,90,.10);border:1px solid rgba(217,96,90,.35);color:var(--tx)}
 .ev-when{font-size:11.5px;color:var(--dim);white-space:nowrap;margin-top:2px}
 .ev-tag{display:inline-block;font-size:11px;padding:1px 7px;border-radius:20px;margin-inline-start:6px;vertical-align:1px;border:1px solid var(--line2);color:var(--mut)}
 .ev-tag.easy{color:var(--ok);border-color:rgba(221,191,142,.35)}
@@ -461,8 +462,8 @@ tbody tr:hover{background:var(--panel)}
 <div id="toast"></div>
 
 <!-- ספריית Supabase מקומית (לא מ-CDN) כדי שהאפליקציה תעבוד גם בלי רשת -->
-<script src="vendor/supabase.js?v=v152"></script>
-<script src="config.js?v=v152"></script>
+<script src="vendor/supabase.js?v=v153"></script>
+<script src="config.js?v=v153"></script>
 
 <script>
 /* =======================================================================
@@ -497,7 +498,7 @@ function age(b){ if(!b) return null; const d=new Date(b), t=new Date(); let a=t.
 
 /* ---------------- אחסון ---------------- */
 const KEY='ebfit_v1';
-const EB_VERSION='v152';   // חייב להתאים ל-VERSION ב-sw.js
+const EB_VERSION='v153';   // חייב להתאים ל-VERSION ב-sw.js
 let mem=null, canStore=true;
 function load(){
   try{ const r=localStorage.getItem(KEY); return r?JSON.parse(r):null; }
@@ -1097,6 +1098,13 @@ function dashAgo(iso, day){
   const n=Math.round((new Date(t+'T00:00')-new Date(d+'T00:00'))/86400000);
   return n>0 && n<7 ? 'לפני '+n+' ימים' : fmtDate(d);
 }
+/* כאב או פציעה בהערה של המתאמן. \b של JS לא מכיר אותיות עבריות,
+   ולכן הגבול כאן הוא "לא אות עברית" מפורש, עם אותיות השימוש
+   (ו/ה/ב/ל/מ/ש/כ) שמותר להן להידבק בתחילת המילה. בלי זה "כאב" היה
+   נתפס בתוך מילים אחרות. "מתיחה" לא ברשימה — זה גם סוג של תרגיל. */
+const PAIN_RX = /(^|[^\u05D0-\u05EA])[והבלמשכ]{0,2}(כאב|כאבים|כואב|כואבת|כואבים|כאבה|פציעה|פצוע|פצועה|נפצע|נפצעה|נפצעתי|דלקת|נקע|נפיחות|נפוח|נפוחה|סחרחורת|נתפס|נתפסה|נתפסו|צריבה|חבלה)(?=$|[^\u05D0-\u05EA])/;
+function painIn(txt){ return PAIN_RX.test(String(txt||'')); }
+
 /* כל מה שקרה ב-14 הימים האחרונים, מהחדש לישן */
 function dashEvents(){
   const since=addDays(todayISO(),-14), ev=[];
@@ -1137,7 +1145,7 @@ function dashFeed(){
       +'<div class="av" style="background:'+tColor(e.t)+'">'+esc(initials(e.t.name))+'</div>'
       +'<div class="ev-body"><div class="ev-name">'+esc(e.t.name)+'</div>'
       +'<div class="ev-what">'+esc(e.what)+tag+'</div>'
-      +(e.note?'<div class="ev-note">'+esc(e.note.slice(0,220))+'</div>':'')
+      +(e.note?'<div class="ev-note'+(painIn(e.note)?' pain':'')+'">'+esc(e.note.slice(0,220))+'</div>':'')
       +'</div><div class="ev-when">'+esc(dashAgo(e.when,e.day))+'</div></div>';
   });
   if(ev.length>7) h+='<button class="btn sm ghost more-btn" onclick="DASH.more=!DASH.more;render()">'
@@ -1210,6 +1218,23 @@ function vDash(){
   /* התראות */
   h+='<div class="card"><h3 style="font-size:16px;margin-bottom:10px">דורש טיפול</h3>';
   let alerts='';
+  /* קודם כל הגוף. מתאמן שכתב על כאב, או שכל האימונים האחרונים שלו
+     "קשה", צריך שיחה לפני כל דבר אחר ברשימה. רק 14 הימים האחרונים —
+     כאב מלפני חודש כבר טופל או כבר לא רלוונטי. */
+  const since14=addDays(t,-14);
+  act.forEach(x=>{
+    const mine=(DASH.logs||[]).filter(l=>l.trainee_id===x.id && String(l.date).slice(0,10)>=since14)
+      .sort((a,b)=>String(b.created_at||b.date).localeCompare(String(a.created_at||a.date)));
+    const hurt=mine.find(l=>painIn(l.note));
+    if(hurt){
+      const n=String(hurt.note).trim();
+      alerts+=alertRow('🩹',esc(x.name)+' '+(x.gender==='נקבה'?'כתבה':x.gender==='זכר'?'כתב':'כתב/ה')+' '+dashAgo(hurt.created_at,hurt.date)+': <span class="muted">"'
+        +esc(n.length>90?n.slice(0,90)+'…':n)+'"</span>','לתיק','go(\'trainee\',\''+x.id+'\')');
+    }
+    let hard=0; for(const l of mine){ if(l.feel==='קשה') hard++; else break; }
+    if(hard>=2) alerts+=alertRow('🥵',esc(x.name)+' '+(x.gender==='נקבה'?'סימנה':x.gender==='זכר'?'סימן':'סימן/ה')+' "קשה" ב-'+hard+' האימונים האחרונים ברצף — אולי להוריד עומס',
+      'לתוכנית','go(\'trainee\',\''+x.id+'\');SUBTAB=\'program\';render()');
+  });
   /* תקופת תוכנית שהסתיימה או מסתיימת בשבועיים הקרובים — הזמן לדבר
      על המשך, לפני שהמתאמן מגיע לסוף ונעלם. */
   act.filter(x=>x.status==='active').map(x=>({x,p:planOf(x)})).filter(o=>o.p&&o.p.left<=2)
@@ -3175,30 +3200,30 @@ if (location.protocol === 'file:') {
 }
 </script>
 
-<script src="health.js?v=v152"></script>
-<script src="privacy.js?v=v152"></script>
-<script src="backup.js?v=v152"></script>
-<script src="reorder.js?v=v152"></script>
-<script src="access.js?v=v152"></script>
-<script src="analysis.js?v=v152"></script>
-<script src="reports.js?v=v152"></script>
-<script src="business.js?v=v152"></script>
-<script src="intake.js?v=v152"></script>
-<script src="files.js?v=v152"></script>
-<script src="builder.js?v=v152"></script>
-<script src="import-program.js?v=v152"></script>
-<script src="tracking.js?v=v152"></script>
-<script src="metrics.js?v=v152"></script>
-<script src="targets.js?v=v152"></script>
-<script src="meal-library.js?v=v152"></script>
-<script src="library-ui.js?v=v152"></script>
-<script src="export-plan.js?v=v152"></script>
-<script src="cardio.js?v=v152"></script>
-<script src="cardio-ui.js?v=v152"></script>
-<script src="exercise-library.js?v=v152"></script>
-<script src="exercise-ui.js?v=v152"></script>
-<script src="meals.js?v=v152"></script>
-<script src="sync.js?v=v152"></script>
+<script src="health.js?v=v153"></script>
+<script src="privacy.js?v=v153"></script>
+<script src="backup.js?v=v153"></script>
+<script src="reorder.js?v=v153"></script>
+<script src="access.js?v=v153"></script>
+<script src="analysis.js?v=v153"></script>
+<script src="reports.js?v=v153"></script>
+<script src="business.js?v=v153"></script>
+<script src="intake.js?v=v153"></script>
+<script src="files.js?v=v153"></script>
+<script src="builder.js?v=v153"></script>
+<script src="import-program.js?v=v153"></script>
+<script src="tracking.js?v=v153"></script>
+<script src="metrics.js?v=v153"></script>
+<script src="targets.js?v=v153"></script>
+<script src="meal-library.js?v=v153"></script>
+<script src="library-ui.js?v=v153"></script>
+<script src="export-plan.js?v=v153"></script>
+<script src="cardio.js?v=v153"></script>
+<script src="cardio-ui.js?v=v153"></script>
+<script src="exercise-library.js?v=v153"></script>
+<script src="exercise-ui.js?v=v153"></script>
+<script src="meals.js?v=v153"></script>
+<script src="sync.js?v=v153"></script>
 <script>
 /* =================== חיבור הסנכרון לאפליקציה =================== */
 
