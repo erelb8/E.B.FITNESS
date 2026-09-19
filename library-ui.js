@@ -11,7 +11,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['libraryUi'] = 'v154';
+  (window.EB_MOD = window.EB_MOD || {})['libraryUi'] = 'v155';
 
   var Q = '', TYPE = 'all', OPEN = {}, TAB = 'meals';
 
@@ -79,8 +79,12 @@
   }
 
   /* ---------- מסננים ---------- */
+  /* ארוחה ששייכת לחלק (תאילנדי, פירות — meal-extra.js, אצל המאמן
+     בלבד) חיה רק בלשונית של החלק שלה, ולא נספרת ברגילות. */
+  function inSection(m) { return !!m.section; }
   function filters() {
-    var counts = EBLib.byType();
+    var counts = {};
+    EBLib.MEALS.forEach(function (m) { if (!inSection(m)) (counts[m.type] = counts[m.type] || []).push(m); });
     var btn = function (k, label, n) {
       return '<button class="btn sm ' + (TYPE === k ? '' : 'ghost') + '" '
         + 'onclick="EBLibUI.setType(\'' + k + '\')">' + esc(label)
@@ -88,12 +92,16 @@
     };
     var h = '<div class="row" style="gap:6px;flex-wrap:wrap;margin-bottom:12px">'
       + btn('all', 'הכול', EBLib.MEALS.filter(function (m) {
-          return EBLib.kosherOf(m) === 'ok'; }).length);
+          return !inSection(m) && EBLib.kosherOf(m) === 'ok'; }).length);
     ['breakfast','pre','post','lunch','snack','dinner'].forEach(function (k) {
       if (counts[k]) h += btn(k, EBLib.TYPES[k], counts[k].length);
     });
-    var nk = EBLib.MEALS.filter(function (m) { return EBLib.kosherOf(m) !== 'ok'; }).length;
+    var nk = EBLib.MEALS.filter(function (m) { return !inSection(m) && EBLib.kosherOf(m) !== 'ok'; }).length;
     if (nk) h += btn('nonkosher', 'לא כשר', nk);
+    Object.keys(EBLib.SECTIONS || {}).forEach(function (k) {
+      var n = EBLib.MEALS.filter(function (m) { return m.section === k; }).length;
+      if (n) h += btn('sec:' + k, EBLib.SECTIONS[k], n);
+    });
     return h + '</div>';
   }
 
@@ -102,9 +110,12 @@
   function list() {
     var q = Q.trim();
     var only = (TYPE === 'nonkosher');
+    var sec = TYPE.indexOf('sec:') === 0 ? TYPE.slice(4) : '';
     return EBLib.MEALS.filter(function (m) {
       var k = EBLib.kosherOf(m);
-      if (only) { if (k === 'ok') return false; }
+      if (sec) { if (m.section !== sec) return false; }
+      else if (inSection(m)) return false;
+      else if (only) { if (k === 'ok') return false; }
       else {
         if (k !== 'ok') return false;
         if (TYPE !== 'all' && m.type !== TYPE) return false;

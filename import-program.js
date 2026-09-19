@@ -19,9 +19,9 @@
   'use strict';
 
   // חותמת גרסה — index.html משווה אליה כדי לזהות קובץ ישן במטמון
-  (window.EB_MOD = window.EB_MOD || {})['import'] = 'v154';
+  (window.EB_MOD = window.EB_MOD || {})['import'] = 'v155';
 
-  var FOR = null, DRAFT = null;
+  var FOR = null, DRAFT = null, FNAME = '';
 
   /* ---------- מפענח מחרוזות מצוטטות ----------
      מטפל בגרש בודד, במרכאות כפולות ובתווי בריחה. נדרש כי כותרות
@@ -632,21 +632,31 @@
         + '</div><div class="mf"><button class="btn ghost" onclick="closeModal()">סגירה</button></div>', true);
       return;
     }
-    DRAFT = r;
+    DRAFT = r; UNDO = null; MODE = 'replace';
+    /* נשמר מיד. עד v155 הקובץ נפתח בתצוגה מקדימה, ושום דבר לא נשמר
+       עד ללחיצה על "ייבוא" ואישור נוסף — וסגירת החלון זרקה את הייבוא.
+       בכל שאר האפליקציה כל שינוי נשמר מעצמו, והמאמן ציפה לאותו דבר
+       כאן. במקום השאלה יש "ביטול הייבוא" שמחזיר בדיוק את מה שהיה. */
+    commit();
     preview(fname);
   }
 
   function preview(fname) {
+    FNAME = fname;
     var t = tById(FOR);
     var total = DRAFT.days.reduce(function (a, d) { return a + d.exercises.length; }, 0);
     var partial = DRAFT.days.reduce(function (a, d) {
       return a + d.exercises.filter(function (e) { return !e.sets || !e.reps; }).length; }, 0);
 
-    var h = '<div class="mh"><h3>ייבוא תוכנית ל' + esc(t.name) + '</h3>'
+    var h = '<div class="mh"><h3>✓ התוכנית נשמרה ל' + esc(t.name) + '</h3>'
       + '<button class="iconbtn" onclick="closeModal()">✕</button></div><div class="mb">'
       + '<div class="muted" style="font-size:12.5px;margin-bottom:10px">'
       + esc(fname) + ' · זוהה לפי ' + esc(DRAFT.how) + ' · '
-      + DRAFT.days.length + ' ימים, ' + total + ' תרגילים</div>';
+      + DRAFT.days.length + ' ימים, ' + total + ' תרגילים</div>'
+      + '<div style="font-size:13px;margin-bottom:12px;padding:9px 11px;border-radius:9px;'
+      + 'background:var(--or-soft);border:1px solid var(--line2);line-height:1.6">'
+      + (MODE === 'append' ? 'הימים נוספו אחרי התוכנית הקיימת' : 'התוכנית הוחלפה')
+      + ' ונשמרה, גם אצל המתאמן. אין צורך ללחוץ שמירה.</div>';
 
     DRAFT.days.forEach(function (d) {
       h += '<div class="card" style="margin-bottom:10px;padding:12px">'
@@ -668,10 +678,11 @@
          + ' תרגילים הגיעו בלי סטים או חזרות מלאים — אפשר להשלים אחרי הייבוא.</div>';
 
     if (DRAFT.note) {
-      var had = ((t.program || {}).note || '').trim();
+      var had = (((UNDO && UNDO.program) || {}).note || '').trim();
       h += '<div class="sep"></div>'
         + '<label style="font-size:13.5px;display:flex;align-items:center;gap:8px">'
-        + '<input type="checkbox" id="ip_note" checked> לצרף את ההערה הכללית שבקובץ'
+        + '<input type="checkbox" id="ip_note"' + (DRAFT.useNote === false ? '' : ' checked')
+        + ' onchange="EBImport.toggleNote(this.checked)"> לצרף את ההערה הכללית שבקובץ'
         + (had ? ' <b style="color:var(--warn)">(תחליף את ההערה הקיימת)</b>' : '')
         + '</label>'
         + '<div class="card" style="margin-top:8px;padding:12px;max-height:180px;overflow:auto">'
@@ -682,24 +693,58 @@
     if (DRAFT.nutrition) {
       h += '<div class="sep"></div>'
         + '<label style="font-size:13.5px;display:flex;align-items:center;gap:8px">'
-        + '<input type="checkbox" id="ip_nutri" checked> לצרף גם את התזונה שבקובץ להערות המתאמן</label>'
+        + '<input type="checkbox" id="ip_nutri"' + (DRAFT.useNutri === false ? '' : ' checked')
+        + ' onchange="EBImport.toggleNutri(this.checked)"> לצרף גם את התזונה שבקובץ להערות המתאמן</label>'
         + '<div class="card" style="margin-top:8px;padding:12px;max-height:180px;overflow:auto">'
         + '<pre style="margin:0;white-space:pre-wrap;font-family:inherit;font-size:12.5px;color:var(--mut)">'
         + esc(DRAFT.nutrition) + '</pre></div>';
     }
 
-    var has = ((t.program && t.program.days) || []).length;
+    // הייתה תוכנית לפני הייבוא? אז יש בין מה לבחור: להחליף או להוסיף
+    var had = (((UNDO && UNDO.program) || {}).days || []).length;
     h += '</div><div class="mf">'
-      + '<button class="btn" onclick="EBImport.apply(0)">' + (has ? 'החלפת התוכנית' : 'ייבוא') + '</button>'
-      + (has ? '<button class="btn ghost" onclick="EBImport.apply(1)">הוספה לקיימת</button>' : '')
-      + '<div style="flex:1"></div><button class="btn ghost" onclick="closeModal()">ביטול</button></div>';
+      + '<button class="btn" onclick="closeModal()">סגירה</button>'
+      + (had ? (MODE === 'append'
+          ? '<button class="btn ghost" onclick="EBImport.setMode(\'replace\')">להחליף במקום להוסיף</button>'
+          : '<button class="btn ghost" onclick="EBImport.setMode(\'append\')">להוסיף לקיימת במקום להחליף</button>') : '')
+      + '<div style="flex:1"></div>'
+      + '<button class="btn ghost" onclick="EBImport.undo()">ביטול הייבוא</button></div>';
     openModal(h, true);
   }
 
-  function apply(append) {
+  /* ---------- שמירה מיידית, עם ביטול ----------
+     UNDO הוא המצב שלפני הייבוא. כל commit מתחיל ממנו, ולכן מעבר בין
+     "החלפה" ל"הוספה לקיימת", או סימון/ביטול ההערה, לא מצטבר — הוא
+     מחושב מחדש מאותה נקודת התחלה. */
+  var UNDO = null, MODE = 'replace';
+  function clone(x) { return x == null ? x : JSON.parse(JSON.stringify(x)); }
+  function afterWrite(t) {
+    save();
+    /* הבסיס של עורך התוכנית מתעדכן, אחרת הייבוא נראה לו כמו שינוי
+       שעוד לא נשמר, ומשיכה מהשרת מתייחסת אליו כך. */
+    if (window.PROGRAM_BASE_ID === t.id) window.PROGRAM_BASE = clone(t.program || { days: [] });
+  }
+  function commit() {
     var t = tById(FOR); if (!t || !DRAFT) return;
-    if (!append && ((t.program && t.program.days) || []).length &&
-        !confirm('להחליף את התוכנית הקיימת? השינוי לא הפיך.')) return;
+    if (!UNDO) UNDO = { id: t.id, program: clone(t.program), meals: clone(t.meals), notes: t.notes };
+    t.program = clone(UNDO.program); t.meals = clone(UNDO.meals); t.notes = UNDO.notes;
+    applyDraft(t, MODE === 'append');
+    afterWrite(t);
+    SUBTAB = 'program'; render();
+  }
+  function setMode(m) { MODE = m; commit(); preview(FNAME); }
+  function undo() {
+    var t = tById(FOR); if (!t || !UNDO) { closeModal(); return; }
+    t.program = clone(UNDO.program); t.meals = clone(UNDO.meals); t.notes = UNDO.notes;
+    afterWrite(t);
+    UNDO = null; DRAFT = null;
+    closeModal(); render();
+    toast('הייבוא בוטל — התוכנית חזרה למה שהיה');
+  }
+  // נשאר לתאימות: כפתורים ישנים קוראים ל-apply(0/1)
+  function apply(append) { MODE = append ? 'append' : 'replace'; commit(); closeModal(); }
+
+  function applyDraft(t, append) {
     t.program = t.program || { days: [] };
     t.program.days = append ? t.program.days.concat(DRAFT.days) : DRAFT.days.slice();
     /* קובץ של האפליקציה עצמה: החלפה מחזירה את התוכנית כולה, כולל
@@ -709,19 +754,15 @@
       if ((DRAFT.meals || []).length) t.meals = JSON.parse(JSON.stringify(DRAFT.meals));
     }
 
-    var nb = document.getElementById('ip_note');
-    if (DRAFT.note && nb && nb.checked) t.program.note = DRAFT.note;
-
-    var nu = document.getElementById('ip_nutri');
-    if (DRAFT.nutrition && nu && nu.checked) {
+    // ההערה והתזונה נכנסות כברירת מחדל; ביטול הסימון בחלון מוציא אותן
+    if (DRAFT.note && DRAFT.useNote !== false) t.program.note = DRAFT.note;
+    if (DRAFT.nutrition && DRAFT.useNutri !== false) {
       var block = 'תזונה (מהקובץ המיובא)\n' + DRAFT.nutrition;
       t.notes = t.notes ? (t.notes + '\n\n' + block) : block;
     }
-
-    save(); closeModal();
-    SUBTAB = 'program'; render();
-    toast('התוכנית יובאה — אפשר לערוך כל שדה');
   }
+  function toggleNote(on)  { if (DRAFT) { DRAFT.useNote = !!on;  commit(); } }
+  function toggleNutri(on) { if (DRAFT) { DRAFT.useNutri = !!on; commit(); } }
 
   /* כניסה מטקסט שכבר נקרא — משמשת את הגרירה, שקוראת את הקובץ בעצמה
      ולכן לא עוברת דרך בורר הקבצים של open() */
@@ -816,5 +857,6 @@
     openModal(h, true);
   }
 
-  window.EBImport = { open: open, fromAttached: fromAttached, readOne: readOne, apply: apply, parse: parse, fromText: fromText };
+  window.EBImport = { open: open, fromAttached: fromAttached, readOne: readOne, apply: apply, parse: parse, fromText: fromText,
+                      undo: undo, setMode: setMode, toggleNote: toggleNote, toggleNutri: toggleNutri };
 })();
