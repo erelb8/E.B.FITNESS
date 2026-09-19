@@ -22,7 +22,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['backup'] = 'v171';
+  (window.EB_MOD = window.EB_MOD || {})['backup'] = 'v172';
 
   var LAST_KEY = 'ebfit_backup_at';
   var TABLES = ['trainees', 'sessions', 'measures', 'payments'];
@@ -590,7 +590,13 @@
     var list = await listSnaps();
     await folderReady();
     AUTO_HTML = folderHTML() + autoHTML(list);
-    if (typeof render === 'function') render();
+    /* הכרטיס הזה מופיע רק בהגדרות. עד v172 רץ כאן ציור של כל המסך פעם
+       בשעה ובכל חזרה לאפליקציה — גם באמצע בניית תוכנית, ומחק את מה
+       שהוקלד בתא. */
+    if (window.VIEW === 'settings') {
+      if (typeof window.renderFromSync === 'function') window.renderFromSync();
+      else if (typeof render === 'function') render();
+    }
   }
   function autoHTML(list) {
     if (!list.length) {
