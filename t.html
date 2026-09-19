@@ -372,17 +372,17 @@ button{cursor:pointer}
 
 <div id="toast"></div>
 
-<script src="vendor/supabase.js?v=v155"></script>
-<script src="config.js?v=v155"></script>
-<script src="meal-library.js?v=v155"></script>
-<script src="exercise-library.js?v=v155"></script>
-<script src="progress.js?v=v155"></script>
-<script src="habits.js?v=v155"></script>
-<script src="coach-bot.js?v=v155"></script>
-<script src="workout-log.js?v=v155"></script>
-<script src="targets.js?v=v155"></script>
-<script src="health.js?v=v155"></script>
-<script src="privacy.js?v=v155"></script>
+<script src="vendor/supabase.js?v=v156"></script>
+<script src="config.js?v=v156"></script>
+<script src="meal-library.js?v=v156"></script>
+<script src="exercise-library.js?v=v156"></script>
+<script src="progress.js?v=v156"></script>
+<script src="habits.js?v=v156"></script>
+<script src="coach-bot.js?v=v156"></script>
+<script src="workout-log.js?v=v156"></script>
+<script src="targets.js?v=v156"></script>
+<script src="health.js?v=v156"></script>
+<script src="privacy.js?v=v156"></script>
 <script>
 (function () {
   'use strict';
@@ -791,8 +791,34 @@ button{cursor:pointer}
      כך שהוספה שנעשתה בטלפון אחר מופיעה גם כאן. */
   function mergeMy(fromServer) {
     if (!Array.isArray(fromServer)) return;      // העמודה עוד לא קיימת בשרת
-    MY_MEALS = fromServer;
+    /* meals_self בשרת מחזיק רק ארוחות מהספרייה. ארוחה שהמתאמן בנה
+       בעצמו לא נמצאת שם — ועד v156 ההחלפה הזאת מחקה אותה בכל טעינה
+       ובכל ריענון. היא נשמרת עכשיו ב-session_state (ראה syncCustom),
+       וכאן פשוט לא נוגעים בה. */
+    const mine = MY_MEALS.filter(x => x.custom);
+    MY_MEALS = fromServer.filter(x => !x.custom).concat(mine);
     writeMy();
+  }
+
+  /* ---------- ארוחות שהמתאמן בנה בעצמו ----------
+     אין להן מזהה בספרייה, ולכן trainee_add_meal לא מקבל אותן. הן
+     נשמרות ב-STATE.myMeals, שכבר מסתנכרן לשרת דרך trainee_save_state —
+     אותה דרך שבה נשמרים ההרגלים. בלי SQL חדש. */
+  const customKey = x => String(x.name) + '|' + String(x.at || '');
+  function syncCustom() {
+    STATE.myMeals = MY_MEALS.filter(x => x.custom).slice(-30);
+    writeState(); queueStateSync();
+  }
+  function mergeCustom(fromServer) {
+    if (!Array.isArray(fromServer)) return;
+    const have = new Set(MY_MEALS.filter(x => x.custom).map(customKey));
+    let added = 0;
+    fromServer.forEach(x => {
+      if (x && x.custom && !have.has(customKey(x))) { MY_MEALS.push(x); added++; }
+    });
+    if (added) writeMy();
+    // במכשיר יש ארוחה שעוד לא הגיעה לשרת (נבנתה בלי רשת)? שולחים עכשיו
+    if (MY_MEALS.filter(x => x.custom).length > fromServer.length) syncCustom();
   }
 
   async function myAdd(libId) {
@@ -829,7 +855,7 @@ button{cursor:pointer}
   async function myRemove(libId) {
     const wasCustom = MY_MEALS.some(x => x.custom && x.name === libId);
     MY_MEALS = MY_MEALS.filter(x => x.custom ? x.name !== libId : x.libId !== libId);
-    if (wasCustom) { writeMy(); paint(); return; }   // מותאמת — מקומית בלבד
+    if (wasCustom) { writeMy(); syncCustom(); paint(); return; }
     writeMy(); refreshLib(libId);
     try {
       const { data, error } = await sb.rpc('trainee_remove_meal',
@@ -860,48 +886,6 @@ button{cursor:pointer}
     if (cnt) cnt.textContent = MY_MEALS.length;
   }
 
-  /* מה שהמתאמן הוסיף — מוצג בנפרד מהתפריט של המאמן, כדי שלא
-     ייווצר רושם שהמאמן רשם את זה. */
-  function myMealsBlock() {
-    if (typeof EBLib === 'undefined' || !MY_MEALS.length) return '';
-    const rows = MY_MEALS.map(x => {
-      if (x.custom) return { name: x.name, custom: true, type: '',
-                             tot: { k:x.k||0, p:x.p||0, c:x.c||0, f:x.f||0 }, key: x.name };
-      const m = EBLib.byId(x.libId);
-      if (!m) return null;
-      const t = EBLib.calc(m.items).total;
-      return { name: m.name, type: m.type, tot: t, key: m.id };
-    }).filter(Boolean);
-    if (!rows.length) return '';
-    let k = 0, p = 0, c = 0, f = 0;
-    rows.forEach(m => { k += m.tot.k; p += m.tot.p; c += m.tot.c; f += m.tot.f; });
-    const r0 = x => Math.round(x);
-    let h = '<div class="card" style="margin-bottom:12px;border-color:var(--line2)">'
-      + '<div style="display:flex;align-items:baseline;gap:8px;margin-bottom:10px">'
-      + '<div style="flex:1;font-family:Frank Ruhl Libre,serif;font-weight:700;font-size:15px">'
-      + 'הוספתי לעצמי</div>'
-      + '<span class="mt" style="font-size:12px">' + rows.length + ' ארוחות</span></div>'
-      + '<div style="display:flex;gap:14px;flex-wrap:wrap;font-size:13px;margin-bottom:10px">'
-      + '<span><b style="font-family:Heebo;color:var(--or)">' + r0(k) + '</b> קק״ל</span>'
-      + '<span class="mt">חלבון <b>' + r0(p) + '</b></span>'
-      + '<span class="mt">פחמימות <b>' + r0(c) + '</b></span>'
-      + '<span class="mt">שומן <b>' + r0(f) + '</b></span></div>';
-    rows.forEach(m => {
-      h += '<div style="display:flex;align-items:center;gap:10px;padding:9px 0;'
-        + 'border-top:1px solid var(--line)">'
-        + '<div style="flex:1;min-width:0">'
-        + '<div style="font-size:14px;font-weight:500">' + esc(m.name) + '</div>'
-        + '<div class="mt" style="font-size:11.5px;margin-top:2px">'
-        + esc(m.custom ? 'בניתי בעצמי' : (EBLib.TYPES[m.type] || '')) + '</div></div>'
-        + '<span style="font-family:Heebo;font-weight:700;font-size:14px">'
-        + Math.round(m.tot.k) + '</span>'
-        + '<button data-myrm="' + esc(m.key) + '" style="background:none;border:0;'
-        + 'color:var(--dim);font-size:17px;cursor:pointer;padding:0 4px;line-height:1">✕</button>'
-        + '</div>';
-    });
-    return h + '</div>';
-  }
-
   /* אותו מסד שממנו מחושבות הארוחות — לא רשימה שנייה שיכולה להתיישן */
   /* הפאנל מופיע רק כשיש מה להראות — פאנל ריק קבוע היה גוזל שליש
      ממסך הטלפון בלי לתת כלום. */
@@ -918,8 +902,8 @@ button{cursor:pointer}
       + '<span class="mt">שומן <b>' + r0(t.f) + '</b></span>';
   }
 
-  /* נשמר במכשיר בלבד. אין לזה מזהה בספרייה, ולכן אין מה לשלוח
-     לשרת בלי לשנות את מבנה הנתונים שם. */
+  /* נשמר במכשיר ובשרת (דרך syncCustom), כך שהוא נשאר גם אחרי רענון
+     וגם בטלפון אחר, והמאמן רואה אותו בתיק. */
   function saveBuild() {
     const items = BUILD.filter(x => Number(x.g) > 0);
     if (!items.length) { toast('הוסף מוצר קודם'); return; }
@@ -932,7 +916,7 @@ button{cursor:pointer}
       k: Math.round(t.k), p: Math.round(t.p), c: Math.round(t.c), f: Math.round(t.f),
       at: todayStr()
     });
-    writeMy();
+    writeMy(); syncCustom();
     BUILD = []; writeBuild();
     toast('נשמר בתפריט שלך');
     screen(libScreen());
@@ -2551,7 +2535,7 @@ button{cursor:pointer}
         + '<button class="dayh" data-slot="' + i + '">'
         + '<span class="daynum" style="font-size:11px">' + esc(SLOT_HE[key].slice(0, 4)) + '</span>'
         + '<span class="dayt"><span class="dayn">' + esc(SLOT_HE[key]) + '</span>'
-        + '<span class="daym">' + (g.length ? g.length + ' ארוחות · ' + Math.round(sk) + ' קק״ל' : 'ריק')
+        + '<span class="daym">' + (g.length ? (g.length === 1 ? 'ארוחה אחת · ' : g.length + ' ארוחות · ') + Math.round(sk) + ' קק״ל' : 'ריק')
         + '</span></span><span class="daychev"></span></button>'
         + '<div class="dayb">';
 
@@ -2974,6 +2958,7 @@ button{cursor:pointer}
         const merged = EBHabits.prune(EBHabits.merge(HABITS, srv.habits));
         if (!EBHabits.isEmpty(merged)) { HABITS = merged; STATE.habits = HABITS; writeState(); }
       }
+      mergeCustom(srv.myMeals);
       if (window.EBProg) EBProg.mergeServer(EXTRAS.weighins);
       feedBot();
       paint();

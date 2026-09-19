@@ -12,7 +12,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['meals'] = 'v155';
+  (window.EB_MOD = window.EB_MOD || {})['meals'] = 'v156';
 
   var BUCKET = 'programs';
   var MAXW   = 900;          // רוחב מרבי אחרי הקטנה
@@ -73,16 +73,21 @@
      כי זו אינפורמציה על מה שהוא בוחר לאכול — לא הוראה שנתת. */
   function selfBlock(t) {
     var mine = t.mealsSelf || [];
-    if (!mine.length || typeof EBLib === 'undefined') return '';
+    if (typeof EBLib === 'undefined') return '';
     var rows = mine.map(function (x) { return EBLib.byId(x.libId); }).filter(Boolean);
+    /* ארוחות שהמתאמן בנה בעצמו מהמוצרים — עם הערכים שחושבו אצלו */
+    (t.mealsCustom || []).forEach(function (x) {
+      if (x && x.custom) rows.push({ name: x.name, type: 'custom', custom: true,
+        tot: { k: +x.k || 0, p: +x.p || 0, c: +x.c || 0, f: +x.f || 0 } });
+    });
     if (!rows.length) return '';
     var k = 0, p = 0, c = 0, f = 0;
-    rows.forEach(function (m) { var x = EBLib.calc(m.items).total;
+    rows.forEach(function (m) { var x = m.custom ? m.tot : EBLib.calc(m.items).total;
       k += x.k; p += x.p; c += x.c; f += x.f; });
 
     var h = '<div class="card" style="margin-bottom:14px;border-color:var(--line2)">'
       + '<div class="row" style="align-items:baseline;margin-bottom:8px">'
-      + '<h3 style="flex:1;font-size:14.5px">' + esc(t.name.split(' ')[0]) + ' הוסיף לעצמו</h3>'
+      + '<h3 style="flex:1;font-size:14.5px">' + esc(t.name.split(' ')[0]) + (t.gender === 'נקבה' ? ' הוסיפה לעצמה' : ' הוסיף לעצמו') + '</h3>'
       + '<span class="muted" style="font-size:12px">' + rows.length + ' ארוחות</span></div>'
       + '<div class="row" style="gap:14px;flex-wrap:wrap;font-size:13px;margin-bottom:6px">'
       + '<span><b style="font-family:Heebo;color:var(--or)">' + Math.round(k) + '</b> קק״ל</span>'
@@ -91,15 +96,16 @@
       + '<span class="muted">שומן <b>' + Math.round(f) + '</b></span></div>';
 
     rows.forEach(function (m) {
-      var x = EBLib.calc(m.items).total;
+      var x = m.custom ? m.tot : EBLib.calc(m.items).total;
       h += '<div class="row" style="padding:7px 0;border-top:1px solid var(--line);font-size:13px">'
         + '<span style="flex:1;min-width:0">' + esc(m.name) + '</span>'
-        + '<span class="muted" style="font-size:11.5px">' + esc(EBLib.TYPES[m.type] || '') + '</span>'
+        + '<span class="muted" style="font-size:11.5px">' + esc(m.custom ? 'בנה בעצמו' : (EBLib.TYPES[m.type] || '')) + '</span>'
         + '<span style="font-family:Heebo;font-weight:700;min-width:44px;text-align:left">'
         + Math.round(x.k) + '</span></div>';
     });
     return h + '<div class="muted" style="font-size:11.5px;margin-top:9px">'
-      + 'הוא בחר אותן בעצמו מהספרייה. אפשר להוסיף אותן לתפריט הרשמי או לדבר איתו עליהן.'
+      + (t.gender === 'נקבה' ? 'היא בחרה או בנתה אותן בעצמה בדף שלה. אפשר להוסיף אותן לתפריט הרשמי או לדבר איתה עליהן.'
+                             : 'הוא בחר או בנה אותן בעצמו בדף שלו. אפשר להוסיף אותן לתפריט הרשמי או לדבר איתו עליהן.')
       + '</div></div>';
   }
 
@@ -132,13 +138,6 @@
           + 'הכול כאן ממשיך לעבוד, וברגע שתריץ את <b>supabase/meals.sql</b> '
           + 'התפריטים יסונכרנו מעצמם.</div></div>';
       }
-    }
-
-    /* ההערה יושבת ב-program ולא בעמודה משלה — program כבר מסונכרן,
-       ולכן ההערה מגיעה למתאמן בלי מיגרציה בשרת. */
-    if (typeof noteBox === 'function') {
-      h += noteBox(t, 'mealsNote', 'הערה לתפריט',
-                   'למשל: לשתות כוס מים לפני כל ארוחה, ולא לדלג על ארוחת בוקר.');
     }
 
     /* ההערה יושבת ב-program ולא בעמודה משלה — program כבר מסונכרן,
