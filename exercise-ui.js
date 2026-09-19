@@ -8,7 +8,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['exUi'] = 'v174';
+  (window.EB_MOD = window.EB_MOD || {})['exUi'] = 'v175';
 
   var Q = '', MUS = 'all', EQ = 'all', FOR = null, DAY = 0, TARGET = null;
 
@@ -32,31 +32,63 @@
 
   function open(traineeId, dayIndex, target) {
     FOR = traineeId; DAY = dayIndex; TARGET = target || null;
-    Q = ''; MUS = 'all'; EQ = 'all'; POS = 'end';
+    Q = ''; MUS = 'all'; EQ = 'all'; POS = 'end'; LIMIT = 60;
     paint();
   }
 
+  /* החלון בנוי משני חלקים: ראש קבוע (כותרת ושדה חיפוש) ורשימה שמתעדכנת.
+     עד v175 כל אות בחיפוש בנתה מחדש את כל החלון — כולל שדה החיפוש עצמו
+     ו-447 כרטיסים. בטלפון זה היה איטי, ובאייפון המקלדת נסגרה אחרי כל
+     אות כי השדה שבו הקלידו הוחלף. עכשיו מתעדכנת רק הרשימה, 60 בכל פעם. */
+  var LIMIT = 60, QT = null;
   function paint() {
-    var t = tById(FOR); if (!t) return;
+    var t = tById(FOR); if (!t && !TARGET) return;
     var day = currentDay();
     if (!day) return;
-    var have = (day.exercises || []).map(function (e) { return String(e.name || '').trim(); });
-    var items = EBEx.search(Q, MUS, EQ);
-    var byM = EBEx.byMuscle(), byE = EBEx.byEquip();
-
     var h = '<div class="mh"><h3>ספריית התרגילים</h3>'
       + '<button class="iconbtn" onclick="EBExUI.close()">✕</button></div><div class="mb">'
       + '<div class="muted" style="font-size:12.5px;margin-bottom:10px">'
       + 'מוסיף אל <b style="color:var(--tx)">' + esc(day.name || ('יום ' + (DAY + 1))) + '</b>'
       + '</div>'
-      + '<div class="row" style="gap:5px;align-items:center;margin-bottom:10px">'
+      + '<div class="search" style="margin-bottom:10px"><span>⌕</span>'
+      + '<input id="ex_q" placeholder="חיפוש לפי שם, שריר או ציוד" value="' + esc(Q) + '" '
+      + 'oninput="EBExUI.search(this.value)" autocomplete="off"></div>'
+      + '<div id="ex_list">' + listHTML() + '</div>'
+      + '</div><div class="mf">'
+      + '<button class="btn" onclick="EBExUI.close()">'
+      + (TARGET ? 'חזרה לטיוטה' : 'סגירה') + '</button></div>';
+    openModal(h, true);
+    var el = document.getElementById('ex_q');
+    if (el && Q) { el.focus(); el.setSelectionRange(Q.length, Q.length); }
+  }
+  function inp(label, key, id, val, w) {
+    return '<label style="display:flex;flex-direction:column;gap:3px">'
+      + '<span class="muted" style="font-size:10px">' + label + '</span>'
+      + '<input data-' + key + '="' + esc(id) + '" value="' + esc(val) + '" '
+      + 'style="width:' + w + 'px;background:var(--ink);border:1px solid var(--line);'
+      + 'border-radius:7px;padding:6px;font-size:13px;text-align:center"></label>';
+  }
+  function tagx(txt) {
+    if (!txt) return '';
+    return '<span class="pill" style="font-size:11px">' + esc(txt) + '</span>';
+  }
+  function paintList() {
+    var box = document.getElementById('ex_list');
+    if (!box) { paint(); return; }
+    box.innerHTML = listHTML();
+  }
+  function listHTML() {
+    var day = currentDay();
+    if (!day) return '';
+    var have = (day.exercises || []).map(function (e) { return String(e.name || '').trim(); });
+    var items = EBEx.search(Q, MUS, EQ);
+    var byM = EBEx.byMuscle(), byE = EBEx.byEquip();
+
+    var h = '<div class="row" style="gap:5px;align-items:center;margin-bottom:10px">'
       + '<span class="muted" style="font-size:12.5px">מיקום:</span>'
       + chip('בסוף', POS === 'end', 'data-expos="end"')
       + chip('בהתחלה', POS === 'start', 'data-expos="start"')
-      + '</div>'
-      + '<div class="search" style="margin-bottom:10px"><span>⌕</span>'
-      + '<input id="ex_q" placeholder="חיפוש לפי שם, שריר או ציוד" value="' + esc(Q) + '" '
-      + 'oninput="EBExUI.search(this.value)"></div>';
+      + '</div>';
 
     /* שריר */
     h += '<div class="row" style="gap:5px;flex-wrap:wrap;margin-bottom:7px">'
@@ -81,6 +113,8 @@
 
     if (!items.length) h += '<div class="empty">לא נמצא תרגיל מתאים.</div>';
 
+    var all = items;
+    items = all.slice(0, LIMIT);
     items.forEach(function (x) {
       var added = have.indexOf(x.n) > -1;
       h += '<div class="card" style="margin-bottom:8px;padding:11px 12px" data-exid="' + x.id + '">'
@@ -110,39 +144,27 @@
         + '</div></div>';
     });
 
-    h += '</div><div class="mf">'
-      + '<button class="btn" onclick="EBExUI.close()">'
-      + (TARGET ? 'חזרה לטיוטה' : 'סגירה') + '</button></div>';
-    openModal(h, true);
-    var el = document.getElementById('ex_q');
-    if (el && Q) { el.focus(); el.setSelectionRange(Q.length, Q.length); }
+    if (all.length > LIMIT) {
+      h += '<button class="btn ghost" data-exmore style="width:100%;margin-top:4px">הצג עוד '
+        + Math.min(60, all.length - LIMIT) + ' (מתוך ' + all.length + ')</button>';
+    }
+    return h;
   }
-
-  function inp(label, key, id, val, w) {
-    return '<label style="display:flex;flex-direction:column;gap:3px">'
-      + '<span class="muted" style="font-size:10px">' + label + '</span>'
-      + '<input data-' + key + '="' + esc(id) + '" value="' + esc(val) + '" '
-      + 'style="width:' + w + 'px;background:var(--ink);border:1px solid var(--line);'
-      + 'border-radius:7px;padding:6px;font-size:13px;text-align:center"></label>';
-  }
-
-  function tagx(txt) {
-    if (!txt) return '';
-    return '<span class="pill" style="font-size:11px">' + esc(txt) + '</span>';
-  }
-
-  /* הספרייה נפתחה מעל הבונה באותו חלון. סגירה רגילה הייתה סוגרת גם
-     אותו, והטיוטה שהמאמן בנה נעלמת מהמסך. */
   function close() {
     var back = TARGET && TARGET.back;
     TARGET = null;
     if (back) back(); else closeModal();
   }
 
-  function search(v) { Q = v; paint(); }
-  function setMuscle(k) { MUS = k; paint(); }
-  function setEquip(k) { EQ = k; paint(); }
-  function setPos(k) { POS = (k === 'start' ? 'start' : 'end'); paint(); }
+  function search(v) {
+    Q = v; LIMIT = 60;
+    clearTimeout(QT);
+    QT = setTimeout(paintList, 120);     // לא על כל אות — כשעוצרים רגע
+  }
+  function setMuscle(k) { MUS = k; LIMIT = 60; paintList(); }
+  function setEquip(k) { EQ = k; LIMIT = 60; paintList(); }
+  function setPos(k) { POS = (k === 'start' ? 'start' : 'end'); paintList(); }
+  function more() { LIMIT += 60; paintList(); }
 
   function add(exId) {
     var x = EBEx.byId(exId);
@@ -165,7 +187,15 @@
       note:   x.note || ''
     };
     if (POS === 'start') day.exercises.unshift(row); else day.exercises.push(row);
-    if (TARGET) TARGET.after(); else { save(); render(); }
+    if (TARGET) TARGET.after();
+    else {
+      save();
+      /* כמו כל עריכה בתוכנית: מעדכן את בסיס העורך. בלי זה הוספה
+         מהספרייה נראתה לסנכרון כעריכה שלא נשמרה, ומשיכה הבאה הייתה
+         דורסת שינוי שהמתאמן עשה מהדף שלו. */
+      if (typeof updateProgramDock === 'function') updateProgramDock(FOR);
+      render();
+    }
 
     /* מעדכנים כרטיס אחד ולא מציירים מחדש — ציור מלא מחזיר את הגלילה
        לראש הרשימה, ואחרי התרגיל השלושים זה מרגיז. */
@@ -176,6 +206,7 @@
   }
 
   document.addEventListener('click', function (e) {
+    if (e.target.closest('[data-exmore]')) { more(); return; }
     var a = e.target.closest('[data-exadd]');
     if (a) { add(a.dataset.exadd); return; }
     var m = e.target.closest('[data-exm]');

@@ -15,7 +15,7 @@
   'use strict';
 
   // חותמת גרסה — index.html משווה אליה כדי לזהות קובץ ישן במטמון
-  (window.EB_MOD = window.EB_MOD || {})['sync'] = 'v174';
+  (window.EB_MOD = window.EB_MOD || {})['sync'] = 'v175';
 
   const CFG      = window.EBFIT_CONFIG || { URL: '', ANON: '' };
   const SNAP_KEY = 'ebfit_sync_v1';
@@ -712,7 +712,7 @@
       if (cur) window.PROGRAM_BASE = JSON.parse(JSON.stringify(cur.program || { days: [] }));
     }
     if (typeof window.rawSave === 'function') window.rawSave();
-    /* מציירים מחדש רק אם משהו השתנה, ולא באמצע הקלדה. עד v174 כל
+    /* מציירים מחדש רק אם משהו השתנה, ולא באמצע הקלדה. עד v175 כל
        סנכרון צייר את כל המסך מחדש — גם בלי שום שינוי — והחליף את השדה
        שהמאמן הקליד בו. בבניית תוכנית תא נשמר רק ביציאה ממנו, ולכן מה
        שהוקלד נעלם. */
