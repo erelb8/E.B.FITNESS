@@ -13,8 +13,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="התוכנית שלי">
 <meta name="robots" content="noindex,nofollow">
-<link rel="apple-touch-icon" href="icons/icon-180.png?v=v159">
-<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=v159">
+<link rel="apple-touch-icon" href="icons/icon-180.png?v=v160">
+<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=v160">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -361,7 +361,7 @@ button{cursor:pointer}
 <body>
 
 <header class="top">
-  <div class="brand"><img class="brand-logo" src="icons/logo-96.png?v=v159" alt="" width="34" height="34"><span>E.B<span class="dot"></span>FIT</span></div>
+  <div class="brand"><img class="brand-logo" src="icons/logo-96.png?v=v160" alt="" width="34" height="34"><span>E.B<span class="dot"></span>FIT</span></div>
   <h1 id="hTitle">טוען…</h1>
   <div class="sub" id="hSub"></div>
 </header>
@@ -372,17 +372,17 @@ button{cursor:pointer}
 
 <div id="toast"></div>
 
-<script src="vendor/supabase.js?v=v159"></script>
-<script src="config.js?v=v159"></script>
-<script src="meal-library.js?v=v159"></script>
-<script src="exercise-library.js?v=v159"></script>
-<script src="progress.js?v=v159"></script>
-<script src="habits.js?v=v159"></script>
-<script src="coach-bot.js?v=v159"></script>
-<script src="workout-log.js?v=v159"></script>
-<script src="targets.js?v=v159"></script>
-<script src="health.js?v=v159"></script>
-<script src="privacy.js?v=v159"></script>
+<script src="vendor/supabase.js?v=v160"></script>
+<script src="config.js?v=v160"></script>
+<script src="meal-library.js?v=v160"></script>
+<script src="exercise-library.js?v=v160"></script>
+<script src="progress.js?v=v160"></script>
+<script src="habits.js?v=v160"></script>
+<script src="coach-bot.js?v=v160"></script>
+<script src="workout-log.js?v=v160"></script>
+<script src="targets.js?v=v160"></script>
+<script src="health.js?v=v160"></script>
+<script src="privacy.js?v=v160"></script>
 <script>
 (function () {
   'use strict';
@@ -395,6 +395,10 @@ button{cursor:pointer}
     .replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
 
   let DATA = null, DAY = 0, STATE = {}, FEEL = null, sb = null;
+  /* הערה למאמן בסיום אימון, לפי יום. עד v160 שני כפתורי הסיום שלחו
+     p_note: null, ולמתאמן לא הייתה שום דרך לכתוב למאמן על אימון —
+     כולל "הברך כאבה", שלוח הבקרה של המאמן יודע להתריע עליו. */
+  const FIN_NOTE = {};
 
   /* הארוחות שהמתאמן בחר לעצמו. נשמרות גם במכשיר וגם בשרת: המכשיר
      כדי שההוספה תהיה מיידית וגם בלי רשת, והשרת כדי שהמאמן יראה. */
@@ -792,7 +796,7 @@ button{cursor:pointer}
   function mergeMy(fromServer) {
     if (!Array.isArray(fromServer)) return;      // העמודה עוד לא קיימת בשרת
     /* meals_self בשרת מחזיק רק ארוחות מהספרייה. ארוחה שהמתאמן בנה
-       בעצמו לא נמצאת שם — ועד v159 ההחלפה הזאת מחקה אותה בכל טעינה
+       בעצמו לא נמצאת שם — ועד v160 ההחלפה הזאת מחקה אותה בכל טעינה
        ובכל ריענון. היא נשמרת עכשיו ב-session_state (ראה syncCustom),
        וכאן פשוט לא נוגעים בה. */
     const mine = MY_MEALS.filter(x => x.custom);
@@ -1914,6 +1918,8 @@ button{cursor:pointer}
           + '<div class="feel">' + ['קל', 'בסדר', 'קשה'].map(f =>
               '<button data-feel="' + f + '"' + (FEEL === f ? ' class="on"' : '') + '>' + f + '</button>'
             ).join('') + '</div>'
+          + '<textarea data-finnote="' + i + '" maxlength="500" placeholder="הערה למאמן (לא חובה) — למשל אם משהו כאב או הרגיש לא נכון" style="width:100%;margin-top:10px;min-height:54px;resize:vertical;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:9px 11px;font:inherit;font-size:14px;color:var(--tx)">'
+          + esc(FIN_NOTE[i] || '') + '</textarea>'
           + '<button class="btn" data-fin="' + i + '" style="width:100%;margin-top:10px"'
           + (done ? '' : ' disabled') + '>סיימתי את האימון הזה</button></div>';
       }
@@ -2044,6 +2050,8 @@ button{cursor:pointer}
         + '<div class="feel">' + ['קל', 'בסדר', 'קשה'].map(function (f) {
             return '<button data-wlfeel="' + f + '"' + (draft.feel === f ? ' class="on"' : '') + '>' + f + '</button>';
           }).join('') + '</div>'
+        + '<textarea data-wlnote maxlength="500" placeholder="הערה למאמן (לא חובה) — למשל אם משהו כאב או הרגיש לא נכון" style="width:100%;margin-top:10px;min-height:54px;resize:vertical;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:9px 11px;font:inherit;font-size:14px;color:var(--tx)">'
+        + esc(draft.note || '') + '</textarea>'
         + '<button class="btn" data-wlsave style="width:100%;margin-top:11px"'
         + (entries.length ? '' : ' disabled') + '>שמירת האימון</button>'
         + '<div class="mt" style="font-size:11.5px;margin-top:8px;text-align:center">'
@@ -2106,6 +2114,13 @@ button{cursor:pointer}
     if (btn) btn.disabled = !entries.length;
   }
 
+  document.addEventListener('input', function (e) {
+    const fn = e.target.closest && e.target.closest('[data-finnote]');
+    if (fn) { FIN_NOTE[fn.dataset.finnote] = fn.value; return; }
+    const wn = e.target.closest && e.target.closest('[data-wlnote]');
+    if (wn) { const d = wlDraft(); d.note = wn.value; wlWrite(); }
+  });
+
   async function wlSaveWorkout(btn) {
     const entries = wlEntries();
     if (!entries.length) { toast('רשום לפחות סט אחד'); return; }
@@ -2115,7 +2130,7 @@ button{cursor:pointer}
       const { error } = await sb.rpc('trainee_log', {
         p_token: TOKEN, p_day_index: i,
         p_day_name: day.name || ('יום ' + (i + 1)),
-        p_entries: entries, p_feel: draft.feel || null, p_note: null
+        p_entries: entries, p_feel: draft.feel || null, p_note: (draft.note || '').trim() || null
       });
       if (error) throw error;
       /* מנקים רק את היום ששודר */
@@ -2996,7 +3011,7 @@ button{cursor:pointer}
       const { error } = await sb.rpc('trainee_log', {
         p_token: TOKEN, p_day_index: i,
         p_day_name: day.name || ('יום ' + (i + 1)),
-        p_entries: entries, p_feel: FEEL, p_note: null
+        p_entries: entries, p_feel: FEEL, p_note: (FIN_NOTE[i] || '').trim() || null
       });
       if (error) throw error;
       toast('נשלח למאמן. כל הכבוד! 💪');
@@ -3005,7 +3020,7 @@ button{cursor:pointer}
          לא אמור לאבד אותם רק כי סיים אימון. */
       Object.keys(STATE).forEach(k => { if (k.indexOf(i + ':') === 0) delete STATE[k]; });
       writeState(); queueStateSync(); loadExtras();
-      FEEL = null; paint();
+      FEEL = null; delete FIN_NOTE[i]; paint();
     } catch (err) {
       toast('לא הצלחנו לשלוח — נסה שוב כשתהיה רשת');
       if (btn) { btn.disabled = false; btn.textContent = 'סיימתי את האימון הזה'; }
