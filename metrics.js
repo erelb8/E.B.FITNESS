@@ -20,7 +20,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['metrics'] = 'v165';
+  (window.EB_MOD = window.EB_MOD || {})['metrics'] = 'v166';
 
   var r1 = function (x) { return Math.round(x * 10) / 10; };
   var r2 = function (x) { return Math.round(x * 100) / 100; };
@@ -31,8 +31,18 @@
   function latest(t, field) {
     var ms = (window.S.measures || [])
       .filter(function (m) { return m.traineeId === t.id && m[field] !== '' && m[field] != null; })
-      .sort(function (a, b) { return (b.date || '').localeCompare(a.date || ''); });
-    return ms.length ? { v: Number(ms[0][field]), date: ms[0].date } : null;
+      .map(function (m) { return { v: Number(m[field]), date: m.date || '' }; });
+    /* משקל ושומן גם מהשקילות שהמתאמן הזין בדף שלו. בלי זה מתאמן
+       שנשקל בעצמו נשאר "בלי משקל" ובלי יעד קלורי, והיעד לא התעדכן
+       לפי המשקל החדש. באותו יום — המדידה של המאמן קודמת. */
+    if (field === 'weight' || field === 'fat') {
+      (t.weighins || []).forEach(function (w) {
+        var v = Number(w && w[field]);
+        if (w && w.date && isFinite(v) && v > 0) ms.push({ v: v, date: String(w.date).slice(0, 10), self: true });
+      });
+    }
+    ms.sort(function (a, b) { return b.date.localeCompare(a.date) || ((a.self ? 1 : 0) - (b.self ? 1 : 0)); });
+    return ms.length ? { v: ms[0].v, date: ms[0].date } : null;
   }
   /* גובה במטרים או בסנטימטרים — שתי הצורות מתקבלות.
 

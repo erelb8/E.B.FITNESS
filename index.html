@@ -6,7 +6,7 @@
 <title>E.B FIT — ניהול מתאמנים</title>
 
 <!-- ===== PWA — הופך את האתר לאפליקציה במסך הבית ===== -->
-<link rel="manifest" href="manifest.json?v=v165">
+<link rel="manifest" href="manifest.json?v=v166">
 <meta name="theme-color" content="#1C140E">
 <meta name="description" content="מערכת לניהול מתאמנים, תוכניות אימון, יומן ותשלומים">
 
@@ -15,9 +15,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="E.B FIT">
-<link rel="apple-touch-icon" href="icons/icon-180.png?v=v165">
-<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=v165">
-<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=v165">
+<link rel="apple-touch-icon" href="icons/icon-180.png?v=v166">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=v166">
+<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=v166">
 <meta name="format-detection" content="telephone=no">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -444,7 +444,7 @@ tbody tr:hover{background:var(--panel)}
 </head>
 <body>
 <header class="top">
-  <div class="brand"><img class="brand-logo" src="icons/logo-96.png?v=v165" alt="" width="30" height="30">E.B<span class="dot"></span>FIT <small id="brandSub">ניהול מתאמנים</small></div>
+  <div class="brand"><img class="brand-logo" src="icons/logo-96.png?v=v166" alt="" width="30" height="30">E.B<span class="dot"></span>FIT <small id="brandSub">ניהול מתאמנים</small></div>
   <div class="spacer"></div>
   <button class="syncpill s-off" id="syncPill" onclick="go('settings')" title="מצב סנכרון">מקומי בלבד</button>
   <span class="now" id="topDate"></span>
@@ -462,8 +462,8 @@ tbody tr:hover{background:var(--panel)}
 <div id="toast"></div>
 
 <!-- ספריית Supabase מקומית (לא מ-CDN) כדי שהאפליקציה תעבוד גם בלי רשת -->
-<script src="vendor/supabase.js?v=v165"></script>
-<script src="config.js?v=v165"></script>
+<script src="vendor/supabase.js?v=v166"></script>
+<script src="config.js?v=v166"></script>
 
 <script>
 /* =======================================================================
@@ -498,7 +498,7 @@ function age(b){ if(!b) return null; const d=new Date(b), t=new Date(); let a=t.
 
 /* ---------------- אחסון ---------------- */
 const KEY='ebfit_v1';
-const EB_VERSION='v165';   // חייב להתאים ל-VERSION ב-sw.js
+const EB_VERSION='v166';   // חייב להתאים ל-VERSION ב-sw.js
 let mem=null, canStore=true;
 function load(){
   try{ const r=localStorage.getItem(KEY); return r?JSON.parse(r):null; }
@@ -1243,6 +1243,19 @@ function vDash(){
                 : 'התוכנית של '+esc(o.x.name)+(o.p.left===1?' מסתיימת השבוע':' מסתיימת בעוד שבועיים');
       alerts+=alertRow('⏳',txt,'הארכה','go(\'trainee\',\''+o.x.id+'\');SUBTAB=\'program\';render()');
     });
+  /* בלי יעד קלורי המתאמן רואה בתזונה מה אכל, אבל לא מול מה. היעד
+     מחושב מגובה, משקל, גיל ומין — ובספטמבר 2026 לחמישה מתאמנים חסר
+     לפחות אחד מהם, בלי שום סימן לכך. */
+  if(window.EBMetrics){
+    act.filter(x=>x.status==='active').forEach(x=>{
+      let m=null; try{ m=EBMetrics.compute(x); }catch(e){}
+      if(!m || m.kcal || !(m.missing||[]).length) return;
+      const onlyWeight = m.missing.length===1 && m.missing[0]==='משקל';
+      alerts+=alertRow('📏','ל'+esc(x.name)+' אין יעד קלורי — חסר '+esc(m.missing.join(', ')),
+        onlyWeight?'הוספת שקילה':'השלמת פרטים',
+        onlyWeight?'go(\'trainee\',\''+x.id+'\');SUBTAB=\'measures\';render()':'editTrainee(\''+x.id+'\')');
+    });
+  }
   act.filter(x=>x.status==='active' && !(((x.program||{}).days)||[]).length && !(x.meals||[]).length).forEach(x=>{
     alerts+=alertRow('📋','ל'+esc(x.name)+' אין עדיין תוכנית אימון','בניית תוכנית','go(\'trainee\',\''+x.id+'\');SUBTAB=\'program\';render()');
   });
@@ -3211,32 +3224,32 @@ if (location.protocol === 'file:') {
 }
 </script>
 
-<script src="health.js?v=v165"></script>
-<script src="privacy.js?v=v165"></script>
-<script src="backup.js?v=v165"></script>
-<script src="reorder.js?v=v165"></script>
-<script src="access.js?v=v165"></script>
-<script src="analysis.js?v=v165"></script>
-<script src="reports.js?v=v165"></script>
-<script src="business.js?v=v165"></script>
-<script src="intake.js?v=v165"></script>
-<script src="files.js?v=v165"></script>
-<script src="builder.js?v=v165"></script>
-<script src="import-program.js?v=v165"></script>
-<script src="tracking.js?v=v165"></script>
-<script src="metrics.js?v=v165"></script>
-<script src="targets.js?v=v165"></script>
-<script src="meal-library.js?v=v165"></script>
+<script src="health.js?v=v166"></script>
+<script src="privacy.js?v=v166"></script>
+<script src="backup.js?v=v166"></script>
+<script src="reorder.js?v=v166"></script>
+<script src="access.js?v=v166"></script>
+<script src="analysis.js?v=v166"></script>
+<script src="reports.js?v=v166"></script>
+<script src="business.js?v=v166"></script>
+<script src="intake.js?v=v166"></script>
+<script src="files.js?v=v166"></script>
+<script src="builder.js?v=v166"></script>
+<script src="import-program.js?v=v166"></script>
+<script src="tracking.js?v=v166"></script>
+<script src="metrics.js?v=v166"></script>
+<script src="targets.js?v=v166"></script>
+<script src="meal-library.js?v=v166"></script>
 <!-- חלקים של המאמן בלבד (תאילנדי, פירות). לא נטען ב-t.html בכוונה. -->
-<script src="meal-extra.js?v=v165"></script>
-<script src="library-ui.js?v=v165"></script>
-<script src="export-plan.js?v=v165"></script>
-<script src="cardio.js?v=v165"></script>
-<script src="cardio-ui.js?v=v165"></script>
-<script src="exercise-library.js?v=v165"></script>
-<script src="exercise-ui.js?v=v165"></script>
-<script src="meals.js?v=v165"></script>
-<script src="sync.js?v=v165"></script>
+<script src="meal-extra.js?v=v166"></script>
+<script src="library-ui.js?v=v166"></script>
+<script src="export-plan.js?v=v166"></script>
+<script src="cardio.js?v=v166"></script>
+<script src="cardio-ui.js?v=v166"></script>
+<script src="exercise-library.js?v=v166"></script>
+<script src="exercise-ui.js?v=v166"></script>
+<script src="meals.js?v=v166"></script>
+<script src="sync.js?v=v166"></script>
 <script>
 /* =================== חיבור הסנכרון לאפליקציה =================== */
 
