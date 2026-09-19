@@ -13,8 +13,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="התוכנית שלי">
 <meta name="robots" content="noindex,nofollow">
-<link rel="apple-touch-icon" href="icons/icon-180.png">
-<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png">
+<link rel="apple-touch-icon" href="icons/icon-180.png?v=v159">
+<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=v159">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -361,7 +361,7 @@ button{cursor:pointer}
 <body>
 
 <header class="top">
-  <div class="brand"><img class="brand-logo" src="icons/logo-96.png" alt="" width="34" height="34"><span>E.B<span class="dot"></span>FIT</span></div>
+  <div class="brand"><img class="brand-logo" src="icons/logo-96.png?v=v159" alt="" width="34" height="34"><span>E.B<span class="dot"></span>FIT</span></div>
   <h1 id="hTitle">טוען…</h1>
   <div class="sub" id="hSub"></div>
 </header>
@@ -372,17 +372,17 @@ button{cursor:pointer}
 
 <div id="toast"></div>
 
-<script src="vendor/supabase.js?v=v158"></script>
-<script src="config.js?v=v158"></script>
-<script src="meal-library.js?v=v158"></script>
-<script src="exercise-library.js?v=v158"></script>
-<script src="progress.js?v=v158"></script>
-<script src="habits.js?v=v158"></script>
-<script src="coach-bot.js?v=v158"></script>
-<script src="workout-log.js?v=v158"></script>
-<script src="targets.js?v=v158"></script>
-<script src="health.js?v=v158"></script>
-<script src="privacy.js?v=v158"></script>
+<script src="vendor/supabase.js?v=v159"></script>
+<script src="config.js?v=v159"></script>
+<script src="meal-library.js?v=v159"></script>
+<script src="exercise-library.js?v=v159"></script>
+<script src="progress.js?v=v159"></script>
+<script src="habits.js?v=v159"></script>
+<script src="coach-bot.js?v=v159"></script>
+<script src="workout-log.js?v=v159"></script>
+<script src="targets.js?v=v159"></script>
+<script src="health.js?v=v159"></script>
+<script src="privacy.js?v=v159"></script>
 <script>
 (function () {
   'use strict';
@@ -792,7 +792,7 @@ button{cursor:pointer}
   function mergeMy(fromServer) {
     if (!Array.isArray(fromServer)) return;      // העמודה עוד לא קיימת בשרת
     /* meals_self בשרת מחזיק רק ארוחות מהספרייה. ארוחה שהמתאמן בנה
-       בעצמו לא נמצאת שם — ועד v158 ההחלפה הזאת מחקה אותה בכל טעינה
+       בעצמו לא נמצאת שם — ועד v159 ההחלפה הזאת מחקה אותה בכל טעינה
        ובכל ריענון. היא נשמרת עכשיו ב-session_state (ראה syncCustom),
        וכאן פשוט לא נוגעים בה. */
     const mine = MY_MEALS.filter(x => x.custom);
