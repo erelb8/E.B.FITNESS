@@ -22,7 +22,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['backup'] = 'v148';
+  (window.EB_MOD = window.EB_MOD || {})['backup'] = 'v149';
 
   var LAST_KEY = 'ebfit_backup_at';
   var TABLES = ['trainees', 'sessions', 'measures', 'payments'];
@@ -232,6 +232,7 @@
   /* רץ פעם ביום, בשקט. כישלון אינו מוצג למאמן — הוא לא ביקש את
      הריצה הזאת, והכרטיס בהגדרות כבר אומר מתי הגיבוי האחרון ירד. */
   async function auto() {
+    programsSoon();   // לא תלוי בשרת, ולא פעם ביום — רק מה שהשתנה
     try {
       /* שני יעדים, וכל אחד פעם ביום בנפרד: עותק בדפדפן ועותק בתיקייה.
          תיקייה שהגישה אליה חסרה היום לא מונעת את העותק בדפדפן, ולהפך. */
@@ -374,8 +375,116 @@
     return name;
   }
 
+  /* =====================================================================
+     קובץ לכל תוכנית, שמתעדכן לבד
+     ---------------------------------------------------------------------
+     הגיבוי היומי הוא קובץ אחד גדול של כל המערכת, ופעם ביום. המאמן
+     רוצה לפתוח תיקייה ולראות את התוכנית של כל מתאמן, כמו שהיא עכשיו.
+
+     לכן באותה תיקייה, בתת-תיקייה "תוכניות", יש קובץ HTML אחד לכל
+     מתאמן — אותו קובץ של "ייצוא תוכנית", שנפתח בכל דפדפן. הוא נכתב
+     מחדש בכל שמירה שבה התוכנית שלו השתנתה, וגם כשמשיכה מהשרת מביאה
+     שינוי שהמתאמן עשה בדף שלו. שתי הדרכים עוברות דרך rawSave.
+
+     בתוך הקובץ יושבת גם התוכנית המלאה כ-JSON, ו"ייבוא תוכנית" בתיק
+     המתאמן קורא אותה כמו שהיא. כלומר הקובץ הוא גם גיבוי שמשחזר
+     בדיוק, ולא רק תצוגה.
+
+     רק קובץ שהתוכן שלו השתנה נכתב — אחרת OneDrive היה מעלה שלושים
+     קבצים בכל הקשה. מתאמן שנמחק מהאפליקציה: הקובץ שלו נשאר. */
+  var PROG_DIR = 'תוכניות';
+  var PROG_MAP = 'ebfit_prog_files';     // מזהה מתאמן ← {f: שם קובץ, h: טביעה}
+  var progTimer = null, progBusy = false, progAgain = false;
+
+  function hash(s) {
+    var h = 5381;
+    for (var i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) | 0;
+    return (h >>> 0).toString(36) + '.' + s.length;
+  }
+  function progMap() {
+    try { return JSON.parse(localStorage.getItem(PROG_MAP) || '{}') || {}; } catch (e) { return {}; }
+  }
+  function fileSlug(name) {
+    // תווים שאסורים בשם קובץ בווינדוס, ותווי בקרה
+    return String(name || 'מתאמן').replace(/[\\\/:*?"<>|]+/g, ' ')
+      .split('').filter(function (c) { return c.charCodeAt(0) > 31; }).join('')
+      .replace(/\s+/g, ' ').trim().slice(0, 60) || 'מתאמן';
+  }
+  function hasPlan(t) {
+    return !!((((t.program || {}).days) || []).length || (t.meals || []).length);
+  }
+  function progHTML(t) {
+    var html = window.EBExport.build(t);
+    var data = JSON.stringify({
+      ebfit: 'program', v: 1, id: t.id, name: t.name || '',
+      נשמר: new Date().toISOString(), program: t.program || { days: [] }, meals: t.meals || []
+    }).replace(/</g, '\\u003c');
+    var tag = '<script type="application/json" id="ebfit-program">' + data + '<\/script>';
+    var at = html.lastIndexOf('</body>');
+    return at < 0 ? html + tag : html.slice(0, at) + tag + html.slice(at);
+  }
+
+  async function syncPrograms() {
+    if (progBusy) { progAgain = true; return 0; }
+    if (typeof S === 'undefined' || !window.EBExport || !EBExport.build) return 0;
+    var dir = await folderReady();
+    if (!dir) return 0;
+    progBusy = true;
+    var wrote = 0;
+    try {
+      var sub = await dir.getDirectoryHandle(PROG_DIR, { create: true });
+      var map = progMap(), used = {};
+      var list = (S.trainees || []).filter(hasPlan);
+
+      list.forEach(function (t) {
+        var base = fileSlug(t.name), f = base + '.html', n = 2;
+        while (used[f]) f = base + ' (' + (n++) + ').html';
+        used[f] = t.id;
+        t.__pf = f;
+      });
+
+      for (var i = 0; i < list.length; i++) {
+        var t = list[i], f = t.__pf; delete t.__pf;
+        var h = hash(f + '|' + JSON.stringify([t.name, t.goal, t.program, t.meals]));
+        var old = map[t.id];
+        if (old && old.h === h && old.f === f) continue;
+        try {
+          var fh = await sub.getFileHandle(f, { create: true });
+          var w = await fh.createWritable();
+          await w.write(progHTML(t));
+          await w.close();
+          /* שם שהשתנה: הקובץ הישן היה שלנו, ומוחקים אותו — אלא אם
+             מתאמן אחר כבר יושב על השם הזה. */
+          if (old && old.f && old.f !== f && !used[old.f]) {
+            try { await sub.removeEntry(old.f); } catch (e) {}
+          }
+          map[t.id] = { f: f, h: h };
+          wrote++;
+        } catch (e) {
+          if (window.console) console.warn('[EBBackup] כתיבת תוכנית נכשלה', t.name, e);
+        }
+      }
+      try { localStorage.setItem(PROG_MAP, JSON.stringify(map)); } catch (e) {}
+    } catch (e) {
+      if (window.console) console.warn('[EBBackup] תיקיית התוכניות לא זמינה', e);
+    } finally {
+      progBusy = false;
+    }
+    if (progAgain) { progAgain = false; programsSoon(); }
+    return wrote;
+  }
+  // נקרא מכל שמירה. ממתין רגע כדי שרצף הקשות ייכתב פעם אחת.
+  function programsSoon() {
+    clearTimeout(progTimer);
+    progTimer = setTimeout(function () { syncPrograms(); }, 2500);
+  }
+
   // כותב עכשיו, מתוך לחיצה. משמש גם לבחירה וגם לאישור מחדש.
   async function writeNow(dir) {
+    // התוכניות לא תלויות בשרת — הן נכתבות מהמכשיר גם לפני התחברות
+    try { localStorage.removeItem(PROG_MAP); } catch (e) {}
+    var np = await syncPrograms();
+    if (np) toast(np + ' תוכניות נשמרו בתיקייה');
     if (!window.EBSync || !EBSync.enabled() || !(EBSync.user && EBSync.user())) {
       toast('התיקייה נשמרה. הגיבוי הראשון ייכתב אחרי התחברות'); refreshAuto(); return;
     }
@@ -428,7 +537,8 @@
     if (!FOLDER_STATE.name) {
       return box + '<div class="muted" style="font-size:12px;line-height:1.6;margin-bottom:8px">'
         + 'בוחרים פעם אחת תיקייה, רצוי בתוך OneDrive, והאפליקציה כותבת אליה גיבוי מלא פעם ביום — '
-        + 'עותק על הדיסק וגם בענן, בלי לזכור כלום. הגיבוי כולל הצהרות בריאות, ולכן לבחור תיקייה פרטית.</div>'
+        + 'עותק על הדיסק וגם בענן, בלי לזכור כלום. בנוסף, כל תוכנית נשמרת שם כקובץ נפרד '
+        + 'בתיקייה "תוכניות" ומתעדכנת לבד בכל שינוי. הגיבוי כולל הצהרות בריאות, ולכן לבחור תיקייה פרטית.</div>'
         + '<button class="btn sm" onclick="EBBackup.pickFolder()">בחירת תיקייה</button>';
     }
     var at = folderAt(), when = '';
@@ -441,6 +551,9 @@
       + 'תיקייה: <b>' + esc(FOLDER_STATE.name) + '</b>'
       + (when ? '<span class="muted"> · נכתב לאחרונה ' + esc(when) + '</span>' : '<span class="muted"> · עוד לא נכתב</span>')
       + '</div>'
+      + '<div class="muted" style="font-size:12px;line-height:1.6;margin-bottom:8px">'
+      + 'כל תוכנית נשמרת בתת-התיקייה <b>תוכניות</b> כקובץ לכל מתאמן, ומתעדכנת לבד בכל שינוי — '
+      + 'שלך באפליקציה או של המתאמן בדף שלו. לשחזור: "ייבוא תוכנית" בתיק המתאמן ובחירת הקובץ.</div>'
       + (ok ? '' : '<div style="font-size:12.5px;color:var(--warn);margin-bottom:8px;line-height:1.6">'
           + 'הדפדפן צריך אישור מחדש לכתוב לתיקייה. בלי אישור הגיבוי היומי לא נכתב אליה. '
           + 'בחלון האישור אפשר לבחור "לאפשר בכל ביקור" כדי שזה לא יחזור.</div>')
@@ -535,5 +648,6 @@
   window.EBBackup = { run: run, card: card, lastAt: lastAt, daysSince: daysSince,
                       auto: auto, refreshAuto: refreshAuto, list: listSnaps,
                       download: download, restore: restore,
-                      pickFolder: pickFolder, allowFolder: allowFolder, forgetFolder: forgetFolder };
+                      pickFolder: pickFolder, allowFolder: allowFolder, forgetFolder: forgetFolder,
+                      programsSoon: programsSoon, syncPrograms: syncPrograms };
 })();

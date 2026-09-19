@@ -19,7 +19,7 @@
   'use strict';
 
   // חותמת גרסה — index.html משווה אליה כדי לזהות קובץ ישן במטמון
-  (window.EB_MOD = window.EB_MOD || {})['import'] = 'v148';
+  (window.EB_MOD = window.EB_MOD || {})['import'] = 'v149';
 
   var FOR = null, DRAFT = null;
 
@@ -570,8 +570,27 @@
     });
   }
 
+  /* ---------- קובץ שהאפליקציה עצמה כתבה ----------
+     הקבצים בתיקיית "תוכניות" נושאים את התוכנית המלאה כ-JSON. קוראים
+     אותה ב-JSON.parse — נתונים בלבד, שום קוד מהקובץ לא רץ. */
+  function fromOwn(src) {
+    var m = /<script type="application\/json" id="ebfit-program">([\s\S]*?)<\/script>/.exec(src);
+    if (!m) return null;
+    try {
+      var o = JSON.parse(m[1]);
+      if (!o || o.ebfit !== 'program' || !o.program || !Array.isArray(o.program.days)) return null;
+      return o;
+    } catch (e) { return null; }
+  }
+
   /* ---------- הפענוח ---------- */
   function parse(src) {
+    var own = fromOwn(src);
+    if (own) {
+      return { days: JSON.parse(JSON.stringify(own.program.days)), how: 'קובץ תוכנית של E.B FIT',
+               nutrition: '', note: own.program.note || '', program: own.program,
+               meals: own.meals || [], from: own.name || '' };
+    }
     var days = fromJS(src), how = 'נתוני התוכנית שבקובץ';
     if (days.length) days = days.concat(fromBlocks(src));   // ימי אירובי בסוף
     if (!days.length) { days = fromObjects(src); how = 'מבנה התוכנית שבקובץ'; }
@@ -604,7 +623,7 @@
 
   function handle(src, fname) {
     var r = parse(src);
-    if (!r.days.length) {
+    if (!r.days.length && !r.program) {
       openModal('<div class="mh"><h3>לא זוהתה תוכנית</h3>'
         + '<button class="iconbtn" onclick="closeModal()">✕</button></div><div class="mb">'
         + '<p style="font-size:13.5px;margin:0 0 10px">לא הצלחנו לזהות תרגילים בקובץ <b>' + esc(fname) + '</b>.</p>'
@@ -683,6 +702,12 @@
         !confirm('להחליף את התוכנית הקיימת? השינוי לא הפיך.')) return;
     t.program = t.program || { days: [] };
     t.program.days = append ? t.program.days.concat(DRAFT.days) : DRAFT.days.slice();
+    /* קובץ של האפליקציה עצמה: החלפה מחזירה את התוכנית כולה, כולל
+       הגדרות שאינן ימים (חימום, יעדים), ואת התפריט אם היה בקובץ. */
+    if (!append && DRAFT.program) {
+      t.program = JSON.parse(JSON.stringify(DRAFT.program));
+      if ((DRAFT.meals || []).length) t.meals = JSON.parse(JSON.stringify(DRAFT.meals));
+    }
 
     var nb = document.getElementById('ip_note');
     if (DRAFT.note && nb && nb.checked) t.program.note = DRAFT.note;

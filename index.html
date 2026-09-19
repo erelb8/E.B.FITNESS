@@ -429,8 +429,8 @@ tbody tr:hover{background:var(--panel)}
 <div id="toast"></div>
 
 <!-- ספריית Supabase מקומית (לא מ-CDN) כדי שהאפליקציה תעבוד גם בלי רשת -->
-<script src="vendor/supabase.js?v=v148"></script>
-<script src="config.js?v=v148"></script>
+<script src="vendor/supabase.js?v=v149"></script>
+<script src="config.js?v=v149"></script>
 
 <script>
 /* =======================================================================
@@ -465,7 +465,7 @@ function age(b){ if(!b) return null; const d=new Date(b), t=new Date(); let a=t.
 
 /* ---------------- אחסון ---------------- */
 const KEY='ebfit_v1';
-const EB_VERSION='v148';   // חייב להתאים ל-VERSION ב-sw.js
+const EB_VERSION='v149';   // חייב להתאים ל-VERSION ב-sw.js
 let mem=null, canStore=true;
 function load(){
   try{ const r=localStorage.getItem(KEY); return r?JSON.parse(r):null; }
@@ -475,6 +475,9 @@ function save(){
   refreshTargets();
   try{ localStorage.setItem(KEY, JSON.stringify(S)); }
   catch(e){ canStore=false; mem=JSON.parse(JSON.stringify(S)); }
+  /* קובץ לכל תוכנית בתיקייה במחשב. גם משיכה מהשרת עוברת כאן, ולכן
+     שינוי שהמתאמן עשה בדף שלו מגיע לקובץ בלי צעד נוסף. */
+  if(window.EBBackup && EBBackup.programsSoon) EBBackup.programsSoon();
 }
 
 /* היעדים המחושבים נשמרים בתוך התוכנית עצמה, כי היא כבר מסונכרנת
@@ -2998,30 +3001,30 @@ if (location.protocol === 'file:') {
 }
 </script>
 
-<script src="health.js?v=v148"></script>
-<script src="privacy.js?v=v148"></script>
-<script src="backup.js?v=v148"></script>
-<script src="reorder.js?v=v148"></script>
-<script src="access.js?v=v148"></script>
-<script src="analysis.js?v=v148"></script>
-<script src="reports.js?v=v148"></script>
-<script src="business.js?v=v148"></script>
-<script src="intake.js?v=v148"></script>
-<script src="files.js?v=v148"></script>
-<script src="builder.js?v=v148"></script>
-<script src="import-program.js?v=v148"></script>
-<script src="tracking.js?v=v148"></script>
-<script src="metrics.js?v=v148"></script>
-<script src="targets.js?v=v148"></script>
-<script src="meal-library.js?v=v148"></script>
-<script src="library-ui.js?v=v148"></script>
-<script src="export-plan.js?v=v148"></script>
-<script src="cardio.js?v=v148"></script>
-<script src="cardio-ui.js?v=v148"></script>
-<script src="exercise-library.js?v=v148"></script>
-<script src="exercise-ui.js?v=v148"></script>
-<script src="meals.js?v=v148"></script>
-<script src="sync.js?v=v148"></script>
+<script src="health.js?v=v149"></script>
+<script src="privacy.js?v=v149"></script>
+<script src="backup.js?v=v149"></script>
+<script src="reorder.js?v=v149"></script>
+<script src="access.js?v=v149"></script>
+<script src="analysis.js?v=v149"></script>
+<script src="reports.js?v=v149"></script>
+<script src="business.js?v=v149"></script>
+<script src="intake.js?v=v149"></script>
+<script src="files.js?v=v149"></script>
+<script src="builder.js?v=v149"></script>
+<script src="import-program.js?v=v149"></script>
+<script src="tracking.js?v=v149"></script>
+<script src="metrics.js?v=v149"></script>
+<script src="targets.js?v=v149"></script>
+<script src="meal-library.js?v=v149"></script>
+<script src="library-ui.js?v=v149"></script>
+<script src="export-plan.js?v=v149"></script>
+<script src="cardio.js?v=v149"></script>
+<script src="cardio-ui.js?v=v149"></script>
+<script src="exercise-library.js?v=v149"></script>
+<script src="exercise-ui.js?v=v149"></script>
+<script src="meals.js?v=v149"></script>
+<script src="sync.js?v=v149"></script>
 <script>
 /* =================== חיבור הסנכרון לאפליקציה =================== */
 
