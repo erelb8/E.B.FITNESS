@@ -15,7 +15,7 @@
   'use strict';
 
   // חותמת גרסה — index.html משווה אליה כדי לזהות קובץ ישן במטמון
-  (window.EB_MOD = window.EB_MOD || {})['sync'] = 'v163';
+  (window.EB_MOD = window.EB_MOD || {})['sync'] = 'v164';
 
   const CFG      = window.EBFIT_CONFIG || { URL: '', ANON: '' };
   const SNAP_KEY = 'ebfit_sync_v1';
@@ -76,7 +76,7 @@
      כלומר נכתב חזרה כעותק שני של אישור שהמתאמן נתן — מקור אמת כפול
      לרשומה משפטית. */
   const SHARED = ['id', 'name', 'goal', 'program', 'status', 'files', 'meals', 'mealsSelf',
-                  'mealsCustom', 'exercisesSelf', 'health', 'weighins', 'termsAccepted'];
+                  'mealsCustom', 'habitsLog', 'exercisesSelf', 'health', 'weighins', 'termsAccepted'];
 
   function traineeToRow(t) {
     const priv = {};
@@ -122,6 +122,8 @@
       termsAccepted: (r.session_state || {}).terms || null,
       // ארוחות שהמתאמן בנה בעצמו בדף שלו — לקריאה בלבד, כמו termsAccepted
       mealsCustom: (r.session_state || {}).myMeals || [],
+      // סימוני "אכלתי" וההרגלים שהמתאמן סימן בדף שלו — לקריאה בלבד
+      habitsLog: (r.session_state || {}).habits || null,
       weighins: r.weighins || [],
       status: r.status,
       _token: r.access_token,

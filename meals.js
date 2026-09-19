@@ -12,7 +12,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['meals'] = 'v163';
+  (window.EB_MOD = window.EB_MOD || {})['meals'] = 'v164';
 
   var BUCKET = 'programs';
   var MAXW   = 900;          // רוחב מרבי אחרי הקטנה
@@ -109,6 +109,55 @@
       + '</div></div>';
   }
 
+  /* ---------- מה המתאמן סימן שאכל ----------
+     הסימון "אכלתי" נשמר בדף המתאמן ב-session_state.habits, לפי יום,
+     עם מזהה "סוג|שם". כאן מתאימים אותו לארוחות שבתפריט ולארוחות
+     שהמתאמן הוסיף לעצמו, כדי להציג שמות וקלוריות. */
+  function hid(type, name) { return String((type || 'other') + '|' + (name || '')).trim().toLowerCase().replace(/\s+/g, ' '); }
+  function isoDay(back) {
+    var d = new Date(); d.setDate(d.getDate() - back);
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+  function eatenBlock(t, goals) {
+    var marks = (t.habitsLog && t.habitsLog.marks) || {};
+    var known = {};
+    (t.meals || []).forEach(function (m) { known[hid(m.type, m.name)] = { name: m.name, k: num(m.kcal) }; });
+    if (typeof EBLib !== 'undefined') {
+      (t.mealsSelf || []).forEach(function (x) {
+        var m = EBLib.byId(x.libId); if (!m) return;
+        known[hid(m.type, m.name)] = { name: m.name, k: EBLib.calc(m.items).total.k };
+      });
+    }
+    (t.mealsCustom || []).forEach(function (x) { if (x && x.custom) known[hid('other', x.name)] = { name: x.name, k: num(x.k) }; });
+
+    var rows = [], anyDay = 0;
+    for (var b = 0; b < 7; b++) {
+      var iso = isoDay(b), day = marks[iso] || {};
+      var ids = Object.keys(day.meals || {});
+      if (!ids.length && !day.food) continue;
+      anyDay++;
+      var items = ids.map(function (id) { return known[id] || { name: id.split('|').slice(1).join('|'), k: 0 }; });
+      var k = items.reduce(function (a, x) { return a + (x.k || 0); }, 0);
+      var d = new Date(iso + 'T00:00');
+      rows.push('<div class="row" style="padding:7px 0;border-top:1px solid var(--line);font-size:13px;align-items:flex-start">'
+        + '<span class="muted" style="min-width:62px">' + (b === 0 ? 'היום' : b === 1 ? 'אתמול' : d.getDate() + '.' + (d.getMonth() + 1)) + '</span>'
+        + '<span style="flex:1;min-width:0">' + (items.length ? items.map(function (x) { return esc(x.name); }).join(' · ')
+            : '<span class="muted">' + (t.gender === 'נקבה' ? 'סימנה' : 'סימן') + ' "אכלתי לפי התוכנית"</span>') + '</span>'
+        + (k ? '<span style="font-family:Heebo;font-weight:700;white-space:nowrap">' + Math.round(k)
+            + (goals && goals.kcal ? '<span class="muted" style="font-weight:400"> / ' + Math.round(goals.kcal) + '</span>' : '') + '</span>' : '')
+        + '</div>');
+    }
+    var h = '<div class="card" style="margin-bottom:14px">'
+      + '<div class="row" style="align-items:baseline;margin-bottom:4px">'
+      + '<h3 style="flex:1;font-size:14.5px">מה ' + (t.gender === 'נקבה' ? 'סימנה שאכלה' : 'סימן שאכל') + '</h3>'
+      + '<span class="muted" style="font-size:12px">' + anyDay + ' מתוך 7 ימים</span></div>';
+    if (!rows.length) {
+      return h + '<div class="muted" style="font-size:12.5px;line-height:1.6;margin-top:6px">'
+        + 'אין סימונים בשבוע האחרון. בדף שלו יש "אכלתי?" על כל ארוחה, ו"אכלתי לפי התוכנית היום" בהרגלים.</div></div>';
+    }
+    return h + rows.join('') + '</div>';
+  }
+
   /* ---------- כרטיס בתיק המאמן ---------- */
   function tab(t) {
     var on = window.EBSync && EBSync.enabled() && EBSync.user();
@@ -168,11 +217,13 @@
         + bar('שומן', T.f, goals.fatG, 'ג׳')
         + '</div>'
         + (goals.kcal
-            ? '<div class="muted" style="font-size:12px;margin-top:10px">הסיכום הוא של כל הארוחות בתפריט מול היעד היומי המחושב.</div>'
+            ? '<div class="muted" style="font-size:12px;margin-top:10px;line-height:1.6">סך כל הארוחות בתפריט מול היעד היומי. '
+              + 'אם נתת כמה אפשרויות לאותה ארוחה, זה יותר ממה שייאכל ביום — מה שנאכל בפועל מופיע למטה.</div>'
             : '<div class="muted" style="font-size:12px;margin-top:10px">אין יעדים מחושבים — חסרים משקל, גובה, גיל או מין.</div>')
         + '</div>';
     }
 
+    h += eatenBlock(t, goals);
     h += selfBlock(t);
 
     if (!list.length && !((t.mealsSelf || []).length))

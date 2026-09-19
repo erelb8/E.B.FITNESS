@@ -12,7 +12,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['exLibrary'] = 'v163';
+  (window.EB_MOD = window.EB_MOD || {})['exLibrary'] = 'v164';
 
   var MUSCLES = {
     chest:'חזה', back:'גב', shoulders:'כתפיים', biceps:'יד קדמית', triceps:'יד אחורית',

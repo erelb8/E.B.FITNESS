@@ -16,7 +16,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['privacy'] = 'v163';
+  (window.EB_MOD = window.EB_MOD || {})['privacy'] = 'v164';
 
   var NOTICE_VERSION = '2026-09-05';
 
