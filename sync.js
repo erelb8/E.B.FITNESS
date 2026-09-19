@@ -15,7 +15,7 @@
   'use strict';
 
   // חותמת גרסה — index.html משווה אליה כדי לזהות קובץ ישן במטמון
-  (window.EB_MOD = window.EB_MOD || {})['sync'] = 'v166';
+  (window.EB_MOD = window.EB_MOD || {})['sync'] = 'v167';
 
   const CFG      = window.EBFIT_CONFIG || { URL: '', ANON: '' };
   const SNAP_KEY = 'ebfit_sync_v1';
@@ -30,6 +30,7 @@
   let adminState = 'unknown';    // unknown / allowed / denied
   let adminToken = '';
   let timer = null;              // דיבאונס
+  let pending = false;           // יש שינוי שעוד לא נשלח
   let running = false;
   let lastError = null;
   let failCount = 0;             // נכשלות ברצף — ממתינים לפני ניסיון נוסף
@@ -382,7 +383,17 @@
       if (ms == null || ms < backoff) ms = backoff;
     }
     clearTimeout(timer);
-    timer = setTimeout(() => { run().catch(() => {}); }, ms == null ? 2000 : ms);
+    timer = setTimeout(() => { run().catch(() => {}); }, ms == null ? 1200 : ms);
+    pending = true;
+  }
+  /* יציאה מהאפליקציה: שולחים עכשיו ולא בעוד שנייה. בטלפון דף ברקע
+     נעצר, והשינוי האחרון היה נשאר במכשיר עד הפתיחה הבאה. */
+  function flush() {
+    if (!pending || !enabled() || !user) return;
+    // סנכרון כבר רץ — הטיימר שמחכה אחריו ישלח; לא מבטלים אותו
+    if (running) return;
+    clearTimeout(timer);
+    run().catch(() => {});
   }
 
   async function run() {
@@ -391,7 +402,7 @@
       return;
     }
     log('sync started', { userId: user.id });
-    running = true; lastError = null; paint();
+    running = true; pending = false; lastError = null; paint();
     try {
       if (!(await checkAdmin())) {
         lastError = 'אין הרשאת מנהל לחשבון הזה';
@@ -918,6 +929,6 @@
     user: () => user,
     client: () => sb,
     missing: () => MISSING,
-    traineeLink, setAccess, logsFor, recentLogs, setLogin
+    traineeLink, setAccess, logsFor, recentLogs, setLogin, flush
   };
 })();
