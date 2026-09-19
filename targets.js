@@ -17,7 +17,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['targets'] = 'v156';
+  (window.EB_MOD = window.EB_MOD || {})['targets'] = 'v157';
 
   var KEYS = ['kcal', 'protein', 'carbs', 'fat', 'water', 'steps'];
   var DAY_HE = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
