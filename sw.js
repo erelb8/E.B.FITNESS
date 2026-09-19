@@ -2,7 +2,7 @@
    נותן לאפליקציה לעבוד לגמרי בלי אינטרנט אחרי הפתיחה הראשונה.
    כשמעדכנים את האפליקציה — מעלים את המספר ב-VERSION. */
 
-const VERSION = 'ebfit-v157';
+const VERSION = 'ebfit-v158';
 const SHELL   = VERSION + '-shell';
 const FONTS   = VERSION + '-fonts';
 
@@ -59,7 +59,7 @@ self.addEventListener('install', e => {
     // addAll נכשל כולו אם קובץ אחד חסר — לכן אחד־אחד
     /* cache:'reload' — בלי זה c.add לוקח את הקובץ ממטמון ה-HTTP של
        הדפדפן, ובגרסה חדשה נשמר שוב האייקון הישן. כך קרה בהחלפת
-       הלוגו ב-v157: המטמון החדש החזיק את התמונה הקודמת. */
+       הלוגו ב-v158: המטמון החדש החזיק את התמונה הקודמת. */
     await Promise.all(SHELL_FILES.map(u =>
       fetch(u, { cache: 'reload' })
         .then(r => r.ok ? c.put(u, r) : null)
