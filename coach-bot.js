@@ -18,9 +18,9 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['bot'] = 'v173';
+  (window.EB_MOD = window.EB_MOD || {})['bot'] = 'v174';
 
-  var LOGS = [], WEIGH = [], PROGRAM = null, GOAL = '', HABITS = null;
+  var LOGS = [], WEIGH = [], PROGRAM = null, GOAL = '', HABITS = null, FOOD = null;
 
   /* ריבוי בעברית. שלוש טעויות מהסוג הזה ("1 תרגילים") נתפסו בבדיקת
      דפדפן אחת, כולן דווקא במצב הנפוץ — ולכן זה יושב כאן ולא בשורה. */
@@ -108,7 +108,7 @@
   }
 
   /* השבוע הנוכחי מול המתוכנן */
-  /* ימים אמיתיים בתוכנית — לא ימים ריקים ולא ימי הנחיות. עד v173 כל
+  /* ימים אמיתיים בתוכנית — לא ימים ריקים ולא ימי הנחיות. עד v174 כל
      יום נספר, ומתאמן עם 14 ימים בתוכנית (9 מהם ריקים) "היה צריך"
      להתאמן 14 פעמים בשבוע, וקיבל "פחות אימונים מהתוכנית" על כל שבוע. */
   function realDays() {
@@ -168,6 +168,7 @@
     PROGRAM = opts.program || null;
     GOAL    = String(opts.goal || '');
     HABITS  = opts.habits || null;
+    FOOD    = opts.food || null;
     LOGS.sort(function (a, b) { return String(a.date) < String(b.date) ? -1 : 1; });
     return true;
   }
@@ -220,7 +221,7 @@
       out.push({
         name: name, points: pts, sessions: pts.length,
         last: last, best: best, gainPct: gain,
-        /* שיא = טוב מכל אימון קודם. עד v173 גם חזרה על אותו משקל נקראה
+        /* שיא = טוב מכל אימון קודם. עד v174 גם חזרה על אותו משקל נקראה
            "שיא חדש", יחד עם "נתקע" על אותו תרגיל. */
         isPR: pts.length > 1 && last.est > pts.slice(0, -1).reduce(function (a, p) { return Math.max(a, p.est); }, 0) + 0.01,
         stalled: stalled,
@@ -339,7 +340,7 @@
     var seen = {};
     LOGS.forEach(function (l) {
       var d = daysAgo(l.date);
-      /* בשרת השדה הוא day_name. עד v173 נקרא רק dayName, ולכן כל יום
+      /* בשרת השדה הוא day_name. עד v174 נקרא רק dayName, ולכן כל יום
          נראה מוזנח — גם כזה שאומן יומיים קודם. */
       if (d !== null && d <= 21) seen[String(l.day_name || l.dayName || '').trim()] = 1;
     });
@@ -362,6 +363,9 @@
 
      שתי הודעות לכל היותר, אחת לכל תחום. מתאמן שמקבל שש הודעות
      מפסיק לקרוא את כולן, וההודעות על האימון עצמו חשובות יותר. */
+  function foodLoggedThisWeek() {
+    return !!(FOOD && FOOD.days && FOOD.days.slice(0, 7).some(function (d) { return d.n >= 1; }));
+  }
   function habitWatch() {
     var out = [];
     if (!window.EBHabits || !HABITS) return out;
@@ -371,7 +375,9 @@
 
     [{ kind: 'mob',  on: hasList, icon: '🧘', what: 'מתיחות',
        zero: 'יש לך רשימת מתיחות ועוד לא סימנת אף יום. חמש דקות ביום הן ההפרש בין טווח תנועה שנשמר לבין כזה שנסגר בשקט.' },
-     { kind: 'food', on: true,    icon: '🥗', what: 'תזונה',
+     /* מי שרושם אוכל ביומן — הודעות התזונה מדברות עליו (nutritionMsgs).
+        בלי זה הבוט אמר "עוד לא סימנת תזונה" למי שרשם שישה ימים. */
+     { kind: 'food', on: !foodLoggedThisWeek(), icon: '🥗', what: 'תזונה',
        zero: 'עוד לא סימנת ימי תזונה. האימון בונה את הגירוי, האוכל בונה את התוצאה — וסימון יומי אחד מספיק כדי שנראה מגמה.' }
     ].forEach(function (cfg) {
       if (!cfg.on) return;
@@ -403,7 +409,7 @@
 
   /* ---------- כאב ועייפות ----------
      מאמן שרואה "כואבת לי הברך" פעמיים ושלושה אימונים "קשה" ברצף לא
-     מדבר על שיאים. עד v173 הבוט לא קרא את ההערות ואת ה"איך היה" בכלל.
+     מדבר על שיאים. עד v174 הבוט לא קרא את ההערות ואת ה"איך היה" בכלל.
      הגבול בעברית מפורש — \b של JS לא מכיר אותיות עבריות. */
   var PAIN = /(^|[^\u05D0-\u05EA])[והבלמשכ]{0,2}(כאב|כאבים|כואב|כואבת|כואבים|כאבה|פציעה|פצוע|פצועה|נפצע|נפצעה|נפצעתי|דלקת|נקע|נפיחות|נפוח|נפוחה|סחרחורת|נתפס|נתפסה|נתפסו|צריבה|חבלה)(?=$|[^\u05D0-\u05EA])/;
   function painNote() {
@@ -461,6 +467,62 @@
     return out;
   }
 
+  /* ---------- תזונה ----------
+     עד v174 הבוט לא ראה מה המתאמן אוכל, ועל משקל שלא זז אמר רק "זה
+     כמעט תמיד הכמויות". עכשיו יש יומן אוכל ויעד, ולכן אפשר להגיד את
+     המספר עצמו.
+
+     "יום רשום" הוא יום עם שתי ארוחות לפחות. יום עם ארוחה אחת רשומה הוא
+     כמעט תמיד יום שלא נרשם עד הסוף, וממוצע שכולל אותו היה אומר למתאמן
+     שהוא אוכל מעט מדי כשהוא פשוט לא סימן. היום עצמו לא נספר — הוא עוד
+     לא נגמר. */
+  function foodStats() {
+    if (!FOOD || !FOOD.days) return null;
+    var week = FOOD.days.slice(1, 8);
+    var full = week.filter(function (d) { return d.n >= 2; });
+    var any = FOOD.days.slice(0, 7).filter(function (d) { return d.n >= 1; }).length;
+    var avg = function (k) { return full.length ? Math.round(full.reduce(function (a, d) { return a + (d[k] || 0); }, 0) / full.length) : 0; };
+    return { logged: any, full: full.length, kcal: avg('k'), protein: avg('p'), tKcal: FOOD.kcal || 0, tProt: FOOD.protein || 0 };
+  }
+  function nutritionMsgs() {
+    var f = foodStats(); if (!f) return [];
+    var dir = (window.EBProg && window.EBProg.direction) ? window.EBProg.direction(GOAL) : null;
+    var out = [];
+    if (!f.logged) return out;                             // לא משתמש ברישום בכלל — לא מציקים
+    if (f.full < 3) {
+      out.push({ tone: 'info', icon: '📝', title: 'רשמת תזונה ' + f.logged + ' מתוך 7 ימים',
+        text: 'כדי לדעת למה המשקל זז או לא זז, צריך לפחות שלושה ימים רשומים עד הסוף בשבוע. '
+            + 'לסמן "אכלתי?" על כל ארוחה, ומה שלא בתפריט — "אכלתי משהו שלא בתפריט".' });
+      return out;
+    }
+    if (f.tKcal) {
+      var ratio = f.kcal / f.tKcal;
+      var nums = 'ממוצע ' + f.kcal.toLocaleString('en-US') + ' קק״ל ביום מול יעד ' + f.tKcal.toLocaleString('en-US');
+      if (ratio < 0.7) {
+        out.push({ tone: 'warn', icon: '🍽', title: 'אוכל מעט מדי',
+          text: nums + '. כל כך מעט אוכל בא על חשבון השריר והאנרגיה באימון, ובסוף גם המשקל נתקע. '
+              + 'להוסיף ארוחה או להגדיל מנות — עדיף לרדת לאט ולשמור על השריר.' });
+      } else if (dir === 'down' && ratio > 1.1) {
+        out.push({ tone: 'warn', icon: '🍽', title: 'מעל היעד הקלורי',
+          text: nums + '. זה ההסבר הכי סביר לכך שהירידה לא מתקדמת כמו שצריך. '
+              + 'הכי קל להוריד: שמן, רטבים, אגוזים ונשנושים — הם הרבה קלוריות בכמות קטנה.' });
+      } else if (dir === 'up' && ratio < 0.9) {
+        out.push({ tone: 'warn', icon: '🍽', title: 'מתחת ליעד — קשה לבנות ככה',
+          text: nums + '. בלי עודף קטן בקלוריות השריר לא נבנה, גם באימון מצוין. '
+              + 'ארוחה נוספת לפני או אחרי האימון היא הדרך הכי פשוטה לסגור את הפער.' });
+      } else if (ratio >= 0.9 && ratio <= 1.1) {
+        out.push({ tone: 'good', icon: '🎯', title: 'תזונה מדויקת',
+          text: nums + ', ב-' + f.full + ' ימים רשומים. זה הבסיס שהכל נבנה עליו — ככה ממשיכים.' });
+      }
+    }
+    if (f.tProt && f.protein && f.protein < f.tProt * 0.8) {
+      out.push({ tone: 'warn', icon: '🥩', title: 'חלבון נמוך',
+        text: 'ממוצע ' + f.protein + ' ג׳ חלבון ביום מול יעד ' + f.tProt + '. חלבון הוא מה ששומר ובונה שריר — '
+            + 'מקור חלבון בכל ארוחה: עוף, ביצים, יוגורט, קוטג׳, טונה או טופו.' });
+    }
+    return out;
+  }
+
   function messages(opts) {
     opts = opts || {};
     var out = [];
@@ -503,6 +565,11 @@
         text: 'בחודש האחרון ' + c.last4Weeks + ' אימונים, בערך ' + c.perWeek
             + ' בשבוע, מול ' + c.planned + ' שתוכננו. עדיף להוריד ליעד שאתה עומד בו מלפספס אותו כל שבוע.' });
     }
+
+    /* תזונה: אזהרה עולה לכאן — היא מה שמסביר משקל שלא זז, והכרטיס
+       מציג ארבע הודעות בלבד. מחמאה נשארת למטה. */
+    var nm = nutritionMsgs();
+    nm.filter(function (m) { return m.tone !== 'good'; }).slice(0, 1).forEach(function (m) { out.push(m); });
 
     /* שיאים */
     var prs = t.filter(function (x) { return x.isPR && x.sessions >= 2 && x.daysSince !== null && x.daysSince <= 14; });
@@ -591,6 +658,10 @@
         }
       }
     }
+
+    /* תזונה — אחרי המשקל, כי היא מסבירה אותו. הודעה אחת לכל היותר
+       כשיש כבר אזהרה דחופה יותר, כדי לא להציף. */
+    nm.filter(function (m) { return m.tone === 'good'; }).slice(0, 1).forEach(function (m) { out.push(m); });
 
     /* לא בסוף הרשימה: הכרטיס מציג ארבע הודעות בלבד, והוספה בסוף
        פירושה שההרגלים נחתכים ולא נראים אף פעם אצל מתאמן פעיל —

@@ -192,7 +192,7 @@ B.load({ logs: [{ date: ago(1) }, { date: ago(8) }, { date: ago(15) }, { date: a
 t('תוכנית שהסתיימה', B.plan().ended, true);
 t('הרצף שרד את סוף התוכנית', B.streak().weeks >= 4, true);
 
-/* ---------- v173: מה שמאמן אמיתי היה אומר ---------- */
+/* ---------- v174: מה שמאמן אמיתי היה אומר ---------- */
 console.log('=== מאמן אמיתי ===');
 const titles = () => B.messages({ skipWeight: true }).map(m => m.title).join(' | ');
 const RANGE = { days: [{ name: 'יום A', exercises: [{ name: 'סקוואט', sets: '3', reps: '8-10' }] }] };
@@ -238,6 +238,22 @@ const cyc = [];
 B.load({ logs: [], program: { days: cyc } });
 t('מחזורית — 4 בשבוע', B.consistency().planned, 4);
 t('מחזורית — אין "יום מוזנח"', B.neglectedDays().length, 0);
+
+/* ---------- v174: תזונה ---------- */
+console.log('=== תזונה ===');
+global.window.EBProg = { direction: g => /חיטוב|ירידה/.test(g) ? 'down' : /מסה|מסת/.test(g) ? 'up' : null };
+const food = (k, p, n, tk, tp) => ({ days: Array.from({ length: 14 }, (_, i) => ({ iso: ago(i), k: i ? k : 0, p: i ? p : 0, n: i ? n : 0 })), kcal: tk, protein: tp });
+const nt = (goal, f) => { B.load({ logs: [log(2, 'יום A', [['סקוואט', 60, 8]])], program: RANGE, goal: goal, food: f });
+                          return B.messages({ skipWeight: true }).map(m => m.title).join(' | '); };
+t('חיטוב ומעל היעד', /מעל היעד הקלורי/.test(nt('חיטוב', food(2600, 150, 3, 2000, 150))), true);
+t('מסה ומתחת ליעד', /מתחת ליעד/.test(nt('מסת שריר', food(2200, 150, 3, 2800, 150))), true);
+t('מעט מדי — בכל מטרה', /אוכל מעט מדי/.test(nt('חיטוב', food(1100, 90, 3, 2000, 150))), true);
+t('ביעד — מחמאה', /תזונה מדויקת/.test(nt('חיטוב', food(2050, 150, 3, 2000, 150))), true);
+t('חלבון נמוך', /חלבון נמוך/.test(nt('חיטוב', food(2000, 80, 3, 2000, 150))), true);
+t('ארוחה אחת ביום — לא נספר כיום מלא', /רשמת תזונה/.test(nt('חיטוב', food(600, 30, 1, 2000, 150))), true);
+t('ארוחה אחת ביום — לא "מעט מדי"', /מעט מדי/.test(nt('חיטוב', food(600, 30, 1, 2000, 150))), false);
+t('בלי רישום בכלל — שקט', /תזונה|קלור|חלבון/.test(nt('חיטוב', food(0, 0, 0, 2000, 150))), false);
+delete global.window.EBProg;
 
 console.log(fail ? '\n' + fail + ' נכשלו  |  עברו: ' + pass
                  : '\nהכל עבר  |  עברו: ' + pass);
