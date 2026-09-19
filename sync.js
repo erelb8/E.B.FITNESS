@@ -15,7 +15,7 @@
   'use strict';
 
   // חותמת גרסה — index.html משווה אליה כדי לזהות קובץ ישן במטמון
-  (window.EB_MOD = window.EB_MOD || {})['sync'] = 'v149';
+  (window.EB_MOD = window.EB_MOD || {})['sync'] = 'v150';
 
   const CFG      = window.EBFIT_CONFIG || { URL: '', ANON: '' };
   const SNAP_KEY = 'ebfit_sync_v1';
@@ -759,6 +759,20 @@
     return data || [];
   }
 
+  /* מה כל המתאמנים דיווחו בימים האחרונים — שאילתה אחת ללוח הבקרה,
+     במקום שאילתה לכל מתאמן. ה-RLS מחזיר רק את המתאמנים של המאמן. */
+  async function recentLogs(days) {
+    if (!sb || !user) return null;
+    const d = new Date(); d.setDate(d.getDate() - (days || 14));
+    const since = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0')
+                + '-' + String(d.getDate()).padStart(2, '0');
+    const { data, error } = await sb.from('workout_logs')
+      .select('id,trainee_id,date,day_name,entries,feel,note,created_at')
+      .gte('date', since).order('created_at', { ascending: false }).limit(600);
+    if (error) return null;
+    return data || [];
+  }
+
   /* ---------- חיווי מצב ---------- */
 
   /* =====================================================================
@@ -899,6 +913,6 @@
     user: () => user,
     client: () => sb,
     missing: () => MISSING,
-    traineeLink, setAccess, logsFor, setLogin
+    traineeLink, setAccess, logsFor, recentLogs, setLogin
   };
 })();

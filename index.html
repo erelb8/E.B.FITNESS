@@ -298,6 +298,38 @@ th{text-align:right;font-size:11px;letter-spacing:.08em;color:var(--dim);font-we
 td{padding:10px;border-bottom:1px solid var(--line)}
 tr:last-child td{border-bottom:0}
 tbody tr:hover{background:var(--panel)}
+/* ---------- לוח הבקרה ---------- */
+.dash-feed .ev{display:flex;gap:11px;align-items:flex-start;padding:11px 0;border-bottom:1px solid var(--line);cursor:pointer}
+.dash-feed .ev:last-child{border-bottom:0}
+.dash-feed .ev:hover .ev-name{color:var(--or)}
+.dash-feed .ev .av{width:34px;height:34px;flex:0 0 34px;border-radius:10px;font-size:12.5px}
+.ev-body{flex:1;min-width:0}
+.ev-name{font-weight:700;font-size:14px;transition:color .15s}
+.ev-what{font-size:13px;color:var(--tx);opacity:.88;margin-top:1px}
+.ev-note{font-size:12.5px;color:var(--mut);margin-top:4px;padding:6px 9px;border-radius:8px;background:rgba(0,0,0,.18);white-space:pre-wrap;word-break:break-word}
+.ev-when{font-size:11.5px;color:var(--dim);white-space:nowrap;margin-top:2px}
+.ev-tag{display:inline-block;font-size:11px;padding:1px 7px;border-radius:20px;margin-inline-start:6px;vertical-align:1px;border:1px solid var(--line2);color:var(--mut)}
+.ev-tag.easy{color:var(--ok);border-color:rgba(168,199,94,.35)}
+.ev-tag.hard{color:var(--bad);border-color:rgba(217,96,90,.4)}
+.ev-tag.down{color:var(--ok);border-color:rgba(168,199,94,.35)}
+.ev-tag.up{color:var(--cop);border-color:rgba(209,154,85,.4)}
+.wk-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);cursor:pointer}
+.wk-row:last-child{border-bottom:0}
+.wk-row.idle{opacity:.55}
+.wk-row .av{width:28px;height:28px;flex:0 0 28px;border-radius:8px;font-size:11px}
+.wk-name{flex:1;min-width:0;font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wk-dots{display:flex;gap:4px}
+.wk-dots i{width:11px;height:11px;border-radius:50%;background:var(--line);display:block}
+.wk-dots i.on{background:var(--or)}
+.wk-dots i.w{background:var(--cop)}
+.wk-dots i.today{box-shadow:0 0 0 1.5px var(--line2)}
+.wk-n{font-family:Heebo;font-weight:800;font-size:13px;width:22px;text-align:center;color:var(--mut)}
+.wk-n.hot{color:var(--or)}
+.dash-legend{display:flex;gap:12px;font-size:11.5px;color:var(--dim);margin-top:10px;flex-wrap:wrap}
+.dash-legend b{display:inline-block;width:9px;height:9px;border-radius:50%;margin-inline-end:5px;vertical-align:0}
+.dash-top{display:grid;grid-template-columns:1.5fr 1fr;gap:14px;margin-top:14px;align-items:start}
+@media(max-width:900px){ .dash-top{grid-template-columns:1fr} }
+.more-btn{width:100%;margin-top:8px}
 .line-item{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
 .line-item:last-child{border-bottom:0}
 
@@ -429,8 +461,8 @@ tbody tr:hover{background:var(--panel)}
 <div id="toast"></div>
 
 <!-- ספריית Supabase מקומית (לא מ-CDN) כדי שהאפליקציה תעבוד גם בלי רשת -->
-<script src="vendor/supabase.js?v=v149"></script>
-<script src="config.js?v=v149"></script>
+<script src="vendor/supabase.js?v=v150"></script>
+<script src="config.js?v=v150"></script>
 
 <script>
 /* =======================================================================
@@ -465,7 +497,7 @@ function age(b){ if(!b) return null; const d=new Date(b), t=new Date(); let a=t.
 
 /* ---------------- אחסון ---------------- */
 const KEY='ebfit_v1';
-const EB_VERSION='v149';   // חייב להתאים ל-VERSION ב-sw.js
+const EB_VERSION='v150';   // חייב להתאים ל-VERSION ב-sw.js
 let mem=null, canStore=true;
 function load(){
   try{ const r=localStorage.getItem(KEY); return r?JSON.parse(r):null; }
@@ -1034,37 +1066,166 @@ function genderFixCard(){
    +'</div>';
 }
 
+/* =====================================================================
+   לוח הבקרה
+   ---------------------------------------------------------------------
+   הדבר הראשון שהמאמן רוצה לראות הוא מה המתאמנים עשו: מי דיווח אימון
+   בדף שלו, מי נשקל, ומה כתב. אחריו — מי פעיל השבוע ומי נעלם.
+
+   הדיווחים יושבים ב-workout_logs ולא ב-S, ולכן נמשכים כאן בשאילתה אחת
+   ל-14 הימים האחרונים ונשמרים בזיכרון דקה וחצי. בלי חיבור לשרת הלוח
+   עובד על מה שיש במכשיר: אימונים ביומן ושקילות.
+   ===================================================================== */
+const DASH = { logs:null, at:0, loading:false, more:false };
+function dashSynced(){ return !!(window.EBSync && EBSync.enabled && EBSync.enabled() && EBSync.recentLogs); }
+function dashLoad(){
+  if(DASH.loading || Date.now()-DASH.at < 90000 || !dashSynced()) return;
+  DASH.loading=true;
+  EBSync.recentLogs(14).then(rows=>{
+    if(rows) DASH.logs=rows;
+    DASH.at=Date.now(); DASH.loading=false;
+    if(VIEW==='dash') render();
+  }).catch(()=>{ DASH.at=Date.now(); DASH.loading=false; });
+}
+function dashAgo(iso, day){
+  const t=todayISO(), d=String(day||iso||'').slice(0,10);
+  let hm='';
+  if(iso && String(iso).length>10){ const x=new Date(iso); hm=String(x.getHours()).padStart(2,'0')+':'+String(x.getMinutes()).padStart(2,'0'); }
+  if(d===t) return 'היום'+(hm?' '+hm:'');
+  if(d===addDays(t,-1)) return 'אתמול'+(hm?' '+hm:'');
+  const n=Math.round((new Date(t+'T00:00')-new Date(d+'T00:00'))/86400000);
+  return n>0 && n<7 ? 'לפני '+n+' ימים' : fmtDate(d);
+}
+/* כל מה שקרה ב-14 הימים האחרונים, מהחדש לישן */
+function dashEvents(){
+  const since=addDays(todayISO(),-14), ev=[];
+  const live=new Map(activeTrainees().map(t=>[t.id,t]));
+  (DASH.logs||[]).forEach(l=>{
+    const t=live.get(l.trainee_id); if(!t) return;
+    const n=(l.entries||[]).length;
+    ev.push({t, kind:'log', when:l.created_at||l.date, day:l.date,
+      what:'השלים אימון'+(l.day_name?' · '+l.day_name:'')+(n?' · '+n+' תרגילים':''),
+      feel:l.feel||'', note:(l.note||'').trim()});
+  });
+  live.forEach(t=>{
+    const w=(t.weighins||[]).filter(x=>x&&x.date&&Number(x.weight)>0).sort((a,b)=>a.date.localeCompare(b.date));
+    w.forEach((x,i)=>{
+      if(x.date<since) return;
+      const prev=i?Number(w[i-1].weight):null, cur=Number(x.weight);
+      const dl=prev?Math.round((cur-prev)*10)/10:null;
+      ev.push({t, kind:'w', when:x.at||x.date, day:x.date,
+        what:'נשקל · '+cur+' ק״ג'+(x.fat?' · '+x.fat+'% שומן':''), delta:dl});
+    });
+  });
+  return ev.sort((a,b)=>String(b.when).localeCompare(String(a.when)));
+}
+function dashFeed(){
+  const ev=dashEvents(), shown=ev.slice(0, DASH.more?40:7);
+  let h='<div class="card dash-feed"><div class="row" style="margin-bottom:4px"><h3 style="flex:1;font-size:16px">מה המתאמנים עשו</h3>'
+    +'<span class="muted" style="font-size:12px">14 ימים אחרונים</span></div>';
+  if(!ev.length){
+    const why = (DASH.logs===null && dashSynced())
+      ? 'טוען דיווחים…' : 'עוד אין דיווחים. כשמתאמן מסיים אימון או נשקל בדף שלו, זה יופיע כאן.';
+    return h+'<div class="empty" style="padding:26px">'+why+'</div></div>';
+  }
+  shown.forEach(e=>{
+    let tag='';
+    if(e.kind==='log' && e.feel) tag='<span class="ev-tag '+(e.feel==='קל'?'easy':e.feel==='קשה'?'hard':'')+'">'+esc(e.feel)+'</span>';
+    if(e.kind==='w' && e.delta) tag='<span class="ev-tag '+(e.delta<0?'down':'up')+'"><bdi dir="ltr">'+(e.delta>0?'+':'')+e.delta+'</bdi></span>';
+    h+='<div class="ev" onclick="go(\'trainee\',\''+e.t.id+'\')">'
+      +'<div class="av" style="background:'+tColor(e.t)+'">'+esc(initials(e.t.name))+'</div>'
+      +'<div class="ev-body"><div class="ev-name">'+esc(e.t.name)+'</div>'
+      +'<div class="ev-what">'+esc(e.what)+tag+'</div>'
+      +(e.note?'<div class="ev-note">'+esc(e.note.slice(0,220))+'</div>':'')
+      +'</div><div class="ev-when">'+esc(dashAgo(e.when,e.day))+'</div></div>';
+  });
+  if(ev.length>7) h+='<button class="btn sm ghost more-btn" onclick="DASH.more=!DASH.more;render()">'
+    +(DASH.more?'פחות':'עוד '+(Math.min(ev.length,40)-7))+'</button>';
+  return h+'</div>';
+}
+/* לכל מתאמן: באילו מ-7 הימים האחרונים התאמן או נשקל */
+function dashWeek(){
+  const t=todayISO(), days=[]; for(let i=6;i>=0;i--) days.push(addDays(t,-i));
+  const rows=activeTrainees().filter(x=>x.status!=='paused').map(x=>{
+    const wk=new Set(), wg=new Set();
+    (DASH.logs||[]).forEach(l=>{ if(l.trainee_id===x.id) wk.add(String(l.date).slice(0,10)); });
+    S.sessions.forEach(s=>{ if(s.traineeId===x.id && s.status==='done') wk.add(s.date); });
+    (x.weighins||[]).forEach(w=>{ if(w&&w.date) wg.add(w.date); });
+    return {x, n:days.filter(d=>wk.has(d)).length, wk, wg};
+  }).sort((a,b)=>b.n-a.n || a.x.name.localeCompare(b.x.name,'he'));
+  const on=rows.filter(r=>r.n).length;
+  let h='<div class="card"><div class="row" style="margin-bottom:4px"><h3 style="flex:1;font-size:16px">פעילים השבוע</h3>'
+    +'<span class="pill '+(on?'or':'')+'">'+on+' מתוך '+rows.length+'</span></div>';
+  if(!rows.length) return h+'<div class="empty" style="padding:26px">אין מתאמנים פעילים</div></div>';
+  rows.forEach(r=>{
+    h+='<div class="wk-row'+(r.n?'':' idle')+'" onclick="go(\'trainee\',\''+r.x.id+'\')">'
+      +'<div class="av" style="background:'+tColor(r.x)+'">'+esc(initials(r.x.name))+'</div>'
+      +'<div class="wk-name">'+esc(r.x.name)+'</div>'
+      +'<div class="wk-dots">'+days.map(d=>'<i class="'+(r.wk.has(d)?'on':r.wg.has(d)?'w':'')+(d===t?' today':'')
+        +'" title="'+esc(HE_DAYS[new Date(d+'T00:00').getDay()])+'"></i>').join('')+'</div>'
+      +'<div class="wk-n'+(r.n>=3?' hot':'')+'">'+r.n+'</div></div>';
+  });
+  return h+'<div class="dash-legend"><span><b style="background:var(--or)"></b>אימון</span>'
+    +'<span><b style="background:var(--cop)"></b>שקילה</span><span>מימין לשמאל: לפני שבוע ← היום</span></div></div>';
+}
+/* הפעילות האחרונה של מתאמן, מכל מקור שיש */
+function lastActivity(x){
+  const a=[];
+  S.sessions.forEach(s=>{ if(s.traineeId===x.id&&s.status==='done') a.push(s.date); });
+  (DASH.logs||[]).forEach(l=>{ if(l.trainee_id===x.id) a.push(String(l.date).slice(0,10)); });
+  (x.weighins||[]).forEach(w=>{ if(w&&w.date) a.push(w.date); });
+  return a.sort().pop()||'';
+}
 function vDash(){
-  const t=todayISO(), act=activeTrainees();
+  dashLoad();
+  const t=todayISO(), act=activeTrainees(), ids=new Set(act.map(x=>x.id));
   const today=S.sessions.filter(s=>s.date===t).sort((a,b)=>(a.time||'').localeCompare(b.time||''));
-  const week=S.sessions.filter(s=>s.date>=addDays(t,-6)&&s.date<=t&&s.status==='done').length;
+  const wkStart=addDays(t,-6);
+  const wkDone=(DASH.logs||[]).filter(l=>String(l.date).slice(0,10)>=wkStart && ids.has(l.trainee_id)).length
+             + S.sessions.filter(s=>s.date>=wkStart&&s.date<=t&&s.status==='done').length;
+  const wkWeigh=act.reduce((n,x)=>n+(x.weighins||[]).filter(w=>w&&w.date>=wkStart).length,0);
+  const activeWk=act.filter(x=>{ const d=lastActivity(x); return d && d>=wkStart; }).length;
   const mon=t.slice(0,7);
-  const income=S.payments.filter(p=>(p.date||'').slice(0,7)===mon).reduce((a,p)=>a+Number(p.amount||0),0);
-  let h = head('שלום, '+esc((S.settings.trainer||'מאמן').split(' ')[0]), 'סיכום מהיר של היום והשבוע',
+  const pays=S.payments.filter(p=>(p.date||'').slice(0,7)===mon);
+  const income=pays.reduce((a,p)=>a+Number(p.amount||0),0);
+  const hr=new Date().getHours();
+  const hello = hr<5?'לילה טוב':hr<12?'בוקר טוב':hr<17?'צהריים טובים':hr<21?'ערב טוב':'לילה טוב';
+  let h = head(hello+', '+esc((S.settings.trainer||'מאמן').split(' ')[0]),
+    'יום '+HE_DAYS[new Date().getDay()]+' · '+fmtFull(t),
     '<button class="btn" onclick="editTrainee()">+ מתאמן חדש</button><button class="btn ghost" onclick="editSession()">+ אימון</button>');
 
   h+='<div class="grid g4">'
-   + stat('מתאמנים פעילים', act.length, act.filter(x=>x.status==='active').length+' סך הכול', ICO.users)
-   + stat('אימונים היום', today.length, today.filter(s=>s.status==='done').length+' בוצעו', ICO.check)
-   + stat('אימונים ב־7 ימים', week, 'הושלמו', ICO.cal)
-   + stat('הכנסות החודש', money(income), S.payments.filter(p=>(p.date||'').slice(0,7)===mon).length+' תשלומים', ICO.wallet)
+   + stat('פעילים השבוע', activeWk, 'מתוך '+act.length+' מתאמנים', ICO.users)
+   + stat('אימונים השבוע', wkDone, 'דיווחים ואימונים ביומן', ICO.check)
+   + stat('שקילות השבוע', wkWeigh, 'שהמתאמנים הזינו', ICO.cal)
+   + stat('הכנסות החודש', money(income), pays.length+' תשלומים', ICO.wallet)
    + '</div>';
 
   h += genderFixCard();
 
+  h+='<div class="dash-top">'+dashFeed()+dashWeek()+'</div>';
+
   h+='<div class="grid g2" style="margin-top:14px">';
-  /* היום */
-  h+='<div class="card"><div class="row" style="margin-bottom:10px"><h3 style="flex:1;font-size:16px">האימונים של היום</h3><button class="btn sm ghost" onclick="go(\'schedule\')">ליומן</button></div>';
-  if(!today.length) h+='<div class="empty" style="padding:26px"><div class="big">🗓</div>אין אימונים מתוזמנים היום.<br><button class="btn sm ghost" style="margin-top:10px" onclick="editSession()">קביעת אימון</button></div>';
-  else today.forEach(s=>{ h+=sessionRow(s); });
-  h+='</div>';
   /* התראות */
   h+='<div class="card"><h3 style="font-size:16px;margin-bottom:10px">דורש טיפול</h3>';
   let alerts='';
   act.filter(x=>x.balanceDue>0).forEach(x=>{ alerts+=alertRow('₪','ל'+esc(x.name)+' יתרת חוב '+money(x.balanceDue),'רישום תשלום','openPay(\''+x.id+'\')'); });
-  const stale=act.filter(x=>{ const last=S.sessions.filter(s=>s.traineeId===x.id&&s.status==='done').map(s=>s.date).sort().pop(); return last && last < addDays(t,-14); });
-  stale.forEach(x=>{ alerts+=alertRow('💤',esc(x.name)+' לא התאמן שבועיים','שליחת הודעה', S.features.whatsapp?'waMsg(\''+x.id+'\')':'go(\'trainee\',\''+x.id+'\')'); });
+  /* "לא פעיל" לפי כל מקור — דיווח בדף, שקילה ואימון ביומן. מחכים
+     לדיווחים לפני שמכריזים על מישהו שנעלם, אחרת כולם נראים נעלמים
+     בשנייה הראשונה. */
+  if(DASH.logs!==null || !dashSynced()){
+    act.filter(x=>x.status==='active').forEach(x=>{
+      const last=lastActivity(x);
+      if(last && last < addDays(t,-14))
+        alerts+=alertRow('💤',esc(x.name)+' לא פעיל מאז '+fmtDate(last),'שליחת הודעה', S.features.whatsapp?'waMsg(\''+x.id+'\')':'go(\'trainee\',\''+x.id+'\')');
+    });
+  }
   h+= alerts || '<div class="empty" style="padding:26px"><div class="big">✓</div>הכול מסודר. אין התראות פתוחות.</div>';
+  h+='</div>';
+  /* היום */
+  h+='<div class="card"><div class="row" style="margin-bottom:10px"><h3 style="flex:1;font-size:16px">האימונים של היום</h3><button class="btn sm ghost" onclick="go(\'schedule\')">ליומן</button></div>';
+  if(!today.length) h+='<div class="empty" style="padding:26px">אין אימונים מתוזמנים היום.<br><button class="btn sm ghost" style="margin-top:10px" onclick="editSession()">קביעת אימון</button></div>';
+  else today.forEach(s=>{ h+=sessionRow(s); });
   h+='</div></div>';
 
   /* גרף שבועי */
@@ -3001,30 +3162,30 @@ if (location.protocol === 'file:') {
 }
 </script>
 
-<script src="health.js?v=v149"></script>
-<script src="privacy.js?v=v149"></script>
-<script src="backup.js?v=v149"></script>
-<script src="reorder.js?v=v149"></script>
-<script src="access.js?v=v149"></script>
-<script src="analysis.js?v=v149"></script>
-<script src="reports.js?v=v149"></script>
-<script src="business.js?v=v149"></script>
-<script src="intake.js?v=v149"></script>
-<script src="files.js?v=v149"></script>
-<script src="builder.js?v=v149"></script>
-<script src="import-program.js?v=v149"></script>
-<script src="tracking.js?v=v149"></script>
-<script src="metrics.js?v=v149"></script>
-<script src="targets.js?v=v149"></script>
-<script src="meal-library.js?v=v149"></script>
-<script src="library-ui.js?v=v149"></script>
-<script src="export-plan.js?v=v149"></script>
-<script src="cardio.js?v=v149"></script>
-<script src="cardio-ui.js?v=v149"></script>
-<script src="exercise-library.js?v=v149"></script>
-<script src="exercise-ui.js?v=v149"></script>
-<script src="meals.js?v=v149"></script>
-<script src="sync.js?v=v149"></script>
+<script src="health.js?v=v150"></script>
+<script src="privacy.js?v=v150"></script>
+<script src="backup.js?v=v150"></script>
+<script src="reorder.js?v=v150"></script>
+<script src="access.js?v=v150"></script>
+<script src="analysis.js?v=v150"></script>
+<script src="reports.js?v=v150"></script>
+<script src="business.js?v=v150"></script>
+<script src="intake.js?v=v150"></script>
+<script src="files.js?v=v150"></script>
+<script src="builder.js?v=v150"></script>
+<script src="import-program.js?v=v150"></script>
+<script src="tracking.js?v=v150"></script>
+<script src="metrics.js?v=v150"></script>
+<script src="targets.js?v=v150"></script>
+<script src="meal-library.js?v=v150"></script>
+<script src="library-ui.js?v=v150"></script>
+<script src="export-plan.js?v=v150"></script>
+<script src="cardio.js?v=v150"></script>
+<script src="cardio-ui.js?v=v150"></script>
+<script src="exercise-library.js?v=v150"></script>
+<script src="exercise-ui.js?v=v150"></script>
+<script src="meals.js?v=v150"></script>
+<script src="sync.js?v=v150"></script>
 <script>
 /* =================== חיבור הסנכרון לאפליקציה =================== */
 

@@ -15,7 +15,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['access'] = 'v149';
+  (window.EB_MOD = window.EB_MOD || {})['access'] = 'v150';
 
   /* מצב הגישה של מתאמן אחד */
   function check(t) {
