@@ -134,6 +134,30 @@ const TRAINEE_DATA = {
         if (!/כואבת לי הכתף/.test(txt)) throw new Error('note missing');
         if (!/60×10 · 62.5×8/.test(txt)) throw new Error('sets missing: ' + txt.slice(0, 200));
       });
+      await tryM('progressChart', async () => {
+        const en = EBSync.enabled, lf = EBSync.logsFor;
+        delete TLOGS['a1'];   // אחרת נשארים הדיווחים מהבדיקה הקודמת
+        EBSync.enabled = () => true;
+        EBSync.logsFor = async () => [
+          { date: iso(16), entries: [{ ex: 'לחיצת חזה במוט', done: true, setLog: [{ w: 55, r: 10 }, { w: 55, r: 9 }] }] },
+          { date: iso(9),  entries: [{ ex: 'לחיצת חזה במוט', done: true, setLog: [{ w: 60, r: 9 }, { w: 60, r: 8 }] }] },
+          { date: iso(2),  entries: [{ ex: 'לחיצת חזה במוט', done: true, setLog: [{ w: 62.5, r: 8 }, { w: 62.5, r: 8 }] }] }];
+        const R1 = window.render; window.render = () => { V.innerHTML = vTrainee('a1'); };
+        VIEW = 'trainee'; ARG = 'a1'; SUBTAB = 'history'; window.render();
+        await wait(400); window.render();
+        const pc = V.querySelector('.pc'); if (!pc) throw new Error('no chart');
+        if (!pc.querySelector('.pc-svg')) throw new Error('no svg');
+        if (pc.querySelectorAll('.pc-dot').length !== 3) throw new Error('dots: ' + pc.querySelectorAll('.pc-dot').length);
+        if (!/\+\d+%/.test(pc.querySelector('.pc-sum').innerText)) throw new Error('no gain: ' + pc.querySelector('.pc-sum').innerText);
+        // מעבר למדד אחר ולטבלה
+        pc.querySelector('[data-pcmk="vol"]').click();
+        if (!V.querySelector('.pc-svg')) throw new Error('volume chart missing');
+        V.querySelector('[data-pctab]').click();
+        const tbl = V.querySelector('.pc-table'); if (!tbl) throw new Error('no table view');
+        if (!/62.5×8/.test(tbl.innerText)) throw new Error('table sets missing');
+        V.querySelector('[data-pctab]').click();
+        window.render = R1; EBSync.enabled = en; EBSync.logsFor = lf;
+      });
       await tryM('importProgram', () => EBImport.fromText('<table><tr><th>תרגיל</th><th>סטים</th></tr><tr><td>מתח</td><td>3</td></tr></table>', 't.html', 'b1'));
       // ציור מסנכרון באמצע הקלדה — אסור
       VIEW = 'trainee'; ARG = 'a1'; SUBTAB = 'program'; let renders = 0;

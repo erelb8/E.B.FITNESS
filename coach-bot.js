@@ -18,7 +18,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['bot'] = 'v177';
+  (window.EB_MOD = window.EB_MOD || {})['bot'] = 'v178';
 
   var LOGS = [], WEIGH = [], PROGRAM = null, GOAL = '', HABITS = null, FOOD = null;
 
@@ -809,7 +809,9 @@
   /* ---------- הכרטיס של קטגוריית "גוף" ---------- */
   function bodyBlock() {
     var wp = weightPoints();
-    var t  = trends().filter(function (x) { return x.sessions >= 2; }).slice(0, 3);
+    /* הכוח לפי תרגיל עבר לגרף ההתקדמות המלא ב"מעקב" (progress-chart.js).
+       כאן נשאר משקל הגוף, כדי לא להציג אותו דבר פעמיים. */
+    var t  = window.EBChart ? [] : trends().filter(function (x) { return x.sessions >= 2; }).slice(0, 3);
 
     if (wp.length < 2 && !t.length) {
       return '<div class="card" style="margin-bottom:12px">'

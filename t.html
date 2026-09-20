@@ -13,8 +13,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="התוכנית שלי">
 <meta name="robots" content="noindex,nofollow">
-<link rel="apple-touch-icon" href="icons/icon-180.png?v=v177">
-<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=v177">
+<link rel="apple-touch-icon" href="icons/icon-180.png?v=v178">
+<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=v178">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -368,7 +368,7 @@ button{cursor:pointer}
 <body>
 
 <header class="top">
-  <div class="brand"><img class="brand-logo" src="icons/logo-96.png?v=v177" alt="" width="34" height="34"><span>E.B<span class="dot"></span>FIT</span></div>
+  <div class="brand"><img class="brand-logo" src="icons/logo-96.png?v=v178" alt="" width="34" height="34"><span>E.B<span class="dot"></span>FIT</span></div>
   <h1 id="hTitle">טוען…</h1>
   <div class="sub" id="hSub"></div>
   <span class="savechip" id="saveChip" aria-live="polite"></span>
@@ -380,17 +380,18 @@ button{cursor:pointer}
 
 <div id="toast"></div>
 
-<script src="vendor/supabase.js?v=v177"></script>
-<script src="config.js?v=v177"></script>
-<script src="meal-library.js?v=v177"></script>
-<script src="exercise-library.js?v=v177"></script>
-<script src="progress.js?v=v177"></script>
-<script src="habits.js?v=v177"></script>
-<script src="coach-bot.js?v=v177"></script>
-<script src="workout-log.js?v=v177"></script>
-<script src="targets.js?v=v177"></script>
-<script src="health.js?v=v177"></script>
-<script src="privacy.js?v=v177"></script>
+<script src="vendor/supabase.js?v=v178"></script>
+<script src="config.js?v=v178"></script>
+<script src="meal-library.js?v=v178"></script>
+<script src="exercise-library.js?v=v178"></script>
+<script src="progress.js?v=v178"></script>
+<script src="habits.js?v=v178"></script>
+<script src="coach-bot.js?v=v178"></script>
+<script src="progress-chart.js?v=v178"></script>
+<script src="workout-log.js?v=v178"></script>
+<script src="targets.js?v=v178"></script>
+<script src="health.js?v=v178"></script>
+<script src="privacy.js?v=v178"></script>
 <script>
 (function () {
   'use strict';
@@ -1643,13 +1644,22 @@ button{cursor:pointer}
     if(key==='food') return libButton()+nutritionDisclaimer()+targetsBlock()+nutritionPlan();
     if(key==='body') return botBody()+bodyMetricsBlock()+healthAlert()+healthFolder()+filesBlock(files);
     if(key==='habits') return habitsScreen();
-    return monthCard()+botBlock({skipWeight:true})+progBlock();
+    return monthCard()+chartCard()+botBlock({skipWeight:true})+progBlock();
   }
 
   /* ---------- החודש שלי ----------
      ארבעה שבועות אחרונים במקום אחד: אימונים שדווחו, משקל, תזונה
      והרגלים. כל מספר כאן מגיע ממה שהמתאמן עצמו סימן ורשם — אין כאן
      הערכה, ולכן גם אין מה לנחש כשחסר מידע: פשוט לא מציגים. */
+  /* גרף ההתקדמות בתרגילים — אותו מודול שהמאמן רואה בתיק */
+  function chartCard() {
+    if (!window.EBChart) return '';
+    return '<div class="card" style="margin-bottom:12px">'
+      + EBChart.panel('pc_me', EXTRAS.logs || [], { title: 'ההתקדמות שלי בתרגילים',
+          empty: 'הגרף מתמלא מהאימונים שמדווחים עם משקל וחזרות — "סיימתי את האימון הזה" בסוף כל אימון. אחרי שני אימונים באותו תרגיל תראה כאן את המגמה.' })
+      + '</div>';
+  }
+
   function monthCard() {
     if (!window.EBHabits) return '';
     const today = EBHabits.todayISO(), from = EBHabits.shiftISO(today, 27);
