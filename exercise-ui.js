@@ -8,7 +8,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['exUi'] = 'v181';
+  (window.EB_MOD = window.EB_MOD || {})['exUi'] = 'v182';
 
   var Q = '', MUS = 'all', EQ = 'all', PLACE = 'all', FOR = null, DAY = 0, TARGET = null;
 
@@ -28,6 +28,16 @@
 
   function chip(txt, on, attr) {
     return '<button class="btn sm ' + (on ? '' : 'ghost') + '" ' + attr + '>' + esc(txt) + '</button>';
+  }
+  /* רשימה נפתחת לסינון. אותו מידע כמו צ׳יפים, בשורה אחת במקום בחמש. */
+  function pick2(key, label, opts, cur) {
+    return '<select data-' + key + ' aria-label="' + esc(label) + '" '
+      + 'style="flex:1;min-width:0;background:var(--ink);border:1px solid var(--line);'
+      + 'border-radius:8px;padding:7px 8px;font:inherit;font-size:13px;color:var(--tx)">'
+      + opts.map(function (o) {
+          return '<option value="' + esc(o[0]) + '"' + (o[0] === cur ? ' selected' : '') + '>'
+            + esc(o[1]) + '</option>';
+        }).join('') + '</select>';
   }
 
   function open(traineeId, dayIndex, target) {
@@ -93,40 +103,32 @@
     var byM = {}, byE = {};
     pool.forEach(function (x) { (byM[x.m] = byM[x.m] || []).push(x); (byE[x.e] = byE[x.e] || []).push(x); });
 
-    var h = '<div class="row" style="gap:5px;align-items:center;margin-bottom:10px">'
-      + '<span class="muted" style="font-size:12.5px">מיקום:</span>'
+    /* ---------- הסינון ----------
+       שלוש שורות צ׳יפים (מקום, שריר, ציוד) תפסו בטלפון מסך שלם, והחלון
+       נפתח בלי שרואים בו אפילו תרגיל אחד. עכשיו: שתי רשימות נפתחות
+       למקום ולציוד, שורה אחת נגללת לשרירים, והרשימה מתחילה מיד. */
+    var h = '<div class="row" style="gap:6px;flex-wrap:nowrap;margin-bottom:8px">'
+      + pick2('exp', 'מקום', [['all', 'כל המקומות']].concat(EBEx.PLACES.map(function (p) {
+          return [p.k, p.i + ' ' + p.n]; })), PLACE)
+      + pick2('exe', 'ציוד', [['all', 'כל הציוד']].concat(Object.keys(EBEx.EQUIP)
+          .filter(function (k) { return byE[k]; })
+          .map(function (k) { return [k, EBEx.EQUIP[k] + ' (' + byE[k].length + ')']; })), EQ)
+      + '</div>';
+
+    h += '<div style="display:flex;gap:5px;overflow-x:auto;margin-bottom:9px;padding-bottom:4px;-webkit-overflow-scrolling:touch">'
+      + chip('הכול', MUS === 'all', 'data-exm="all" style="flex:none"');
+    Object.keys(EBEx.MUSCLES).forEach(function (k) {
+      if (!byM[k]) return;
+      h += chip(EBEx.MUSCLES[k] + ' ' + byM[k].length, MUS === k, 'data-exm="' + k + '" style="flex:none"');
+    });
+    h += '</div>';
+
+    h += '<div class="row" style="gap:6px;align-items:center;margin-bottom:10px">'
+      + '<span class="muted" style="font-size:12.5px;flex:1">' + items.length + ' תרגילים</span>'
+      + '<span class="muted" style="font-size:11.5px">הוספה</span>'
       + chip('בסוף', POS === 'end', 'data-expos="end"')
       + chip('בהתחלה', POS === 'start', 'data-expos="start"')
       + '</div>';
-
-    /* מקום האימון */
-    h += '<div class="row" style="gap:5px;flex-wrap:wrap;margin-bottom:7px">'
-      + chip('כל המקומות', PLACE === 'all', 'data-exp="all"')
-      + EBEx.PLACES.map(function (p) {
-          return chip(p.i + ' ' + p.n, PLACE === p.k, 'data-exp="' + p.k + '"');
-        }).join('')
-      + '</div>';
-
-    /* שריר */
-    h += '<div class="row" style="gap:5px;flex-wrap:wrap;margin-bottom:7px">'
-      + chip('כל השרירים', MUS === 'all', 'data-exm="all"');
-    Object.keys(EBEx.MUSCLES).forEach(function (k) {
-      if (!byM[k]) return;
-      h += chip(EBEx.MUSCLES[k] + ' ' + byM[k].length, MUS === k, 'data-exm="' + k + '"');
-    });
-    h += '</div>';
-
-    /* ציוד */
-    h += '<div class="row" style="gap:5px;flex-wrap:wrap;margin-bottom:12px">'
-      + chip('כל הציוד', EQ === 'all', 'data-exe="all"');
-    Object.keys(EBEx.EQUIP).forEach(function (k) {
-      if (!byE[k]) return;
-      h += chip(EBEx.EQUIP[k] + ' ' + byE[k].length, EQ === k, 'data-exe="' + k + '"');
-    });
-    h += '</div>';
-
-    h += '<div class="muted" style="font-size:12.5px;margin-bottom:10px">'
-      + items.length + ' תרגילים</div>';
 
     if (!items.length) h += '<div class="empty">לא נמצא תרגיל מתאים.</div>';
 
@@ -229,12 +231,16 @@
     if (a) { add(a.dataset.exadd); return; }
     var m = e.target.closest('[data-exm]');
     if (m) { setMuscle(m.dataset.exm); return; }
-    var q = e.target.closest('[data-exe]');
-    if (q) { setEquip(q.dataset.exe); return; }
-    var pl = e.target.closest('[data-exp]');
-    if (pl) { setPlace(pl.dataset.exp); return; }
     var pz = e.target.closest('[data-expos]');
     if (pz) { setPos(pz.dataset.expos); return; }
+  });
+
+  /* המקום והציוד הם רשימות נפתחות, ולכן change ולא click */
+  document.addEventListener('change', function (e) {
+    var t = e.target;
+    if (!t || t.tagName !== 'SELECT') return;
+    if (t.hasAttribute('data-exp')) { setPlace(t.value); return; }
+    if (t.hasAttribute('data-exe')) { setEquip(t.value); return; }
   });
 
   /* ══════════ השלמה למספר תרגילים אחיד ══════════

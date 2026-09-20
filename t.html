@@ -13,8 +13,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="התוכנית שלי">
 <meta name="robots" content="noindex,nofollow">
-<link rel="apple-touch-icon" href="icons/icon-180.png?v=v181">
-<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=v181">
+<link rel="apple-touch-icon" href="icons/icon-180.png?v=v182">
+<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=v182">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -368,7 +368,7 @@ button{cursor:pointer}
 <body>
 
 <header class="top">
-  <div class="brand"><img class="brand-logo" src="icons/logo-96.png?v=v181" alt="" width="34" height="34"><span>E.B<span class="dot"></span>FIT</span></div>
+  <div class="brand"><img class="brand-logo" src="icons/logo-96.png?v=v182" alt="" width="34" height="34"><span>E.B<span class="dot"></span>FIT</span></div>
   <h1 id="hTitle">טוען…</h1>
   <div class="sub" id="hSub"></div>
   <span class="savechip" id="saveChip" aria-live="polite"></span>
@@ -380,18 +380,18 @@ button{cursor:pointer}
 
 <div id="toast"></div>
 
-<script src="vendor/supabase.js?v=v181"></script>
-<script src="config.js?v=v181"></script>
-<script src="meal-library.js?v=v181"></script>
-<script src="exercise-library.js?v=v181"></script>
-<script src="progress.js?v=v181"></script>
-<script src="habits.js?v=v181"></script>
-<script src="coach-bot.js?v=v181"></script>
-<script src="progress-chart.js?v=v181"></script>
-<script src="workout-log.js?v=v181"></script>
-<script src="targets.js?v=v181"></script>
-<script src="health.js?v=v181"></script>
-<script src="privacy.js?v=v181"></script>
+<script src="vendor/supabase.js?v=v182"></script>
+<script src="config.js?v=v182"></script>
+<script src="meal-library.js?v=v182"></script>
+<script src="exercise-library.js?v=v182"></script>
+<script src="progress.js?v=v182"></script>
+<script src="habits.js?v=v182"></script>
+<script src="coach-bot.js?v=v182"></script>
+<script src="progress-chart.js?v=v182"></script>
+<script src="workout-log.js?v=v182"></script>
+<script src="targets.js?v=v182"></script>
+<script src="health.js?v=v182"></script>
+<script src="privacy.js?v=v182"></script>
 <script>
 (function () {
   'use strict';
@@ -415,7 +415,7 @@ button{cursor:pointer}
 
   /* התרגילים שהמתאמן בחר לעצמו. נשמרים במכשיר ובשרת, כמו הארוחות —
      המכשיר לתגובה מיידית וגם בלי רשת, השרת כדי שהמאמן יראה. */
-  let MY_EX = [], EX_OPEN = false, EX_Q = '', EX_MUS = 'all';
+  let MY_EX = [], EX_OPEN = false, EX_Q = '', EX_MUS = 'all', EX_LIMIT = 60;
 
   /* מצב עריכה במודל האימון: השינויים נצברים מקומית ונשמרים לשרת
      רק בלחיצה על שמירה, כדי שהמאמן יראה עדכון אחד שלם. */
@@ -1135,20 +1135,21 @@ button{cursor:pointer}
   }
 
   function exScreen() {
-    const items = EBEx.search(EX_Q, EX_MUS, 'all');
+    const all = EBEx.search(EX_Q, EX_MUS, 'all');
+    const items = all.slice(0, EX_LIMIT);
     const byM = EBEx.byMuscle();
     let h = '<input id="exq" placeholder="חיפוש לפי שם, שריר או ציוד" value="' + esc(EX_Q) + '" '
       + 'oninput="__exSearch(this.value)" style="width:100%;background:var(--card);'
       + 'border:1px solid var(--line);border-radius:10px;padding:11px;font-size:15px;margin-bottom:10px">'
-      + '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">'
+      + '<div style="display:flex;gap:6px;overflow-x:auto;margin-bottom:12px;padding-bottom:4px;-webkit-overflow-scrolling:touch">'
       + exTag('all', 'הכול', EBEx.count);
     Object.keys(EBEx.MUSCLES).forEach(k => {
       if (byM[k]) h += exTag(k, EBEx.MUSCLES[k], byM[k].length);
     });
     h += '</div><div style="color:var(--mut);font-size:12.5px;margin-bottom:10px">'
-      + items.length + ' תרגילים</div>';
+      + all.length + ' תרגילים</div>';
 
-    if (!items.length) return h + '<div class="msg">לא נמצא תרגיל מתאים.</div>';
+    if (!all.length) return h + '<div class="msg">לא נמצא תרגיל מתאים.</div>';
 
     items.forEach(x => {
       const on = inEx(x.id);
@@ -1167,6 +1168,13 @@ button{cursor:pointer}
         + 'color:' + (on ? 'var(--or)' : 'var(--mut)') + '">'
         + (on ? '✓ באימון שלי' : '+ הוספה לאימון שלי') + '</button></div>';
     });
+    /* 576 כרטיסים בבת אחת הופכים את הפתיחה בטלפון לאיטית */
+    if (all.length > items.length) {
+      h += '<button data-exmore style="width:100%;margin-top:4px;padding:11px;border-radius:10px;'
+        + 'border:1px solid var(--line2);background:transparent;color:var(--mut);font:inherit;'
+        + 'font-size:13.5px;cursor:pointer">הצג עוד '
+        + Math.min(60, all.length - items.length) + ' (מתוך ' + all.length + ')</button>';
+    }
     return h;
   }
 
@@ -1439,9 +1447,9 @@ button{cursor:pointer}
     STATE = next;
   }
 
-  window.__exOpen   = () => { EX_Q=''; EX_MUS='all'; exModal(); };
+  window.__exOpen   = () => { EX_Q=''; EX_MUS='all'; EX_LIMIT=60; exModal(); };
   window.__exClose  = () => { closeExModal(); };
-  window.__exSearch = v => { EX_Q = v; refreshExModalBody();
+  window.__exSearch = v => { EX_Q = v; EX_LIMIT = 60; refreshExModalBody();
                              const el = document.getElementById('exq');
                              if (el) { el.focus(); el.setSelectionRange(v.length, v.length); } };
 
@@ -1521,8 +1529,10 @@ button{cursor:pointer}
       return;
     }
 
+    if (e.target.closest('[data-exmore]')) { EX_LIMIT += 60; refreshExModalBody(); return; }
+
     const em = e.target.closest('[data-exmus]');
-    if (em) { EX_MUS = em.dataset.exmus; refreshExModalBody(); return; }
+    if (em) { EX_MUS = em.dataset.exmus; EX_LIMIT = 60; refreshExModalBody(); return; }
     if (e.target.closest('[data-ex-close]')) { closeExModal(); return; }
 
     const lt = e.target.closest('[data-libtab]');
