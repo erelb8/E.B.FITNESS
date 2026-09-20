@@ -6,7 +6,7 @@
 <title>E.B FIT — ניהול מתאמנים</title>
 
 <!-- ===== PWA — הופך את האתר לאפליקציה במסך הבית ===== -->
-<link rel="manifest" href="manifest.json?v=v180">
+<link rel="manifest" href="manifest.json?v=v181">
 <meta name="theme-color" content="#1C140E">
 <meta name="description" content="מערכת לניהול מתאמנים, תוכניות אימון, יומן ותשלומים">
 
@@ -15,9 +15,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="E.B FIT">
-<link rel="apple-touch-icon" href="icons/icon-180.png?v=v180">
-<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=v180">
-<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=v180">
+<link rel="apple-touch-icon" href="icons/icon-180.png?v=v181">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=v181">
+<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=v181">
 <meta name="format-detection" content="telephone=no">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -444,7 +444,7 @@ tbody tr:hover{background:var(--panel)}
 </head>
 <body>
 <header class="top">
-  <div class="brand"><img class="brand-logo" src="icons/logo-96.png?v=v180" alt="" width="30" height="30">E.B<span class="dot"></span>FIT <small id="brandSub">ניהול מתאמנים</small></div>
+  <div class="brand"><img class="brand-logo" src="icons/logo-96.png?v=v181" alt="" width="30" height="30">E.B<span class="dot"></span>FIT <small id="brandSub">ניהול מתאמנים</small></div>
   <div class="spacer"></div>
   <button class="syncpill s-off" id="syncPill" onclick="go('settings')" title="מצב סנכרון">מקומי בלבד</button>
   <span class="now" id="topDate"></span>
@@ -462,8 +462,8 @@ tbody tr:hover{background:var(--panel)}
 <div id="toast"></div>
 
 <!-- ספריית Supabase מקומית (לא מ-CDN) כדי שהאפליקציה תעבוד גם בלי רשת -->
-<script src="vendor/supabase.js?v=v180"></script>
-<script src="config.js?v=v180"></script>
+<script src="vendor/supabase.js?v=v181"></script>
+<script src="config.js?v=v181"></script>
 
 <script>
 /* =======================================================================
@@ -498,7 +498,7 @@ function age(b){ if(!b) return null; const d=new Date(b), t=new Date(); let a=t.
 
 /* ---------------- אחסון ---------------- */
 const KEY='ebfit_v1';
-const EB_VERSION='v180';   // חייב להתאים ל-VERSION ב-sw.js
+const EB_VERSION='v181';   // חייב להתאים ל-VERSION ב-sw.js
 let mem=null, canStore=true;
 function load(){
   try{ const r=localStorage.getItem(KEY); return r?JSON.parse(r):null; }
@@ -3491,33 +3491,33 @@ if (location.protocol === 'file:') {
 }
 </script>
 
-<script src="health.js?v=v180"></script>
-<script src="privacy.js?v=v180"></script>
-<script src="backup.js?v=v180"></script>
-<script src="reorder.js?v=v180"></script>
-<script src="access.js?v=v180"></script>
-<script src="analysis.js?v=v180"></script>
-<script src="reports.js?v=v180"></script>
-<script src="business.js?v=v180"></script>
-<script src="intake.js?v=v180"></script>
-<script src="files.js?v=v180"></script>
-<script src="builder.js?v=v180"></script>
-<script src="import-program.js?v=v180"></script>
-<script src="tracking.js?v=v180"></script>
-<script src="metrics.js?v=v180"></script>
-<script src="targets.js?v=v180"></script>
-<script src="meal-library.js?v=v180"></script>
+<script src="health.js?v=v181"></script>
+<script src="privacy.js?v=v181"></script>
+<script src="backup.js?v=v181"></script>
+<script src="reorder.js?v=v181"></script>
+<script src="access.js?v=v181"></script>
+<script src="analysis.js?v=v181"></script>
+<script src="reports.js?v=v181"></script>
+<script src="business.js?v=v181"></script>
+<script src="intake.js?v=v181"></script>
+<script src="files.js?v=v181"></script>
+<script src="builder.js?v=v181"></script>
+<script src="import-program.js?v=v181"></script>
+<script src="tracking.js?v=v181"></script>
+<script src="metrics.js?v=v181"></script>
+<script src="targets.js?v=v181"></script>
+<script src="meal-library.js?v=v181"></script>
 <!-- חלקים של המאמן בלבד (תאילנדי, פירות). לא נטען ב-t.html בכוונה. -->
-<script src="meal-extra.js?v=v180"></script>
-<script src="progress-chart.js?v=v180"></script>
-<script src="library-ui.js?v=v180"></script>
-<script src="export-plan.js?v=v180"></script>
-<script src="cardio.js?v=v180"></script>
-<script src="cardio-ui.js?v=v180"></script>
-<script src="exercise-library.js?v=v180"></script>
-<script src="exercise-ui.js?v=v180"></script>
-<script src="meals.js?v=v180"></script>
-<script src="sync.js?v=v180"></script>
+<script src="meal-extra.js?v=v181"></script>
+<script src="progress-chart.js?v=v181"></script>
+<script src="library-ui.js?v=v181"></script>
+<script src="export-plan.js?v=v181"></script>
+<script src="cardio.js?v=v181"></script>
+<script src="cardio-ui.js?v=v181"></script>
+<script src="exercise-library.js?v=v181"></script>
+<script src="exercise-ui.js?v=v181"></script>
+<script src="meals.js?v=v181"></script>
+<script src="sync.js?v=v181"></script>
 <script>
 /* =================== חיבור הסנכרון לאפליקציה =================== */
 

@@ -20,7 +20,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['reports'] = 'v180';
+  (window.EB_MOD = window.EB_MOD || {})['reports'] = 'v181';
 
   var DAY = 86400000;
 

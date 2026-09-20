@@ -14,7 +14,7 @@
   'use strict';
 
   // חותמת גרסה — index.html משווה אליה כדי לזהות קובץ ישן במטמון
-  (window.EB_MOD = window.EB_MOD || {})['builder'] = 'v180';
+  (window.EB_MOD = window.EB_MOD || {})['builder'] = 'v181';
 
   /* ---------- דפוסי תנועה ----------
      החלוקה לפי דפוס ולא לפי שריר, כי כך בונים פיצולים מאוזנים
@@ -32,45 +32,45 @@
   var LIB = [
     // דחיפה אופקית
     { n:'לחיצת חזה במוט',        p:P.HPUSH, eq:['gym'],               lvl:2, bad:['כתף'] },
-    { n:'לחיצת חזה בשיפוע חיובי',p:P.HPUSH, eq:['gym'],               lvl:2, bad:['כתף'] },
-    { n:'לחיצת חזה בדמבלים',     p:P.HPUSH, eq:['gym','home'],        lvl:1, bad:[] },
+    { n:'לחיצת חזה בשיפוע במוט',p:P.HPUSH, eq:['gym'],               lvl:2, bad:['כתף'] },
+    { n:'לחיצת חזה במשקולות',     p:P.HPUSH, eq:['gym','home'],        lvl:1, bad:[] },
     { n:'לחיצת חזה במכונה',      p:P.HPUSH, eq:['gym'],               lvl:1, bad:[] },
     { n:'שכיבות סמיכה',          p:P.HPUSH, eq:['gym','home','park'], lvl:1, bad:['שורש כף יד'] },
-    { n:'מקבילים',               p:P.HPUSH, eq:['gym','park'],        lvl:3, bad:['כתף'] },
-    { n:'פרפר בכבלים',           p:P.HPUSH, eq:['gym'],               lvl:2, bad:['כתף'] },
+    { n:'מקבילים לחזה',               p:P.HPUSH, eq:['gym','park'],        lvl:3, bad:['כתף'] },
+    { n:'פרפר בכבלים אמצעי',           p:P.HPUSH, eq:['gym'],               lvl:2, bad:['כתף'] },
 
     // דחיפה אנכית
-    { n:'לחיצת כתפיים בדמבלים',  p:P.VPUSH, eq:['gym','home'],        lvl:1, bad:['כתף'] },
-    { n:'לחיצת כתפיים במוט',     p:P.VPUSH, eq:['gym'],               lvl:2, bad:['כתף'] },
+    { n:'לחיצת כתפיים במשקולות',  p:P.VPUSH, eq:['gym','home'],        lvl:1, bad:['כתף'] },
+    { n:'לחיצת כתפיים במוט בעמידה',     p:P.VPUSH, eq:['gym'],               lvl:2, bad:['כתף'] },
     { n:'לחיצת כתפיים במכונה',   p:P.VPUSH, eq:['gym'],               lvl:1, bad:[] },
 
     // משיכה אופקית
-    { n:'חתירה בכבל',            p:P.HPULL, eq:['gym'],               lvl:1, bad:[] },
-    { n:'חתירה במוט',            p:P.HPULL, eq:['gym'],               lvl:2, bad:['גב'] },
-    { n:'חתירה בדמבל יד אחת',    p:P.HPULL, eq:['gym','home'],        lvl:1, bad:[] },
+    { n:'חתירה בפולי תחתון',            p:P.HPULL, eq:['gym'],               lvl:1, bad:[] },
+    { n:'חתירה במוט בהטיה',            p:P.HPULL, eq:['gym'],               lvl:2, bad:['גב'] },
+    { n:'חתירה במשקולת יד אחת',    p:P.HPULL, eq:['gym','home'],        lvl:1, bad:[] },
     { n:'חתירה במכונה',          p:P.HPULL, eq:['gym'],               lvl:1, bad:[] },
-    { n:'חתירה בגומייה',         p:P.HPULL, eq:['home','park'],       lvl:1, bad:[] },
+    { n:'חתירה עם גומייה בישיבה',         p:P.HPULL, eq:['home','park'],       lvl:1, bad:[] },
 
     // משיכה אנכית
-    { n:'מתח',                   p:P.VPULL, eq:['gym','park'],        lvl:3, bad:['כתף'] },
-    { n:'מתח בסיוע מכונה',       p:P.VPULL, eq:['gym'],               lvl:1, bad:[] },
-    { n:'פולי עליון',            p:P.VPULL, eq:['gym'],               lvl:1, bad:[] },
+    { n:'מתח אחיזה רחבה',                   p:P.VPULL, eq:['gym','park'],        lvl:3, bad:['כתף'] },
+    { n:'מתח במכונת סיוע',       p:P.VPULL, eq:['gym'],               lvl:1, bad:[] },
+    { n:'משיכת פולי עליון',            p:P.VPULL, eq:['gym'],               lvl:1, bad:[] },
 
     // ברך
-    { n:'סקוואט',                p:P.SQUAT, eq:['gym'],               lvl:2, bad:['ברך','גב'] },
-    { n:'סקוואט גובלט',          p:P.SQUAT, eq:['gym','home'],        lvl:1, bad:['ברך'] },
+    { n:'סקוואט גבי',                p:P.SQUAT, eq:['gym'],               lvl:2, bad:['ברך','גב'] },
+    { n:'גובלט סקוואט',          p:P.SQUAT, eq:['gym','home'],        lvl:1, bad:['ברך'] },
     { n:'לחיצת רגליים',          p:P.SQUAT, eq:['gym'],               lvl:1, bad:[] },
-    { n:'מכרעים',                p:P.SQUAT, eq:['gym','home','park'], lvl:2, bad:['ברך'] },
-    { n:'מכרעים בולגריים',       p:P.SQUAT, eq:['gym','home'],        lvl:3, bad:['ברך'] },
-    { n:'פשיטת ברך במכונה',      p:P.SQUAT, eq:['gym'],               lvl:1, bad:['ברך'] },
-    { n:'עלייה על ספסל',         p:P.SQUAT, eq:['gym','home','park'], lvl:1, bad:['ברך'] },
+    { n:'לאנג׳ הליכה',                p:P.SQUAT, eq:['gym','home','park'], lvl:2, bad:['ברך'] },
+    { n:'סקוואט בולגרי',       p:P.SQUAT, eq:['gym','home'],        lvl:3, bad:['ברך'] },
+    { n:'פשיטת ברך',      p:P.SQUAT, eq:['gym'],               lvl:1, bad:['ברך'] },
+    { n:'סטפ-אפ',         p:P.SQUAT, eq:['gym','home','park'], lvl:1, bad:['ברך'] },
 
     // ירך
-    { n:'דדליפט',               p:P.HINGE, eq:['gym'],               lvl:3, bad:['גב'] },
+    { n:'דדליפט קלאסי',               p:P.HINGE, eq:['gym'],               lvl:3, bad:['גב'] },
     { n:'דדליפט רומני',         p:P.HINGE, eq:['gym'],               lvl:2, bad:['גב'] },
-    { n:'כפיפת ברכיים במכונה',  p:P.HINGE, eq:['gym'],               lvl:1, bad:[] },
+    { n:'כפיפת ברך שוכב',  p:P.HINGE, eq:['gym'],               lvl:1, bad:[] },
     { n:'היפ ת׳רסט',            p:P.HINGE, eq:['gym','home'],        lvl:1, bad:[] },
-    { n:'גשר ירכיים',           p:P.HINGE, eq:['gym','home','park'], lvl:1, bad:[] },
+    { n:'גשר עכוז',           p:P.HINGE, eq:['gym','home','park'], lvl:1, bad:[] },
     /* מאגר עכוז רחב יותר. בלעדיו פיצול עם שלושה ימי ירך חזר על
        אותם שניים-שלושה תרגילים, וזה בלט במיוחד בתבנית הנשים. */
     { n:'היפ ת׳רסט במכונה',     p:P.HINGE, eq:['gym'],               lvl:1, bad:[] },
@@ -78,41 +78,41 @@
     { n:'פול-ת׳רו בכבל',        p:P.HINGE, eq:['gym'],               lvl:1, bad:[] },
     { n:'בעיטה לאחור בכבל',     p:P.HINGE, eq:['gym'],               lvl:1, bad:[] },
     { n:'גשר עכוז רגל אחת',     p:P.HINGE, eq:['gym','home','park'], lvl:2, bad:[] },
-    { n:'באק אקסטנשן 45 מעלות', p:P.HINGE, eq:['gym'],               lvl:1, bad:['גב'] },
+    { n:'בק אקסטנשן ב-45 מעלות', p:P.HINGE, eq:['gym'],               lvl:1, bad:['גב'] },
 
     // כתפיים מבודד
-    { n:'הרחקות צד בדמבלים',    p:P.SHLD,  eq:['gym','home'],        lvl:1, bad:[] },
-    { n:'הרחקות אחוריות',       p:P.SHLD,  eq:['gym','home'],        lvl:1, bad:[] },
+    { n:'הרחקות צד במשקולות',    p:P.SHLD,  eq:['gym','home'],        lvl:1, bad:[] },
+    { n:'הרחקות בהטיה (כתף אחורית)',       p:P.SHLD,  eq:['gym','home'],        lvl:1, bad:[] },
     { n:'פייס פול',             p:P.SHLD,  eq:['gym'],               lvl:1, bad:[] },
 
     // ידיים
-    { n:'כפיפת מרפקים בדמבלים', p:P.ARMS,  eq:['gym','home'],        lvl:1, bad:[] },
+    { n:'כפיפת מרפקים במשקולות', p:P.ARMS,  eq:['gym','home'],        lvl:1, bad:[] },
     { n:'כפיפת מרפקים במוט',    p:P.ARMS,  eq:['gym'],               lvl:1, bad:[] },
-    { n:'פשיטת מרפקים בכבל',    p:P.ARMS,  eq:['gym'],               lvl:1, bad:[] },
-    { n:'לחיצה צרה',            p:P.ARMS,  eq:['gym'],               lvl:2, bad:['כתף'] },
+    { n:'פשיטת מרפק בפולי עם חבל',    p:P.ARMS,  eq:['gym'],               lvl:1, bad:[] },
+    { n:'לחיצת חזה אחיזה צרה',            p:P.ARMS,  eq:['gym'],               lvl:2, bad:['כתף'] },
 
     // ליבה
     { n:'פלאנק',                p:P.CORE,  eq:['gym','home','park'], lvl:1, bad:[] },
-    { n:'פלאנק צד',             p:P.CORE,  eq:['gym','home','park'], lvl:1, bad:[] },
+    { n:'פלאנק צידי',             p:P.CORE,  eq:['gym','home','park'], lvl:1, bad:[] },
     { n:'הרמות רגליים בתלייה',  p:P.CORE,  eq:['gym','park'],        lvl:3, bad:['כתף'] },
     { n:'כפיפות בטן',           p:P.CORE,  eq:['gym','home','park'], lvl:1, bad:['גב'] },
     { n:'דד באג',               p:P.CORE,  eq:['gym','home'],        lvl:1, bad:[] },
-    { n:'עץ פלאנק עם משיכה',    p:P.CORE,  eq:['gym','home'],        lvl:2, bad:[] },
+    { n:'פלאנק כוכב',    p:P.CORE,  eq:['gym','home'],        lvl:2, bad:[] },
     /* שני תרגילי ליבה בכל אימון דורשים מאגר גדול יותר: בפיצול של
        חמישה ימים צריך עשר בחירות, ובשש בלבד הימים האחרונים נשארו
        ריקים. */
     { n:'גלגלת בטן',            p:P.CORE,  eq:['gym','home'],        lvl:3, bad:['גב'] },
     { n:'כפיפות בטן בכבל',      p:P.CORE,  eq:['gym'],               lvl:2, bad:[] },
     { n:'הליכת חקלאי',          p:P.CORE,  eq:['gym','home'],        lvl:1, bad:[] },
-    { n:'פלאנק עם הרמת יד',     p:P.CORE,  eq:['gym','home','park'], lvl:2, bad:['כתף'] },
+    { n:'פלאנק עם נגיעות כתף',     p:P.CORE,  eq:['gym','home','park'], lvl:2, bad:['כתף'] },
     { n:'סופרמן',               p:P.CORE,  eq:['gym','home','park'], lvl:1, bad:[] },
-    { n:'רוטציות רוסיות',       p:P.CORE,  eq:['gym','home','park'], lvl:2, bad:['גב'] },
+    { n:'רוסיאן טוויסט',       p:P.CORE,  eq:['gym','home','park'], lvl:2, bad:['גב'] },
 
     // אירובי
-    { n:'הליכה בשיפוע',         p:P.CARDIO,eq:['gym'],               lvl:1, bad:[] },
+    { n:'הליכון — הליכה בשיפוע',         p:P.CARDIO,eq:['gym'],               lvl:1, bad:[] },
     { n:'אופני כושר',           p:P.CARDIO,eq:['gym','home'],        lvl:1, bad:[] },
     { n:'חבל קפיצה',            p:P.CARDIO,eq:['gym','home','park'], lvl:1, bad:['ברך'] },
-    { n:'אינטרוולים בהליכון',   p:P.CARDIO,eq:['gym'],               lvl:2, bad:['ברך'] }
+    { n:'הליכון — אינטרוולים',   p:P.CARDIO,eq:['gym'],               lvl:2, bad:['ברך'] }
   ];
 
   /* ---------- פיצולים לפי ימים בשבוע ---------- */
@@ -298,6 +298,16 @@
     return best;
   }
 
+  /* מהשם שבבונה לרשומה בספרייה הגדולה. השמות זהים מאז ספטמבר 2026,
+     ולכן אפשר לקחת משם את הציוד ואת קבוצת השריר במקום להחזיק אותם
+     כאן פעם שנייה. */
+  var BY_NAME = null;
+  function byName(n) {
+    if (!window.EBEx || !window.EBEx.ALL) return null;
+    if (!BY_NAME) { BY_NAME = {}; window.EBEx.ALL.forEach(function (x) { BY_NAME[x.n] = x; }); }
+    return BY_NAME[String(n || '').trim()] || null;
+  }
+
   /* =====================================================================
      בניית התוכנית
      ===================================================================== */
@@ -324,11 +334,20 @@
     var eq   = opt.eq || 'gym';
     var used = {};                       // בלי לחזור על אותו תרגיל בתוכנית
 
+    /* מסננים לפי הציוד שבאמת קיים במקום, מתוך הספרייה הגדולה. רשימת
+       ה-eq שכאן היא גיבוי בלבד — לתרגיל שאין לו רשומה בספרייה. */
+    var FALLBACK = { gym:'gym', cross:'gym', studio:'home', home:'home', pool:'home', box:'park', out:'park' };
+    function here(x) {
+      var info = byName(x.n);
+      if (info && window.EBEx.fitsPlace) return window.EBEx.fitsPlace(info, eq);
+      return x.eq.indexOf(FALLBACK[eq] || 'gym') > -1;
+    }
+
     function pick(pattern) {
       var pool = LIB.filter(function (x) {
         if (x.p !== pattern) return false;
         if (used[x.n]) return false;
-        if (x.eq.indexOf(eq) < 0) return false;
+        if (!here(x)) return false;
         if (x.lvl > lvl + (lvl === 1 ? 0 : 1)) return false;   // לא לזרוק מתחיל למתקדם
         for (var i = 0; i < bad.length; i++)
           if (x.bad.indexOf(bad[i]) > -1) return false;
@@ -353,6 +372,12 @@
       return chosen;
     }
 
+    /* תרגיל אגרוף מתוך הספרייה הגדולה, מתחלף בין הימים */
+    function boxPick(names, i) {
+      var n = names[i % names.length], x = byName(n);
+      return x ? { n: x.n, s: x.s, r: x.r } : null;
+    }
+
     /* ---------- ליבה בכל אימון ----------
        שניים, בסוף האימון. לא בהתחלה: ליבה עייפה לפני סקוואט או
        דדליפט פוגעת ביציבות העמוד ומעלה סיכון, וזה גם הסדר המקובל.
@@ -366,7 +391,7 @@
       var pool = LIB.filter(function (x) {
         if (x.p !== P.CORE) return false;
         if (dayUsed[x.n]) return false;
-        if (x.eq.indexOf(eq) < 0) return false;
+        if (!here(x)) return false;
         if (x.lvl > lvl + (lvl === 1 ? 0 : 1)) return false;
         for (var i = 0; i < bad.length; i++)
           if (x.bad.indexOf(bad[i]) > -1) return false;
@@ -386,7 +411,7 @@
       return chosen;
     }
 
-    var outDays = days.map(function (d) {
+    var outDays = days.map(function (d, di) {
       var ex = [];
       /* הליבה שבדפוס יוצאת מהלולאה: היא מתווספת בסוף בכמות קבועה,
          ובלי זה היו שלושה תרגילי ליבה בימים שכבר כללו אחד. */
@@ -423,7 +448,16 @@
         var c = pick(P.CARDIO);
         if (c) ex.push({ name:c.n, sets:'1', reps:'12-20 דק׳', weight:'', rest:'0', note:'בסוף האימון' });
       }
-      return { name: d.t, exercises: ex };
+      /* במכון אגרוף הכוח הוא חצי מהעניין. סיבוב חימום בהתחלה
+         ועבודת שק בסוף — אחרת זו תוכנית כושר שנכתבה במקרה במכון. */
+      if (eq === 'box') {
+        var warm = boxPick(['חבל קפיצה — סיבובים', 'עבודת צל (שדו-בוקסינג)'], di);
+        var bag  = boxPick(['שק — ג׳אב-קרוס (1-2)', 'שק — קומבינציה חופשית',
+                            'שק — 30 שניות פיצוץ', 'שק — 1-2-3 (ג׳אב, קרוס, הוק)'], di);
+        if (warm) ex.unshift({ name: warm.n, sets: warm.s, reps: warm.r, weight: '', rest: '60', note: 'חימום' });
+        if (bag)  ex.push({ name: bag.n, sets: bag.s, reps: bag.r, weight: '', rest: '60', note: 'בסוף האימון' });
+      }
+      return { name: d.t, place: eq, exercises: ex };
     });
 
     return {
@@ -442,6 +476,22 @@
     return (Number(m[1]) + 2) + '-' + (Number(m[2]) + 3);
   }
 
+  /* המקומות שהבונה באמת יכול לשרת. בבריכה אין לו אף תרגיל,
+     והצעה שלה הייתה מחזירה תוכנית ריקה. הסף הוא 15 תרגילים —
+     מתחת לזה הפיצול חוזר על עצמו. */
+  function placeOpts() {
+    if (!window.EBEx || !window.EBEx.PLACES) return [['gym', 'חדר כושר'], ['home', 'בית']];
+    return window.EBEx.PLACES.filter(function (pl) {
+      if (!pl.eq) return true;
+      var n = 0;
+      LIB.forEach(function (x) {
+        var info = byName(x.n);
+        if (info && window.EBEx.fitsPlace(info, pl.k)) n++;
+      });
+      return n >= 15;
+    }).map(function (pl) { return [pl.k, pl.i + ' ' + pl.n]; });
+  }
+
   /* =====================================================================
      ממשק
      ===================================================================== */
@@ -456,7 +506,12 @@
     if (days < 2) days = 2; if (days > 5) days = 5;
 
     var loc  = String(ik.location || '');
-    var eq   = /בית|ביתי/.test(loc) ? 'home' : /פארק|חוץ/.test(loc) ? 'park' : 'gym';
+    var eq   = /בית|ביתי/.test(loc) ? 'home'
+             : /פארק|חוץ/.test(loc) ? 'out'
+             : /סטודיו/.test(loc)   ? 'studio'
+             : /אגרוף|בוקס/.test(loc) ? 'box'
+             : /קרוספיט/.test(loc)  ? 'cross'
+             : /בריכ|שחי/.test(loc) ? 'pool' : 'gym';
 
     var goal = guessGoal(t.goal || ik.goal2 || '');
     var lvl  = t.level || 'מתחיל';
@@ -479,7 +534,7 @@
       + sel('ימים בשבוע','bd_days',[['2','2'],['3','3'],['4','4'],['5','5']], String(days))
       + sel('מטרה','bd_goal',[['mass','מסת שריר'],['cut','חיטוב וירידה'],['power','כוח'],['fit','כושר כללי']], goal)
       + sel('רמה','bd_lvl',['מתחיל','בינוני','מתקדם'], lvl)
-      + sel('מיקום','bd_eq',[['gym','חדר כושר מאובזר'],['home','אימון ביתי'],['park','פארק / משקל גוף']], eq)
+      + sel('מקום האימון','bd_eq', placeOpts(), eq)
       + '</div>'
       + houseSelect(traineeId)
       + '<div class="sep"></div><label class="f">מגבלות — תרגילים שמעמיסים עליהן יוסרו</label>'

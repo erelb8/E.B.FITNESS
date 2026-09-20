@@ -27,6 +27,8 @@ global.sel       = () => '';
 global.gv        = () => '';
 global.save      = () => {};
 
+/* הספרייה נטענת כי הבונה מסנן דרכה לפי מקום האימון */
+eval(fs.readFileSync(__dirname + '/../exercise-library.js', 'utf8'));
 eval(fs.readFileSync(__dirname + '/../builder.js', 'utf8'));
 const B = window.EBBuild;
 
@@ -79,6 +81,24 @@ window.S.settings = {};
   t(n + ' ימים — מספר הימים', r.days.length, n);
   t(n + ' ימים — אין יום ריק', r.days.filter(d => !d.exercises.length).length, 0);
 });
+
+console.log('=== מקום האימון ===');
+const EX = window.EBEx;
+const allNames = r => r.days.reduce((a, d) => a.concat(d.exercises.map(e => e.name)), []);
+const fits = (r, place) => allNames(r).every(n => {
+  const info = EX.ALL.filter(x => x.n === n)[0];
+  return !info || EX.fitsPlace(info, place);
+});
+['gym','studio','box','cross','home','out'].forEach(place => {
+  const r = buildFor('m1', { eq: place, days: 3 });
+  t(place + ' — אין יום ריק', r.days.filter(d => !d.exercises.length).length, 0);
+  t(place + ' — כל התרגילים אפשריים שם', fits(r, place), true);
+  t(place + ' — המקום נשמר על היום', r.days[0].place, place);
+});
+const home = allNames(buildFor('m1', { eq: 'home', days: 3 }));
+t('בבית אין מכונות וכבלים', home.some(n => /מכונה|בכבל|פולי|בסמית/.test(n)), false);
+const gymNames = allNames(buildFor('m1', { eq: 'gym', days: 4 }));
+t('כל שם שהבונה נותן קיים בספרייה', gymNames.every(n => EX.ALL.some(x => x.n === n)), true);
 
 console.log(fail ? '\nנכשלו: ' + fail : '\nהכל עבר  |  עברו: ' + pass);
 process.exit(fail ? 1 : 0);
