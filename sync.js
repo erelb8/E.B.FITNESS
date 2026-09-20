@@ -15,7 +15,7 @@
   'use strict';
 
   // חותמת גרסה — index.html משווה אליה כדי לזהות קובץ ישן במטמון
-  (window.EB_MOD = window.EB_MOD || {})['sync'] = 'v183';
+  (window.EB_MOD = window.EB_MOD || {})['sync'] = 'v184';
 
   const CFG      = window.EBFIT_CONFIG || { URL: '', ANON: '' };
   const SNAP_KEY = 'ebfit_sync_v1';
@@ -52,6 +52,25 @@
 
   const enabled = () => !!(CFG.URL && CFG.ANON);
 
+  /* ---------- מי המאמן, גם כשאין רשת ----------
+     הזהות נשמרת במכשיר לצד הטוקן. בלעדיה, פתיחה של האפליקציה בלי
+     חיבור הציגה מסך התחברות: בדיקת ההרשאה נכשלה ברשת, user נשאר ריק,
+     ו-render החליט שאין מאמן מחובר. המאמן ראה "נתקע" ולא הצליח להגיע
+     לתוכניות — למרות שכל הנתונים יושבים אצלו במכשיר.
+
+     כישלון רשת אינו דחיית הרשאה. כשיש טוקן שמור והבדיקה נפלה ברשת,
+     ממשיכים עם הזהות השמורה במצב "לא אומת", האפליקציה עובדת מקומית,
+     והבדיקה חוזרת ברגע שיש חיבור. דחייה אמיתית מהשרת (בלי שורה) עדיין
+     מוחקת את הטוקן ומחזירה למסך ההתחברות. */
+  const USER_KEY = 'ebfit_admin_user';
+  function cacheUser(u) {
+    try { u ? localStorage.setItem(USER_KEY, JSON.stringify(u)) : localStorage.removeItem(USER_KEY); } catch (e) {}
+  }
+  function cachedUser() {
+    try { const raw = localStorage.getItem(USER_KEY); const u = raw ? JSON.parse(raw) : null;
+          return (u && u.id) ? u : null; } catch (e) { return null; }
+  }
+
   async function checkAdmin() {
     if (!sb || !adminToken) { adminState = 'denied'; return false; }
     const { data, error } = await sb.rpc('admin_session');
@@ -62,7 +81,8 @@
     }
     user = data && data[0] ? { id: data[0].admin_id, email: data[0].email } : null;
     adminState = user ? 'allowed' : 'denied';
-    if (!user) adminToken = '';
+    if (!user) { adminToken = ''; cacheUser(null); }
+    else cacheUser(user);
     log('database admin check', { allowed: adminState === 'allowed', userId: user && user.id });
     return adminState === 'allowed';
   }
@@ -303,11 +323,23 @@
     }).catch(e => {
       lastError = (e && e.message) || String(e);
       logError('database session check failed', e);
-      resolveAuthReady(null);
+      /* אין רשת אבל יש טוקן וזהות שמורה — ממשיכים לעבוד מהמכשיר */
+      const known = adminToken ? cachedUser() : null;
+      if (known) { user = known; adminState = 'offline';
+                   log('offline start — working from device', { userId: known.id }); }
+      resolveAuthReady(user);
       paint();
       if (typeof window.render === 'function') window.render();
     });
-    window.addEventListener('online', () => schedule(500));
+    window.addEventListener('online', () => {
+      /* חזרה לרשת: קודם מאמתים את ההרשאה שלא נבדקה, ורק אז מסנכרנים */
+      if (adminState !== 'allowed' && adminToken) {
+        checkAdmin().then(() => { paint(); if (typeof window.render === 'function') window.render(); schedule(500); })
+                    .catch(() => paint());
+        return;
+      }
+      schedule(500);
+    });
     document.addEventListener('visibilitychange', () => {
       if (!document.hidden) schedule(1500);
     });
@@ -337,6 +369,7 @@
     try { localStorage.setItem('ebfit_admin_token', adminToken); } catch (e) {}
     sb = supabase.createClient(CFG.URL, CFG.ANON, { global: { headers: { 'x-admin-token': adminToken } } });
     user = { id: data[0].admin_id, email: data[0].email };
+    cacheUser(user);
     adminState = 'allowed';
     log('database admin login accepted');
     await checkAdmin();
@@ -368,7 +401,7 @@
     if (!sb) return;
     try { await sb.rpc('admin_logout'); } catch (e) {}
     try { localStorage.removeItem('ebfit_admin_token'); } catch (e) {}
-    adminToken = ''; user = null; adminState = 'denied';
+    adminToken = ''; user = null; adminState = 'denied'; cacheUser(null);
     try { localStorage.removeItem(SNAP_KEY); } catch (e) {}
     log('signOut completed');
   }
@@ -905,8 +938,9 @@
     if (!enabled())      return { state: 'off',     text: 'מקומי בלבד' };
     if (!user)           return { state: 'out',     text: 'לא מחובר' };
     if (adminState === 'denied') return { state: 'error', text: 'אין הרשאת מנהל' };
-    if (adminState !== 'allowed') return { state: 'sync', text: 'בודק הרשאות' };
+    if (adminState === 'offline') return { state: 'offline', text: 'עובד מהמכשיר — נסנכרן כשתחזור הרשת' };
     if (!navigator.onLine) return { state: 'offline', text: 'אין רשת — נסנכרן אח״כ' };
+    if (adminState !== 'allowed') return { state: 'sync', text: 'בודק הרשאות' };
     if (running)         return { state: 'sync',    text: 'מסנכרן…' };
     if (lastError)       return { state: 'error',   text: 'שגיאת סנכרון' };
     const at = localStorage.getItem('ebfit_sync_at');
@@ -916,7 +950,7 @@
   function paint() {
     const el = document.getElementById('syncPill');
     const logout = document.getElementById('adminLogout');
-    if (logout) logout.style.display = adminState === 'allowed' ? '' : 'none';
+    if (logout) logout.style.display = (adminState === 'allowed' || adminState === 'offline') ? '' : 'none';
     if (!el) return;
     const s = status();
     el.className = 'syncpill s-' + s.state;

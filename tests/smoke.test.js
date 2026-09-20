@@ -287,6 +287,64 @@ const TRAINEE_DATA = {
     await ctx.close();
   }
 
+  /* ================= פתיחה בלי רשת =================
+     מאמן שכבר התחבר פעם חייב להיכנס לאפליקציה גם כשאין חיבור: הנתונים
+     במכשיר, והבדיקה מול השרת תיסגר כשתחזור הרשת. עד ספטמבר 2026 כישלון
+     רשת בהפעלה הציג מסך התחברות, והמאמן חשב שהאפליקציה נתקעה ואיבדה
+     את התוכניות. */
+  {
+    const ctx = await browser.newContext({ serviceWorkers: 'block' });
+    const page = await ctx.newPage();
+    const errs = []; page.on('pageerror', e => errs.push(e.message));
+    await page.route(/supabase\.co/, route => {
+      const fn = (route.request().url().split('/rpc/')[1] || '').split('?')[0];
+      let body = '[]';
+      if (fn === 'admin_login')   body = JSON.stringify([{ token: 'tok', admin_id: 'adm1', email: 'c@x.com' }]);
+      if (fn === 'admin_session') body = JSON.stringify([{ admin_id: 'adm1', email: 'c@x.com' }]);
+      route.fulfill({ status: 200, contentType: 'application/json', body });
+    });
+    await page.goto(BASE + '/index.html');
+    await page.waitForFunction(() => window.EBSync && typeof vTrainee === 'function', null, { timeout: 30000 });
+    await page.evaluate(async () => {
+      await EBSync.signIn('c@x.com', 'pw');
+      S.trainees = [{ id: 'a1', name: 'דנה', status: 'active', meals: [],
+                      program: { days: [{ name: 'יום A', exercises: [{ name: 'סקוואט גבי', sets: '3', reps: '8' }] }] } }];
+      save();
+    });
+    t('הזהות נשמרת במכשיר בהתחברות', await page.evaluate(() => !!localStorage.getItem('ebfit_admin_user')));
+
+    await page.unroute(/supabase\.co/);
+    await page.route(/supabase\.co/, route => route.abort('failed'));
+    await page.reload();
+    await page.waitForFunction(() => document.querySelectorAll('#rail .nav').length > 0
+      || /כניסה למערכת|בודק הרשאות/.test(document.body.innerText), null, { timeout: 20000 }).catch(() => {});
+    const off = await page.evaluate(async () => {
+      const wait = ms => new Promise(r => setTimeout(r, ms));
+      const V = document.getElementById('view');
+      const out = { login: /כניסה למערכת/.test(document.body.innerText),
+                    checking: /בודק הרשאות/.test(document.body.innerText),
+                    nav: document.querySelectorAll('#rail .nav').length };
+      go('trainee', 'a1'); SUBTAB = 'program'; render();
+      out.screen = V.innerText.length;
+      EBExUI.open('a1', 0);
+      const b = document.querySelector('#ex_list [data-exadd]:not([disabled])');
+      if (b) b.click();
+      await wait(300);
+      EBExUI.close(); commitProgram(); render();
+      out.exercises = tById('a1').program.days[0].exercises.length;
+      out.after = V.innerText.length;
+      return out;
+    });
+    t('בלי רשת — לא מסך התחברות', !off.login);
+    t('בלי רשת — לא נתקע על "בודק הרשאות"', !off.checking);
+    t('בלי רשת — התפריט נטען', off.nav > 0, String(off.nav));
+    t('בלי רשת — מסך התוכנית נפתח', off.screen > 500, off.screen + ' תווים');
+    t('בלי רשת — אפשר להוסיף תרגיל', off.exercises === 2, 'יש ' + off.exercises);
+    t('בלי רשת — המסך לא נעלם אחרי הוספה', off.after > 500, off.after + ' תווים');
+    t('אין שגיאות במצב לא מקוון', !errs.length, errs.slice(0, 3).join(' | '));
+    await ctx.close();
+  }
+
   await browser.close();
   server.close();
   console.log(fail ? '\n' + fail + ' נכשלו  |  עברו: ' + pass : '\nהכל עבר  |  עברו: ' + pass);
