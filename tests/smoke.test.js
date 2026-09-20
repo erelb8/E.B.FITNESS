@@ -185,6 +185,42 @@ const TRAINEE_DATA = {
       window.renderFromSync();
       out.noRenderWhileTyping = renders === 0 && cell.isConnected;
       window.render = R0;
+      // תשלום: רישום בלי כפתור שמירה, ואז עריכה — בלי רשומה כפולה
+      await tryM('payFlow', async () => {
+        const set = (id, v) => { const el = document.getElementById(id); if (!el) throw new Error('אין שדה ' + id);
+          el.value = v; el.dispatchEvent(new Event('input', { bubbles: true })); el.dispatchEvent(new Event('change', { bubbles: true })); };
+        const n0 = S.payments.length;
+        openPay('a1');
+        set('p_t', 'a1'); set('p_amt', '400'); set('p_cat', 'תוכנית אימונים'); set('p_m', 'ביט'); set('p_note', 'בדיקה');
+        await wait(800);
+        const p = S.payments.filter(x => Number(x.amount) === 400);
+        if (p.length !== 1) throw new Error('נשמרו ' + p.length + ' רשומות');
+        if (p[0].category !== 'תוכנית אימונים' || p[0].method !== 'ביט' || p[0].note !== 'בדיקה') throw new Error('שדות חסרים');
+        closeModal();
+        openPay(null, p[0].id);
+        if (document.getElementById('p_amt').value !== '400') throw new Error('העריכה לא טענה את הסכום');
+        set('p_amt', '450'); await wait(800);
+        if (S.payments.filter(x => x.id === p[0].id).length !== 1) throw new Error('העריכה שכפלה');
+        if (Number(S.payments.filter(x => x.id === p[0].id)[0].amount) !== 450) throw new Error('העריכה לא נשמרה');
+        if (S.payments.length !== n0 + 1) throw new Error('מספר התשלומים השתנה ביותר מאחד');
+        closeModal();
+      });
+      // גיבוי ושחזור: הכל חוזר כמו שהיה
+      await tryM('backupRestore', async () => {
+        const C = window.confirm; window.confirm = () => true;   // השחזור שואל לפני שהוא דורס
+        const snap = JSON.parse(JSON.stringify(S));
+        const nT = S.trainees.length, nP = S.payments.length;
+        const days = ((tById('a1').program || {}).days || []).length;
+        S.trainees = []; S.payments = []; S.measures = [];
+        applyBackup(snap, () => {});
+        await wait(300);
+        if (S.trainees.length !== nT) throw new Error('חזרו ' + S.trainees.length + ' מתוך ' + nT);
+        if (S.payments.length !== nP) throw new Error('תשלומים: ' + S.payments.length + ' מתוך ' + nP);
+        const t = tById('a1');
+        if (!t || ((t.program || {}).days || []).length !== days) throw new Error('התוכנית לא חזרה');
+        if (!t.meals || !t.meals.length) throw new Error('הארוחות לא חזרו');
+        window.confirm = C;
+      });
       return out;
     }, PROGRAM);
     for (const k in r.views) t('מסך ' + k, r.views[k] === true, String(r.views[k]));
