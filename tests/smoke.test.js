@@ -122,6 +122,23 @@ const TRAINEE_DATA = {
         if (!add) throw new Error('no add button'); add.click();
         const n = tById('a1').program.days[0].exercises.length; if (n !== 3) throw new Error('not added: ' + n);
       });
+      await tryM('dayPlace', async () => {
+        VIEW = 'trainee'; ARG = 'a1'; SUBTAB = 'program'; V.innerHTML = vTrainee('a1');
+        const btn = [].find.call(V.querySelectorAll('button'), b => /מכון אגרוף/.test(b.textContent));
+        if (!btn) throw new Error('no place buttons');
+        btn.click();
+        if (tById('a1').program.days[0].place !== 'box') throw new Error('place not saved');
+        if (!/מכון אגרוף/.test(V.innerText)) throw new Error('place not shown on day');
+        // הספרייה נפתחת מסוננת למכון: אגרוף כן, מכונות לא
+        EBExUI.open('a1', 0);
+        const txt = document.getElementById('ex_list').innerText;
+        if (!/שק —/.test(txt)) throw new Error('no boxing exercises');
+        if (/פרפר במכונה/.test(txt)) throw new Error('machine exercise in boxing gym');
+        closeModal();
+        V.innerHTML = vTrainee('a1');
+        [].find.call(V.querySelectorAll('button'), b => /מכון אגרוף/.test(b.textContent)).click();
+        if (tById('a1').program.days[0].place) throw new Error('place not cleared on second click');
+      });
       await tryM('traineeReports', async () => {
         const en = EBSync.enabled, lf = EBSync.logsFor;
         EBSync.enabled = () => true;

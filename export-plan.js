@@ -14,7 +14,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['exportPlan'] = 'v178';
+  (window.EB_MOD = window.EB_MOD || {})['exportPlan'] = 'v179';
 
   var esc2 = function (s) {
     return String(s == null ? '' : s)
@@ -68,7 +68,10 @@
         + '<circle class="rb" cx="20" cy="20" r="16"/><circle class="rf" cx="20" cy="20" r="16"/></svg>'
         + '<i>' + (di + 1) + '</i></span>'
         + '<span class="day-t"><span class="day-name">' + esc2(d.name || ('יום ' + (di+1))) + '</span>'
-        + '<span class="day-meta"><em class="cnt">0</em>/' + ex.length + ' תרגילים</span></span>'
+        + '<span class="day-meta"><em class="cnt">0</em>/' + ex.length + ' תרגילים'
+        + (d.place && window.EBEx && EBEx.placeName(d.place)
+            ? ' · ' + esc2(EBEx.placeIcon(d.place) + ' ' + EBEx.placeName(d.place)) : '')
+        + '</span></span>'
         + '<span class="chev"></span></button>'
         + '<div class="day-body">' + noteHtml(d.note, 'הערה ליום זה')
         + '<ul class="rail">' + rows + '</ul></div></section>';

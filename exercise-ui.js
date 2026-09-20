@@ -8,9 +8,9 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['exUi'] = 'v178';
+  (window.EB_MOD = window.EB_MOD || {})['exUi'] = 'v179';
 
-  var Q = '', MUS = 'all', EQ = 'all', FOR = null, DAY = 0, TARGET = null;
+  var Q = '', MUS = 'all', EQ = 'all', PLACE = 'all', FOR = null, DAY = 0, TARGET = null;
 
   /* לאן נכנס תרגיל חדש. ברירת המחדל היא הסוף, כי כך זה עבד עד
      היום; הבחירה נשמרת כל עוד הספרייה פתוחה, כדי שמי שבונה חימום
@@ -33,6 +33,10 @@
   function open(traineeId, dayIndex, target) {
     FOR = traineeId; DAY = dayIndex; TARGET = target || null;
     Q = ''; MUS = 'all'; EQ = 'all'; POS = 'end'; LIMIT = 60;
+    /* אם ליום נקבע מקום אימון, הספרייה נפתחת מסוננת אליו — ביום
+       במכון אגרוף לא מציעים פרפר במכונה. אפשר לבטל בלחיצה. */
+    var d0 = currentDay();
+    PLACE = (d0 && d0.place) ? d0.place : 'all';
     paint();
   }
 
@@ -81,13 +85,26 @@
     var day = currentDay();
     if (!day) return '';
     var have = (day.exercises || []).map(function (e) { return String(e.name || '').trim(); });
-    var items = EBEx.search(Q, MUS, EQ);
-    var byM = EBEx.byMuscle(), byE = EBEx.byEquip();
+    var items = EBEx.search(Q, MUS, EQ, PLACE);
+    /* הספירות על הצ׳יפים נספרות מתוך מה שאפשרי במקום שנבחר. אחרת
+       "מכונה 41" מופיע ביום בבית ומוביל למסך ריק. */
+    var pool = PLACE === 'all' ? EBEx.ALL
+      : EBEx.ALL.filter(function (x) { return EBEx.fitsPlace(x, PLACE); });
+    var byM = {}, byE = {};
+    pool.forEach(function (x) { (byM[x.m] = byM[x.m] || []).push(x); (byE[x.e] = byE[x.e] || []).push(x); });
 
     var h = '<div class="row" style="gap:5px;align-items:center;margin-bottom:10px">'
       + '<span class="muted" style="font-size:12.5px">מיקום:</span>'
       + chip('בסוף', POS === 'end', 'data-expos="end"')
       + chip('בהתחלה', POS === 'start', 'data-expos="start"')
+      + '</div>';
+
+    /* מקום האימון */
+    h += '<div class="row" style="gap:5px;flex-wrap:wrap;margin-bottom:7px">'
+      + chip('כל המקומות', PLACE === 'all', 'data-exp="all"')
+      + EBEx.PLACES.map(function (p) {
+          return chip(p.i + ' ' + p.n, PLACE === p.k, 'data-exp="' + p.k + '"');
+        }).join('')
       + '</div>';
 
     /* שריר */
@@ -161,6 +178,7 @@
     clearTimeout(QT);
     QT = setTimeout(paintList, 120);     // לא על כל אות — כשעוצרים רגע
   }
+  function setPlace(k) { PLACE = k; LIMIT = 60; paintList(); }
   function setMuscle(k) { MUS = k; LIMIT = 60; paintList(); }
   function setEquip(k) { EQ = k; LIMIT = 60; paintList(); }
   function setPos(k) { POS = (k === 'start' ? 'start' : 'end'); paintList(); }
@@ -213,6 +231,8 @@
     if (m) { setMuscle(m.dataset.exm); return; }
     var q = e.target.closest('[data-exe]');
     if (q) { setEquip(q.dataset.exe); return; }
+    var pl = e.target.closest('[data-exp]');
+    if (pl) { setPlace(pl.dataset.exp); return; }
     var pz = e.target.closest('[data-expos]');
     if (pz) { setPos(pz.dataset.expos); return; }
   });
@@ -425,5 +445,5 @@
 
   window.EBExUI = { open: open, close: close,
                     fillTrainee: fillTrainee, fillAll: fillAll, fillDay: fillDay,
-                    applyGoal: applyGoal, applyGoalAll: applyGoalAll, goalKey: goalKey, search: search, setMuscle: setMuscle, setEquip: setEquip, setPos: setPos, add: add };
+                    applyGoal: applyGoal, applyGoalAll: applyGoalAll, goalKey: goalKey, search: search, setMuscle: setMuscle, setEquip: setEquip, setPlace: setPlace, setPos: setPos, add: add };
 })();

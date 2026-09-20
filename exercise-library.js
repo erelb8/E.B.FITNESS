@@ -12,20 +12,43 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['exLibrary'] = 'v178';
+  (window.EB_MOD = window.EB_MOD || {})['exLibrary'] = 'v179';
 
   var MUSCLES = {
     chest:'חזה', back:'גב', shoulders:'כתפיים', biceps:'יד קדמית', triceps:'יד אחורית',
     quads:'ארבע ראשי', hams:'המסטרינג', glutes:'עכוז', calves:'תאומים',
     core:'בטן וליבה', full:'גוף מלא', cardio:'אירובי',
-    mob:'מוביליות', flex:'גמישות'
+    box:'אגרוף וקרב', mob:'מוביליות', flex:'גמישות'
   };
 
   var EQUIP = {
     bw:'משקל גוף', bar:'מוט', db:'משקולות', machine:'מכונה', cable:'כבלים',
     smith:'סמית׳', band:'גומייה', kb:'קטלבל', bench:'ספסל', bike:'מכשיר אירובי',
+    bag:'שק אגרוף', mitts:'כפפות ופאדים', rope:'חבל קפיצה',
     other:'אחר'
   };
+
+  /* ══════════ מקומות אימון ══════════
+     אותו מתאמן מתאמן ביום אחד בחדר כושר ובאחר בסטודיו או במכון אגרוף,
+     ומה שיש שם קובע מה אפשר לבנות. המקום נשמר על יום האימון, מוצג
+     למתאמן, ומסנן את הספרייה לציוד שקיים במקום — כדי שלא ייכנס
+     "פרפר במכונה" ליום בבית.
+
+     eq = הציוד שקיים במקום. ברירת המחדל היא חדר כושר: הכול. */
+  var PLACES = [
+    { k:'gym',    n:'חדר כושר',  i:'🏋', eq:null },
+    { k:'studio', n:'סטודיו',    i:'🤸', eq:['bw','db','band','kb','bench','rope','other'] },
+    { k:'box',    n:'מכון אגרוף', i:'🥊', eq:['bag','mitts','rope','bw','band','kb','db','other'] },
+    { k:'cross',  n:'קרוספיט',   i:'🔥', eq:['bar','kb','bw','bike','rope','band','bench','other'] },
+    { k:'home',   n:'בית',       i:'🏠', eq:['bw','db','band','kb','rope','bench'] },
+    { k:'out',    n:'בחוץ',      i:'🌳', eq:['bw','band','kb','rope','other'] }
+  ];
+  function place(k) {
+    for (var i = 0; i < PLACES.length; i++) if (PLACES[i].k === k || PLACES[i].n === k) return PLACES[i];
+    return null;
+  }
+  function placeName(k) { var p = place(k); return p ? p.n : ''; }
+  function placeIcon(k) { var p = place(k); return p ? p.i : ''; }
 
   var R = [
     /* ══════════ חזה ══════════ */
@@ -271,9 +294,36 @@
     ['מכונת חתירה','cardio','bike','1','20 דק׳','הרצף: רגליים, גו, ידיים'],
     ['סקי-ארג','cardio','bike','10','250 מטר',''],
     ['מכונת מדרגות','cardio','bike','1','20 דק׳',''],
-    ['חבל קפיצה','cardio','other','5','2 דק׳',''],
+    ['חבל קפיצה','cardio','rope','5','2 דק׳',''],
     ['ספרינטים','cardio','bw','8','40 מטר','הפוגה מלאה בין חזרות'],
     ['ספרינט בעלייה','cardio','bw','8','10 שנ׳','הכי בטוח להמסטרינג'],
+
+    /* ══════════ אגרוף וקרב ══════════
+       סיבוב = 3 דקות עבודה ודקה מנוחה, כמו במכון. מי שמתחיל — 2 דקות.
+       ההערות מכוונות לטכניקה שמונעת פציעה: פרק יד ישר, סנטר מוגן,
+       ולא לנעול את המרפק במלוא הכוח. */
+    ['חבל קפיצה — סיבובים','box','rope','5','3 דק׳','החימום הקלאסי. קרסוליים רכים'],
+    ['עבודת צל (שדו-בוקסינג)','box','bw','3','3 דק׳','מול מראה. עבודה על הרגליים, לא רק הידיים'],
+    ['שק — ג׳אב ישר','box','bag','3','3 דק׳','פרק יד ישר בפגיעה. סנטר למטה'],
+    ['שק — ג׳אב-קרוס (1-2)','box','bag','4','3 דק׳','הכוח מהרגל האחורית ומסיבוב האגן'],
+    ['שק — 1-2-3 (ג׳אב, קרוס, הוק)','box','bag','4','3 דק׳',''],
+    ['שק — הוקים לגוף','box','bag','3','2 דק׳','מרפק בזווית קבועה, הכוח מהגו'],
+    ['שק — אפרקוט','box','bag','3','2 דק׳','לכופף רגליים ולעלות עם הגוף'],
+    ['שק — קומבינציה חופשית','box','bag','5','3 דק׳','מכה, זוז, מכה. לא לעמוד במקום'],
+    ['שק — 30 שניות פיצוץ','box','bag','6','30 שנ׳ / 60 שנ׳ קל','מהירות מלאה. אינטרוול אמיתי'],
+    ['פאדים עם מאמן','box','mitts','5','3 דק׳','דיוק לפני עוצמה'],
+    ['פאדים — הגנות ומכה נגדית','box','mitts','4','3 דק׳','לראות את המכה ולענות מיד'],
+    ['סלואו ספארינג','box','mitts','3','3 דק׳','חצי מהירות. לומדים, לא מנצחים'],
+    ['התחמקויות (סלים וראולס)','box','bw','3','1 דק׳','ברכיים עובדות, לא הגב'],
+    ['עבודת רגליים בסולם','box','bw','4','30 שנ׳','צעדים קצרים ומהירים'],
+    ['קפיצות בעמידת קרב','box','bw','3','45 שנ׳','משקל על כף הרגל הקדמית'],
+    ['בטן לאגרוף — סקיסורס','box','bw','3','40 שנ׳','ליבה יציבה סופגת מכות'],
+    ['רוסיאן טוויסט עם כדור','box','other','3','20','סיבוב הגו — אותה תנועה שנותנת כוח בהוק'],
+    ['פלאנק עם נגיעות כתף','box','bw','3','40 שנ׳','בלי להתנדנד באגן'],
+    ['שכיבות סמיכה מתפרצות','box','bw','4','10','דחיפה מהירה. כוח מכה'],
+    ['מכות קטלבל (סווינג)','box','kb','4','15','הכוח מהירכיים'],
+    ['גומייה — מכות התנגדות','box','band','3','20 לכל יד','שומר על הצורה גם בעייפות'],
+    ['צוואר וטרפז — שראגס איזומטרי','box','bw','3','30 שנ׳','צוואר חזק מפחית זעזוע'],
 
     /* ══════════ ניידות וחימום ══════════ */
     ['ישיבה בסקוואט נמוך','mob','bw','1','2 דק׳','ניידות קרסול וירך'],
@@ -551,23 +601,42 @@
     EX.forEach(function (x) { (o[x.e] = o[x.e] || []).push(x); });
     return o;
   }
+  /* האם התרגיל אפשרי במקום הזה — לפי הציוד שקיים שם */
+  function fitsPlace(x, pl) {
+    var p = place(pl);
+    if (!p || !p.eq) return true;           // חדר כושר, או מקום לא מוכר
+    return p.eq.indexOf(x.e) > -1;
+  }
+  /* סדר הציוד ב-eq הוא סדר החשיבות במקום: במכון אגרוף השק והפאדים
+     קודם, ורק אחר כך המשקולות שגם הן שם. בלי זה יום במכון אגרוף נפתח
+     בלחיצת חזה במשקולות, והתרגילים שבאמת שייכים למקום נדחקים למטה. */
+  function byPlaceOrder(list, pl) {
+    var p = place(pl);
+    if (!p || !p.eq) return list;
+    return list.map(function (x, i) { return { x: x, i: i, r: p.eq.indexOf(x.e) }; })
+      .sort(function (a, b) { return (a.r - b.r) || (a.i - b.i); })
+      .map(function (o) { return o.x; });
+  }
   /* חיפוש בשם, בהערה, בשריר ובציוד — כדי ש"מכונה" או "גב" ימצאו */
-  function search(q, muscle, equip) {
+  function search(q, muscle, equip, pl) {
     var s = String(q || '').trim();
-    return EX.filter(function (x) {
+    var out = EX.filter(function (x) {
       if (muscle && muscle !== 'all' && x.m !== muscle) return false;
       if (equip  && equip  !== 'all' && x.e !== equip)  return false;
+      if (pl && pl !== 'all' && !fitsPlace(x, pl)) return false;
       if (!s) return true;
       return x.n.indexOf(s) > -1
           || (x.note && x.note.indexOf(s) > -1)
           || (MUSCLES[x.m] || '').indexOf(s) > -1
           || (EQUIP[x.e]   || '').indexOf(s) > -1;
     });
+    return (pl && pl !== 'all') ? byPlaceOrder(out, pl) : out;
   }
 
   window.EBEx = {
-    ALL: EX, MUSCLES: MUSCLES, EQUIP: EQUIP,
+    ALL: EX, MUSCLES: MUSCLES, EQUIP: EQUIP, PLACES: PLACES,
     byId: byId, byMuscle: byMuscle, byEquip: byEquip, search: search,
+    place: place, placeName: placeName, placeIcon: placeIcon, fitsPlace: fitsPlace,
     count: EX.length
   };
 })();
