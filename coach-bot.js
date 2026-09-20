@@ -18,7 +18,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['bot'] = 'v179';
+  (window.EB_MOD = window.EB_MOD || {})['bot'] = 'v180';
 
   var LOGS = [], WEIGH = [], PROGRAM = null, GOAL = '', HABITS = null, FOOD = null;
 
@@ -441,6 +441,42 @@
     if (!m || /[\u05D0-\u05EA]/.test(String(v))) return null;   // "לכשל", "30 שנ׳" — לא טווח חזרות
     return Number(m[2] || m[1]);
   }
+  /* ---------- בכמה להעלות ----------
+     עד כאן הבוט אמר לכולם אותו דבר: 2.5 ק״ג מעל 40. בפועל סקוואט של
+     100 עולה בחמישה, הרחקות צד של 8 עולות בקילו, וקטלבל בכלל קופץ
+     בארבעה כי אין ביניים. המלצה שלא מתאימה לציוד היא המלצה שאי אפשר
+     לבצע, והמתאמן פשוט מתעלם ממנה.
+
+     שלושה דברים קובעים: סוג התרגיל (תרגיל רב-מפרקי לפלג גוף תחתון
+     סופג יותר), הציוד (מה בכלל אפשר להוסיף), ואחוז מהמשקל הנוכחי —
+     כדי שקפיצה לא תהיה 20 אחוז אצל מתחיל. */
+  var LOWER = /סקוואט|דדליפט|לג פרס|לחיצת רגליים|היפ ת׳רסט|לאנג׳|מכרעים|סטפ-אפ|הק |עגלה|גוד מורנינג/;
+  var UPPER = /לחיצ|מתח|חתיר|משיכ|מקבילים|שכיבות סמיכה|פולי|דחיפ|קרוסאובר/;
+  function exInfo(name) {
+    var L = window.EBEx && window.EBEx.ALL;
+    if (!L) return null;
+    var n = String(name || '').trim();
+    for (var i = 0; i < L.length; i++) if (L[i].n === n) return L[i];
+    return null;
+  }
+  /* הקפיצה הקטנה ביותר שאפשר לבצע עם הציוד הזה */
+  function grain(info, w) {
+    var e = info ? info.e : '';
+    if (e === 'kb') return 4;                  // קטלבלים קופצים ב-4 ק״ג
+    if (e === 'db') return w >= 10 ? 2 : 1;    // מדף משקולות: 1 ק״ג עד 10, אחר כך 2
+    if (e === 'band' || e === 'bw' || e === 'water' || e === 'trx' || e === 'ball') return 0;
+    return 2.5;                                // מוט, מכונה, כבל — זוג צלחות 1.25
+  }
+  function stepFor(name, w) {
+    var info = exInfo(name), n = String(name || '');
+    var cap = (LOWER.test(n) || (info && /quads|hams|glutes/.test(info.m) && UPPER.test(n))) ? 5
+            : (UPPER.test(n) || (info && /chest|back|shoulders/.test(info.m))) ? 2.5
+            : 2;                                                    // תרגיל בידוד
+    var g = grain(info, w);
+    if (!g) return 0;                          // משקל גוף או גומייה — מוסיפים חזרה, לא קילו
+    var raw = Math.min(cap, Math.max(g, w * 0.05));                 // לא יותר מ-5 אחוז
+    return Math.max(g, Math.round(raw / g) * g);
+  }
   function readyToAdd() {
     var target = {};
     realDays().forEach(function (d) {
@@ -461,7 +497,16 @@
         if (sets.length) { w = Math.max.apply(null, sets.map(function (x) { return num(x.w); }));
           allTop = sets.filter(function (x) { return num(x.w) >= w; }).every(function (x) { return num(x.r) >= target[n]; }); }
         else allTop = num(e.reps) >= target[n];
-        if (w && allTop) out.push({ name: n, w: w, top: target[n], next: r1(w + (w >= 40 ? 2.5 : w >= 12 ? 2 : 1)) });
+        if (!allTop) return;
+        if (w) {
+          var st = stepFor(n, w);
+          /* משקל גוף שנרשם עם משקל חיצוני (חגורה) — עדיין מוסיפים קילו */
+          if (!st) st = w >= 10 ? 2 : 1;
+          out.push({ name: n, w: w, top: target[n], step: st, next: r1(w + st) });
+        } else if (!num(e.weight) && !sets.length && num(e.reps) >= target[n]) {
+          /* תרגיל משקל גוף בקצה הטווח — אין מה להעלות, מוסיפים חזרה או סט */
+          out.push({ name: n, w: 0, top: target[n], step: 0, next: 0 });
+        }
       });
     }
     return out;
@@ -585,11 +630,19 @@
     /* מוכן להעלות משקל — המשפט שאפשר לפעול לפיו באימון הבא */
     var ra = pn ? [] : readyToAdd();
     if (ra.length) {
-      var a = ra[0];
-      out.push({ tone: 'good', icon: '⬆️', title: 'זמן להעלות משקל ב' + a.name,
-        text: 'באימון האחרון ' + r1(a.w) + ' ק״ג ל-' + a.top + ' חזרות בכל הסטים — הקצה העליון של הטווח. '
-            + 'באימון הבא: ' + a.next + ' ק״ג, ובונים שוב עד ' + a.top + '.'
-            + (ra.length > 1 ? ' (וגם ' + ra.slice(1, 3).map(function (x) { return x.name; }).join(', ') + ')' : '') });
+      /* תרגיל עם משקל קודם — שם יש מספר לפעול לפיו */
+      var a = ra.filter(function (x) { return x.w; })[0] || ra[0];
+      var rest = ra.filter(function (x) { return x !== a; });
+      var also = rest.length ? ' (וגם ' + rest.slice(0, 2).map(function (x) { return x.name; }).join(', ') + ')' : '';
+      if (a.w) {
+        out.push({ tone: 'good', icon: '⬆️', title: 'זמן להעלות משקל ב' + a.name,
+          text: 'באימון האחרון ' + r1(a.w) + ' ק״ג ל-' + a.top + ' חזרות בכל הסטים — הקצה העליון של הטווח. '
+              + 'באימון הבא: ' + a.next + ' ק״ג (עלייה של ' + r1(a.step) + '), ובונים שוב עד ' + a.top + '.' + also });
+      } else {
+        out.push({ tone: 'good', icon: '⬆️', title: 'זמן להקשות ב' + a.name,
+          text: 'הגעת ל-' + a.top + ' חזרות בכל הסטים. בתרגיל משקל גוף אין מה להוסיף למוט — '
+              + 'מוסיפים סט, מאטים את הירידה לשלוש שניות, או עוברים לגרסה קשה יותר.' + also });
+      }
     }
 
     /* עלייה מצטברת */
@@ -998,6 +1051,7 @@
     volumeOf: volumeOf, volumeSeries: volumeSeries, volumeTrend: volumeTrend,
     dailyTrack: dailyTrack, thisWeek: thisWeek,
     load: load, messages: messages, trends: trends, series: series,
+    stepFor: stepFor, readyToAdd: readyToAdd,
     consistency: consistency, neglectedDays: neglectedDays,
     e1rm: e1rm, block: block, bodyBlock: bodyBlock,
     plan: plan, streak: streak, weekStart: weekStart,
