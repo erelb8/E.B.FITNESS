@@ -6,7 +6,7 @@
 <title>E.B FIT — ניהול מתאמנים</title>
 
 <!-- ===== PWA — הופך את האתר לאפליקציה במסך הבית ===== -->
-<link rel="manifest" href="manifest.json?v=v184">
+<link rel="manifest" href="manifest.json?v=v185">
 <meta name="theme-color" content="#1C140E">
 <meta name="description" content="מערכת לניהול מתאמנים, תוכניות אימון, יומן ותשלומים">
 
@@ -15,9 +15,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="E.B FIT">
-<link rel="apple-touch-icon" href="icons/icon-180.png?v=v184">
-<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=v184">
-<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=v184">
+<link rel="apple-touch-icon" href="icons/icon-180.png?v=v185">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=v185">
+<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=v185">
 <meta name="format-detection" content="telephone=no">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -444,7 +444,7 @@ tbody tr:hover{background:var(--panel)}
 </head>
 <body>
 <header class="top">
-  <div class="brand"><img class="brand-logo" src="icons/logo-96.png?v=v184" alt="" width="30" height="30">E.B<span class="dot"></span>FIT <small id="brandSub">ניהול מתאמנים</small></div>
+  <div class="brand"><img class="brand-logo" src="icons/logo-96.png?v=v185" alt="" width="30" height="30">E.B<span class="dot"></span>FIT <small id="brandSub">ניהול מתאמנים</small></div>
   <div class="spacer"></div>
   <button class="syncpill s-off" id="syncPill" onclick="go('settings')" title="מצב סנכרון">מקומי בלבד</button>
   <span class="now" id="topDate"></span>
@@ -462,8 +462,8 @@ tbody tr:hover{background:var(--panel)}
 <div id="toast"></div>
 
 <!-- ספריית Supabase מקומית (לא מ-CDN) כדי שהאפליקציה תעבוד גם בלי רשת -->
-<script src="vendor/supabase.js?v=v184"></script>
-<script src="config.js?v=v184"></script>
+<script src="vendor/supabase.js?v=v185"></script>
+<script src="config.js?v=v185"></script>
 
 <script>
 /* =======================================================================
@@ -498,7 +498,7 @@ function age(b){ if(!b) return null; const d=new Date(b), t=new Date(); let a=t.
 
 /* ---------------- אחסון ---------------- */
 const KEY='ebfit_v1';
-const EB_VERSION='v184';   // חייב להתאים ל-VERSION ב-sw.js
+const EB_VERSION='v185';   // חייב להתאים ל-VERSION ב-sw.js
 let mem=null, canStore=true;
 function load(){
   try{ const r=localStorage.getItem(KEY); return r?JSON.parse(r):null; }
@@ -927,6 +927,7 @@ const NAV=[
   {id:'health', ic:'🩺', t:'סינון בריאות'},
   {id:'biz',    ic:'📊', t:'ניתוח העסק'},
   {id:'lab',    ic:'✦', t:'פיצ׳רים ובוט'},
+  {id:'guides', ic:'📖', t:'מדריכים'},
   {id:'settings',ic:'⚙', t:'הגדרות'}
 ];
 function go(v, arg){
@@ -939,7 +940,7 @@ function go(v, arg){
 
 function renderNav(){
   let h='<div class="grp">ניהול</div>';
-  NAV.slice(0,8).forEach(n=>{
+  NAV.slice(0,9).forEach(n=>{
     let c='';
     if(n.id==='trainees') c='<span class="cnt">'+activeTrainees().length+'</span>';
     if(n.id==='access'){ const nb=(window.EBAccess?EBAccess.blocked():0); if(nb) c='<span class="cnt">'+nb+'</span>'; }
@@ -948,11 +949,11 @@ function renderNav(){
     h+=navBtn(n,c);
   });
   h+='<div class="grp">התאמה אישית</div>';
-  h+=navBtn(NAV[8],'');
+  h+=navBtn(NAV[9],'');
   S.custom.forEach(c=>{
     h+='<button class="nav'+(VIEW==='custom'&&ARG===c.id?' on':'')+'" onclick="go(\'custom\',\''+c.id+'\')"><i>'+esc(c.icon||'✧')+'</i>'+esc(c.title)+'</button>';
   });
-  h+='<div class="grp">מערכת</div>'+navBtn(NAV[9],'');
+  h+='<div class="grp">מערכת</div>'+navBtn(NAV[10],'');
   $('#rail').innerHTML=h;
 
   const mob=['dash','trainees','schedule','money','lab'];
@@ -1015,7 +1016,8 @@ function render(){
   renderNav();
   const v={dash:vDash,trainees:vTrainees,trainee:vTrainee,schedule:vSchedule,money:vMoney,
            progress:vProgress,lab:vLab,settings:vSettings,custom:vCustom,
-           health:()=>EBHealth.view(), biz:()=>EBBiz.view(), access:()=>EBAccess.view()}[VIEW]||vDash;
+           health:()=>EBHealth.view(), biz:()=>EBBiz.view(), access:()=>EBAccess.view(),
+           guides:()=>EBGuides.view()}[VIEW]||vDash;
   $('#view').innerHTML = v();
   if(VIEW==='custom') mountCustom();
   if(VIEW==='lab') scrollChat();
@@ -1787,13 +1789,14 @@ function tabProgram(t){
      +'<button class="btn sm ghost" onclick="addEx(\''+t.id+'\','+di+')">+ תרגיל ריק</button>'
      +'<div style="flex:1"></div>'
     +'<button class="iconbtn" title="מחיקת יום אימון" onclick="delDay(\''+t.id+'\','+di+')">🗑</button></div>'
-     +'<div class="noprint" style="padding:0 14px 10px">'
-     +'<input class="f" style="width:100%" placeholder="הערה ליום הזה — תוצג למתאמן" value="'+esc(d.note||'')+'" onchange="setDay(&#39;'+t.id+'&#39;,'+di+',&#39;note&#39;,this.value)"></div>'
+     +'<div class="noprint" style="padding:0 14px 10px;display:flex;gap:6px;align-items:center">'
+     +'<input class="f" style="flex:1;min-width:0" placeholder="הערה ליום הזה — תוצג למתאמן" value="'+esc(d.note||'')+'" onchange="setDay(&#39;'+t.id+'&#39;,'+di+',&#39;note&#39;,this.value)">'
+     +'<button class="btn sm ghost" title="בחירה מההערות שלי" onclick="EBNotesUI.forDay(&#39;'+t.id+'&#39;,'+di+')" style="flex:none">📝</button></div>'
      +'<div style="overflow-x:auto;padding:0 14px 12px">'
      +'<table><thead><tr><th style="width:34%">תרגיל</th><th>סטים</th><th>חזרות</th><th>משקל</th><th>מנוחה</th><th>הערה</th><th class="noprint"></th></tr></thead><tbody>';
     ex.forEach((e,ei)=>{
       h+='<tr data-tid="'+t.id+'" data-di="'+di+'" data-ei="'+ei+'">'+exCell(t.id,di,ei,'name',e.name,'שם התרגיל')+exCell(t.id,di,ei,'sets',e.sets)+exCell(t.id,di,ei,'reps',e.reps)
-      +exCell(t.id,di,ei,'weight',e.weight)+exCell(t.id,di,ei,'rest',e.rest)+exCell(t.id,di,ei,'note',e.note)
+      +exCell(t.id,di,ei,'weight',e.weight)+exCell(t.id,di,ei,'rest',e.rest)+exNoteCell(t.id,di,ei,e.note)
       +'<td class="noprint"><div class="row" style="gap:4px;flex-wrap:nowrap"><button class="btn sm ghost exercise-edit" onclick="editExercise(\''+t.id+'\','+di+','+ei+')">עריכה</button><button class="iconbtn" title="מחיקת תרגיל" style="width:28px;height:28px" onclick="delEx(\''+t.id+'\','+di+','+ei+')">✕</button></div></td></tr>';
     });
     if(!ex.length) h+='<tr><td colspan="7" class="muted" style="text-align:center;padding:18px">אין תרגילים ביום הזה.</td></tr>';
@@ -1801,6 +1804,14 @@ function tabProgram(t){
   });
   h+=EBFiles.card(t);
   return h;
+}
+/* תא ההערה קיבל כפתור בחירה: אותה הקלדה חופשית כמו קודם,
+   ולצידה קיצור למה שכבר נכתב בתוכניות אחרות — ראה notes.js. */
+function exNoteCell(tid,di,ei,v){
+  return '<td><div style="display:flex;gap:4px;align-items:center">'
+   +'<input class="f" style="flex:1;min-width:60px;background:transparent;border-color:transparent;padding:5px 6px" placeholder="—" value="'+esc(v==null?'':v)+'" onchange="setEx(\''+tid+'\','+di+','+ei+',\'note\',this.value)">'
+   +'<button class="iconbtn noprint" title="בחירה מההערות שלי" style="width:26px;height:26px;flex:none;font-size:13px" onclick="EBNotesUI.forExercise(\''+tid+'\','+di+','+ei+')">📝</button>'
+   +'</div></td>';
 }
 function exCell(tid,di,ei,k,v,ph){
   return '<td><input class="f" style="background:transparent;border-color:transparent;padding:5px 6px" placeholder="'+(ph||'—')+'" value="'+esc(v==null?'':v)+'" onchange="setEx(\''+tid+'\','+di+','+ei+',\''+k+'\',this.value)"></td>';
@@ -1856,7 +1867,10 @@ function editExercise(tid,di,ei){
    +fld('חזרות','ex_reps','text',e.reps)
    +fld('משקל','ex_weight','text',e.weight)
    +fld('מנוחה (שניות)','ex_rest','number',e.rest)
-   +'</div><label class="f" style="margin-top:12px">הערה</label><textarea class="f" id="ex_note">'+esc(e.note||'')+'</textarea></div>'
+   +'</div><div class="row" style="margin-top:12px;align-items:center;gap:8px">'
+   +'<label class="f" style="flex:1;margin:0">הערה</label>'
+   +'<button class="btn sm ghost" onclick="EBNotesUI.forExercise(\''+tid+'\','+di+','+ei+')">📝 מההערות שלי</button></div>'
+   +'<textarea class="f" id="ex_note">'+esc(e.note||'')+'</textarea></div>'
    +'<div class="mf"><button class="btn" onclick="closeModal()">סגירה</button></div>',true);
   autoModal(()=>saveExercise(tid,di,ei,true));
 }
@@ -2164,7 +2178,9 @@ function setProgNote(id,k,v){ const t=tById(id); t.program=t.program||{days:[]};
 function noteBox(t,k,title,ph){
   const v=((t.program||{})[k])||'';
   return '<div class="card" style="margin-bottom:12px">'
-   +'<div style="font-family:Heebo;font-weight:700;font-size:14px;margin-bottom:6px">'+esc(title)+'</div>'
+   +'<div class="row" style="align-items:center;gap:8px;margin-bottom:6px">'
+   +'<div style="flex:1;font-family:Heebo;font-weight:700;font-size:14px">'+esc(title)+'</div>'
+   +'<button class="btn sm ghost noprint" onclick="EBNotesUI.forProgram(&#39;'+t.id+'&#39;,&#39;'+k+'&#39;,&#39;'+esc(title)+'&#39;)">📝 מההערות שלי</button></div>'
    +'<textarea class="f" rows="3" style="width:100%;resize:vertical;line-height:1.6" placeholder="'+esc(ph)+'" '
    +'onchange="setProgNote(&#39;'+t.id+'&#39;,&#39;'+k+'&#39;,this.value)">'+esc(v)+'</textarea>'
    +'<div class="muted" style="font-size:11.5px;margin-top:6px">מוצגת למתאמן בדף שלו. נשמרת עם התוכנית.</div></div>';
@@ -2264,6 +2280,7 @@ function warmupCard(t){
    +'<div class="row" style="align-items:center;margin-bottom:6px;gap:8px;flex-wrap:wrap">'
    +'<div style="flex:1;font-family:Heebo;font-weight:700;font-size:14px">🔥 חימום</div>'
    +(v.trim()?'':'<button class="btn sm ghost" onclick="warmupFill(&#39;'+t.id+'&#39;)">הכנסת טקסט החימום</button>')
+   +'<button class="btn sm ghost" onclick="EBNotesUI.forProgram(&#39;'+t.id+'&#39;,&#39;warmupNote&#39;,&#39;הערת חימום&#39;)">📝 מההערות</button>'
    +'<button class="btn sm ghost" onclick="warmupAll()">לכל המתאמנים</button></div>'
    +'<textarea class="f" rows="'+(v.trim()?8:3)+'" style="width:100%;resize:vertical;line-height:1.6" placeholder="הוראות חימום — מוצגות למתאמן בראש חלון האימון" '
    +'onchange="setProgNote(&#39;'+t.id+'&#39;,&#39;warmupNote&#39;,this.value)">'+esc(v)+'</textarea>'
@@ -3501,33 +3518,36 @@ if (location.protocol === 'file:') {
 }
 </script>
 
-<script src="health.js?v=v184"></script>
-<script src="privacy.js?v=v184"></script>
-<script src="backup.js?v=v184"></script>
-<script src="reorder.js?v=v184"></script>
-<script src="access.js?v=v184"></script>
-<script src="analysis.js?v=v184"></script>
-<script src="reports.js?v=v184"></script>
-<script src="business.js?v=v184"></script>
-<script src="intake.js?v=v184"></script>
-<script src="files.js?v=v184"></script>
-<script src="builder.js?v=v184"></script>
-<script src="import-program.js?v=v184"></script>
-<script src="tracking.js?v=v184"></script>
-<script src="metrics.js?v=v184"></script>
-<script src="targets.js?v=v184"></script>
-<script src="meal-library.js?v=v184"></script>
+<script src="health.js?v=v185"></script>
+<script src="privacy.js?v=v185"></script>
+<script src="backup.js?v=v185"></script>
+<script src="reorder.js?v=v185"></script>
+<script src="access.js?v=v185"></script>
+<script src="analysis.js?v=v185"></script>
+<script src="reports.js?v=v185"></script>
+<script src="business.js?v=v185"></script>
+<script src="intake.js?v=v185"></script>
+<script src="files.js?v=v185"></script>
+<script src="builder.js?v=v185"></script>
+<script src="import-program.js?v=v185"></script>
+<script src="tracking.js?v=v185"></script>
+<script src="metrics.js?v=v185"></script>
+<script src="targets.js?v=v185"></script>
+<script src="meal-library.js?v=v185"></script>
 <!-- חלקים של המאמן בלבד (תאילנדי, פירות). לא נטען ב-t.html בכוונה. -->
-<script src="meal-extra.js?v=v184"></script>
-<script src="progress-chart.js?v=v184"></script>
-<script src="library-ui.js?v=v184"></script>
-<script src="export-plan.js?v=v184"></script>
-<script src="cardio.js?v=v184"></script>
-<script src="cardio-ui.js?v=v184"></script>
-<script src="exercise-library.js?v=v184"></script>
-<script src="exercise-ui.js?v=v184"></script>
-<script src="meals.js?v=v184"></script>
-<script src="sync.js?v=v184"></script>
+<script src="meal-extra.js?v=v185"></script>
+<script src="progress-chart.js?v=v185"></script>
+<script src="notes.js?v=v185"></script>
+<script src="notes-ui.js?v=v185"></script>
+<script src="guides.js?v=v185"></script>
+<script src="library-ui.js?v=v185"></script>
+<script src="export-plan.js?v=v185"></script>
+<script src="cardio.js?v=v185"></script>
+<script src="cardio-ui.js?v=v185"></script>
+<script src="exercise-library.js?v=v185"></script>
+<script src="exercise-ui.js?v=v185"></script>
+<script src="meals.js?v=v185"></script>
+<script src="sync.js?v=v185"></script>
 <script>
 /* =================== חיבור הסנכרון לאפליקציה =================== */
 
