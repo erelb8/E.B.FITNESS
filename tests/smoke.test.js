@@ -139,6 +139,29 @@ const TRAINEE_DATA = {
         [].find.call(V.querySelectorAll('button'), b => /מכון אגרוף/.test(b.textContent)).click();
         if (tById('a1').program.days[0].place) throw new Error('place not cleared on second click');
       });
+      /* הוספה ומחיקה של יום ותרגיל נשמרות בלי עריכה נוספת. עד v191 הן
+         רק ציירו מחדש, והשינוי אבד אם האפליקציה נסגרה לפני העריכה הבאה.
+         save מדומה כאן (למעלה), ולכן בודקים מה הוא קיבל ולא את האחסון. */
+      await tryM('programAutosave', async () => {
+        const R1 = window.render, C = window.confirm, S1 = window.save;
+        let last = null;
+        window.save = () => { last = JSON.parse(JSON.stringify(tById('a1').program)); };
+        window.render = () => { V.innerHTML = vTrainee('a1'); };
+        window.confirm = () => true;
+        try {
+          VIEW = 'trainee'; ARG = 'a1'; SUBTAB = 'program'; window.render();
+          const n0 = tById('a1').program.days.length;
+          addDay('a1'); await wait(800);
+          if (!last || last.days.length !== n0 + 1) throw new Error('יום שנוסף לא נשמר');
+          addEx('a1', n0); await wait(800);
+          if (last.days[n0].exercises.length !== 1) throw new Error('תרגיל שנוסף לא נשמר');
+          delEx('a1', n0, 0); await wait(800);
+          if (last.days[n0].exercises.length !== 0) throw new Error('מחיקת תרגיל לא נשמרה');
+          delDay('a1', n0); await wait(800);
+          if (last.days.length !== n0) throw new Error('מחיקת יום לא נשמרה');
+          if (hasUnsavedProgram()) throw new Error('נשאר "שינוי שלא נשמר"');
+        } finally { window.render = R1; window.confirm = C; window.save = S1; }
+      });
       await tryM('traineeReports', async () => {
         const en = EBSync.enabled, lf = EBSync.logsFor;
         EBSync.enabled = () => true;
