@@ -13,8 +13,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="התוכנית שלי">
 <meta name="robots" content="noindex,nofollow">
-<link rel="apple-touch-icon" href="icons/icon-180.png?v=v189">
-<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=v189">
+<link rel="apple-touch-icon" href="icons/icon-180.png?v=v190">
+<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=v190">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -368,7 +368,7 @@ button{cursor:pointer}
 <body>
 
 <header class="top">
-  <div class="brand"><img class="brand-logo" src="icons/logo-96.png?v=v189" alt="" width="34" height="34"><span>E.B<span class="dot"></span>FIT</span></div>
+  <div class="brand"><img class="brand-logo" src="icons/logo-96.png?v=v190" alt="" width="34" height="34"><span>E.B<span class="dot"></span>FIT</span></div>
   <h1 id="hTitle">טוען…</h1>
   <div class="sub" id="hSub"></div>
   <span class="savechip" id="saveChip" aria-live="polite"></span>
@@ -380,18 +380,18 @@ button{cursor:pointer}
 
 <div id="toast"></div>
 
-<script src="vendor/supabase.js?v=v189"></script>
-<script src="config.js?v=v189"></script>
-<script src="meal-library.js?v=v189"></script>
-<script src="exercise-library.js?v=v189"></script>
-<script src="progress.js?v=v189"></script>
-<script src="habits.js?v=v189"></script>
-<script src="coach-bot.js?v=v189"></script>
-<script src="progress-chart.js?v=v189"></script>
-<script src="workout-log.js?v=v189"></script>
-<script src="targets.js?v=v189"></script>
-<script src="health.js?v=v189"></script>
-<script src="privacy.js?v=v189"></script>
+<script src="vendor/supabase.js?v=v190"></script>
+<script src="config.js?v=v190"></script>
+<script src="meal-library.js?v=v190"></script>
+<script src="exercise-library.js?v=v190"></script>
+<script src="progress.js?v=v190"></script>
+<script src="habits.js?v=v190"></script>
+<script src="coach-bot.js?v=v190"></script>
+<script src="progress-chart.js?v=v190"></script>
+<script src="workout-log.js?v=v190"></script>
+<script src="targets.js?v=v190"></script>
+<script src="health.js?v=v190"></script>
+<script src="privacy.js?v=v190"></script>
 <script>
 (function () {
   'use strict';
@@ -1017,7 +1017,7 @@ button{cursor:pointer}
   /* ---------- ארוחה משלי ----------
      מסך אחד מסודר: שם, לאיזו ארוחה, מה יש בצלחת וכמה. הערכים מחושבים
      תוך כדי, ובשמירה הארוחה נכנסת לתפריט בתא הנכון — "בוקר" ולא
-     "נוספות" — עם כל הערכים. עד v189 הבנייה הסתתרה בטבלה של 450
+     "נוספות" — עם כל הערכים. עד v190 הבנייה הסתתרה בטבלה של 450
      מוצרים בתוך הספרייה, וכל ארוחה שנבנתה נפלה ל"נוספות". */
   let MAKER_OPEN = false, MAKER_FROM = null;
   const MK_TYPES = ['breakfast', 'snack', 'pre', 'lunch', 'post', 'dinner'];
@@ -2958,7 +2958,7 @@ button{cursor:pointer}
     if (typeof EBLib !== 'undefined') {
       (MY_MEALS || []).forEach(function (x) {
         if (x.custom) {
-          /* ארוחה שבנית נכנסת לתא שבחרת. ארוחות מלפני v189 בלי סוג
+          /* ארוחה שבנית נכנסת לתא שבחרת. ארוחות מלפני v190 בלי סוג
              נשארות ב"נוספות" — שם גם נשמר ה"אכלתי" שסומן עליהן. */
           var ck = (x.type && SLOT_HE[x.type]) ? x.type : 'other';
           var what = (x.items || []).map(function (p) { return p[2] ? p[0] : p[0] + ' ' + p[1] + ' גר׳'; }).join(' · ');

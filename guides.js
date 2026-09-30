@@ -14,7 +14,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['guides'] = 'v189';
+  (window.EB_MOD = window.EB_MOD || {})['guides'] = 'v190';
 
   /* {שם} ו-{קישור} מוחלפים בשליחה למתאמן */
   var G = [
@@ -121,6 +121,34 @@
 'אם משהו משתנה בדרך — פציעה, ניתוח, תרופה חדשה — נכנסים ומעדכנים, ואני רואה את זה 🙏' }
   ];
 
+  /* ---------- לשון נקבה ----------
+     הטקסטים כתובים בזכר. למתאמנת הם עוברים לנקבה לבד — בהעתקה,
+     בתצוגה, בוואטסאפ ובחימום שנכנס לתוכנית.
+
+     רשימה מפורשת של צירופים ולא החלפת מילים בודדות: "אתה" → "את"
+     בלי הקשר היה הופך גם את "אתמול" ו"אתר". צירוף שלא ברשימה נשאר
+     כמו שהוא — עדיף ניסוח בזכר מאשר מילה שבורה. הסדר חשוב: הארוך
+     קודם, כדי ש"שאתה אוהב" לא ייתפס קודם כ"אתה". */
+  var HER = [
+    ['חימום שאתה אוהב הוא חימום שתעשה באמת', 'חימום שאת אוהבת הוא חימום שתעשי באמת'],
+    ['אבל על חמשת הראשונים אתה לא מוותר', 'אבל על חמשת הראשונים את לא מוותרת'],
+    ['תבנה את החימום האהוב עליך', 'תבני את החימום האהוב עלייך'],
+    ['תוסיף מה שעושה לך טוב, תוריד מה שלא מתחבר, תשחק', 'תוסיפי מה שעושה לך טוב, תורידי מה שלא מתחבר, תשחקי'],
+    ['אם יצאת ממנו מותש', 'אם יצאת ממנו מותשת'],
+    ['ארוחה שאתה אוכל ולא מופיעה', 'ארוחה שאת אוכלת ולא מופיעה'],
+    ['כשאתה אוכל את הארוחה, תלחץ', 'כשאת אוכלת את הארוחה, תלחצי'],
+    ['מה אתה אוכל ויכול', 'מה את אוכלת ויכול'],
+    ['אם משהו לא ברור, תכתוב לי', 'אם משהו לא ברור, תכתבי לי'],
+    ['בוא נתחיל', 'בואי נתחיל'],
+    ['תגיד לי ונתאים', 'תגידי לי ונתאים']
+  ];
+  function forHer(txt) {
+    var s = String(txt == null ? '' : txt);
+    HER.forEach(function (p) { s = s.split(p[0]).join(p[1]); });
+    return s;
+  }
+  function isHer(t) { return !!t && t.gender === 'נקבה'; }
+
   function text(g) {
     if (g.warm) return (typeof WARMUP_TEXT !== 'undefined') ? WARMUP_TEXT : '';
     var mine = ((S.settings || {}).guides || {})[g.id];
@@ -137,7 +165,7 @@
   function fill(txt, t) {
     if (!t) return txt;
     var link = (window.EBSync && EBSync.traineeLink) ? (EBSync.traineeLink(t) || '') : '';
-    return String(txt)
+    return String(isHer(t) ? forHer(txt) : txt)
       .replace(/\{שם\}/g, (typeof firstName === 'function' ? firstName(t) : t.name) || '')
       .replace(/\{קישור\}/g, link || '(הקישור עוד לא נוצר — סנכרן קודם)');
   }
@@ -269,5 +297,5 @@
 
   window.EBGuides = { view: view, copy: copy, show: show, edit: edit, saveEdit: saveEdit,
                       reset: reset, wa: wa, toWarm: toWarm, setTrainee: setTrainee, setUrl: setUrl,
-                      all: function () { return G; }, text: bodyFor };
+                      all: function () { return G; }, text: bodyFor, forHer: forHer, isHer: isHer };
 })();
