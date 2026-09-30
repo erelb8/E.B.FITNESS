@@ -57,7 +57,10 @@ const W = 1080, H = 1920;
   fs.mkdirSync(OUT, { recursive: true });
   const frames = fs.mkdtempSync(path.join(os.tmpdir(), 'ebfit-'));
 
-  const browser = await chromium.launch();
+  /* הדפדפן של playwright לא תמיד מותקן אחרי עדכון — אז כרום של המחשב */
+  let browser;
+  try { browser = await chromium.launch(); }
+  catch (e) { browser = await chromium.launch({ channel: 'chrome' }); }
   const page = await browser.newPage({ viewport: { width: W, height: H }, deviceScaleFactor: 1 });
 
   /* שעון מזויף — מוזרק לפני כל סקריפט בדף */
