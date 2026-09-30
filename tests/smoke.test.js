@@ -273,6 +273,38 @@ const TRAINEE_DATA = {
     t('בהתחלה אכלתי היום = 0', /אכלתי היום\s*0/.test(food.s0), food.s0);
     t('"אכלתי?" נספר', /420/.test(food.s1), food.s1);
     t('רישום חופשי נספר', /500/.test(food.s2), food.s2);
+    /* ארוחה משלי: מתא "צהריים" — חיפוש, גרמים, מוצר מהתווית, שמירה —
+       והארוחה מופיעה בצהריים עם הערכים, לא ב"נוספות" */
+    const mk = await page.evaluate(async () => {
+      const wait = ms => new Promise(x => setTimeout(x, ms));
+      const M = () => document.querySelector('#categoryModal');
+      const lunch = [...M().querySelectorAll('[data-slot]')].find(b => b.innerText.includes('צהריים'));
+      lunch.click(); await wait(300);
+      const open = M().querySelector('[data-mkopen="lunch"]'); if (!open) return 'no maker button in lunch';
+      open.click(); await wait(300);
+      if (!document.querySelector('[data-btype="lunch"]')) return 'maker did not open';
+      if (!/background:\s*var\(--or\)/.test(document.querySelector('[data-btype="lunch"]').getAttribute('style'))) return 'lunch not preselected';
+      const nm = document.querySelector('[data-bname]'); nm.value = 'עוף ואורז שלי'; nm.dispatchEvent(new Event('input', { bubbles: true }));
+      const q = document.getElementById('mq'); q.value = 'חזה עוף'; q.dispatchEvent(new Event('input', { bubbles: true }));
+      if (document.getElementById('mq') !== q) return 'search box was rebuilt';
+      const add = [...document.querySelectorAll('[data-madd]')].find(b => b.dataset.madd === 'חזה עוף בגריל');
+      if (!add) return 'no suggestion'; add.click(); await wait(100);
+      const g = document.querySelector('[data-bg="0"]'); g.value = '200'; g.dispatchEvent(new Event('input', { bubbles: true }));
+      const det = document.querySelector('details'); det.open = true;
+      det.querySelector('[data-mf="n"]').value = 'רוטב מהתווית'; det.querySelector('[data-mf="k"]').value = '70';
+      det.querySelector('[data-mf="p"]').value = '1';
+      det.querySelector('[data-mman]').click(); await wait(100);
+      const total = document.querySelector('[data-bsave]').previousElementSibling.innerText;   // 330 + 70
+      document.querySelector('[data-bsave]').click(); await wait(500);
+      if (!M()) return 'did not return to nutrition';
+      const txt = M().innerText;
+      const i = txt.indexOf('צהריים');
+      return { total, ok: /עוף ואורז שלי/.test(txt), inLunch: txt.indexOf('עוף ואורז שלי') > i,
+               vals: /400 קק״ל/.test(txt) && /חלבון 63/.test(txt), what: /חזה עוף בגריל 200 גר׳/.test(txt) };
+    });
+    t('ארוחה משלי נפתחת ונשמרת', typeof mk === 'object' && mk.ok, JSON.stringify(mk));
+    t('ארוחה משלי: סיכום חי', typeof mk === 'object' && /400/.test(mk.total), JSON.stringify(mk));
+    t('ארוחה משלי בתא שנבחר עם הערכים', typeof mk === 'object' && mk.inLunch && mk.vals && mk.what, JSON.stringify(mk));
     // תצוגת סטים/חזרות/מנוחה
     const spec = await page.evaluate(async () => {
       document.querySelector('#categoryModal')?.remove();

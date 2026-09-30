@@ -12,7 +12,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['meals'] = 'v187';
+  (window.EB_MOD = window.EB_MOD || {})['meals'] = 'v188';
 
   var BUCKET = 'programs';
   var MAXW   = 900;          // רוחב מרבי אחרי הקטנה
@@ -77,7 +77,7 @@
     var rows = mine.map(function (x) { return EBLib.byId(x.libId); }).filter(Boolean);
     /* ארוחות שהמתאמן בנה בעצמו מהמוצרים — עם הערכים שחושבו אצלו */
     (t.mealsCustom || []).forEach(function (x) {
-      if (x && x.custom) rows.push({ name: x.name, type: 'custom', custom: true,
+      if (x && x.custom) rows.push({ name: x.name, type: 'custom', custom: true, slot: x.type,
         tot: { k: +x.k || 0, p: +x.p || 0, c: +x.c || 0, f: +x.f || 0 } });
     });
     if (!rows.length) return '';
@@ -99,7 +99,7 @@
       var x = m.custom ? m.tot : EBLib.calc(m.items).total;
       h += '<div class="row" style="padding:7px 0;border-top:1px solid var(--line);font-size:13px">'
         + '<span style="flex:1;min-width:0">' + esc(m.name) + '</span>'
-        + '<span class="muted" style="font-size:11.5px">' + esc(m.custom ? 'בנה בעצמו' : (EBLib.TYPES[m.type] || '')) + '</span>'
+        + '<span class="muted" style="font-size:11.5px">' + esc(m.custom ? ((EBLib.TYPES[m.slot] ? EBLib.TYPES[m.slot] + ' · ' : '') + 'בנה בעצמו') : (EBLib.TYPES[m.type] || '')) + '</span>'
         + '<span style="font-family:Heebo;font-weight:700;min-width:44px;text-align:left">'
         + Math.round(x.k) + '</span></div>';
     });
@@ -129,7 +129,7 @@
         known[hid(m.type, m.name)] = { name: m.name, k: EBLib.calc(m.items).total.k };
       });
     }
-    (t.mealsCustom || []).forEach(function (x) { if (x && x.custom) known[hid('other', x.name)] = { name: x.name, k: num(x.k) }; });
+    (t.mealsCustom || []).forEach(function (x) { if (x && x.custom) known[hid(x.type || 'other', x.name)] = { name: x.name, k: num(x.k) }; });
     return known;
   }
   function dayEaten(t, iso, known) {
@@ -151,7 +151,7 @@
         known[hid(m.type, m.name)] = { name: m.name, k: EBLib.calc(m.items).total.k };
       });
     }
-    (t.mealsCustom || []).forEach(function (x) { if (x && x.custom) known[hid('other', x.name)] = { name: x.name, k: num(x.k) }; });
+    (t.mealsCustom || []).forEach(function (x) { if (x && x.custom) known[hid(x.type || 'other', x.name)] = { name: x.name, k: num(x.k) }; });
 
     var rows = [], anyDay = 0;
     for (var b = 0; b < 7; b++) {
@@ -251,7 +251,7 @@
     h += eatenBlock(t, goals);
     h += selfBlock(t);
 
-    if (!list.length && !((t.mealsSelf || []).length))
+    if (!list.length && !((t.mealsSelf || []).length) && !(t.mealsCustom || []).some(function (x) { return x && x.custom; }))
       return h + '<div class="empty"><div class="big">🍽</div>אין עדיין ארוחות.<br>'
         + '<div class="row" style="justify-content:center;margin-top:12px">'
         + '<button class="btn" onclick="EBLibUI.browse(\'' + t.id + '\')">בחירה מהספרייה</button>'
