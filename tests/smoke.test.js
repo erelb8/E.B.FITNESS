@@ -245,7 +245,7 @@ const TRAINEE_DATA = {
     t('דף המתאמן נטען', (await page.textContent('#hTitle')) === 'מתאמן בדיקה');
     t('הכותרת לא מציגה זבל', !/[)/]\s*·/.test(await page.textContent('#hSub')));
     t('אין מסך תקנון למי שאישר', !(await page.$('#termsGate')));
-    for (const cat of ['יומן', 'אימון', 'תזונה', 'גוף', 'מעקב', 'הרגלים']) {
+    for (const cat of ['יומן', 'אימון', 'תזונה', 'גוף', 'מעקב', 'הרגלים', 'מדריכים']) {
       const ok = await page.evaluate(async c => {
         document.querySelector('#categoryModal')?.remove();
         const b = [...document.querySelectorAll('.category-tile')].find(e => e.innerText.includes(c));

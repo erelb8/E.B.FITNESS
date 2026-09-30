@@ -13,8 +13,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="התוכנית שלי">
 <meta name="robots" content="noindex,nofollow">
-<link rel="apple-touch-icon" href="icons/icon-180.png?v=v190">
-<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=v190">
+<link rel="apple-touch-icon" href="icons/icon-180.png?v=v191">
+<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=v191">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -368,7 +368,7 @@ button{cursor:pointer}
 <body>
 
 <header class="top">
-  <div class="brand"><img class="brand-logo" src="icons/logo-96.png?v=v190" alt="" width="34" height="34"><span>E.B<span class="dot"></span>FIT</span></div>
+  <div class="brand"><img class="brand-logo" src="icons/logo-96.png?v=v191" alt="" width="34" height="34"><span>E.B<span class="dot"></span>FIT</span></div>
   <h1 id="hTitle">טוען…</h1>
   <div class="sub" id="hSub"></div>
   <span class="savechip" id="saveChip" aria-live="polite"></span>
@@ -380,18 +380,19 @@ button{cursor:pointer}
 
 <div id="toast"></div>
 
-<script src="vendor/supabase.js?v=v190"></script>
-<script src="config.js?v=v190"></script>
-<script src="meal-library.js?v=v190"></script>
-<script src="exercise-library.js?v=v190"></script>
-<script src="progress.js?v=v190"></script>
-<script src="habits.js?v=v190"></script>
-<script src="coach-bot.js?v=v190"></script>
-<script src="progress-chart.js?v=v190"></script>
-<script src="workout-log.js?v=v190"></script>
-<script src="targets.js?v=v190"></script>
-<script src="health.js?v=v190"></script>
-<script src="privacy.js?v=v190"></script>
+<script src="vendor/supabase.js?v=v191"></script>
+<script src="config.js?v=v191"></script>
+<script src="meal-library.js?v=v191"></script>
+<script src="exercise-library.js?v=v191"></script>
+<script src="progress.js?v=v191"></script>
+<script src="habits.js?v=v191"></script>
+<script src="coach-bot.js?v=v191"></script>
+<script src="progress-chart.js?v=v191"></script>
+<script src="workout-log.js?v=v191"></script>
+<script src="targets.js?v=v191"></script>
+<script src="health.js?v=v191"></script>
+<script src="privacy.js?v=v191"></script>
+<script src="guides.js?v=v191"></script>
 <script>
 (function () {
   'use strict';
@@ -1017,7 +1018,7 @@ button{cursor:pointer}
   /* ---------- ארוחה משלי ----------
      מסך אחד מסודר: שם, לאיזו ארוחה, מה יש בצלחת וכמה. הערכים מחושבים
      תוך כדי, ובשמירה הארוחה נכנסת לתפריט בתא הנכון — "בוקר" ולא
-     "נוספות" — עם כל הערכים. עד v190 הבנייה הסתתרה בטבלה של 450
+     "נוספות" — עם כל הערכים. עד v191 הבנייה הסתתרה בטבלה של 450
      מוצרים בתוך הספרייה, וכל ארוחה שנבנתה נפלה ל"נוספות". */
   let MAKER_OPEN = false, MAKER_FROM = null;
   const MK_TYPES = ['breakfast', 'snack', 'pre', 'lunch', 'post', 'dinner'];
@@ -1822,6 +1823,7 @@ button{cursor:pointer}
     if(key==='food') return libButton()+makerButton()+nutritionDisclaimer()+targetsBlock()+nutritionPlan();
     if(key==='body') return botBody()+bodyMetricsBlock()+healthAlert()+healthFolder()+filesBlock(files);
     if(key==='habits') return habitsScreen();
+    if(key==='guides') return guidesScreen();
     return monthCard()+chartCard()+botBlock({skipWeight:true})+progBlock();
   }
 
@@ -1912,7 +1914,7 @@ button{cursor:pointer}
   }
   let OPEN_CATEGORY = null;
   function openCategory(key) {
-    const labels={log:['יומן האימונים','מה שעשית בפועל'],workout:['אימון','התוכנית והביצוע'],food:['תזונה','התפריט והיעדים שלך'],body:['גוף','מדדים, בריאות וקבצים'],follow:['מעקב','ההתקדמות שלך'],habits:['הרגלים','מה שקורה כל יום']};
+    const labels={log:['יומן האימונים','מה שעשית בפועל'],workout:['אימון','התוכנית והביצוע'],food:['תזונה','התפריט והיעדים שלך'],body:['גוף','מדדים, בריאות וקבצים'],follow:['מעקב','ההתקדמות שלך'],habits:['הרגלים','מה שקורה כל יום'],guides:['מדריכים','איך משתמשים באפליקציה']};
     const item=labels[key]||labels.workout;
     closeCategory();
     OPEN_CATEGORY = key;
@@ -2131,6 +2133,7 @@ button{cursor:pointer}
       + categoryTile('body','גוף','מדדים ובריאות')
       + categoryTile('follow','מעקב','התקדמות והרגלים')
       + categoryTile('habits','הרגלים','מוביליטי ותזונה')
+      + guidesTile()
       + '</div>';
   }
   function categoryIcon(key) {
@@ -2140,12 +2143,39 @@ button{cursor:pointer}
       body:'<circle cx="12" cy="5" r="2.5"/><path d="M8 21l1.5-7L7 11l2-3 3 2 3-2 2 3-2.5 3 1.5 7M9.5 14h5"/>',
       log:'<path d="M5 4.5h11a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H5z"/><path d="M5 4.5a2 2 0 0 0 0 4h2"/><path d="M9.5 11h5M9.5 15h3"/>',
       follow:'<circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3.5 2M8.5 3.5l-2-2M15.5 3.5l2-2"/>',
+      guides:'<path d="M4 5.5A2 2 0 0 1 6 3.5h13v15H6a2 2 0 0 0-2 2z"/><path d="M4 20.5v-15M8.5 8h6.5M8.5 11.5h4.5"/>',
       habits:'<path d="M20.5 6.5l-9 9-4-4"/><path d="M3.5 6.5h3M3.5 12h3M3.5 17.5h11"/><path d="M20.5 15.5l-3 3-1.5-1.5"/>'
     };
     /* אריח בלי נתיב קיבל undefined ונשאר ריק בלי שום סימן.
        עיגול הוא אייקון גרוע, אבל הוא נראה מיד. */
     return '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">'
       +(paths[key]||'<circle cx="12" cy="12" r="8.5"/>')+'</g></svg>';
+  }
+  /* אריח רחב ונמוך בתחתית: המדריכים הם עזרה, לא עוד מקום לעבוד בו */
+  function guidesTile() {
+    if (!window.EBGuides || !EBGuides.pageList) return '';
+    return '<button class="category-tile" data-category="guides" style="grid-column:1/-1;min-height:0;'
+      + 'display:flex;align-items:center;gap:12px;text-align:right;padding:13px 16px">'
+      + '<span class="category-icon" style="width:34px;height:34px;margin:0">' + categoryIcon('guides') + '</span>'
+      + '<span style="flex:1;min-width:0"><strong style="display:block">מדריכים</strong>'
+      + '<span>איך משתמשים באפליקציה</span></span></button>';
+  }
+  /* WhatsApp מדגיש ב-*כוכביות*; בדף זה הופך להדגשה אמיתית */
+  function guidesScreen() {
+    const list = (window.EBGuides && EBGuides.pageList) ? EBGuides.pageList() : [];
+    if (!list.length) return '<div class="card">המדריכים לא נטענו. משוך את הדף למטה כדי לרענן.</div>';
+    return '<div class="mt" style="font-size:13px;line-height:1.6;margin-bottom:12px">'
+      + 'כל ההסברים על האפליקציה במקום אחד. לוחצים על מדריך כדי לפתוח אותו.</div>'
+      + list.map(function (g) {
+          const body = esc(g.body).replace(/\*([^*\n]+)\*/g, '<b>$1</b>');
+          return '<details class="card" style="margin-bottom:10px;padding:0;overflow:hidden">'
+            + '<summary style="cursor:pointer;padding:14px 15px;list-style:none;display:flex;align-items:center;gap:10px">'
+            + '<span style="flex:1;min-width:0"><b style="font-family:Heebo;font-size:15px;display:block">' + esc(g.t) + '</b>'
+            + '<span class="mt" style="font-size:12.5px">' + esc(g.d) + '</span></span>'
+            + '<span style="color:var(--or);font-size:18px;line-height:1">‹</span></summary>'
+            + '<div style="padding:12px 15px 15px;font-size:14px;line-height:1.75;white-space:pre-wrap;'
+            + 'border-top:1px solid var(--line)">' + body + '</div></details>';
+        }).join('');
   }
   function categoryTile(key, title, sub) {
     return '<button class="category-tile" data-category="'+key+'"><span class="category-icon">'+categoryIcon(key)+'</span><strong>'+title+'</strong><span>'+sub+'</span></button>';
@@ -2958,7 +2988,7 @@ button{cursor:pointer}
     if (typeof EBLib !== 'undefined') {
       (MY_MEALS || []).forEach(function (x) {
         if (x.custom) {
-          /* ארוחה שבנית נכנסת לתא שבחרת. ארוחות מלפני v190 בלי סוג
+          /* ארוחה שבנית נכנסת לתא שבחרת. ארוחות מלפני v191 בלי סוג
              נשארות ב"נוספות" — שם גם נשמר ה"אכלתי" שסומן עליהן. */
           var ck = (x.type && SLOT_HE[x.type]) ? x.type : 'other';
           var what = (x.items || []).map(function (p) { return p[2] ? p[0] : p[0] + ' ' + p[1] + ' גר׳'; }).join(' · ');
