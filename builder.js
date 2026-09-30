@@ -14,7 +14,7 @@
   'use strict';
 
   // חותמת גרסה — index.html משווה אליה כדי לזהות קובץ ישן במטמון
-  (window.EB_MOD = window.EB_MOD || {})['builder'] = 'v186';
+  (window.EB_MOD = window.EB_MOD || {})['builder'] = 'v187';
 
   /* ---------- דפוסי תנועה ----------
      החלוקה לפי דפוס ולא לפי שריר, כי כך בונים פיצולים מאוזנים
@@ -78,7 +78,7 @@
     { n:'פול-ת׳רו בכבל',        p:P.HINGE, eq:['gym'],               lvl:1, bad:[] },
     { n:'בעיטה לאחור בכבל',     p:P.HINGE, eq:['gym'],               lvl:1, bad:[] },
     { n:'גשר עכוז רגל אחת',     p:P.HINGE, eq:['gym','home','park'], lvl:2, bad:[] },
-    { n:'בק אקסטנשן ב-45 מעלות', p:P.HINGE, eq:['gym'],               lvl:1, bad:['גב'] },
+    { n:'בק אקסטנשן 45 מעלות', p:P.HINGE, eq:['gym'],               lvl:1, bad:['גב'] },
 
     // כתפיים מבודד
     { n:'הרחקות צד במשקולות',    p:P.SHLD,  eq:['gym','home'],        lvl:1, bad:[] },
@@ -103,7 +103,7 @@
        ריקים. */
     { n:'גלגלת בטן',            p:P.CORE,  eq:['gym','home'],        lvl:3, bad:['גב'] },
     { n:'כפיפות בטן בכבל',      p:P.CORE,  eq:['gym'],               lvl:2, bad:[] },
-    { n:'הליכת חקלאי',          p:P.CORE,  eq:['gym','home'],        lvl:1, bad:[] },
+    { n:'הליכת חקלאי בקטלבלים',p:P.CORE,  eq:['gym','home'],        lvl:1, bad:[] },
     { n:'פלאנק עם נגיעות כתף',     p:P.CORE,  eq:['gym','home','park'], lvl:2, bad:['כתף'] },
     { n:'סופרמן',               p:P.CORE,  eq:['gym','home','park'], lvl:1, bad:[] },
     { n:'רוסיאן טוויסט',       p:P.CORE,  eq:['gym','home','park'], lvl:2, bad:['גב'] },
