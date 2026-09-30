@@ -15,7 +15,7 @@
   'use strict';
 
   // חותמת גרסה — index.html משווה אליה כדי לזהות קובץ ישן במטמון
-  (window.EB_MOD = window.EB_MOD || {})['sync'] = 'v193';
+  (window.EB_MOD = window.EB_MOD || {})['sync'] = 'v194';
 
   const CFG      = window.EBFIT_CONFIG || { URL: '', ANON: '' };
   const SNAP_KEY = 'ebfit_sync_v1';
@@ -225,6 +225,17 @@
      הקיימים, בלי צעד המרה. */
   const REVCOL = { trainees:'private', sessions:'data', measures:'data',
                    payments:'data', daily:'data' };
+
+  /* JSON עם מפתחות ממוינים — כדי ששני עותקים של אותה תוכנית ייראו זהים
+     גם כשהשרת (jsonb) החזיר את המפתחות בסדר אחר */
+  function canon(v) {
+    if (Array.isArray(v)) return '[' + v.map(canon).join(',') + ']';
+    if (v && typeof v === 'object') {
+      return '{' + Object.keys(v).sort().filter(k => v[k] !== undefined)
+        .map(k => JSON.stringify(k) + ':' + canon(v[k])).join(',') + '}';
+    }
+    return JSON.stringify(v === undefined ? null : v);
+  }
 
   function revOf(o) {
     const n = Number(o && o.rev);
@@ -711,9 +722,24 @@
     const before = fpOf();
     window.S.trainees = fetched.trainees.map(traineeFromRow);
 
+    /* העריכה המקומית גוברת רק אם השרת לא השתנה מאז הבסיס. אם השתנה —
+       מישהו אחר כתב (מכשיר אחר, או המתאמן), והגרסה המקומית היא עותק
+       ישן ולא עריכה. עד v193 היא גברה תמיד: 30.9.2026 מכשיר אחד החזיק
+       עותק ישן של שתי תוכניות, שמר אותו מעל מה שהגיע מהשרת, והדחיפה
+       הבאה כתבה אותו לשרת — תוכנית שלמה נמחקה ואחרת חזרה לגרסה ישנה.
+       ההשוואה מסדרת מפתחות: jsonb בשרת לא שומר על סדר המפתחות. */
     if (unsavedProg) {
       const t = window.S.trainees.find(x => x.id === unsavedProg.id);
-      if (t) t.program = unsavedProg.program;   // מחזירים את העריכה הלא-שמורה
+      const same = t && canon(t.program || { days: [] }) === canon(window.PROGRAM_BASE || { days: [] });
+      if (t && same) t.program = unsavedProg.program;   // השרת לא זז — מחזירים את העריכה הלא-שמורה
+      else if (t) {
+        logError('unsaved program dropped — server changed', { id: unsavedProg.id });
+        if (typeof window.toast === 'function') {
+          window.toast('התוכנית של ' + (t.name || 'המתאמן') + ' עודכנה במכשיר אחר, '
+            + 'ולכן מוצגת הגרסה מהשרת. אם שינית אותה כאן ברגע האחרון — כדאי לבדוק.');
+        }
+        unsavedProg = null;   // הבסיס יתעדכן לגרסת השרת למטה
+      }
     }
 
     window.S.sessions = fetched.sessions.map(childFromRow);
@@ -967,7 +993,7 @@
     checkAdmin,
     /* מצבת מחיקה. חייבת להיקרא לפני שהשורה מוסרת מ-S, אחרת
        הדחיפה תראה היעלמות בלי כוונה ותדלג עליה. */
-    tomb, partitionGone, splitByRev,
+    tomb, partitionGone, splitByRev, canon,
     adminState: () => adminState, lastError: () => lastError,
     signIn, signUp, signOut,
     traineeLogin,

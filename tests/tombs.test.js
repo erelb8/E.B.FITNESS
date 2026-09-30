@@ -124,5 +124,17 @@ console.log('=== הרגרסיה של v133 ===');
 t('שמירה שנייה ברצף עוברת',
   ids(SR(R2(['a']), snap({ a:2 }), { a:2 })), { send: ['a'], stale: [] });
 
+console.log('=== canon: אותה תוכנית בסדר מפתחות אחר ===');
+/* המשיכה מחליטה אם עריכה מקומית גוברת לפי השוואה לבסיס. jsonb בשרת
+   מסדר מפתחות מחדש — השוואה רגילה הייתה אומרת "השתנה" על כל תוכנית. */
+const C = Sy.canon;
+t('סדר מפתחות לא משנה',
+  C({ days:[{ name:'A', exercises:[{ sets:'3', name:'סקוואט' }] }], note:'x' })
+  === C({ note:'x', days:[{ exercises:[{ name:'סקוואט', sets:'3' }], name:'A' }] }), true);
+t('תוכנית ריקה מול מלאה — שונות',
+  C({ days:[] }) === C({ days:[{ name:'A', exercises:[] }] }), false);
+t('סדר ימים כן משנה',
+  C({ days:[{ name:'A' }, { name:'B' }] }) === C({ days:[{ name:'B' }, { name:'A' }] }), false);
+
 console.log(fail ? '\nנכשלו: ' + fail : '\nהכל עבר  |  עברו: ' + pass);
 process.exit(fail ? 1 : 0);
