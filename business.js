@@ -15,7 +15,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['business'] = 'v198';
+  (window.EB_MOD = window.EB_MOD || {})['business'] = 'v199';
 
   var DAY = 86400000;
   function iso(d) { return new Date(d).toISOString().slice(0, 10); }
@@ -54,7 +54,14 @@
 
     var f = [];
     var trend = prev30 > 0 ? (last30 - prev30) / prev30 : null;
-    if (trend !== null && trend < -0.15) {
+    /* קפיצה של מאות אחוזים היא כמעט תמיד תחילת רישום ולא צמיחה:
+       התשלומים נרשמו החודש, והחודש הקודם כמעט ריק. "ההכנסה עלתה
+       1470%" (1.10.2026) הטעה — אין עוד בסיס להשוואה. */
+    if (trend !== null && trend > 3) {
+      f.push(act('ok', 'הכנסה ב-30 יום: ' + money(last30) + '. התשלומים נרשמים רק מהתקופה האחרונה, '
+        + 'ולכן עוד אין השוואה אמינה לחודש הקודם', ''));
+      trend = null;
+    } else if (trend !== null && trend < -0.15) {
       f.push(act('bad', 'ההכנסה ירדה ' + Math.round(-trend * 100) + '% מול החודש הקודם ('
         + money(last30) + ' מול ' + money(prev30) + ')', 'לבדוק מי הפסיק לשלם'));
     } else if (trend !== null && trend > 0.15) {
@@ -86,9 +93,13 @@
 
     var ss = S.sessions || [];
     var lastDone = {};
-    ss.filter(function (x) { return x.status === 'done'; }).forEach(function (x) {
-      if (!lastDone[x.traineeId] || x.date > lastDone[x.traineeId]) lastDone[x.traineeId] = x.date;
-    });
+    var mark = function (id, d) { if (id && d && (!lastDone[id] || d > lastDone[id])) lastDone[id] = d; };
+    ss.filter(function (x) { return x.status === 'done'; }).forEach(function (x) { mark(x.traineeId, x.date); });
+    /* דיווחי אימון מהדף של המתאמן. עד v198 נספרו רק אימונים ביומן
+       של המאמן — בליווי אונליין אין כאלה, ולכן הציון היה 0 ו"18 בלי
+       אף אימון", בזמן ששמונה מתאמנים דיווחו 24 אימונים. */
+    var logs = S.logs || (typeof DASH !== 'undefined' && DASH.logs) || null;
+    (logs || []).forEach(function (l) { mark(l.trainee_id || l.traineeId, String(l.date || '').slice(0, 10)); });
 
     var silent = [], lowPack = [], noSess = [];
     act_.forEach(function (t) {
@@ -98,14 +109,18 @@
     });
 
     var f = [];
+    if (!logs && !ss.length) {
+      return { skip: true, name: 'שימור', why: 'הדיווחים מהמתאמנים עוד נטענים' };
+    }
     if (silent.length) {
-      f.push(act('bad', silent.length + ' מתאמנים לא סימנו אימון מעל שבועיים: '
+      f.push(act('bad', silent.length + ' מתאמנים לא דיווחו אימון מעל שבועיים: '
         + silent.slice(0, 4).map(function (x) { return x.t.name + ' (' + x.d + ' ימים)'; }).join(', '),
         'לשלוח הודעה היום. מתאמן ששותק שבועיים כבר בדרך החוצה'));
     }
     if (noSess.length) {
-      f.push(act('warn', noSess.length + ' מתאמנים בלי אף אימון שבוצע',
-        'או שהם לא התחילו, או שהאימונים לא מסומנים'));
+      f.push(act('warn', noSess.length + ' מתאמנים בלי אף אימון מדווח ב-8 השבועות האחרונים: '
+        + noSess.slice(0, 5).map(function (t) { return t.name; }).join(', ') + (noSess.length > 5 ? '…' : ''),
+        'או שהם לא התחילו, או שהם לא מסמנים "סיימתי את האימון הזה" — לשלוח להם את המדריך "איך מסמנים אימון"'));
     }
     if (!f.length) f.push(act('good', 'כל המתאמנים פעילים ומסמנים אימונים', ''));
 
@@ -161,9 +176,21 @@
     if (!act_.length) return { skip: true, name: 'איכות הליווי', why: 'אין מתאמנים' };
 
     var noProg = act_.filter(function (t) { return !(t.program && t.program.days && t.program.days.length); });
+    /* יום אירובי, מנוחה או מוביליטי אינו "יום חסר" — שם מספר התרגילים
+       לא אומר כלום. יום ריק לגמרי כן נספר: הוא כמעט תמיד יום שנפתח
+       ונשכח. */
+    var easyDay = function (x) {
+      var ex = x.exercises || [];
+      if (/אירובי|מנוחה|מוביליט|ריצה|שחייה|גמישות|התאוששות/.test(String(x.name || '')) && ex.length) return true;
+      if (!ex.length || typeof EBEx === 'undefined') return false;
+      return ex.every(function (e) {
+        var m = EBEx.ALL.filter(function (y) { return y.n === e.name; })[0];
+        return m && ['cardio', 'mob', 'flex'].indexOf(m.m) > -1;
+      });
+    };
     var thin = act_.filter(function (t) {
       var d = (t.program && t.program.days) || [];
-      return d.length && d.some(function (x) { return ((x.exercises || []).length) < 9; });
+      return d.length && d.some(function (x) { return !easyDay(x) && ((x.exercises || []).length) < 9; });
     });
     var noTarget = act_.filter(function (t) { return !(t.program && t.program.targets && t.program.targets.kcal); });
     var noWeigh = act_.filter(function (t) {
@@ -174,8 +201,9 @@
     var f = [];
     if (noProg.length) f.push(act('bad', noProg.length + ' מתאמנים בלי תוכנית: '
       + noProg.slice(0, 4).map(function (t) { return t.name; }).join(', '), 'לבנות תוכנית או לארכב'));
-    if (thin.length) f.push(act('warn', thin.length + ' מתאמנים עם ימים מתחת לתשעה תרגילים',
-      'להשלים דרך ספריית התרגילים'));
+    if (thin.length) f.push(act('warn', thin.length + ' מתאמנים עם ימי כוח מתחת לתשעה תרגילים: '
+      + thin.slice(0, 5).map(function (t) { return t.name; }).join(', ') + (thin.length > 5 ? '…' : ''),
+      'להשלים דרך ספריית התרגילים (ימי אירובי ומנוחה לא נספרים)'));
     if (noTarget.length) f.push(act('warn', noTarget.length + ' בלי יעדי תזונה מחושבים',
       'חסרים גיל, גובה או משקל — בלעדיהם אין חישוב'));
     if (noWeigh.length) f.push(act('warn', noWeigh.length + ' עם פחות משתי שקילות',
@@ -228,7 +256,12 @@
     var noPhone = act_.filter(function (t) { return !String(t.phone || '').trim(); });
     var noGoal = act_.filter(function (t) { return String(t.goal || '').trim().length < 3; });
     /* מטרה שהיא שבר של שאלה מהשאלון ולא מטרה אמיתית */
-    var badGoal = act_.filter(function (t) { return /\?|יחשב|מבחינתך/.test(String(t.goal || '')); });
+    /* וגם שארית של רשימת האפשרויות מהשאלון: "/ שיפור כוח מתפרץ / כושר
+       כללי / שיקום פציעה)". עד v198 היא נחשבה מטרה תקינה, אצל חמישה. */
+    var badGoal = act_.filter(function (t) {
+      var g = String(t.goal || '').trim();
+      return g.length >= 3 && (/\?|יחשב|מבחינתך/.test(g) || /^[\/)(]/.test(g) || /שיקום פציעה\)/.test(g));
+    });
     var noBody = act_.filter(function (t) { return !n0(t.height) || !(t.birth || (t.intake && t.intake.answers && t.intake.answers.birthOrAge)); });
 
     var f = [];
@@ -377,7 +410,25 @@
     return h + '</div>';
   }
 
+  /* דיווחי האימון נטענים בלוח הבקרה. מי שפותח את הניתוח ישר — טוענים
+     כאן, ומציירים מחדש כשהם מגיעים, אחרת השימור מחושב בלעדיהם. */
+  var WAIT = null;
+  function ensureLogs() {
+    if (typeof DASH === 'undefined' || DASH.logs !== null || typeof dashLoad !== 'function') return;
+    dashLoad();
+    if (WAIT) return;
+    var tries = 0;
+    WAIT = setInterval(function () {
+      tries++;
+      if (DASH.logs !== null || tries > 40) {
+        clearInterval(WAIT); WAIT = null;
+        if (DASH.logs !== null && typeof VIEW !== 'undefined' && VIEW === 'biz' && typeof render === 'function') render();
+      }
+    }, 500);
+  }
+
   function view() {
+    ensureLogs();
     var r = EBBiz.analyze();
     var h = head('ניתוח העסק', 'ציון בשישה תחומים, וכל ממצא מתורגם לפעולה אחת', '');
 

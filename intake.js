@@ -10,7 +10,7 @@
   'use strict';
 
   // חותמת גרסה — index.html משווה אליה כדי לזהות קובץ ישן במטמון
-  (window.EB_MOD = window.EB_MOD || {})['intake'] = 'v198';
+  (window.EB_MOD = window.EB_MOD || {})['intake'] = 'v199';
 
   /* ---------- מילון: תווית בשאלון -> שדה במערכת ---------- */
   /* הסדר משנה — הביטוי הראשון שמתאים מנצח, ולכן ביטויים ארוכים
@@ -30,6 +30,8 @@
     ['thigh',       ['ירך']],
     ['goal',        ['המטרה המרכזית', 'מטרה מרכזית', 'מטרה עיקרית']],
     ['goal2',       ['המטרה המשנית', 'מטרה משנית']],
+    /* "מטרה" לבד — אחרי המשנית, כדי ש"מטרה משנית" תיתפס קודם שם */
+    ['goal',        ['המטרה', 'מטרה']],
     ['success3m',   ['הצלחה בתוכנית', 'יחשב מבחינתך להצלחה', 'הצלחה']],
     ['injuries',    ['פציעות עבר', 'פציעות אקטיביות', 'פציעות']],
     ['medical',     ['בעיות רפואיות', 'מחלות רקע', 'בעיות רפואיות/מחלות רקע']],
@@ -174,8 +176,38 @@
   }
 
   /* ---------- המפענח ---------- */
+  /* ---------- רשימת אפשרויות בסוגריים ----------
+     "מטרה עיקרית (ירידה במשקל / עלייה במסה / שיפור כוח מתפרץ / ...)"
+     נשבר בוואטסאפ לשתי שורות. עד v198 החצי השני של רשימת האפשרויות
+     נקלט כמטרה — "/ שיפור כוח מתפרץ / כושר כללי / שיקום פציעה)" —
+     והתשובה האמיתית נזרקה ל"פרטים נוספים". אצל חמישה מתאמנים. */
+  function parenDepth(s) {
+    return (String(s).match(/\(/g) || []).length - (String(s).match(/\)/g) || []).length;
+  }
+  function joinOpenParens(lines) {
+    var out = [];
+    for (var m = 0; m < lines.length; m++) {
+      var cur = lines[m], k = 0;
+      while (parenDepth(cur) > 0 && m + 1 < lines.length && k < 3
+             && lines.slice(m + 1, m + 4).join('').indexOf(')') > -1) {
+        cur += ' ' + String(lines[++m]).trim(); k++;
+      }
+      out.push(cur);
+    }
+    return out;
+  }
+  /* ערך שמתחיל בסוגר שנסגר בלי שנפתח — שארית של רשימת אפשרויות */
+  function stripOptTail(v) {
+    var s = String(v || '');
+    var close = s.indexOf(')'), open = s.indexOf('(');
+    if (close > -1 && (open < 0 || open > close) && /\//.test(s.slice(0, close))) {
+      s = s.slice(close + 1).replace(/^[\s\-–—:.,]+/, '');
+    }
+    return s.trim();
+  }
+
   function parseIntake(text) {
-    var lines = String(text || '').split(/\r?\n/);
+    var lines = joinOpenParens(String(text || '').split(/\r?\n/));
     var out = {}, unknown = [], bare = [];
 
     for (var i = 0; i < lines.length; i++) {
@@ -232,9 +264,10 @@
         }
       }
 
+      value = stripOptTail(value);
       if (!value) {
         var nx = lookAhead(lines, i);
-        if (nx) { value = nx.v; i = nx.i; }
+        if (nx) { value = stripOptTail(nx.v); i = nx.i; }
       }
       if (!value) continue;
 
