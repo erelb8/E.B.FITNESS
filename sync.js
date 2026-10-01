@@ -15,7 +15,7 @@
   'use strict';
 
   // חותמת גרסה — index.html משווה אליה כדי לזהות קובץ ישן במטמון
-  (window.EB_MOD = window.EB_MOD || {})['sync'] = 'v200';
+  (window.EB_MOD = window.EB_MOD || {})['sync'] = 'v201';
 
   const CFG      = window.EBFIT_CONFIG || { URL: '', ANON: '' };
   const SNAP_KEY = 'ebfit_sync_v1';
@@ -99,6 +99,12 @@
   const SHARED = ['id', 'name', 'goal', 'program', 'status', 'files', 'meals', 'mealsSelf',
                   'mealsCustom', 'habitsLog', 'foodLog', 'exercisesSelf', 'health', 'weighins', 'termsAccepted'];
 
+  /* גרסת האפליקציה בכל שורה שנדחפת. בשרת (min-client-version.sql)
+     שמירה בלי גרסה עדכנית נדחית — כך מכשיר שנשכח פתוח עם גרסה ישנה
+     לא יכול יותר לכתוב עותק ישן מעל נתונים חדשים. 1.10.2026 מכשיר כזה
+     מחק שוב ושוב תאריכי לידה והחזיר תוכנית לגרסה ישנה, אחרי שכל
+     התיקונים כבר עלו — הם פשוט לא רצו בו. */
+  const APPVER = () => String(window.EB_APP_VER || '');
   function traineeToRow(t) {
     const priv = {};
     for (const k in t) {
@@ -106,6 +112,7 @@
       if (k.charAt(0) === '_') continue;   // שדות שרת (_token, _username...) — לא נשמרים ב-private
       priv[k] = t[k];
     }
+    priv.appVer = APPVER();
     return {
       id: t.id,
       trainer_id: user.id,
@@ -160,6 +167,7 @@
       if (k === 'id' || k === 'traineeId' || k === 'date') continue;
       data[k] = o[k];
     }
+    data.appVer = APPVER();
     return {
       id: o.id,
       trainer_id: user.id,
