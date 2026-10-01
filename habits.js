@@ -25,7 +25,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['habits'] = 'v199';
+  (window.EB_MOD = window.EB_MOD || {})['habits'] = 'v200';
 
   var KEEP_DAYS = 120;
   var KINDS = ['mob', 'food'];

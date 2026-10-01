@@ -15,7 +15,7 @@
   'use strict';
 
   // חותמת גרסה — index.html משווה אליה כדי לזהות קובץ ישן במטמון
-  (window.EB_MOD = window.EB_MOD || {})['sync'] = 'v199';
+  (window.EB_MOD = window.EB_MOD || {})['sync'] = 'v200';
 
   const CFG      = window.EBFIT_CONFIG || { URL: '', ANON: '' };
   const SNAP_KEY = 'ebfit_sync_v1';
@@ -303,6 +303,39 @@
     if (!Object.keys(t[table]).length) delete t[table];
     writeTombs(t);
   }
+  /* חתימת שורה בלי המונה — הדחיפה מעלה את rev על האובייקט החי, וזה
+     לא שינוי של המאמן */
+  let RUN_START_SIG = null, KEPT = null;
+  function rowSig(o) {
+    if (!o || typeof o !== 'object') return '';
+    const c = Object.assign({}, o); delete c.rev;
+    return canon(c);
+  }
+  /* חתימה ועותק של כל שורה בתחילת הסנכרון. העותק נחוץ כדי לדעת אילו
+     שדות נערכו — רק הם גוברים על השרת, ולא השורה כולה: מכשיר עם
+     עותק ישן ששינה שדה אחד לא יחזיר איתו שדות ישנים אחרים. */
+  function sigOf(state) {
+    const out = {};
+    ARRAYS.forEach(k => {
+      out[k] = {};
+      (state[k] || []).forEach(o => {
+        if (o && o.id) out[k][o.id] = { sig: rowSig(o), obj: JSON.parse(JSON.stringify(o)) };
+      });
+    });
+    return out;
+  }
+  /* גרסת השרת + רק השדות שנערכו מקומית מאז תחילת הסנכרון */
+  function mergeEdited(srv, start, local) {
+    if (!srv || !start) return local;
+    const out = Object.assign({}, srv);
+    Object.keys(Object.assign({}, start, local)).forEach(key => {
+      if (key === 'rev') return;
+      if (canon(local[key]) === canon(start[key])) return;
+      if (local[key] === undefined) delete out[key]; else out[key] = local[key];
+    });
+    return out;
+  }
+
   function snapshotOf(state) {
     const out = {};
     ARRAYS.forEach(k => {
@@ -454,9 +487,28 @@
         return;
       }
       const snap = readSnap();
+      RUN_START_SIG = sigOf(window.S); KEPT = null;
       const skipped = await push(snap);
       await pull();
       writeSnap(snapshotOf(window.S));
+      /* שורות שנערכו בזמן הסנכרון: בתצלום נרשמת גרסת השרת (או כלום, אם
+         נוצרו עכשיו), כדי שהדחיפה הבאה תזהה אותן כשינוי ותשלח */
+      const kept = KEPT || {};
+      const keptN = Object.keys(kept).reduce((a, k) => a + Object.keys(kept[k]).length, 0);
+      if (keptN) {
+        const sn = readSnap();
+        Object.keys(kept).forEach(k => {
+          sn[k] = sn[k] || {};
+          Object.keys(kept[k]).forEach(id => {
+            if (kept[k][id] == null) delete sn[k][id]; else sn[k][id] = kept[k][id];
+          });
+        });
+        writeSnap(sn);
+        log('kept local edits made during sync', { rows: keptN });
+        pending = true;
+        setTimeout(() => schedule(300), 0);
+      }
+      RUN_START_SIG = null; KEPT = null;
       localStorage.setItem('ebfit_sync_at', new Date().toISOString());
       failCount = 0;
       log('sync completed');
@@ -726,6 +778,9 @@
     const fpOf = () => { try { return JSON.stringify([window.S.trainees, window.S.sessions, window.S.payments,
                                                       window.S.measures, window.S.daily, window.S.settings]); } catch (e) { return ''; } };
     const before = fpOf();
+    /* המצב המקומי רגע לפני ההחלפה — כדי לזהות מה נערך בזמן הסנכרון */
+    const localNow = {};
+    ARRAYS.forEach(k => { localNow[k] = window.S[k] || []; });
     window.S.trainees = fetched.trainees.map(traineeFromRow);
 
     /* העריכה המקומית גוברת רק אם השרת לא השתנה מאז הבסיס. אם השתנה —
@@ -763,6 +818,28 @@
         if (m && Object.keys(m).length) window.S[k] = (window.S[k] || []).filter(x => !(x && m[x.id]));
       });
     }
+    /* ---------- עריכה שנעשתה בזמן הסנכרון ----------
+       הסנכרון דוחף ואז מושך, והמשיכה מחליפה את המקומי בגרסת השרת.
+       מה שנערך במכשיר בין הדחיפה למשיכה — שנייה או שתיים, אבל עם
+       שמירה אוטומטית בכל הקשה זה קורה כל הזמן — נמחק בשקט. עד v199 כך
+       חזרו מטרות ששונו, תאריכי לידה ושינויים בתוכנית. עכשיו שורה שהשתנתה
+       מאז תחילת הסנכרון נשארת כמו במכשיר, ונדחפת בסנכרון הבא. */
+    KEPT = {};
+    if (RUN_START_SIG) ARRAYS.forEach(k => {
+      const start = RUN_START_SIG[k] || {};
+      (localNow[k] || []).forEach(o => {
+        if (!o || !o.id) return;
+        const st = start[o.id];
+        if (st && st.sig === rowSig(o)) return;            // לא נערך בזמן הסנכרון
+        const tb = readTombs()[k];
+        if (tb && tb[o.id]) return;                        // נמחק — לא מחזירים
+        const arr = window.S[k] || (window.S[k] = []);
+        const i = arr.findIndex(x => x && x.id === o.id);
+        (KEPT[k] = KEPT[k] || {})[o.id] = i > -1 ? JSON.stringify(arr[i]) : null;
+        const merged = mergeEdited(i > -1 ? arr[i] : null, st && st.obj, o);
+        if (i > -1) arr[i] = merged; else arr.push(merged);
+      });
+    });
     const { data: p } = await sb.from('trainer_prefs')
       .select('data').eq('trainer_id', user.id).maybeSingle();
     if (p && p.data) {
@@ -1007,7 +1084,7 @@
     checkAdmin,
     /* מצבת מחיקה. חייבת להיקרא לפני שהשורה מוסרת מ-S, אחרת
        הדחיפה תראה היעלמות בלי כוונה ותדלג עליה. */
-    tomb, partitionGone, splitByRev, canon,
+    tomb, partitionGone, splitByRev, canon, mergeEdited,
     adminState: () => adminState, lastError: () => lastError,
     signIn, signUp, signOut,
     traineeLogin,

@@ -133,6 +133,20 @@ t('סדר מפתחות לא משנה',
   === C({ note:'x', days:[{ exercises:[{ name:'סקוואט', sets:'3' }], name:'A' }] }), true);
 t('תוכנית ריקה מול מלאה — שונות',
   C({ days:[] }) === C({ days:[{ name:'A', exercises:[] }] }), false);
+console.log('=== mergeEdited: עריכה בזמן סנכרון ===');
+/* רק שדה שנערך מאז תחילת הסנכרון גובר על השרת. שדה ישן במכשיר
+   (birth ריק) לא דורס ערך חדש שבשרת. */
+const ME = Sy.mergeEdited;
+{
+  const start = { id:'a', goal:'/ שיקום פציעה)', birth:'', rev:3 };
+  const local = { id:'a', goal:'מסת שריר',       birth:'', rev:4 };
+  const srv   = { id:'a', goal:'/ שיקום פציעה)', birth:'2002-08-07', rev:4 };
+  const m = ME(srv, start, local);
+  t('השדה שנערך גובר', m.goal, 'מסת שריר');
+  t('שדה שלא נערך — מהשרת', m.birth, '2002-08-07');
+  t('המונה מהשרת', m.rev, 4);
+  t('שורה חדשה (בלי start) — כמו במכשיר', ME(null, null, local).goal, 'מסת שריר');
+}
 t('סדר ימים כן משנה',
   C({ days:[{ name:'A' }, { name:'B' }] }) === C({ days:[{ name:'B' }, { name:'A' }] }), false);
 
