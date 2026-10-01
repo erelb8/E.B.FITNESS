@@ -15,7 +15,7 @@
   'use strict';
 
   // חותמת גרסה — index.html משווה אליה כדי לזהות קובץ ישן במטמון
-  (window.EB_MOD = window.EB_MOD || {})['sync'] = 'v197';
+  (window.EB_MOD = window.EB_MOD || {})['sync'] = 'v198';
 
   const CFG      = window.EBFIT_CONFIG || { URL: '', ANON: '' };
   const SNAP_KEY = 'ebfit_sync_v1';
@@ -636,9 +636,15 @@
          וכאן מוחקים רק מה שנרשם שם. מה שנעלם בלי מצבה הוא רשימה
          שהתכווצה — ועליו מדלגים ומדווחים, ו-pull יחזיר אותו. */
       const gone = Object.keys(prev).filter(id => !seen.has(id));
-      if (gone.length) {
+      /* מצבה שלא נעלמה מהתצלום: מחיקה שנעשתה בזמן שסנכרון רץ. המשיכה
+         של אותו סנכרון החזירה את השורה, התצלום נכתב איתה, ולכן היא לא
+         נראית כ"נעלמה" — והמחיקה בוטלה בשקט. עד v197 כך נשארו תשלומים
+         שנמחקו. מצבה היא כוונה מפורשת, ולכן נשלחת בכל מקרה. */
+      const tombMark = readTombs()[key] || {};
+      const pendingTomb = Object.keys(tombMark).filter(id => !seen.has(id) && gone.indexOf(id) < 0);
+      if (gone.length || pendingTomb.length) {
         const part = partitionGone(gone, readTombs(), key);
-        const wanted = part.wanted, unknown = part.unknown;
+        const wanted = part.wanted.concat(pendingTomb), unknown = part.unknown;
 
         if (wanted.length) {
           const { error } = await sb.from(TABLE[key])
@@ -749,6 +755,14 @@
     window.S.daily    = fetched.measures.filter(isDaily).map(r => {
       const o = childFromRow(r); delete o.kind; return o;
     });
+    /* מה שנמחק כאן ועוד לא נמחק בשרת לא חוזר למכשיר במשיכה */
+    {
+      const tb = readTombs();
+      ['trainees', 'sessions', 'payments', 'measures', 'daily'].forEach(k => {
+        const m = tb[k];
+        if (m && Object.keys(m).length) window.S[k] = (window.S[k] || []).filter(x => !(x && m[x.id]));
+      });
+    }
     const { data: p } = await sb.from('trainer_prefs')
       .select('data').eq('trainer_id', user.id).maybeSingle();
     if (p && p.data) {
