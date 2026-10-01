@@ -15,7 +15,7 @@
   'use strict';
 
   // חותמת גרסה — index.html משווה אליה כדי לזהות קובץ ישן במטמון
-  (window.EB_MOD = window.EB_MOD || {})['sync'] = 'v201';
+  (window.EB_MOD = window.EB_MOD || {})['sync'] = 'v202';
 
   const CFG      = window.EBFIT_CONFIG || { URL: '', ANON: '' };
   const SNAP_KEY = 'ebfit_sync_v1';
@@ -843,6 +843,12 @@
         if (tb && tb[o.id]) return;                        // נמחק — לא מחזירים
         const arr = window.S[k] || (window.S[k] = []);
         const i = arr.findIndex(x => x && x.id === o.id);
+        /* השרת מחזיק גרסה חדשה יותר מזו שבמכשיר — מישהו אחר כתב. אז זה
+           עותק ישן ולא עריכה, והשרת גובר. עד v201 העריכה גברה גם כאן:
+           1.10.2026 טלפון שהתעדכן אחרי שעות עם עותק ישן, וחישוב היעדים
+           בעלייה "ערך" את השורות שלו תוך כדי הסנכרון הראשון — והוא החזיר
+           תשלום ותוכניות לגרסה ישנה. */
+        if (i > -1 && revOf(arr[i]) > revOf(o)) return;
         (KEPT[k] = KEPT[k] || {})[o.id] = i > -1 ? JSON.stringify(arr[i]) : null;
         const merged = mergeEdited(i > -1 ? arr[i] : null, st && st.obj, o);
         if (i > -1) arr[i] = merged; else arr.push(merged);

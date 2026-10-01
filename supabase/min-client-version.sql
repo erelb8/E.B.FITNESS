@@ -14,14 +14,15 @@
 --
 -- Trainee RPCs and the SQL editor run as the function owner and are not
 -- affected (same rule as guard-stale-writes-fix.sql).
--- To raise the minimum later: change 201 in app_ver_ok() and re-run.
+-- To raise the minimum later: change the number in app_ver_ok() and re-run.
+-- 202: v201 let a stale device that had just updated win over newer server rows.
 
 create or replace function public.app_ver_ok(v text)
 returns boolean
 language sql
 immutable
 as $$
-  select coalesce(substring(coalesce(v, '') from '^v(\d+)$')::int, 0) >= 201
+  select coalesce(substring(coalesce(v, '') from '^v(\d+)$')::int, 0) >= 202
 $$;
 
 create or replace function public.guard_min_version_trainee()
