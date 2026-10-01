@@ -15,7 +15,7 @@
   'use strict';
 
   // חותמת גרסה — index.html משווה אליה כדי לזהות קובץ ישן במטמון
-  (window.EB_MOD = window.EB_MOD || {})['sync'] = 'v202';
+  (window.EB_MOD = window.EB_MOD || {})['sync'] = 'v203';
 
   const CFG      = window.EBFIT_CONFIG || { URL: '', ANON: '' };
   const SNAP_KEY = 'ebfit_sync_v1';
@@ -256,12 +256,18 @@
   }
   /* טהורה בכוונה, כמו partitionGone: זו ההחלטה שקובעת אם עריכה
      נכתבת או נזרקת, והיא חייבת להיבדק בלי שרת. */
+  /* הבסיס נבדק פעמיים: בתצלום, וגם במונה שהשורה עצמה נושאת. התצלום
+     יושב ב-localStorage ומשותף לכל החלונות של אותו מכשיר, אבל S חי
+     בזיכרון של כל חלון בנפרד. חלון שעמד ברקע עם עותק ישן קרא תצלום
+     טרי שחלון אחר כתב, ונראה כאילו הוא מעודכן — וכך באוקטובר 2026
+     אותו תשלום ואותן שתי תוכניות חזרו לגרסה ישנה שלוש פעמים, גם אחרי
+     שהשרת חסם גרסאות ישנות של האפליקציה. המונה שבשורה שייך לחלון. */
   function splitByRev(rows, prev, srv) {
     const send = [], stale = [];
     (rows || []).forEach(o => {
       const s = srv ? srv[o.id] : undefined;
       if (s === undefined || s === null) { send.push(o); return; }  // חדשה, או אין מידע
-      if (s > baseRev(prev && prev[o.id])) stale.push(o.id);
+      if (s > baseRev(prev && prev[o.id]) || s > revOf(o)) stale.push(o.id);
       else send.push(o);
     });
     return { send: send, stale: stale };
