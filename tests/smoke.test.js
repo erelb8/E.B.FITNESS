@@ -162,6 +162,19 @@ const TRAINEE_DATA = {
           if (hasUnsavedProgram()) throw new Error('נשאר "שינוי שלא נשמר"');
         } finally { window.render = R1; window.confirm = C; window.save = S1; }
       });
+      /* חלון פרטי המתאמן שומר רק שדות שנערכו. עד v196 הוא כתב הכול
+         מערכי הפתיחה, ותאריך לידה שהגיע מהשרת בזמן שהחלון פתוח נמחק. */
+      await tryM('editWindowKeepsServerValue', async () => {
+        const type = (id, v) => { const e = document.getElementById(id); e.value = v; e.dispatchEvent(new Event('input', { bubbles: true })); };
+        const b0 = tById('b1').birth;
+        editTrainee('b1'); await wait(100);
+        tById('b1').birth = '2001-02-03';          // הגיע מהשרת בזמן שהחלון פתוח
+        type('tf_notes', 'בדיקה'); await wait(700);
+        const kept = tById('b1').birth, notes = tById('b1').notes;
+        closeModal(); tById('b1').birth = b0;
+        if (kept !== '2001-02-03') throw new Error('תאריך הלידה נדרס: ' + kept);
+        if (notes !== 'בדיקה') throw new Error('השדה שנערך לא נשמר');
+      });
       await tryM('traineeReports', async () => {
         const en = EBSync.enabled, lf = EBSync.logsFor;
         EBSync.enabled = () => true;
