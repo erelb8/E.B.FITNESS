@@ -10,7 +10,7 @@
   'use strict';
 
   // חותמת גרסה — index.html משווה אליה כדי לזהות קובץ ישן במטמון
-  (window.EB_MOD = window.EB_MOD || {})['intake'] = 'v195';
+  (window.EB_MOD = window.EB_MOD || {})['intake'] = 'v196';
 
   /* ---------- מילון: תווית בשאלון -> שדה במערכת ---------- */
   /* הסדר משנה — הביטוי הראשון שמתאים מנצח, ולכן ביטויים ארוכים
@@ -255,6 +255,12 @@
       if (!out.email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(L)) { out.email = L; return; }
       if (!out.phone && /^0\d[\d\-\s]{7,12}$/.test(L)) { out.phone = L.replace(/[\s]/g,''); return; }
       if (!out.birthOrAge && /^\d{1,2}[./]\d{1,2}[./]\d{2,4}$/.test(L)) { out.birthOrAge = L; return; }
+      /* גיל ותאריך באותה שורה — "24 07.08.2002", "13/08/2004 22". עד
+         v195 נדרשה שורה שהיא תאריך בלבד, ותאריכי לידה כאלה נשארו
+         ב"פרטים נוספים" ולא נכנסו לשדה. שנה מלאה ובלי אותיות — כדי
+         לא לתפוס תאריך של משהו אחר. */
+      if (!out.birthOrAge && L.length <= 24 && !/[A-Za-z֐-׿]/.test(L)
+          && /(^|\s)\d{1,2}[./]\d{1,2}[./](19|20)\d{2}(\s|$)/.test(L)) { out.birthOrAge = L; return; }
       if (!out.name && idx === 0 && /^[֐-׿\s'"״׳]{3,40}$/.test(L) && L.split(/\s+/).length <= 4) {
         out.name = L; return;
       }
