@@ -1,0 +1,829 @@
+/* =====================================================================
+   E.B FIT — הדמיות תרגילים
+   ---------------------------------------------------------------------
+   דמות מקלות שמבצעת את התנועה, מצוירת בזמן אמת על canvas. אין קבצים,
+   אין אחסון ואין תעבורה — עובד גם בלי רשת. 855 סרטונים היו תופסים
+   כשליש מהאחסון החינמי ושוחקים את מכסת הצפייה החודשית.
+
+   איך זה בנוי:
+   • תנוחה = מיקום האגן, זווית הגו, והיעדים של כפות הרגליים והידיים.
+     הברכיים והמרפקים מחושבים בקינמטיקה הפוכה (IK) — כך אורכי הגפיים
+     קבועים, והרגל שעל הרצפה נשארת על הרצפה.
+   • תבנית תנועה = כמה תנוחות ברצף, בלולאה. בערך 40 תבניות מכסות את
+     כל 855 התרגילים; הציוד (מוט, משקולות, כבל...) מצויר לפי התרגיל.
+   • classify — מתאים לכל תרגיל תבנית לפי השם, השריר והציוד.
+
+   ההדמיה היא תנועה כללית ולא הוראת טכניקה. סרטון אמיתי של המאמן
+   (video.js) גובר עליה תמיד.
+
+   מערכת צירים: הרצפה ב-y=0, למעלה שלילי. x חיובי = קדימה (אל מול
+   הדמות). זווית 0 = למעלה, 90 = קדימה, 180 = למטה.
+   ===================================================================== */
+(function () {
+  'use strict';
+
+  (window.EB_MOD = window.EB_MOD || {})['anim'] = 'v211';
+
+  var L = { shin: 62, thigh: 64, torso: 78, uarm: 46, farm: 42, neck: 9, head: 15, foot: 17 };
+  var ARM = L.uarm + L.farm;
+
+  function dir(a) { var r = a * Math.PI / 180; return [Math.sin(r), -Math.cos(r)]; }
+  function add(p, v, k) { k = k == null ? 1 : k; return [p[0] + v[0] * k, p[1] + v[1] * k]; }
+  function lerp(a, b, t) { return a + (b - a) * t; }
+  function lerpP(a, b, t) { return [lerp(a[0], b[0], t), lerp(a[1], b[1], t)]; }
+
+  /* שתי עצמות מ-root אל target. pref קובע לאיזה צד המפרק מתכופף:
+     R קדימה, L אחורה, U למעלה, D למטה */
+  function ik(root, target, l1, l2, pref) {
+    var dx = target[0] - root[0], dy = target[1] - root[1];
+    var d = Math.hypot(dx, dy) || 0.001;
+    var max = l1 + l2 - 0.01, min = Math.abs(l1 - l2) + 0.01;
+    var dd = Math.max(min, Math.min(max, d));
+    var end = [root[0] + dx / d * dd, root[1] + dy / d * dd];
+    var a = Math.acos(Math.max(-1, Math.min(1, (l1 * l1 + dd * dd - l2 * l2) / (2 * l1 * dd))));
+    var base = Math.atan2(dy, dx);
+    var c1 = [root[0] + l1 * Math.cos(base + a), root[1] + l1 * Math.sin(base + a)];
+    var c2 = [root[0] + l1 * Math.cos(base - a), root[1] + l1 * Math.sin(base - a)];
+    var pick = pref === 'L' ? (c1[0] < c2[0] ? c1 : c2)
+             : pref === 'U' ? (c1[1] < c2[1] ? c1 : c2)
+             : pref === 'D' ? (c1[1] > c2[1] ? c1 : c2)
+             : (c1[0] > c2[0] ? c1 : c2);
+    return { mid: pick, end: end };
+  }
+
+  /* ---------- תנוחה ---------- */
+  /* יעד: [x,y] מוחלט, או ['s',dx,dy] יחסית לכתף, או ['h',dx,dy] לאגן */
+  function resolve(kf) {
+    var hip = kf.hip, sh = add(hip, dir(kf.torso), L.torso);
+    sh = [sh[0], sh[1] - (kf.shy || 0)];
+    function res(p, near) {
+      if (!p) return near ? [near[0] - 7, near[1]] : null;
+      if (p[0] === 's') return [sh[0] + p[1], sh[1] + p[2]];
+      if (p[0] === 'h') return [hip[0] + p[1], hip[1] + p[2]];
+      return p.slice();
+    }
+    var f1 = res(kf.f1), h1 = res(kf.h1);
+    return {
+      hip: hip.slice(), torso: kf.torso, shy: kf.shy || 0, head: kf.head || 0,
+      f1: f1, f2: res(kf.f2, f1), h1: h1, h2: res(kf.h2, h1),
+      fa1: kf.fa1 == null ? 90 : kf.fa1, fa2: kf.fa2 == null ? (kf.fa1 == null ? 90 : kf.fa1) : kf.fa2,
+      kb: kf.kb || 'R', kb2: kf.kb2 || kf.kb || 'R', eb: kf.eb || 'D', eb2: kf.eb2 || kf.eb || 'D'
+    };
+  }
+  function mix(a, b, t) {
+    return {
+      hip: lerpP(a.hip, b.hip, t), torso: lerp(a.torso, b.torso, t), shy: lerp(a.shy, b.shy, t),
+      head: lerp(a.head, b.head, t),
+      f1: lerpP(a.f1, b.f1, t), f2: lerpP(a.f2, b.f2, t), h1: lerpP(a.h1, b.h1, t), h2: lerpP(a.h2, b.h2, t),
+      fa1: lerp(a.fa1, b.fa1, t), fa2: lerp(a.fa2, b.fa2, t),
+      kb: t < 0.5 ? a.kb : b.kb, kb2: t < 0.5 ? a.kb2 : b.kb2, eb: t < 0.5 ? a.eb : b.eb, eb2: t < 0.5 ? a.eb2 : b.eb2
+    };
+  }
+  function body(p) {
+    var sh = add(p.hip, dir(p.torso), L.torso); sh[1] -= p.shy;
+    var hd = add(sh, dir(p.torso + p.head), L.neck + L.head);
+    var k1 = ik(p.hip, p.f1, L.thigh, L.shin, p.kb), k2 = ik(p.hip, p.f2, L.thigh, L.shin, p.kb2);
+    var e1 = ik(sh, p.h1, L.uarm, L.farm, p.eb), e2 = ik(sh, p.h2, L.uarm, L.farm, p.eb2);
+    return {
+      hip: p.hip, sh: sh, head: hd,
+      knee1: k1.mid, ank1: k1.end, toe1: add(k1.end, dir(p.fa1), L.foot),
+      knee2: k2.mid, ank2: k2.end, toe2: add(k2.end, dir(p.fa2), L.foot),
+      elb1: e1.mid, wr1: e1.end, elb2: e2.mid, wr2: e2.end
+    };
+  }
+
+  /* ---------- תנוחות בסיס ---------- */
+  var HANG = ['s', 4, 86];
+  function stand(o) { return Object.assign({ hip: [0, -125], torso: 0, f1: [0, 0], h1: HANG }, o || {}); }
+  /* ידיים לפי ציוד, בתבניות שבהן זה משנה (סקוואט, לאנג׳, הליכה) */
+  function holdFor(eq, mode) {
+    if (mode === 'back' || (eq === 'bar' || eq === 'smith')) return { h: ['s', -12, 8], eb: 'D', hold: 'back' };
+    if (eq === 'db' || eq === 'kb') return mode === 'side' ? { h: HANG, hold: 'hand' } : { h: ['s', 20, 34], eb: 'D', hold: 'hand' };
+    if (eq === 'ball') return { h: ['s', 30, 34], eb: 'D', hold: 'ball' };
+    if (eq === 'band') return { h: ['s', 10, 70], hold: 'band' };
+    return { h: ['s', 84, 14], hold: null };
+  }
+
+  /* ---------- התבניות ----------
+     כל תבנית מחזירה { kf:[{t,pose}], dur, props:[], hold } */
+  var P = {};
+  function seq(poses, dur) {
+    var n = poses.length, kf = [];
+    poses.forEach(function (p, i) { kf.push({ t: i / n, p: p }); });
+    return { kf: kf, dur: dur || 2600 };
+  }
+  function bench(x, y, w) { return { k: 'bench', r: [x, y, w, 9] }; }
+
+  P.squat = { he: 'סקוואט', fn: function (eq) {
+    var h = holdFor(eq);
+    var A = stand({ h1: h.h, eb: h.eb }), B = stand({ hip: [-40, -66], torso: 38, h1: h.h, eb: h.eb });
+    if (eq === 'machine') { A.torso = B.torso = 12; B.hip = [-30, -62]; }
+    var s = seq([A, B], 2800); s.hold = h.hold; if (eq === 'smith') s.props = [{ k: 'rails' }];
+    return s; } };
+  P.jumpsquat = { he: 'קפיצה', fn: function () {
+    var s = seq([stand({ h1: ['s', 40, 60] }), stand({ hip: [-38, -70], torso: 40, h1: ['s', -30, 70] }),
+                 stand({ hip: [0, -160], f1: [0, -34], fa1: 140, h1: ['s', 20, -84] }), stand({ hip: [-38, -70], torso: 40, h1: ['s', 50, 60] })], 2000);
+    return s; } };
+  P.boxjump = { he: 'קפיצה לקופסה', fn: function () {
+    var s = seq([stand({ hip: [-38, -70], torso: 40, h1: ['s', -30, 70] }), stand({ hip: [40, -190], f1: [60, -70], fa1: 120, h1: ['s', 30, -80] }),
+                 stand({ hip: [55, -132], f1: [80, -55], torso: 25, h1: ['s', 50, 40] }), stand({ hip: [80, -180], f1: [80, -55], h1: HANG })], 2600);
+    s.props = [{ k: 'box', r: [50, -55, 70, 55] }]; return s; } };
+  P.lunge = { he: 'לאנג׳', fn: function (eq) {
+    var h = holdFor(eq, 'side');
+    var A = { hip: [-6, -122], torso: 3, f1: [42, 0], f2: [-62, 0], fa2: 125, h1: h.h, kb2: 'R' };
+    var B = { hip: [-10, -64], torso: 6, f1: [42, 0], f2: [-62, 0], fa2: 125, h1: h.h, kb2: 'D' };
+    var s = seq([A, B], 2800); s.hold = h.hold; return s; } };
+  P.bulgarian = { he: 'סקוואט בולגרי', fn: function (eq) {
+    var h = holdFor(eq, 'side');
+    var A = { hip: [-4, -118], torso: 6, f1: [40, 0], f2: [-82, -48], fa2: 160, h1: h.h, kb2: 'D' };
+    var B = { hip: [-14, -66], torso: 14, f1: [40, 0], f2: [-82, -48], fa2: 160, h1: h.h, kb2: 'D' };
+    var s = seq([A, B], 2800); s.hold = h.hold; s.props = [bench(-130, -48, 70), { k: 'legs', r: [-125, -48, 60, 48] }]; return s; } };
+  P.stepup = { he: 'עלייה על מדרגה', fn: function (eq) {
+    var h = holdFor(eq, 'side');
+    var A = { hip: [-4, -125], torso: 4, f1: [45, -52], f2: [-30, 0], h1: h.h };
+    var B = { hip: [40, -178], torso: 2, f1: [45, -52], f2: [36, -60], fa2: 110, h1: h.h, kb2: 'R' };
+    var s = seq([A, B], 3000); s.hold = h.hold; s.props = [{ k: 'box', r: [20, -52, 80, 52] }]; return s; } };
+  P.hinge = { he: 'ציר ירך', fn: function (eq) {
+    var back = eq === 'bar' && false;
+    var A = stand({ h1: HANG }), B = stand({ hip: [-36, -116], torso: 80, h1: ['s', 6, 86] });
+    var s = seq([A, B], 3000); s.hold = back ? 'back' : (eq === 'bar' ? 'plate' : (eq === 'db' || eq === 'kb') ? 'hand' : eq === 'band' ? 'bandfoot' : null);
+    if (eq === 'cable') { s.hold = 'cable'; s.cable = [40, -6]; }
+    return s; } };
+  P.deadlift = { he: 'דדליפט', fn: function (eq) {
+    var A = stand({ hip: [-42, -82], torso: 60, h1: ['s', 6, 86] }), B = stand({ h1: HANG });
+    var s = seq([A, B], 3000); s.hold = eq === 'bar' || eq === 'smith' ? 'plate' : (eq === 'band' ? 'bandfoot' : 'hand'); return s; } };
+  P.goodmorning = { he: 'גוד מורנינג', fn: function (eq) {
+    var A = stand({ h1: ['s', -12, 8] }), B = stand({ hip: [-34, -118], torso: 78, h1: ['s', -12, 8] });
+    var s = seq([A, B], 3000); s.hold = eq === 'bw' ? null : 'back'; return s; } };
+  P.swing = { he: 'סווינג', fn: function () {
+    var A = stand({ hip: [-38, -108], torso: 70, h1: ['s', -18, 76] }), B = stand({ torso: -4, h1: ['s', 84, 6] });
+    var s = seq([A, B], 1700); s.hold = 'kb'; return s; } };
+  P.hipthrust = { he: 'היפ ת׳רסט', fn: function (eq) {
+    var A = { hip: [0, -26], torso: -73, f1: [70, 0], h1: ['h', 4, -6], kb: 'U', eb: 'U' };
+    var B = { hip: [6, -80], torso: -110, f1: [70, 0], h1: ['h', 4, -6], kb: 'U', eb: 'U' };
+    var s = seq([A, B], 2600); s.props = [bench(-125, -46, 70), { k: 'legs', r: [-120, -46, 60, 46] }];
+    s.hold = eq === 'bar' || eq === 'smith' || eq === 'db' || eq === 'machine' ? 'hipbar' : (eq === 'band' ? 'hipband' : null); return s; } };
+  P.bridge = { he: 'גשר', fn: function (eq) {
+    var A = { hip: [0, -10], torso: -92, f1: [56, 0], h1: ['h', -20, 8], kb: 'U', eb: 'D' };
+    var B = { hip: [0, -56], torso: -121, f1: [56, 0], h1: ['h', -20, 8], kb: 'U', eb: 'D' };
+    if (eq === 'ball') { A.f1 = B.f1 = [96, -40]; A.hip = [0, -14]; B.hip = [0, -52]; }
+    var s = seq([A, B], 2600); s.hold = eq === 'ball' ? 'ballfeet' : (eq === 'band' ? 'hipband' : null);
+    if (eq === 'trx') { A.f1 = B.f1 = [100, -40]; s.hold = 'trxfeet'; }
+    return s; } };
+  P.calf = { he: 'עליות עקבים', fn: function (eq) {
+    var h = holdFor(eq, 'side');
+    var A = stand({ h1: h.h, fa1: 90 }), B = stand({ hip: [0, -139], f1: [0, -14], fa1: 142, h1: h.h });
+    var s = seq([A, B], 2000); s.hold = eq === 'machine' || eq === 'smith' || eq === 'bar' ? 'back' : h.hold; return s; } };
+  P.legext = { he: 'פשיטת ברך', fn: function () {
+    var A = { hip: [0, -62], torso: -8, f1: [64, -2], h1: ['h', 10, 8], kb: 'U' }, B = { hip: [0, -62], torso: -8, f1: [122, -78], h1: ['h', 10, 8], kb: 'U' };
+    var s = seq([A, B], 2600); s.props = [{ k: 'seat' }]; s.hold = 'pad'; return s; } };
+  P.legcurl = { he: 'כפיפת ברך', fn: function (eq) {
+    if (eq === 'ball' || eq === 'trx' || eq === 'other') return P.bridge.fn(eq === 'other' ? 'bw' : eq);
+    var A = { hip: [10, -60], torso: -90, f1: [134, -60], h1: ['s', -12, 24], kb: 'D', eb: 'D', fa1: 180 };
+    var B = { hip: [10, -60], torso: -90, f1: [80, -122], h1: ['s', -12, 24], kb: 'D', eb: 'D', fa1: 180 };
+    var s = seq([A, B], 2600); s.props = [bench(-100, -50, 200), { k: 'legs', r: [-90, -50, 170, 50] }]; s.hold = eq === 'band' ? 'bandfoot' : (eq === 'db' ? 'footdb' : 'pad'); return s; } };
+  P.legpress = { he: 'לחיצת רגליים', fn: function () {
+    var A = { hip: [0, -42], torso: -58, f1: [112, -122], h1: ['h', 4, 8], kb: 'U', fa1: 30 }, B = { hip: [0, -42], torso: -58, f1: [62, -108], h1: ['h', 4, 8], kb: 'U', fa1: 30 };
+    var s = seq([A, B], 2800); s.props = [{ k: 'sled' }]; return s; } };
+  P.pushup = { he: 'שכיבת סמיכה', fn: function (eq) {
+    var A = { hip: [-72, -55], torso: 67, f1: [-196, 0], h1: [0, 0], fa1: 160, kb: 'U', eb: 'L' };
+    var B = { hip: [-74, -20], torso: 81, f1: [-196, 0], h1: [0, 0], fa1: 160, kb: 'U', eb: 'L' };
+    var s = seq([A, B], 2400); if (eq === 'band') s.hold = 'bandback'; if (eq === 'trx') s.hold = 'trxhands';
+    if (eq === 'ball') s.hold = 'ballhands'; return s; } };
+  P.plank = { he: 'פלאנק', fn: function () {
+    var A = { hip: [-72, -52], torso: 68, f1: [-196, 0], h1: [0, 0], fa1: 160, kb: 'U', eb: 'L' };
+    var B = { hip: [-72, -58], torso: 66, f1: [-196, 0], h1: [0, 0], fa1: 160, kb: 'U', eb: 'L' };
+    return seq([A, B], 3200); } };
+  P.climber = { he: 'מטפס הרים', fn: function () {
+    var A = { hip: [-72, -55], torso: 67, f1: [-120, -20], f2: [-196, 0], h1: [0, 0], fa1: 160, fa2: 160, kb: 'D', kb2: 'U', eb: 'L' };
+    var B = { hip: [-72, -55], torso: 67, f1: [-196, 0], f2: [-120, -20], h1: [0, 0], fa1: 160, fa2: 160, kb: 'U', kb2: 'D', eb: 'L' };
+    return seq([A, B], 1100); } };
+  P.dip = { he: 'מקבילים', fn: function (eq) {
+    var A = { hip: [0, -140], torso: 2, f1: [-34, -28], fa1: 170, h1: [4, -130], kb: 'R', eb: 'L' };
+    var B = { hip: [-14, -96], torso: 20, f1: [-58, -8], fa1: 170, h1: [4, -130], kb: 'R', eb: 'L' };
+    var s = seq([A, B], 2600); s.props = [{ k: 'dipbar', y: -130 }]; return s; } };
+  P.benchdip = { he: 'דיפס על ספסל', fn: function () {
+    var A = { hip: [-4, -60], torso: -4, f1: [110, 0], h1: [-22, -48], kb: 'U', eb: 'L' };
+    var B = { hip: [-6, -24], torso: 6, f1: [110, 0], h1: [-22, -48], kb: 'U', eb: 'L' };
+    var s = seq([A, B], 2400); s.props = [bench(-70, -48, 60), { k: 'legs', r: [-65, -48, 50, 48] }]; return s; } };
+  P.press = { he: 'לחיצה בשכיבה', fn: function (eq, v) {
+    var t = v === 'incline' ? -62 : v === 'decline' ? -100 : -90;
+    var A = { hip: [40, -58], torso: t, f1: [104, 0], h1: ['s', 0, -86], kb: 'U', eb: 'D' };
+    var B = { hip: [40, -58], torso: t, f1: [104, 0], h1: ['s', 6, -12], kb: 'U', eb: 'D' };
+    var s = seq([A, B], 2600); s.props = [{ k: 'pbench', v: v || 'flat' }];
+    s.hold = eq === 'bar' || eq === 'smith' ? 'plate' : eq === 'band' ? 'bandback' : eq === 'machine' ? 'handle' : 'hand';
+    if (eq === 'smith') s.props.push({ k: 'rails' }); return s; } };
+  P.fly = { he: 'פרפר', fn: function (eq) {
+    if (eq === 'machine' || eq === 'cable') {
+      var A1 = { hip: [0, -62], torso: eq === 'cable' ? 14 : 0, f1: [52, 0], h1: ['s', -18, 30], eb: 'D' };
+      var B1 = { hip: [0, -62], torso: eq === 'cable' ? 14 : 0, f1: [52, 0], h1: ['s', 74, 26], eb: 'D' };
+      if (eq === 'cable') { A1.hip = B1.hip = [0, -125]; A1.f1 = B1.f1 = [0, 0]; A1.f2 = B1.f2 = [-50, 0]; }
+      var s1 = seq([A1, B1], 2600); s1.props = eq === 'machine' ? [{ k: 'seat' }] : []; s1.hold = eq === 'cable' ? 'cable' : 'handle';
+      s1.cable = [-60, -260]; return s1; }
+    var A = { hip: [40, -58], torso: -90, f1: [104, 0], h1: ['s', 0, -84], kb: 'U', eb: 'D' };
+    var B = { hip: [40, -58], torso: -90, f1: [104, 0], h1: ['s', -8, 2], kb: 'U', eb: 'D' };
+    var s = seq([A, B], 2800); s.props = [{ k: 'pbench', v: 'flat' }]; s.hold = 'hand'; return s; } };
+  P.pullover = { he: 'פולאובר', fn: function (eq) {
+    var A = { hip: [40, -58], torso: -90, f1: [104, 0], h1: ['s', 0, -86], kb: 'U', eb: 'U' };
+    var B = { hip: [40, -58], torso: -90, f1: [104, 0], h1: ['s', -84, 4], kb: 'U', eb: 'U' };
+    var s = seq([A, B], 2800); s.props = [{ k: 'pbench', v: 'flat' }]; s.hold = eq === 'cable' || eq === 'machine' ? null : 'hand'; return s; } };
+  P.ohp = { he: 'לחיצת כתפיים', fn: function (eq, v) {
+    var seated = v === 'seated';
+    var base = seated ? { hip: [0, -62], torso: 0, f1: [60, 0], kb: 'R' } : { hip: [0, -125], torso: 0, f1: [0, 0] };
+    var A = Object.assign({}, base, { h1: ['s', 16, -4], eb: 'R' }), B = Object.assign({}, base, { h1: ['s', 4, -86], eb: 'R' });
+    var s = seq([A, B], 2600); if (seated) s.props = [{ k: 'seat' }];
+    s.hold = eq === 'bar' || eq === 'smith' ? 'plate' : eq === 'band' ? 'bandfoot' : eq === 'machine' ? 'handle' : eq === 'cable' ? 'cable' : 'hand';
+    s.cable = [20, 0]; if (eq === 'smith') s.props = (s.props || []).concat([{ k: 'rails' }]); return s; } };
+  P.raise = { he: 'הרחקה / הנפה', fn: function (eq, v) {
+    var up = v === 'front' ? ['s', 84, 2] : ['s', 40, 10];
+    var A = stand({ h1: ['s', 6, 86] }), B = stand({ h1: up });
+    var s = seq([A, B], 2600); s.hold = eq === 'cable' ? 'cable' : eq === 'band' ? 'bandfoot' : eq === 'machine' ? 'handle' : 'hand'; s.cable = [-20, -4]; return s; } };
+  P.reardelt = { he: 'כתף אחורית', fn: function (eq) {
+    var A = stand({ hip: [-34, -116], torso: 72, h1: ['s', 6, 86] }), B = stand({ hip: [-34, -116], torso: 72, h1: ['s', -40, 30], eb: 'U' });
+    var s = seq([A, B], 2600); s.hold = eq === 'cable' ? 'cable' : eq === 'band' ? 'band' : eq === 'machine' ? 'handle' : 'hand'; s.cable = [80, -10]; return s; } };
+  P.facepull = { he: 'פייס פול', fn: function (eq) {
+    var A = stand({ f2: [-40, 0], h1: ['s', 84, -4] }), B = stand({ f2: [-40, 0], h1: ['s', 22, -26], eb: 'U' });
+    var s = seq([A, B], 2600); s.hold = eq === 'band' ? 'band' : 'cable'; s.cable = [190, -205]; return s; } };
+  P.shrug = { he: 'שראגס', fn: function (eq) {
+    var A = stand({ h1: HANG }), B = stand({ shy: 12, h1: ['s', 4, 86] });
+    var s = seq([A, B], 2000); s.hold = eq === 'bar' || eq === 'smith' ? 'plate' : eq === 'cable' ? 'cable' : 'hand'; s.cable = [10, -2]; return s; } };
+  P.uprow = { he: 'אפרייט רואו', fn: function (eq) {
+    var A = stand({ h1: ['s', 8, 84] }), B = stand({ h1: ['s', 12, 10], eb: 'U' });
+    var s = seq([A, B], 2600); s.hold = eq === 'cable' ? 'cable' : eq === 'bar' ? 'plate' : 'hand'; s.cable = [14, -2]; return s; } };
+  P.row = { he: 'חתירה', fn: function (eq) {
+    var A = stand({ hip: [-30, -116], torso: 70, h1: ['s', 4, 86] }), B = stand({ hip: [-30, -116], torso: 70, h1: ['s', -34, 48], eb: 'U' });
+    var s = seq([A, B], 2600); s.hold = eq === 'bar' || eq === 'smith' ? 'plate' : eq === 'band' ? 'bandfoot' : 'hand'; return s; } };
+  P.seatedrow = { he: 'חתירה בישיבה', fn: function (eq) {
+    var A = { hip: [0, -30], torso: 8, f1: [110, -26], h1: ['s', 86, 12], kb: 'U', eb: 'L' }, B = { hip: [0, -30], torso: -6, f1: [110, -26], h1: ['s', 18, 42], kb: 'U', eb: 'L' };
+    var s = seq([A, B], 2600); s.hold = eq === 'band' ? 'band' : eq === 'machine' ? 'handle' : 'cable'; s.cable = [190, -40];
+    s.props = eq === 'machine' ? [{ k: 'seat', low: true }] : [{ k: 'plate', r: [116, -60, 8, 60] }]; return s; } };
+  P.invrow = { he: 'חתירה הפוכה', fn: function (eq) {
+    var A = { hip: [-78, -16], torso: 84, f1: [-198, 0], h1: [0, -110], kb: 'U', eb: 'L', fa1: 160 };
+    var B = { hip: [-73, -52], torso: 68, f1: [-198, 0], h1: [0, -110], kb: 'U', eb: 'L', fa1: 160 };
+    var s = seq([A, B], 2600); s.hold = eq === 'trx' ? 'trxhands' : null; s.props = eq === 'trx' ? [] : [{ k: 'hbar', y: -110 }]; return s; } };
+  P.pulldown = { he: 'משיכה לחזה', fn: function (eq) {
+    var A = { hip: [0, -62], torso: -10, f1: [56, 0], h1: ['s', 10, -86], eb: 'R' }, B = { hip: [0, -62], torso: -14, f1: [56, 0], h1: ['s', 12, -2], eb: 'D' };
+    var s = seq([A, B], 2600); s.props = [{ k: 'seat' }]; s.hold = eq === 'band' ? 'band' : eq === 'machine' ? 'handle' : 'cable';
+    s.cable = [20, -330]; return s; } };
+  P.pullup = { he: 'מתח', fn: function (eq) {
+    var A = { hip: [0, -132], torso: 0, f1: [-22, -18], h1: [6, -300], kb: 'L', eb: 'D' };
+    var B = { hip: [0, -196], torso: 0, f1: [-22, -82], h1: [6, -300], kb: 'L', eb: 'D' };
+    var s = seq([A, B], 2600); s.props = [{ k: 'hbar', y: -300 }]; s.ground = false; if (eq === 'band') s.hold = 'bandpull';
+    if (eq === 'machine') { s.ground = true; s.props.push({ k: 'pad' }); } return s; } };
+  P.hangraise = { he: 'הרמות רגליים בתלייה', fn: function () {
+    var A = { hip: [0, -132], torso: 0, f1: [6, -8], h1: [6, -300], kb: 'R', eb: 'D' };
+    var B = { hip: [0, -132], torso: 0, f1: [120, -150], h1: [6, -300], kb: 'U', eb: 'D' };
+    var s = seq([A, B], 2600); s.props = [{ k: 'hbar', y: -300 }]; s.ground = false; return s; } };
+  P.curl = { he: 'כפיפת מרפקים', fn: function (eq) {
+    var A = stand({ h1: ['s', 6, 86] }), B = stand({ h1: ['s', 26, 18], eb: 'D' });
+    var s = seq([A, B], 2400); s.hold = eq === 'bar' || eq === 'smith' ? 'plate' : eq === 'cable' ? 'cable' : eq === 'band' ? 'bandfoot' : eq === 'machine' || eq === 'bench' ? 'handle' : eq === 'trx' ? 'trxhands' : 'hand';
+    s.cable = [30, -4]; return s; } };
+  P.pushdown = { he: 'פשיטת מרפק', fn: function (eq) {
+    var A = stand({ torso: 8, h1: ['s', 28, 20], eb: 'D' }), B = stand({ torso: 8, h1: ['s', 10, 86] });
+    var s = seq([A, B], 2400); s.hold = eq === 'band' ? 'band' : eq === 'machine' ? 'handle' : 'cable'; s.cable = [36, -330]; return s; } };
+  P.ohext = { he: 'פשיטת מרפק מעל הראש', fn: function (eq) {
+    var A = stand({ h1: ['s', -26, -14], eb: 'U' }), B = stand({ h1: ['s', 6, -86], eb: 'U' });
+    var s = seq([A, B], 2600); s.hold = eq === 'cable' ? 'cable' : eq === 'band' ? 'bandfoot' : eq === 'bar' ? 'plate' : 'hand'; s.cable = [-60, 0]; return s; } };
+  P.skull = { he: 'צרפתי', fn: function (eq) {
+    var A = { hip: [40, -58], torso: -90, f1: [104, 0], h1: ['s', 4, -86], kb: 'U', eb: 'U' };
+    var B = { hip: [40, -58], torso: -90, f1: [104, 0], h1: ['s', -32, -40], kb: 'U', eb: 'U' };
+    var s = seq([A, B], 2600); s.props = [{ k: 'pbench', v: 'flat' }]; s.hold = eq === 'bar' ? 'plate' : eq === 'cable' ? 'cable' : 'hand'; s.cable = [-110, -40]; return s; } };
+  P.kickback = { he: 'קיקבק', fn: function (eq) {
+    var A = stand({ hip: [-30, -116], torso: 72, h1: ['s', -16, 40], eb: 'D' }), B = stand({ hip: [-30, -116], torso: 72, h1: ['s', -84, 22] });
+    var s = seq([A, B], 2400); s.hold = eq === 'cable' ? 'cable' : 'hand'; s.cable = [60, -10]; return s; } };
+  P.crunch = { he: 'כפיפות בטן', fn: function (eq, v) {
+    var top = v === 'situp' ? -12 : -58;
+    var A = { hip: [0, -8], torso: -92, f1: [62, 0], h1: ['s', -10, -16], kb: 'U', eb: 'U' };
+    var B = { hip: [0, -8], torso: top, f1: [62, 0], h1: ['s', -10, -16], kb: 'U', eb: 'U' };
+    if (eq === 'cable') { A = stand({ hip: [-20, -60], torso: 30, f1: [10, 0], h1: ['s', 4, -20], eb: 'U' }); A.kb = 'D';
+      B = stand({ hip: [-20, -60], torso: 80, f1: [10, 0], h1: ['s', 4, -20], eb: 'U' }); B.kb = 'D'; }
+    var s = seq([A, B], 2200); if (eq === 'cable') { s.hold = 'cable'; s.cable = [40, -300]; s.kneel = true; }
+    if (eq === 'ball') s.props = [{ k: 'ball', c: [0, -30], r: 30 }]; return s; } };
+  P.legraise = { he: 'הרמות רגליים', fn: function () {
+    var A = { hip: [0, -8], torso: -92, f1: [124, -8], h1: ['h', -24, 6], kb: 'U', eb: 'D' };
+    var B = { hip: [0, -8], torso: -92, f1: [14, -126], h1: ['h', -24, 6], kb: 'U', eb: 'D' };
+    return seq([A, B], 2600); } };
+  P.twist = { he: 'סיבוב גו', fn: function (eq) {
+    var A = { hip: [0, -10], torso: -38, f1: [74, -30], h1: ['s', 56, 34], kb: 'U', eb: 'D' };
+    var B = { hip: [0, -10], torso: -38, f1: [74, -30], h1: ['s', 14, 44], kb: 'U', eb: 'D' };
+    var s = seq([A, B], 1600); s.hold = eq === 'db' || eq === 'kb' ? 'hand' : eq === 'ball' || eq === 'other' ? 'ball' : null;
+    if (eq === 'cable' || eq === 'band') { var p = P.woodchop.fn(eq); return p; } return s; } };
+  P.woodchop = { he: 'וודצ׳ופר', fn: function (eq) {
+    var A = stand({ f2: [-40, 0], h1: ['s', -40, -50], eb: 'U' }), B = stand({ f2: [-40, 0], hip: [-10, -112], torso: 12, h1: ['s', 70, 60] });
+    var s = seq([A, B], 2200); s.hold = eq === 'band' ? 'band' : eq === 'cable' ? 'cable' : eq === 'bw' ? null : 'hand'; s.cable = [-90, -270]; return s; } };
+  P.pallof = { he: 'פאלוף פרס', fn: function (eq) {
+    var A = stand({ f2: [-40, 0], h1: ['s', 14, 34], eb: 'D' }), B = stand({ f2: [-40, 0], h1: ['s', 86, 30] });
+    var s = seq([A, B], 2600); s.hold = eq === 'band' ? 'band' : 'cable'; s.cable = [-140, -110]; return s; } };
+  P.deadbug = { he: 'דד באג', fn: function () {
+    var A = { hip: [0, -8], torso: -92, f1: [60, -66], f2: [124, -12], h1: ['s', 0, -86], h2: ['s', -86, -6], kb: 'U', kb2: 'U', eb: 'U', eb2: 'U' };
+    var B = { hip: [0, -8], torso: -92, f1: [124, -12], f2: [60, -66], h1: ['s', -86, -6], h2: ['s', 0, -86], kb: 'U', kb2: 'U', eb: 'U', eb2: 'U' };
+    return seq([A, B], 2400); } };
+  P.birddog = { he: 'בירד דוג', fn: function () {
+    var A = { hip: [-76, -62], torso: 71, f1: [-130, 0], f2: [-130, 0], h1: [0, 0], h2: [0, 0], kb: 'D', kb2: 'D', eb: 'L', fa1: 180, fa2: 180 };
+    var B = { hip: [-76, -64], torso: 71, f1: [-200, -66], f2: [-130, 0], h1: ['s', 86, -10], h2: [0, 0], kb: 'D', kb2: 'D', eb: 'L', fa1: 180, fa2: 180 };
+    return seq([A, B], 2600); } };
+  P.kickbackleg = { he: 'בעיטה לאחור', fn: function (eq) {
+    if (eq === 'cable' || eq === 'band' || eq === 'machine') {
+      var A1 = stand({ torso: 18, f2: [-10, -6], h1: ['s', 40, 30] }), B1 = stand({ torso: 22, f2: [-90, -70], fa2: 170, h1: ['s', 40, 30] });
+      A1.kb2 = 'R'; B1.kb2 = 'D'; var s1 = seq([A1, B1], 2400); s1.hold = 'anklecable'; s1.cable = [50, -10]; return s1; }
+    var A = { hip: [-76, -62], torso: 71, f1: [-130, 0], f2: [-130, 0], h1: [0, 0], kb: 'D', kb2: 'D', eb: 'L', fa1: 180, fa2: 180 };
+    var B = { hip: [-76, -64], torso: 71, f1: [-150, -120], f2: [-130, 0], h1: [0, 0], kb: 'D', kb2: 'D', eb: 'L', fa1: 180, fa2: 180 };
+    return seq([A, B], 2200); } };
+  P.sidelying = { he: 'הרמת רגל בשכיבה', fn: function (eq) {
+    var A = { hip: [0, -12], torso: -94, f1: [124, -10], f2: [124, -10], h1: ['s', -14, -30], kb: 'U', eb: 'U' };
+    var B = { hip: [0, -12], torso: -94, f1: [108, -70], f2: [124, -10], h1: ['s', -14, -30], kb: 'U', eb: 'U' };
+    if (eq === 'machine') return P.legext.fn('machine');
+    return seq([A, B], 2400); } };
+  P.superman = { he: 'סופרמן', fn: function () {
+    var A = { hip: [0, -10], torso: -90, f1: [124, -6], h1: ['s', -86, 4], kb: 'D', eb: 'U' };
+    var B = { hip: [0, -10], torso: -102, head: -10, f1: [122, -34], h1: ['s', -84, -24], kb: 'D', eb: 'U' };
+    return seq([A, B], 2400); } };
+  P.run = { he: 'ריצה', fn: function () {
+    var A = { hip: [0, -122], torso: 10, f1: [42, -6], f2: [-56, -34], fa2: 160, h1: ['s', -30, 70], h2: ['s', 40, 54], kb: 'R', kb2: 'D' };
+    var B = { hip: [0, -128], torso: 10, f1: [-56, -34], f2: [42, -6], fa1: 160, h1: ['s', 40, 54], h2: ['s', -30, 70], kb: 'D', kb2: 'R' };
+    var s = seq([A, B], 900); s.props = [{ k: 'tread' }]; return s; } };
+  P.walk = { he: 'הליכה', fn: function (eq) {
+    var A = { hip: [0, -123], torso: 2, f1: [30, 0], f2: [-30, 0], h1: HANG, kb: 'R', kb2: 'R' };
+    var B = { hip: [0, -126], torso: 2, f1: [-30, 0], f2: [30, 0], h1: HANG, kb: 'R', kb2: 'R' };
+    var s = seq([A, B], 1300); s.hold = eq === 'db' || eq === 'kb' ? 'hand' : eq === 'other' ? 'bag' : null;
+    if (eq === 'water') s.water = -100; return s; } };
+  P.bike = { he: 'אופניים', fn: function () {
+    var c = [52, -50], r = 22, kf = [];
+    for (var i = 0; i < 4; i++) { var a = i * 90;
+      kf.push({ hip: [0, -112], torso: 42, f1: [c[0] + r * Math.sin(a * Math.PI / 180), c[1] - r * Math.cos(a * Math.PI / 180)],
+                f2: [c[0] - r * Math.sin(a * Math.PI / 180), c[1] + r * Math.cos(a * Math.PI / 180)], h1: ['s', 52, 40], kb: 'R', kb2: 'R', fa1: 110, fa2: 110 }); }
+    var s = seq(kf, 1400); s.props = [{ k: 'bike', c: c }]; return s; } };
+  P.rower = { he: 'מכונת חתירה', fn: function () {
+    var A = { hip: [40, -32], torso: 26, f1: [110, -26], h1: ['s', 66, 30], kb: 'U', eb: 'D' };
+    var B = { hip: [-30, -32], torso: -24, f1: [110, -26], h1: ['s', 22, 48], kb: 'U', eb: 'L' };
+    var s = seq([A, B], 2200); s.props = [{ k: 'rail' }]; return s; } };
+  P.jumprope = { he: 'חבל קפיצה', fn: function () {
+    var A = stand({ h1: ['s', 16, 70] }), B = stand({ hip: [0, -140], f1: [0, -15], fa1: 140, h1: ['s', 16, 70] });
+    var s = seq([A, B], 700); s.hold = 'rope'; return s; } };
+  P.box = { he: 'אגרוף', fn: function (eq) {
+    var g = ['s', 28, -2], st = { hip: [0, -120], torso: 4, f1: [34, 0], f2: [-34, 0], eb: 'D', eb2: 'D' };
+    var A = Object.assign({}, st, { h1: g, h2: ['s', 22, 6] });
+    var B = Object.assign({}, st, { h1: ['s', 88, -4], h2: ['s', 22, 6], eb: 'R' });
+    var C = Object.assign({}, st, { h1: g, h2: ['s', 88, -2], torso: 10, eb2: 'R' });
+    var s = seq([A, B, A, C], 1600); if (eq === 'bag') s.props = [{ k: 'bag' }]; if (eq === 'mitts') s.props = [{ k: 'mitt' }];
+    s.hold = eq === 'db' ? 'hand' : eq === 'band' ? 'bandback' : null; return s; } };
+  P.kick = { he: 'בעיטה', fn: function (eq) {
+    var st = { hip: [0, -120], torso: 4, f1: [24, 0], f2: [-34, 0], h1: ['s', 28, -2], h2: ['s', 22, 6] };
+    var B = Object.assign({}, st, { torso: -14, f1: [112, -118], fa1: 100, kb: 'U' });
+    var s = seq([st, B], 1500); if (eq === 'bag') s.props = [{ k: 'bag' }]; return s; } };
+  P.swim = { he: 'שחייה', fn: function () {
+    var A = { hip: [0, -150], torso: -90, f1: [124, -144], f2: [124, -156], h1: ['s', -86, 0], h2: ['s', 0, 80], kb: 'U', eb: 'D' };
+    var B = { hip: [0, -150], torso: -90, f1: [124, -156], f2: [124, -144], h1: ['s', 0, 80], h2: ['s', -86, 0], kb: 'U', eb: 'D' };
+    var s = seq([A, B], 1600); s.water = -158; s.ground = false; return s; } };
+  P.popup = { he: 'פופ-אפ', fn: function () {
+    var A = { hip: [0, -10], torso: -90, f1: [124, -6], h1: ['s', 6, 14], kb: 'D', eb: 'U' };
+    var B = { hip: [6, -38], torso: -70, f1: [124, -6], h1: [-74, 0], kb: 'D', eb: 'R' };
+    var C = { hip: [20, -104], torso: -14, f1: [-30, 0], f2: [80, 0], h1: ['s', -60, 30], h2: ['s', 60, 30], kb: 'L', kb2: 'R' };
+    var s = seq([A, B, C, C], 2400); s.props = [{ k: 'board' }]; return s; } };
+  P.stretchham = { he: 'מתיחה אחורית', fn: function () {
+    var A = stand({ hip: [-30, -120], torso: 70, f2: [40, -2], fa2: 40, h1: ['s', 20, 84] }), B = stand({ hip: [-34, -120], torso: 82, f2: [40, -2], fa2: 40, h1: ['s', 30, 86] });
+    A.kb2 = 'U'; B.kb2 = 'U'; return seq([A, B], 3600); } };
+  P.stretchquad = { he: 'מתיחה קדמית', fn: function () {
+    var A = stand({ f2: [-34, -96], kb2: 'D', fa2: 0, h1: ['s', -10, 80], h2: [-34, -96] }), B = stand({ f2: [-38, -100], kb2: 'D', fa2: 0, h1: ['s', -10, 80], h2: [-38, -100] });
+    return seq([A, B], 3600); } };
+  P.stretchhip = { he: 'מתיחת ירך', fn: function () {
+    var A = { hip: [-10, -60], torso: 0, f1: [50, 0], f2: [-80, -2], fa2: 180, h1: ['s', 40, 60], kb: 'R', kb2: 'D' };
+    var B = { hip: [6, -52], torso: -4, f1: [50, 0], f2: [-80, -2], fa2: 180, h1: ['s', 40, 60], kb: 'R', kb2: 'D' };
+    return seq([A, B], 3600); } };
+  P.stretchup = { he: 'מתיחת פלג עליון', fn: function () {
+    var A = stand({ h1: ['s', 4, -86], h2: ['s', -10, -84] }), B = stand({ torso: -6, h1: ['s', -20, -84], h2: ['s', -30, -80] });
+    return seq([A, B], 3600); } };
+  P.childpose = { he: 'תנוחת הילד', fn: function () {
+    var A = { hip: [-70, -48], torso: 112, f1: [-124, -2], h1: [40, -2], kb: 'D', eb: 'U', fa1: 180 };
+    var B = { hip: [-74, -60], torso: 76, f1: [-124, -2], h1: [40, -2], kb: 'D', eb: 'U', fa1: 180 };
+    return seq([A, B], 3600); } };
+  P.circles = { he: 'סיבובי מפרקים', fn: function () {
+    var kf = [];
+    for (var i = 0; i < 4; i++) { var a = i * 90 + 180, r = 86;
+      kf.push(stand({ h1: ['s', r * Math.sin(a * Math.PI / 180), -r * Math.cos(a * Math.PI / 180)], h2: ['s', -6, 86] })); }
+    return seq(kf, 3200); } };
+  P.hipcar = { he: 'סיבוב ירך', fn: function () {
+    var pts = [[30, -60], [60, -96], [20, -110], [-30, -70]], kf = [];
+    pts.forEach(function (p) { kf.push(stand({ f2: p, kb2: 'R', h1: ['s', 40, 40] })); });
+    return seq(kf, 3600); } };
+  P.catcow = { he: 'חתול-פרה', fn: function () {
+    var A = { hip: [-76, -62], torso: 66, head: 30, f1: [-130, 0], h1: [0, 0], kb: 'D', eb: 'L', fa1: 180 };
+    var B = { hip: [-76, -66], torso: 78, head: -26, f1: [-130, 0], h1: [0, 0], kb: 'D', eb: 'L', fa1: 180 };
+    return seq([A, B], 3200); } };
+  P.roll = { he: 'גלגול גליל', fn: function () {
+    var A = { hip: [0, -40], torso: -92, f1: [110, 0], h1: ['s', 20, 40], kb: 'U', eb: 'D' };
+    var B = { hip: [30, -40], torso: -92, f1: [110, 0], h1: ['s', 20, 40], kb: 'U', eb: 'D' };
+    var s = seq([A, B], 2600); s.props = [{ k: 'roller' }]; return s; } };
+  P.sled = { he: 'דחיפת מזחלת', fn: function () {
+    var A = { hip: [0, -104], torso: 52, f1: [36, -4], f2: [-60, -30], fa2: 160, h1: ['s', 62, 22], kb: 'R', kb2: 'D', eb: 'D' };
+    var B = { hip: [0, -108], torso: 52, f1: [-60, -30], f2: [36, -4], fa1: 160, h1: ['s', 62, 22], kb: 'D', kb2: 'R', eb: 'D' };
+    var s = seq([A, B], 1200); s.props = [{ k: 'sledbox' }]; return s; } };
+  P.ropes = { he: 'באטל רופס', fn: function () {
+    var A = stand({ hip: [-20, -94], torso: 22, f2: [-30, 0], h1: ['s', 60, 4] }), B = stand({ hip: [-20, -94], torso: 22, f2: [-30, 0], h1: ['s', 60, 52] });
+    var s = seq([A, B], 700); s.hold = 'ropes'; return s; } };
+  P.throw = { he: 'זריקת כדור', fn: function () {
+    var A = stand({ hip: [-38, -70], torso: 40, h1: ['s', 30, 40] }), B = stand({ h1: ['s', 10, -86] });
+    var s = seq([A, B], 1800); s.hold = 'ball'; return s; } };
+  P.slam = { he: 'הטחת כדור', fn: function () {
+    var A = stand({ h1: ['s', 6, -86], eb: 'U' }), B = stand({ hip: [-38, -78], torso: 56, h1: ['s', 40, 80] });
+    var s = seq([A, B], 1400); s.hold = 'ball'; return s; } };
+  P.thruster = { he: 'ת׳רסטר', fn: function (eq) {
+    var A = stand({ hip: [-40, -66], torso: 36, h1: ['s', 16, -2], eb: 'R' }), B = stand({ h1: ['s', 4, -86] });
+    var s = seq([A, B], 2200); s.hold = eq === 'bar' ? 'plate' : eq === 'ball' || eq === 'other' ? 'ball' : 'hand'; return s; } };
+  P.clean = { he: 'קלין', fn: function (eq) {
+    var A = stand({ hip: [-42, -82], torso: 60, h1: ['s', 6, 86] }), B = stand({ hip: [-10, -112], torso: 8, h1: ['s', 16, -2], eb: 'R' });
+    var s = seq([A, B, B], 2400); s.hold = eq === 'bar' ? 'plate' : eq === 'other' ? 'bag' : 'hand'; return s; } };
+  P.snatch = { he: 'הנפה מעל הראש', fn: function (eq) {
+    var A = stand({ hip: [-42, -82], torso: 60, h1: ['s', 6, 86] }), B = stand({ h1: ['s', 0, -86] });
+    var s = seq([A, B, B], 2400); s.hold = eq === 'bar' ? 'plate' : 'hand'; return s; } };
+  P.carryover = { he: 'נשיאה מעל הראש', fn: function () {
+    var s = P.walk.fn('kb'); s.kf.forEach(function (k) { k.p.h1 = ['s', 2, -86]; }); s.hold = 'hand'; return s; } };
+  P.getup = { he: 'קימה מהרצפה', fn: function () {
+    var A = { hip: [0, -8], torso: -92, f1: [62, 0], h1: ['s', 0, -86], kb: 'U', eb: 'U' };
+    var B = { hip: [0, -30], torso: -40, f1: [62, 0], h1: ['s', 0, -86], h2: [-60, 0], kb: 'U', eb: 'U' };
+    var C = stand({ f2: [-50, 0], h1: ['s', 0, -86] });
+    var s = seq([A, B, C, B], 4400); s.hold = 'hand'; return s; } };
+  P.burpee = { he: 'ברפי', fn: function () {
+    var s = seq([stand({ h1: HANG }), stand({ hip: [-40, -60], torso: 60, h1: [40, 0] }),
+                 { hip: [-72, -55], torso: 67, f1: [-196, 0], h1: [40, 0], fa1: 160, kb: 'U', eb: 'L' },
+                 stand({ hip: [-40, -60], torso: 60, h1: [40, 0] }), stand({ hip: [0, -150], f1: [0, -26], fa1: 140, h1: ['s', 10, -84] })], 3000);
+    return s; } };
+  P.hold = { he: 'נשימה', fn: function () {
+    return seq([stand({ h1: HANG }), stand({ hip: [0, -127], h1: ['s', 6, 84] })], 3600); } };
+
+  /* ---------- סיווג תרגיל לתבנית ---------- */
+  /* גבול מילה בעברית: \b של JS לא מכיר אותיות עבריות. בלי זה "שק" (שק
+     אגרוף) נתפס בתוך "משקולות" ו"משקל", ו"מתח" בתוך "מתחת" — 94 תרגילי
+     משקולות סווגו כאגרוף בגרסה הראשונה. W() עוטף מילים שחייבות לעמוד
+     לבד, עם אותיות השימוש ו/ב/ל/מ/ה/ש בתחילתן. */
+  function W(s) { return '(?:^|[^א-ת])[ובלמהש]?(?:' + s + ')(?=$|[^א-ת])'; }
+  function R(s, f) { return new RegExp(s, f); }
+  var RULES = [
+    [/שחיי|שחית|חתירות.*במים|ספרינטי חתירה|בעיטות בקצה הבריכה/, 'swim'],
+    [/פופ-אפ|פופ אפ/, 'popup'],
+    [/ברפי|דוויל פרס|מן-מייקר/, 'burpee'],
+    [/קימה מהרצפה|טורקיש|גט-אפ/, 'getup'],
+    [/ת׳רסטר|וול בול|סקוואט עם לחיצה/, 'thruster'],
+    [/הטחת|סלאם|מכות פטיש/, 'slam'],
+    [/זריקת|זריקה|מסירת כדור/, 'throw'],
+    [/באטל רופס/, 'ropes'],
+    [/מזחלת/, 'sled'],
+    [/סנאץ׳|ג׳רק|פוש פרס|קלין אנד פרס/, 'snatch'],
+    [/קלין|הפיכת צמיג|ג׳אמפ שראג|היי פול/, 'clean'],
+    [/סווינג/, 'swing'],
+    [/נשיאת .*מעל הראש|הליכת מלצר/, 'carryover'],
+    [/לאנג׳ הליכה|הליכת לאנג׳/, 'lunge'],
+    [/הליכת (מפלצת|גומייה|סומו)/, 'walk'],
+    [/הליכת חקלאי|נשיאת|הליכת מזוודה|הליכה על בהונות עם/, 'walk'],
+    [/חבל קפיצה|קפיצות על הבהונות בחבל/, 'jumprope'],
+    [/אופני כושר|אופני ספין|אסולט|על אופניים/, 'bike'],
+    [/מכונת חתירה|סקי-ארג/, 'rower'],
+    [/ריצ|ספרינט|הליכון|היי ניז|שאטל|פארטלק|A-skip|טבטה/, 'run'],
+    [/הליכה|אליפטיקל|מכונת מדרגות|עליית מדרגות/, 'walk'],
+    [/בעיטה (עגולה|קדמית)|מואי תאי/, 'kick'],
+    [R(W('שק|פאדים|ג׳אב|קרוס|אפרקוט|ספארינג|התחמקויות|ספרול') + '|עבודת צל|עבודת רגליים בסולם|בטן לאגרוף|מכות התנגדות|סלואו'), 'box'],
+    [/קפיצה לקופסה|בוקס ג׳אמפ|דפת עומק|קפיצה עם מוט/, 'boxjump'],
+    [/קפיצ|פוגו|סקייטר|בונדינג|טאק|ג׳אמפינג/, 'jumpsquat'],
+    [/גלגול גליל|גלגול כדור ל/, 'roll'],
+    [/חתול-פרה|חתול פרה/, 'catcow'],
+    [/תנוחת הילד|כלב מביט|קוברה/, 'childpose'],
+    [/קלאמשל|הרמת רגל צידית|מרחיקים|מקרבים במכונה|הרחקת רגל|בעיטה צידית|הליכה צידית/, 'sidelying'],
+    [/סיבוב ירך|סיבובי ירך|90-90|מבוקר|קופסה נשימתית|ירך מעל משוכות|פתיחת ירכיים|נדנוד רגל/, 'hipcar'],
+    [/סיבובי מפרקים|סיבוב כתפיים עם מקל|סיבובי קרסול|שורש כף יד|פרונציה|העברת גומייה מעל|הילו|נדנוד קרסול|עצב הסיאטיקה|ברצל|מגבי שמשה/, 'circles'],
+    [/מתיחת ארבע ראשי/, 'stretchquad'],
+    [/כופפי ירך|לאנג׳ נמוך|יונה|ספה|ספליט קדמי|ספליט צידי|חצי ספליט|פתיחת ירך בכריעה|המתיחה הגדולה|לאנג׳ ספיידרמן|לוחם/, 'stretchhip'],
+    [/מתיחת (המסטרינג|שוק|סוליאוס|תאומים|פרפר|מקרבים|צפרדע|פיריפורמיס|עכוז|רצועת|שוקיים|אגן|שרשרת)/, 'stretchham'],
+    [/מתיחת (חזה|כתף|יד|אמות|צוואר|רחב|מותניים|צד|טרפז)|תלייה על מתח|השחלת מחט|פתיחת ספר|סיבוב חזה|פשיטת חזה|מתיחת שינה/, 'stretchup'],
+    [/ג׳פרסון/, 'hinge'],
+    [/פיתול עמוד שדרה|ברכיים לחזה בשכיבה|גשר כתפיים בגלגול|רול-אפ|גלגול ככדור|מאה \(|טיזר|המסור|מתיחת (רגל|שתי)/, 'crunch'],
+    [/סופרמן|שחיינים|שחייה על הבטן|היפר-אקסטנשן|בק אקסטנשן|אקסטנשן גב|רוורס היפר/, 'superman'],
+    [/בירד דוג|ברך-מרפק/, 'birddog'],
+    [/דד באג/, 'deadbug'],
+    [/מטפס הרים/, 'climber'],
+    [/גלגלת בטן|פלאנק|L-sit|V-sit|הולו|דגל|לוור|פלאנש|עמידת ידיים|זחילת דוב|הליכת דוב|תולעת|סקין דה קאט/, 'plank'],
+    [/פאלוף|אנטי-רוטציה|דחיפת מים/, 'pallof'],
+    [/וודצ׳ופר|סיבוב לנדמיין|הדף גומייה סיבובי|סיבוב מתפרץ/, 'woodchop'],
+    [/הרמות רגליים בתלייה|ברכיים לחזה בתלייה|בהונות למוט|הרמות רגליים במקבילים|מגבים בתלייה/, 'hangraise'],
+    [/רוסיאן|סיבוב גו|אלכסוניות|כפיפות אופניים/, 'twist'],
+    [/הרמות רגליים|בעיטות (רפרוף|מספריים)|הרמת אגן הפוכה|כפיפות בטן הפוכות|פמוט|ברכיים לחזה/, 'legraise'],
+    [/סיט-אפ|גלגול כדור מברכיים/, 'crunch:situp'],
+    [/כפיפות בטן|קראנץ׳|העברת כדור בין/, 'crunch'],
+    [/פייס פול|משיכה לפנים|משיכת פנים/, 'facepull'],
+    [/פול-אפארט|פרפר הפוך|כתף אחורית|הרחקות בהטיה|פתיחת גומייה לצדדים|הנפת Y|סקאפשן/, 'reardelt'],
+    [R('מאסל-אפ|צ׳ין-אפ|' + W('מתח')), 'pullup'],
+    [/משיכת פולי|פולי עליון|משיכה אנכית/, 'pulldown'],
+    [/חתירה הפוכה|חתירה ברצועות/, 'invrow'],
+    [/חתירה (בפולי תחתון|בכבל עם חבל|עם גומייה בישיבה|במכונה|במכונת|בכבל גבוה)|חתירת גב עליון במכונה/, 'seatedrow'],
+    [/אפרייט/, 'uprow'],
+    [/חתיר|פנדליי|ייטס|קרוק|מדוז|גורילה|כלב ים/, 'row'],
+    [/שראגס|שראג/, 'shrug'],
+    [/פולאובר/, 'pullover'],
+    [/הנפה קדמית/, 'raise:front'],
+    [/הרחק|סיבוב (חיצוני|פנימי)|סיבוב קובני|בר זרוע/, 'raise'],
+    [/מקבילים|דיפס במכונה/, 'dip'],
+    [/דיפס על ספסל/, 'benchdip'],
+    [/שכיבות סמיכה|שכיבת סמיכה|אטומיק|פושאפ|לחיצת חזה ברצועות/, 'pushup'],
+    [/פרפר|קרוסאובר|פק-דק|סקוויז/, 'fly'],
+    [/לחיצת כתפיים|לחיצה מעל הראש|ארנולד|ויקינג|בראדפורד|לחיצת Z|לחיצת משקולת יד אחת בעמידה|לחיצת קטלבל|לחיצת לנדמיין|גלישת קיר/, 'ohp'],
+    [/לחיצת חזה|לחיצה צרה|לחיצת רצפה|לחיצת סבנד|JM|טייט|דחיפה בכבל/, 'press'],
+    [/צרפתי|סקאל קראשר|skull|פשיטת מרפק בשכיבה/, 'skull'],
+    [/פשיטת מרפק.*מעל הראש|מעל הראש בחבל|מעל הראש בכבל/, 'ohext'],
+    [/^קיקבק/, 'kickback'],
+    [/פשיטת מרפק|טרייספס/, 'pushdown'],
+    [/כפיפת אמות|כפיפ.*מרפק|כפיפה ב|כפיפה מרוכזת|פטישים|זוטמן|21ים|בייספס|כפיפת (פטיש|עכביש|דרג|בייסיאן)/, 'curl'],
+    [/כפיפת ברך|נורדיק|גלישת עקבים/, 'legcurl'],
+    [/פשיטת ברך/, 'legext'],
+    [/לחיצת רגליים|הק סקוואט|סקוואט פנדולום|סקוואט במכונת בלט/, 'legpress'],
+    [/עליות עקבים|קדמת השוק|טיביאליס|הרמת אצבעות רגל/, 'calf'],
+    [/היפ ת׳רסט|פרוג פאמפ|פול-ת׳רו/, 'hipthrust'],
+    [/גשר|הרמת אגן/, 'bridge'],
+    [/בעיטה לאחור|דונקי|קיקבק בעמידה|ברז כיבוי|הרמת רגל לאחור/, 'kickbackleg'],
+    [/גוד מורנינג/, 'goodmorning'],
+    [/דדליפט רומני|רגליים ישרות|Stiff|דדליפט רגל אחת/, 'hinge'],
+    [/דדליפט|Rack pull/, 'deadlift'],
+    [/בולגרי/, 'bulgarian'],
+    [/סטפ-אפ|עלייה על ספסל|עלייה צידית|עליית מדרגה|ירידה ממדרגה/, 'stepup'],
+    [/לאנג׳|ספליט סקוואט|קידה/, 'lunge'],
+    [/סקוואט|גובלט|כריעה|ישיבה בסקוואט|קוזאק|פיסטול|ברווז/, 'squat']
+  ];
+  var BY_MUSCLE = { chest: 'press', back: 'row', shoulders: 'ohp', biceps: 'curl', triceps: 'pushdown', quads: 'squat',
+    hams: 'hinge', glutes: 'hipthrust', calves: 'calf', core: 'plank', full: 'squat', cardio: 'run', box: 'box',
+    power: 'jumpsquat', surf: 'popup', mob: 'circles', flex: 'stretchham' };
+
+  function libEntry(name) {
+    var X = window.EBEx; if (!X || !X.ALL) return null;
+    var k = String(name || '').replace(/\s+/g, ' ').trim();
+    for (var i = 0; i < X.ALL.length; i++) if (X.ALL[i].n === k) return X.ALL[i];
+    return null;
+  }
+  function eqFromName(n) {
+    if (/במוט|מוט|בסמית׳/.test(n)) return /סמית׳/.test(n) ? 'smith' : 'bar';
+    if (/קטלבל/.test(n)) return 'kb';
+    if (/משקולת|משקולות|דמבל/.test(n)) return 'db';
+    if (/בכבל|כבלים|בפולי|פולי/.test(n)) return 'cable';
+    if (/גומייה/.test(n)) return 'band';
+    if (/במכונ|מכונת|מכונה/.test(n)) return 'machine';
+    if (/רצועות|TRX/.test(n)) return 'trx';
+    if (/כדור/.test(n)) return 'ball';
+    if (/במים/.test(n)) return 'water';
+    return 'bw';
+  }
+  function classify(name, m, e) {
+    var n = String(name || '');
+    var lib = libEntry(n);
+    m = m || (lib && lib.m) || '';
+    e = e || (lib && lib.e) || eqFromName(n);
+    if (e === 'water' && !/שחיי|שחית|חתירות/.test(n)) { var w = classify(n.replace(/במים/, ''), m, eqFromName(n.replace(/במים/, ''))); return { p: w ? w.p : 'walk', v: w && w.v, e: 'water' }; }
+    var p = null;
+    for (var i = 0; i < RULES.length; i++) if (RULES[i][0].test(n)) { p = RULES[i][1]; break; }
+    if (!p) p = BY_MUSCLE[m] || null;
+    if (!p) return null;
+    var v = null;
+    if (p.indexOf(':') > -1) { v = p.split(':')[1]; p = p.split(':')[0]; }
+    if (p === 'press') v = /שיפוע שלילי/.test(n) ? 'decline' : /שיפוע/.test(n) ? 'incline' : v;
+    if (p === 'ohp' && (/ישיבה|מכונה|מכונת/.test(n) || e === 'machine')) v = 'seated';
+    if (p === 'press' && /בעמידה|בכבלים בעמידה|דחיפה בכבל/.test(n)) return { p: 'fly', v: null, e: 'cable' };
+    if (p === 'press' && e === 'machine' && !/שיפוע/.test(n)) return { p: 'ohp', v: 'seated', e: 'machine', alt: 'chestpress' };
+    return { p: p, v: v, e: e };
+  }
+
+  /* ---------- ציור ---------- */
+  var C = { body: '#F2E9DD', eq: '#C49A6C', gear: '#5E4A39', floor: '#47372A', water: 'rgba(90,150,190,.22)' };
+  function build(c) {
+    var def = P[c.p]; if (!def) return null;
+    var s = def.fn(c.e, c.v);
+    s.res = s.kf.map(function (k) { return resolve(k.p); });
+    s.e = c.e; s.p = c.p;
+    if (c.e === 'water' && s.water == null) s.water = -104;
+    if (c.alt === 'chestpress') { s.res.forEach(function (r, i) { r.h1 = i === 0 ? add(body(r).sh, [84, 6]) : add(body(r).sh, [20, 30]); r.h2 = [r.h1[0] - 7, r.h1[1]]; r.eb = 'D'; r.eb2 = 'D'; }); }
+    s.bb = bounds(s);
+    return s;
+  }
+  function frame(s, t) {
+    var n = s.res.length, x = (t % 1) * n, i = Math.floor(x), f = x - i;
+    var e = (1 - Math.cos(f * Math.PI)) / 2;
+    return body(mix(s.res[i], s.res[(i + 1) % n], e));
+  }
+  function bounds(s) {
+    var xs = [], ys = [];
+    for (var k = 0; k < 24; k++) {
+      var b = frame(s, k / 24);
+      Object.keys(b).forEach(function (j) { xs.push(b[j][0]); ys.push(b[j][1]); });
+    }
+    (s.props || []).forEach(function (p) { if (p.r) { xs.push(p.r[0], p.r[0] + p.r[2]); ys.push(p.r[1], p.r[1] + p.r[3]); } });
+    if (s.cable && s.hold && /cable/.test(s.hold)) { xs.push(s.cable[0]); ys.push(s.cable[1]); }
+    var minY = Math.min.apply(null, ys) - L.head - 6, maxY = s.ground === false ? Math.max.apply(null, ys) + 10 : Math.max(4, Math.max.apply(null, ys) + 6);
+    return { x0: Math.min.apply(null, xs) - 26, x1: Math.max.apply(null, xs) + 26, y0: minY, y1: maxY };
+  }
+
+  function draw(cv, s, t) {
+    var ctx = cv.getContext('2d'), W = cv.width, H = cv.height;
+    var bb = s.bb, sc = Math.min(W / (bb.x1 - bb.x0), H / (bb.y1 - bb.y0)) * 0.92;
+    sc = Math.min(sc, (H / 330));   // דמות לא מתנפחת בתבניות קטנות
+    var ox = W / 2 - (bb.x0 + bb.x1) / 2 * sc, oy = H / 2 - (bb.y0 + bb.y1) / 2 * sc;
+    ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, W, H);
+    ctx.setTransform(sc, 0, 0, sc, ox, oy);
+    ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    var b = frame(s, t), lw = 9;
+
+    function line(a, c2, col, w, alpha) { ctx.globalAlpha = alpha == null ? 1 : alpha; ctx.strokeStyle = col; ctx.lineWidth = w;
+      ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(c2[0], c2[1]); ctx.stroke(); ctx.globalAlpha = 1; }
+    function rect(r, col) { ctx.fillStyle = col; ctx.fillRect(r[0], r[1], r[2], r[3]); }
+    function circ(p, r, col, fill) { ctx.beginPath(); ctx.arc(p[0], p[1], r, 0, Math.PI * 2);
+      if (fill) { ctx.fillStyle = col; ctx.fill(); } else { ctx.strokeStyle = col; ctx.lineWidth = 4; ctx.stroke(); } }
+
+    if (s.water != null) { ctx.fillStyle = C.water; ctx.fillRect(bb.x0 - 40, s.water, bb.x1 - bb.x0 + 80, -s.water + 40); }
+    if (s.ground !== false) line([bb.x0 - 30, 4], [bb.x1 + 30, 4], C.floor, 6);
+
+    (s.props || []).forEach(function (p) {
+      if (p.k === 'bench') rect(p.r, C.gear);
+      else if (p.k === 'legs') { line([p.r[0] + 6, p.r[1]], [p.r[0] + 6, 0], C.gear, 6); line([p.r[0] + p.r[2] - 6, p.r[1]], [p.r[0] + p.r[2] - 6, 0], C.gear, 6); }
+      else if (p.k === 'box') { ctx.globalAlpha = 0.9; rect(p.r, C.gear); ctx.globalAlpha = 1; }
+      else if (p.k === 'seat') { rect([-38, p.low ? -26 : -58, 66, 9], C.gear); line([-30, p.low ? -26 : -58], [-30, 0], C.gear, 6);
+        if (!p.low) line([-36, -58], [-48, -150], C.gear, 8); }
+      else if (p.k === 'pbench') { var v = p.v;
+        if (v === 'incline') { line([-50, -150], [10, -48], C.gear, 10); line([10, -50], [70, -50], C.gear, 10); }
+        else if (v === 'decline') { line([-80, -40], [80, -64], C.gear, 10); }
+        else line([-110, -50], [80, -50], C.gear, 10);
+        line([-80, -50], [-80, 0], C.gear, 6); line([60, -50], [60, 0], C.gear, 6); }
+      else if (p.k === 'rails') { line([b.wr1[0] - 30, -290], [b.wr1[0] - 30, 0], C.gear, 5); line([b.wr1[0] + 30, -290], [b.wr1[0] + 30, 0], C.gear, 5); }
+      else if (p.k === 'hbar') line([-60, p.y], [80, p.y], C.gear, 7);
+      else if (p.k === 'dipbar') { line([-30, p.y], [50, p.y], C.gear, 7); line([40, p.y], [40, 0], C.gear, 6); }
+      else if (p.k === 'sled') { line([-30, -20], [150, -150], C.gear, 6); }
+      else if (p.k === 'tread') { line([-90, 2], [100, 2], C.gear, 10); line([90, 0], [110, -90], C.gear, 6); }
+      else if (p.k === 'rail') { line([-60, -10], [150, -10], C.gear, 8); circ([150, -40], 22, C.gear, true); }
+      else if (p.k === 'bike') { line([0, -110], [p.c[0], p.c[1]], C.gear, 7); line([p.c[0], p.c[1]], [110, -150], C.gear, 7); circ(p.c, 26, C.gear); line([-10, -112], [16, -112], C.gear, 8); }
+      else if (p.k === 'bag') { line([150, -300], [150, -250], C.gear, 4); ctx.fillStyle = C.gear; ctx.fillRect(126, -250, 48, 150); }
+      else if (p.k === 'mitt') { circ([142, -200], 16, C.eq, true); }
+      else if (p.k === 'ball') circ(p.c, p.r, C.gear, true);
+      else if (p.k === 'board') { line([-90, 4], [150, 4], C.eq, 8); }
+      else if (p.k === 'roller') { circ([b.hip[0] - 4, -20], 16, C.gear, true); }
+      else if (p.k === 'sledbox') { rect([b.wr1[0] + 4, -90, 50, 90], C.gear); }
+      else if (p.k === 'plate') rect(p.r, C.gear);
+      else if (p.k === 'pad') { rect([-30, -150, 60, 10], C.gear); }
+    });
+
+    var far = 0.36;
+    line(b.hip, b.knee2, C.body, lw, far); line(b.knee2, b.ank2, C.body, lw, far); line(b.ank2, b.toe2, C.body, 6, far);
+    line(b.sh, b.elb2, C.body, lw - 1, far); line(b.elb2, b.wr2, C.body, lw - 1, far);
+    line(b.hip, b.sh, C.body, lw + 3);
+    line(b.hip, b.knee1, C.body, lw); line(b.knee1, b.ank1, C.body, lw); line(b.ank1, b.toe1, C.body, 6);
+    circ(b.head, L.head, C.body, true);
+    line(b.sh, b.elb1, C.body, lw - 1); line(b.elb1, b.wr1, C.body, lw - 1);
+
+    var h = s.hold, w = b.wr1, w2 = b.wr2;
+    if (h === 'plate') { line([w[0] - 4, w[1]], [w2[0] + 4, w2[1]], C.eq, 4); circ(w, 22, C.eq, true); circ(w, 5, C.gear, true); }
+    else if (h === 'back') { var bp = add(b.sh, dir(s.res[0].torso - 90), 8); circ(bp, 22, C.eq, true); circ(bp, 5, C.gear, true); }
+    else if (h === 'hand') { line([w[0] - 9, w[1]], [w[0] + 9, w[1]], C.eq, 5); circ([w[0] - 9, w[1]], 7, C.eq, true); circ([w[0] + 9, w[1]], 7, C.eq, true); }
+    else if (h === 'kb') { circ([w[0], w[1] + 14], 12, C.eq, true); line([w[0] - 6, w[1]], [w[0] + 6, w[1]], C.eq, 4); }
+    else if (h === 'ball') circ([w[0] + 4, w[1] - 4], 16, C.eq, true);
+    else if (h === 'cable' || h === 'anklecable') { var from = h === 'anklecable' ? b.ank2 : w; line(from, s.cable, C.eq, 2.5); circ(s.cable, 7, C.gear, true); }
+    else if (h === 'band' || h === 'bandback') { ctx.setLineDash([6, 5]); line(w, h === 'band' ? (s.cable || [w[0] + 120, w[1]]) : [b.sh[0] - 30, b.sh[1]], C.eq, 3); ctx.setLineDash([]); }
+    else if (h === 'bandfoot' || h === 'bandpull') { ctx.setLineDash([6, 5]); line(w, h === 'bandpull' ? b.ank1 : [b.ank1[0] + 8, b.ank1[1]], C.eq, 3); ctx.setLineDash([]); }
+    else if (h === 'handle') { line([w[0], w[1] - 10], [w[0], w[1] + 10], C.eq, 6); line(w, [w[0] + (s.p === 'pulldown' ? 0 : -40), w[1] + (s.p === 'pulldown' ? -60 : 0)], C.gear, 4); }
+    else if (h === 'hipbar') { circ([b.hip[0], b.hip[1] - 13], 15, C.eq, true); circ([b.hip[0], b.hip[1] - 13], 4, C.gear, true); }
+    else if (h === 'hipband') { ctx.setLineDash([6, 5]); line([b.hip[0] - 20, b.hip[1] - 10], [b.hip[0] + 20, b.hip[1] - 10], C.eq, 3); ctx.setLineDash([]); }
+    else if (h === 'pad') { circ(b.ank1, 9, C.eq, true); }
+    else if (h === 'footdb') { circ(b.ank1, 9, C.eq, true); }
+    else if (h === 'ballfeet') { circ([b.ank1[0] + 4, b.ank1[1] + 20], 22, C.gear, true); }
+    else if (h === 'ballhands') { circ([w[0], 10], 0.1, C.gear, true); }
+    else if (h === 'trxhands') { line(w, [w[0] + 20, -330], C.eq, 2.5); }
+    else if (h === 'trxfeet') { line(b.ank1, [b.ank1[0] + 10, -330], C.eq, 2.5); }
+    else if (h === 'rope') { ctx.strokeStyle = C.eq; ctx.lineWidth = 2.5; ctx.beginPath();
+      var up = Math.sin(t * Math.PI * 2) > 0, ry = up ? b.head[1] - 40 : 14;
+      ctx.moveTo(w[0], w[1]); ctx.quadraticCurveTo((w[0] + w2[0]) / 2 - 20, ry, w2[0], w2[1]); ctx.stroke(); }
+    else if (h === 'ropes') { ctx.strokeStyle = C.eq; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(w[0], w[1]);
+      for (var q = 1; q <= 8; q++) ctx.lineTo(w[0] + q * 22, -10 + Math.sin(q * 1.3 + t * 18) * 18 * (1 - q / 9) + (w[1] + 10) * (1 - q / 8)); ctx.stroke(); }
+    else if (h === 'bag') { rect([w[0] - 16, w[1] - 6, 32, 22], C.eq); }
+    if (s.e === 'smith' && (h === 'plate' || h === 'back')) {}
+  }
+
+  /* ---------- לולאה אחת לכל הקנבסים ---------- */
+  var LIVE = [], RAF = 0, T0 = performance.now();
+  function tick(now) {
+    LIVE = LIVE.filter(function (x) { return x.cv.isConnected; });
+    LIVE.forEach(function (x) { if (x.vis) draw(x.cv, x.s, ((now - T0) / x.s.dur) % 1); });
+    RAF = LIVE.length ? requestAnimationFrame(tick) : 0;
+  }
+  var IO = typeof IntersectionObserver !== 'undefined' ? new IntersectionObserver(function (ents) {
+    ents.forEach(function (en) { LIVE.forEach(function (x) { if (x.cv === en.target) x.vis = en.isIntersecting; }); });
+  }) : null;
+
+  function mount(cv, name, opt) {
+    opt = opt || {};
+    var c = opt.cls || classify(name, opt.m, opt.e); if (!c) return false;
+    var s = build(c); if (!s) return false;
+    var dpr = Math.min(2, window.devicePixelRatio || 1), cssW = cv.clientWidth || +cv.getAttribute('width') || 300, cssH = cv.clientHeight || +cv.getAttribute('height') || cssW;
+    cv.width = Math.round(cssW * dpr); cv.height = Math.round(cssH * dpr);
+    var item = { cv: cv, s: s, vis: !IO };
+    LIVE = LIVE.filter(function (x) { return x.cv !== cv; }); LIVE.push(item);
+    if (IO) IO.observe(cv);
+    draw(cv, s, 0.25);
+    if (!RAF) RAF = requestAnimationFrame(tick);
+    return true;
+  }
+  /* כל הקנבסים בתוך root שמסומנים data-anim="שם התרגיל" */
+  function mountAll(root) {
+    (root || document).querySelectorAll('canvas[data-anim]').forEach(function (cv) {
+      if (cv.__animOn) return; cv.__animOn = 1; mount(cv, cv.getAttribute('data-anim'));
+    });
+  }
+  function has(name) { return !!classify(name); }
+  function label(name) { var c = classify(name); return c && P[c.p] ? P[c.p].he : ''; }
+
+  /* ---------- חלון הדמיה — משותף למאמן ולמתאמן ----------
+     עצמאי ולא דרך openModal: בדף המתאמן אין openModal, ובאפליקציה
+     המאמן אפשר לפתוח אותו מעל חלון אחר (חלון הסרטון). */
+  function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+  var EQ_HE = { bar: 'מוט', db: 'משקולות', kb: 'קטלבל', cable: 'כבל', band: 'גומייה', machine: 'מכונה', smith: 'סמית׳',
+                trx: 'רצועות', ball: 'כדור', bw: 'משקל גוף', water: 'מים', bench: 'ספסל', bike: 'מכשיר', other: '', bag: 'שק', mitts: 'פאדים', rope: 'חבל' };
+  function noteOf(name) { var e = libEntry(name); return e && e.note ? e.note : ''; }
+  function open(name, opt) {
+    opt = opt || {};
+    var c = classify(name); if (!c) return false;
+    close();
+    var note = opt.note != null ? opt.note : noteOf(name);
+    var ov = document.createElement('div');
+    ov.id = 'ebAnimModal';
+    ov.style.cssText = 'position:fixed;inset:0;z-index:300;background:rgba(10,7,5,.72);display:flex;align-items:center;justify-content:center;padding:14px';
+    ov.innerHTML = '<div role="dialog" aria-modal="true" style="width:min(430px,100%);max-height:92vh;overflow:auto;background:#241B14;'
+      + 'border:1px solid #47372A;border-radius:18px;padding:14px 14px 16px;color:#F2E9DD;font-family:inherit;direction:rtl">'
+      + '<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">'
+      + '<div style="flex:1;min-width:0"><div style="font-weight:800;font-size:17px;line-height:1.3">' + esc(name) + '</div>'
+      + '<div style="font-size:12px;color:#B8A898">' + esc(P[c.p].he) + (EQ_HE[c.e] ? ' · ' + esc(EQ_HE[c.e]) : '') + '</div></div>'
+      + '<button aria-label="סגירה" onclick="EBAnim.close()" style="width:34px;height:34px;border-radius:50%;border:1px solid #47372A;'
+      + 'background:transparent;color:#F2E9DD;font-size:18px;cursor:pointer">×</button></div>'
+      + '<canvas data-anim="' + esc(name) + '" style="width:100%;aspect-ratio:1/1;display:block;border-radius:12px;background:#1C150F"></canvas>'
+      + (note ? '<div style="font-size:13.5px;color:#C49A6C;margin-top:10px;line-height:1.55">' + esc(note) + '</div>' : '')
+      + '<div style="font-size:11.5px;color:#9A8A7C;margin-top:8px;line-height:1.5">הדמיה כללית של התנועה. את הטכניקה המדויקת שלך — המשקל, הטווח והקצב — קובע המאמן.</div>'
+      + '</div>';
+    ov.addEventListener('click', function (e) { if (e.target === ov) close(); });
+    document.body.appendChild(ov);
+    var cv = ov.querySelector('canvas'); cv.__animOn = 1;
+    requestAnimationFrame(function () { mount(cv, name); });
+    document.addEventListener('keydown', escKey);
+    return true;
+  }
+  function escKey(e) { if (e.key === 'Escape') close(); }
+  function close() {
+    var m = document.getElementById('ebAnimModal'); if (m) m.remove();
+    document.removeEventListener('keydown', escKey);
+  }
+
+  /* ---------- ספריית ההדמיות (אפליקציית המאמן) ---------- */
+  var LQ = '', LM = 'all', LLIM = 48;
+  function libItems() {
+    var X = window.EBEx; if (!X) return [];
+    var q = LQ.trim();
+    return X.ALL.filter(function (x) {
+      if (LM !== 'all' && x.m !== LM) return false;
+      if (q && x.n.indexOf(q) < 0 && ((P[(classify(x.n, x.m, x.e) || {}).p] || {}).he || '').indexOf(q) < 0) return false;
+      return !!classify(x.n, x.m, x.e);
+    });
+  }
+  function libGrid() {
+    var items = libItems(), shown = items.slice(0, LLIM);
+    var h = '<div style="font-size:12.5px;color:var(--mut);margin:4px 0 10px">' + items.length + ' תרגילים</div>'
+      + '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:10px">';
+    shown.forEach(function (x) {
+      var c = classify(x.n, x.m, x.e);
+      h += '<button onclick="EBAnim.open(this.dataset.n)" data-n="' + esc(x.n) + '" style="text-align:right;cursor:pointer;'
+        + 'background:var(--card,#2A2019);border:1px solid var(--line,#47372A);border-radius:12px;padding:8px;color:inherit;font:inherit">'
+        + '<canvas data-anim="' + esc(x.n) + '" style="width:100%;aspect-ratio:1/1;display:block;border-radius:9px;background:#1C150F"></canvas>'
+        + '<div style="font-weight:700;font-size:13px;line-height:1.3;margin-top:7px">' + esc(x.n) + '</div>'
+        + '<div style="font-size:11.5px;color:var(--mut)">' + esc(P[c.p].he) + (EQ_HE[c.e] ? ' · ' + esc(EQ_HE[c.e]) : '') + '</div></button>';
+    });
+    h += '</div>';
+    if (items.length > shown.length) h += '<button class="btn ghost" style="width:100%;margin-top:12px" onclick="EBAnim.more()">הצג עוד (' + (items.length - shown.length) + ')</button>';
+    return h;
+  }
+  function libView() {
+    var X = window.EBEx; if (!X) return '<div class="empty">ספריית התרגילים לא נטענה.</div>';
+    var byM = {}; X.ALL.forEach(function (x) { byM[x.m] = (byM[x.m] || 0) + 1; });
+    var h = '<div class="head"><div><h1>ספריית הדמיות</h1>'
+      + '<p class="muted">דמות שמבצעת את התנועה, לכל ' + X.ALL.length + ' התרגילים. המתאמן רואה אותה בכפתור "▶ הדמיה" מתחת לתרגיל — '
+      + 'אלא אם העלית סרטון משלך, ואז הוא רואה את הסרטון.</p></div></div>'
+      + '<div class="card" style="margin-bottom:12px"><input class="f" id="anim_q" placeholder="חיפוש לפי שם תרגיל או תנועה" value="' + esc(LQ) + '" '
+      + 'oninput="EBAnim.search(this.value)" style="width:100%;margin-bottom:10px">'
+      + '<div style="display:flex;gap:6px;flex-wrap:wrap">' + chip('all', 'הכול');
+    Object.keys(X.MUSCLES).forEach(function (k) { if (byM[k]) h += chip(k, X.MUSCLES[k]); });
+    return h + '</div></div><div id="animGrid">' + libGrid() + '</div>';
+  }
+  function chip(k, t) {
+    var on = LM === k;
+    return '<button onclick="EBAnim.muscle(\'' + k + '\')" style="font:inherit;font-size:12.5px;padding:5px 11px;border-radius:20px;cursor:pointer;'
+      + 'border:1px solid ' + (on ? 'var(--or)' : 'var(--line,#47372A)') + ';background:' + (on ? 'var(--or)' : 'transparent') + ';'
+      + 'color:' + (on ? '#221A12' : 'inherit') + '">' + esc(t) + '</button>';
+  }
+  function regrid() {
+    var g = document.getElementById('animGrid'); if (!g) return;
+    g.innerHTML = libGrid(); mountAll(g);
+  }
+  function search(q) { LQ = q; LLIM = 48; regrid(); }
+  function muscle(m) { LM = m; LLIM = 48; if (typeof render === 'function') render(); }
+  function more() { LLIM += 48; regrid(); }
+
+  window.EBAnim = { classify: classify, mount: mount, mountAll: mountAll, has: has, label: label,
+                    open: open, close: close, view: libView, search: search, muscle: muscle, more: more,
+                    PATTERNS: P, _frame: frame, _build: build, _draw: draw };
+})();

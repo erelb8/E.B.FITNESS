@@ -18,7 +18,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['video'] = 'v210';
+  (window.EB_MOD = window.EB_MOD || {})['video'] = 'v211';
 
   var BUCKET = 'videos';
   var MAX    = 50 * 1024 * 1024;
@@ -188,6 +188,12 @@
         + (own ? '<button class="btn sm ghost" onclick="EBVideo.clearOwn(\'' + esc(t.id) + '\',EBVideo.cur())">מחיקה</button>' : '')
         + '</div></div>';
     }
+    if (window.EBAnim && EBAnim.has(k)) {
+      h += '<div class="card" style="padding:12px;margin-top:10px;display:flex;gap:12px;align-items:center">'
+        + '<canvas data-anim="' + esc(k) + '" style="width:120px;height:120px;flex:none;border-radius:10px;background:#1C150F"></canvas>'
+        + '<div style="font-size:12.5px;line-height:1.6"><b>הדמיה אוטומטית</b><br><span class="muted">'
+        + (g || own ? 'מוצגת רק למתאמנים שאין להם סרטון.' : 'זה מה שהמתאמן רואה עכשיו, כל עוד אין סרטון.') + '</span></div></div>';
+    }
     return h;
   }
   function open(tid, di, ei) {
@@ -198,10 +204,11 @@
     openModal('<div class="mh"><h3>🎥 ' + esc(CUR.name) + '</h3><button class="iconbtn" onclick="closeModal()">✕</button></div>'
       + '<div class="mb" id="vidBody">' + body() + '</div>'
       + '<div class="mf"><button class="btn" onclick="closeModal()">סגירה</button></div>');
+    if (window.EBAnim) EBAnim.mountAll(document.getElementById('vidBody'));
   }
   function refresh() {
     var b = document.getElementById('vidBody');
-    if (b && CUR) b.innerHTML = body();
+    if (b && CUR) { b.innerHTML = body(); if (window.EBAnim) EBAnim.mountAll(b); }
     if (typeof render === 'function' && !b) render();
   }
 
