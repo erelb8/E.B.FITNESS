@@ -22,7 +22,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['anim'] = 'v215';
+  (window.EB_MOD = window.EB_MOD || {})['anim'] = 'v216';
 
   var L = { shin: 62, thigh: 64, torso: 78, uarm: 46, farm: 42, neck: 9, head: 15, foot: 17 };
   var ARM = L.uarm + L.farm;
@@ -671,7 +671,7 @@
   function muscles(name) { var c = classify(name); return c ? musclesFor(c) : []; }
 
   /* ---------- ציור ---------- */
-  var C = { body: '#F2E9DD', eq: '#C49A6C', gear: '#5E4A39', floor: '#47372A', water: 'rgba(90,150,190,.22)' };
+  var C = { body: '#F2E9DD', far: '#8A7B6C', line: '#C9B9A6', eq: '#C49A6C', eqDark: '#8E6A45', gear: '#5E4A39', pad: '#3B2E24', floor: '#47372A', water: 'rgba(90,150,190,.22)' };
   function build(c) {
     var def = P[c.p]; if (!def) return null;
     var s = def.fn(c.e, c.v);
@@ -739,6 +739,8 @@
     function line(a, c2, col, w, alpha) { ctx.globalAlpha = alpha == null ? 1 : alpha; ctx.strokeStyle = col; ctx.lineWidth = w;
       ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(c2[0], c2[1]); ctx.stroke(); ctx.globalAlpha = 1; }
     function rect(r, col) { ctx.fillStyle = col; ctx.fillRect(r[0], r[1], r[2], r[3]); }
+    function plate(c, r) { r = r || 22; circ(c, r, C.eq, true); ctx.strokeStyle = C.eqDark; ctx.lineWidth = 2.5;
+      ctx.beginPath(); ctx.arc(c[0], c[1], r - 4, 0, Math.PI * 2); ctx.stroke(); circ(c, 4.5, C.gear, true); }
     function circ(p, r, col, fill) { ctx.beginPath(); ctx.arc(p[0], p[1], r, 0, Math.PI * 2);
       if (fill) { ctx.fillStyle = col; ctx.fill(); } else { ctx.strokeStyle = col; ctx.lineWidth = 4; ctx.stroke(); } }
 
@@ -746,7 +748,7 @@
     if (s.ground !== false) line([bb.x0 - 30, 4], [bb.x1 + 30, 4], C.floor, 6);
 
     (s.props || []).forEach(function (p) {
-      if (p.k === 'bench') rect(p.r, C.gear);
+      if (p.k === 'bench') { rect(p.r, C.pad); rect([p.r[0], p.r[1] + p.r[3] - 3, p.r[2], 3], C.gear); }
       else if (p.k === 'legs') { line([p.r[0] + 6, p.r[1]], [p.r[0] + 6, 0], C.gear, 6); line([p.r[0] + p.r[2] - 6, p.r[1]], [p.r[0] + p.r[2] - 6, 0], C.gear, 6); }
       else if (p.k === 'box') { ctx.globalAlpha = 0.9; rect(p.r, C.gear); ctx.globalAlpha = 1; }
       else if (p.k === 'seat') { rect([-38, p.low ? -26 : -58, 66, 9], C.gear); line([-30, p.low ? -26 : -58], [-30, 0], C.gear, 6);
@@ -754,7 +756,7 @@
       else if (p.k === 'pbench') { var v = p.v;
         if (v === 'incline') { line([-50, -150], [10, -48], C.gear, 10); line([10, -50], [70, -50], C.gear, 10); }
         else if (v === 'decline') { line([-80, -40], [80, -64], C.gear, 10); }
-        else line([-110, -50], [80, -50], C.gear, 10);
+        else { line([-110, -50], [80, -50], C.pad, 12); line([-110, -45], [80, -45], C.gear, 3); }
         line([-80, -50], [-80, 0], C.gear, 6); line([60, -50], [60, 0], C.gear, 6); }
       else if (p.k === 'rails') { line([b.wr1[0] - 30, -290], [b.wr1[0] - 30, 0], C.gear, 5); line([b.wr1[0] + 30, -290], [b.wr1[0] + 30, 0], C.gear, 5); }
       else if (p.k === 'hbar') line([-60, p.y], [80, p.y], C.gear, 7);
@@ -773,26 +775,33 @@
       else if (p.k === 'pad') { rect([-30, -150, 60, 10], C.gear); }
     });
 
-    var far = 0.36;
-    line(b.hip2, b.knee2, C.body, lw, far); line(b.knee2, b.ank2, C.body, lw, far); line(b.ank2, b.toe2, C.body, 6, far);
-    line(b.sh2, b.elb2, C.body, lw - 1, far); line(b.elb2, b.wr2, C.body, lw - 1, far);
-    line(b.hip, b.sh, C.body, lw + 3);
-    line(b.hip, b.knee1, C.body, lw); line(b.knee1, b.ank1, C.body, lw); line(b.ank1, b.toe1, C.body, 6);
-    circ(b.head, L.head, C.body, true);
-    line(b.sh, b.elb1, C.body, lw - 1); line(b.elb1, b.wr1, C.body, lw - 1);
+    /* צל על הרצפה — בלעדיו הדמות נראית מרחפת */
+    if (s.ground !== false) {
+      var fx = (b.ank1[0] + b.ank2[0] + b.toe1[0]) / 3, fy = Math.max(b.ank1[1], b.ank2[1]);
+      if (fy > -14) { ctx.globalAlpha = 0.28; ctx.fillStyle = '#000'; ctx.beginPath(); ctx.ellipse(fx, 4, 42, 6, 0, 0, Math.PI * 2); ctx.fill(); ctx.globalAlpha = 1; }
+    }
+    /* גוף עם נפח: כל איבר הוא צורה שמצטרת לכיוון המפרק (ירך עבה וברך
+       צרה, זרוע ואמה), והצד הרחוק בגוון כהה ולא שקוף — שקיפות יצרה
+       חפיפות מוזרות במקום שהגפיים נחצות. */
+    taper(ctx, b.hip2, b.knee2, 14, 10, C.far); taper(ctx, b.knee2, b.ank2, 10, 7, C.far); foot(ctx, b.ank2, b.toe2, C.far);
+    taper(ctx, b.sh2, b.elb2, 10, 8, C.far); taper(ctx, b.elb2, b.wr2, 8, 6, C.far); hand(ctx, b.wr2, C.far);
+    torso(ctx, b, C.body);
+    taper(ctx, b.hip, b.knee1, 15, 11, C.body); taper(ctx, b.knee1, b.ank1, 11, 7.5, C.body); foot(ctx, b.ank1, b.toe1, C.body);
+    head(ctx, b, s.res[0], C.body);
+    taper(ctx, b.sh, b.elb1, 10.5, 8, C.body); taper(ctx, b.elb1, b.wr1, 8, 6, C.body); hand(ctx, b.wr1, C.body);
     drawMuscles(ctx, b, s.mus || []);
 
     var h = s.hold, w = b.wr1, w2 = b.wr2;
-    if (h === 'plate') { line([w[0] - 4, w[1]], [w2[0] + 4, w2[1]], C.eq, 4); circ(w, 22, C.eq, true); circ(w, 5, C.gear, true); }
-    else if (h === 'back') { var bp = add(b.sh, dir(s.res[0].torso - 90), 8); circ(bp, 22, C.eq, true); circ(bp, 5, C.gear, true); }
-    else if (h === 'hand') { line([w[0] - 9, w[1]], [w[0] + 9, w[1]], C.eq, 5); circ([w[0] - 9, w[1]], 7, C.eq, true); circ([w[0] + 9, w[1]], 7, C.eq, true); }
+    if (h === 'plate') { line([w[0] - 4, w[1]], [w2[0] + 4, w2[1]], C.eqDark, 4); plate(w); }
+    else if (h === 'back') { plate(add(b.sh, dir(s.res[0].torso - 90), 8)); }
+    else if (h === 'hand') { line([w[0] - 10, w[1]], [w[0] + 10, w[1]], C.eqDark, 4); rect([w[0] - 15, w[1] - 7, 7, 14], C.eq); rect([w[0] + 8, w[1] - 7, 7, 14], C.eq); }
     else if (h === 'kb') { circ([w[0], w[1] + 14], 12, C.eq, true); line([w[0] - 6, w[1]], [w[0] + 6, w[1]], C.eq, 4); }
     else if (h === 'ball') circ([w[0] + 4, w[1] - 4], 16, C.eq, true);
     else if (h === 'cable' || h === 'anklecable') { var from = h === 'anklecable' ? b.ank2 : w; line(from, s.cable, C.eq, 2.5); circ(s.cable, 7, C.gear, true); }
     else if (h === 'band' || h === 'bandback') { ctx.setLineDash([6, 5]); line(w, h === 'band' ? (s.cable || [w[0] + 120, w[1]]) : [b.sh[0] - 30, b.sh[1]], C.eq, 3); ctx.setLineDash([]); }
     else if (h === 'bandfoot' || h === 'bandpull') { ctx.setLineDash([6, 5]); line(w, h === 'bandpull' ? b.ank1 : [b.ank1[0] + 8, b.ank1[1]], C.eq, 3); ctx.setLineDash([]); }
     else if (h === 'handle') { line([w[0], w[1] - 10], [w[0], w[1] + 10], C.eq, 6); line(w, [w[0] + (s.p === 'pulldown' ? 0 : -40), w[1] + (s.p === 'pulldown' ? -60 : 0)], C.gear, 4); }
-    else if (h === 'hipbar') { circ([b.hip[0], b.hip[1] - 13], 15, C.eq, true); circ([b.hip[0], b.hip[1] - 13], 4, C.gear, true); }
+    else if (h === 'hipbar') { plate([b.hip[0], b.hip[1] - 13], 15); }
     else if (h === 'hipband') { ctx.setLineDash([6, 5]); line([b.hip[0] - 20, b.hip[1] - 10], [b.hip[0] + 20, b.hip[1] - 10], C.eq, 3); ctx.setLineDash([]); }
     else if (h === 'pad') { circ(b.ank1, 9, C.eq, true); }
     else if (h === 'footdb') { circ(b.ank1, 9, C.eq, true); }
@@ -807,6 +816,40 @@
       for (var q = 1; q <= 8; q++) ctx.lineTo(w[0] + q * 22, -10 + Math.sin(q * 1.3 + t * 18) * 18 * (1 - q / 9) + (w[1] + 10) * (1 - q / 8)); ctx.stroke(); }
     else if (h === 'bag') { rect([w[0] - 16, w[1] - 6, 32, 22], C.eq); }
     if (s.e === 'smith' && (h === 'plate' || h === 'back')) {}
+  }
+
+  /* ---------- צורות הגוף ---------- */
+  function taper(ctx, a, c, w1, w2, col) {
+    var v = unit([c[0] - a[0], c[1] - a[1]]), n = [-v[1], v[0]];
+    ctx.fillStyle = col; ctx.beginPath();
+    ctx.moveTo(a[0] + n[0] * w1 / 2, a[1] + n[1] * w1 / 2);
+    ctx.lineTo(c[0] + n[0] * w2 / 2, c[1] + n[1] * w2 / 2);
+    ctx.lineTo(c[0] - n[0] * w2 / 2, c[1] - n[1] * w2 / 2);
+    ctx.lineTo(a[0] - n[0] * w1 / 2, a[1] - n[1] * w1 / 2);
+    ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.arc(a[0], a[1], w1 / 2, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(c[0], c[1], w2 / 2, 0, Math.PI * 2); ctx.fill();
+  }
+  function torso(ctx, b, col) {
+    /* גו: אגן צר יותר, בית חזה רחב יותר, צוואר */
+    var mid = [(b.hip[0] * 0.45 + b.sh[0] * 0.55), (b.hip[1] * 0.45 + b.sh[1] * 0.55)];
+    taper(ctx, b.hip, mid, 21, 24, col);
+    taper(ctx, mid, b.sh, 24, 19, col);
+    var tv = unit([b.sh[0] - b.hip[0], b.sh[1] - b.hip[1]]);
+    taper(ctx, b.sh, [b.sh[0] + tv[0] * 10, b.sh[1] + tv[1] * 10], 9, 8, col);
+  }
+  function foot(ctx, ank, toe, col) {
+    var v = unit([toe[0] - ank[0], toe[1] - ank[1]]);
+    var heel = [ank[0] - v[0] * 4, ank[1] - v[1] * 4];
+    taper(ctx, heel, toe, 8, 5, col);
+  }
+  function hand(ctx, wr, col) { ctx.fillStyle = col; ctx.beginPath(); ctx.arc(wr[0], wr[1], 4.6, 0, Math.PI * 2); ctx.fill(); }
+  function head(ctx, b, p0, col) {
+    ctx.fillStyle = col; ctx.beginPath(); ctx.arc(b.head[0], b.head[1], L.head, 0, Math.PI * 2); ctx.fill();
+    /* אף קטן לכיוון הפנים — כדי שיהיה ברור לאן הדמות מסתכלת */
+    var tv = unit([b.head[0] - b.sh[0], b.head[1] - b.sh[1]]), f = [-tv[1], tv[0]];
+    var nose = [b.head[0] + f[0] * (L.head + 2.5), b.head[1] + f[1] * (L.head + 2.5)];
+    taper(ctx, [b.head[0] + f[0] * (L.head - 3), b.head[1] + f[1] * (L.head - 3)], nose, 6, 3, col);
   }
 
   /* השריר מצויר כפס צבעוני על הצד הנכון של הגפה: ארבע ראשי בצד שאליו
@@ -824,8 +867,8 @@
     var kc = side(b.knee1, b.hip, b.ank1, tn), ec = side(b.elb1, b.sh, b.wr1, [-tn[0], -tn[1]]);
     function neg(v) { return [-v[0], -v[1]]; }
     function seg(a, c, f0, f1, off, alpha) {
-      var o = 3.5;
-      ctx.globalAlpha = alpha; ctx.strokeStyle = MC; ctx.lineWidth = 7; ctx.beginPath();
+      var o = 4;
+      ctx.globalAlpha = alpha; ctx.strokeStyle = MC; ctx.lineWidth = 6.5; ctx.lineCap = 'round'; ctx.beginPath();
       ctx.moveTo(a[0] + (c[0] - a[0]) * f0 + off[0] * o, a[1] + (c[1] - a[1]) * f0 + off[1] * o);
       ctx.lineTo(a[0] + (c[0] - a[0]) * f1 + off[0] * o, a[1] + (c[1] - a[1]) * f1 + off[1] * o);
       ctx.stroke(); ctx.globalAlpha = 1;
