@@ -56,6 +56,16 @@ t('אירובי Z2', p('אירובי בסיס — Z2'), 'run');
 t('שורה שאינה תרגיל', A.classify('למה זה בתוכנית'), null);
 t('סבב שני לא משנה סיווג קיים', p('מתיחת תאומים עם גומייה בישיבה'), 'stretchham');
 
+console.log('=== שרירים עובדים ===');
+const mus = n => A.muscles(n);
+t('סקוואט — ארבע ראשי עיקרי', mus('סקוואט גבי')[0], 'quads');
+t('לחיצת חזה — חזה עיקרי', mus('לחיצת חזה במוט')[0], 'chest');
+t('השריר מהספרייה גובר: היפ ת׳רסט — עכוז', mus('היפ ת׳רסט')[0], 'glutes');
+t('לחיצת חזה במכונה — חזה ולא כתפיים', mus('לחיצת חזה במכונה')[0], 'chest');
+t('בלי כפילויות', (() => { const m = mus('דדליפט קלאסי'); return m.length === new Set(m).size; })(), true);
+const noMus = X.ALL.filter(x => { const c = A.classify(x.n, x.m, x.e); return c && !['roll', 'hold'].includes(c.p) && !A.muscles(x.n).length; }).map(x => x.n);
+t('לכל תרגיל (חוץ מגליל) יש שריר', noMus, []);
+
 console.log('=== אורכי גפיים קבועים, אין NaN ===');
 const L = { thigh: 64, shin: 62, uarm: 46, farm: 42 };
 const d = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]);

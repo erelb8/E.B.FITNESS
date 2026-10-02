@@ -13,8 +13,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="התוכנית שלי">
 <meta name="robots" content="noindex,nofollow">
-<link rel="apple-touch-icon" href="icons/icon-180.png?v=v213">
-<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=v213">
+<link rel="apple-touch-icon" href="icons/icon-180.png?v=v214">
+<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=v214">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -368,7 +368,7 @@ button{cursor:pointer}
 <body>
 
 <header class="top">
-  <div class="brand"><img class="brand-logo" src="icons/logo-96.png?v=v213" alt="" width="34" height="34"><span>E.B<span class="dot"></span>FIT</span></div>
+  <div class="brand"><img class="brand-logo" src="icons/logo-96.png?v=v214" alt="" width="34" height="34"><span>E.B<span class="dot"></span>FIT</span></div>
   <h1 id="hTitle">טוען…</h1>
   <div class="sub" id="hSub"></div>
   <span class="savechip" id="saveChip" aria-live="polite"></span>
@@ -380,20 +380,20 @@ button{cursor:pointer}
 
 <div id="toast"></div>
 
-<script src="vendor/supabase.js?v=v213"></script>
-<script src="config.js?v=v213"></script>
-<script src="meal-library.js?v=v213"></script>
-<script src="exercise-library.js?v=v213"></script>
-<script src="anim.js?v=v213"></script>
-<script src="progress.js?v=v213"></script>
-<script src="habits.js?v=v213"></script>
-<script src="coach-bot.js?v=v213"></script>
-<script src="progress-chart.js?v=v213"></script>
-<script src="workout-log.js?v=v213"></script>
-<script src="targets.js?v=v213"></script>
-<script src="health.js?v=v213"></script>
-<script src="privacy.js?v=v213"></script>
-<script src="guides.js?v=v213"></script>
+<script src="vendor/supabase.js?v=v214"></script>
+<script src="config.js?v=v214"></script>
+<script src="meal-library.js?v=v214"></script>
+<script src="exercise-library.js?v=v214"></script>
+<script src="anim.js?v=v214"></script>
+<script src="progress.js?v=v214"></script>
+<script src="habits.js?v=v214"></script>
+<script src="coach-bot.js?v=v214"></script>
+<script src="progress-chart.js?v=v214"></script>
+<script src="workout-log.js?v=v214"></script>
+<script src="targets.js?v=v214"></script>
+<script src="health.js?v=v214"></script>
+<script src="privacy.js?v=v214"></script>
+<script src="guides.js?v=v214"></script>
 <script>
 (function () {
   'use strict';
@@ -1276,7 +1276,9 @@ button{cursor:pointer}
     return '<button class="btn" style="width:100%;margin-bottom:12px;font-size:15px;padding:13px" '
       + 'onclick="__exOpen()">🏋 ספריית התרגילים · ' + EBEx.count
       + (MY_EX.length ? ' · <b>' + MY_EX.length + ' שלי</b>' : '')
-      + '</button>';
+      + '</button>'
+      + (window.EBAnim ? '<button class="btn ghost" style="width:100%;margin-bottom:12px;font-size:15px;padding:12px" '
+        + 'onclick="EBAnim.openLibrary()">🎬 ספריית הדמיות — איך עושים כל תרגיל</button>' : '');
   }
 
   /* ספריית התרגילים כחלון מעל מודל האימון, לא מסך נפרד —

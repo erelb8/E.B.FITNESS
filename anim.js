@@ -22,7 +22,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['anim'] = 'v213';
+  (window.EB_MOD = window.EB_MOD || {})['anim'] = 'v214';
 
   var L = { shin: 62, thigh: 64, torso: 78, uarm: 46, farm: 42, neck: 9, head: 15, foot: 17 };
   var ARM = L.uarm + L.farm;
@@ -601,7 +601,7 @@
     var lib = libEntry(n);
     m = m || (lib && lib.m) || '';
     e = e || (lib && lib.e) || eqFromName(n);
-    if (e === 'water' && !/שחיי|שחית|חתירות/.test(n)) { var w = classify(n.replace(/במים/, ''), m, eqFromName(n.replace(/במים/, ''))); return { p: w ? w.p : 'walk', v: w && w.v, e: 'water' }; }
+    if (e === 'water' && !/שחיי|שחית|חתירות/.test(n)) { var w = classify(n.replace(/במים/, ''), m, eqFromName(n.replace(/במים/, ''))); return { p: w ? w.p : 'walk', v: w && w.v, e: 'water', m: m }; }
     var p = null;
     for (var i = 0; i < RULES.length; i++) if (RULES[i][0].test(n)) { p = RULES[i][1]; break; }
     if (!p) for (var j = 0; j < SYN.length; j++) if (SYN[j][0].test(n)) { p = SYN[j][1]; break; }
@@ -611,10 +611,46 @@
     if (p.indexOf(':') > -1) { v = p.split(':')[1]; p = p.split(':')[0]; }
     if (p === 'press') v = /שיפוע שלילי/.test(n) ? 'decline' : /שיפוע/.test(n) ? 'incline' : v;
     if (p === 'ohp' && (/ישיבה|מכונה|מכונת/.test(n) || e === 'machine')) v = 'seated';
-    if (p === 'press' && /בעמידה|בכבלים בעמידה|דחיפה בכבל/.test(n)) return { p: 'fly', v: null, e: 'cable' };
-    if (p === 'press' && e === 'machine' && !/שיפוע/.test(n)) return { p: 'ohp', v: 'seated', e: 'machine', alt: 'chestpress' };
-    return { p: p, v: v, e: e };
+    if (p === 'press' && /בעמידה|בכבלים בעמידה|דחיפה בכבל/.test(n)) return { p: 'fly', v: null, e: 'cable', m: m };
+    if (p === 'press' && e === 'machine' && !/שיפוע/.test(n)) return { p: 'ohp', v: 'seated', e: 'machine', alt: 'chestpress', m: 'chest' };
+    return { p: p, v: v, e: e, m: m };
   }
+
+  /* ---------- שרירים עובדים ----------
+     העיקרי — קבוצת השריר של התרגיל בספרייה. אם אין (שם שהוקלד ביד, או
+     קטגוריה כמו "גוף מלא"), הראשון ברשימה של התבנית. השאר — מסייעים. */
+  var MUS_HE = { chest: 'חזה', back: 'גב', shoulders: 'כתפיים', biceps: 'יד קדמית', triceps: 'יד אחורית',
+                 quads: 'ארבע ראשי', hams: 'המסטרינג', glutes: 'עכוז', calves: 'תאומים', core: 'בטן וליבה' };
+  var PM = {
+    squat: ['quads', 'glutes', 'core'], jumpsquat: ['quads', 'glutes', 'calves'], boxjump: ['quads', 'glutes', 'calves'],
+    lunge: ['quads', 'glutes'], bulgarian: ['quads', 'glutes'], stepup: ['quads', 'glutes'],
+    hinge: ['hams', 'glutes', 'back'], deadlift: ['back', 'glutes', 'hams'], goodmorning: ['hams', 'back'],
+    swing: ['glutes', 'hams', 'core'], hipthrust: ['glutes', 'hams'], bridge: ['glutes', 'hams'], calf: ['calves'],
+    legext: ['quads'], legcurl: ['hams'], legpress: ['quads', 'glutes'], pushup: ['chest', 'triceps', 'core'],
+    plank: ['core', 'shoulders'], climber: ['core', 'quads'], dip: ['triceps', 'chest'], benchdip: ['triceps'],
+    press: ['chest', 'triceps', 'shoulders'], fly: ['chest'], pullover: ['back', 'chest'], ohp: ['shoulders', 'triceps'],
+    raise: ['shoulders'], reardelt: ['shoulders', 'back'], facepull: ['shoulders', 'back'], shrug: ['back'],
+    uprow: ['shoulders', 'back'], row: ['back', 'biceps'], seatedrow: ['back', 'biceps'], invrow: ['back', 'biceps'],
+    pulldown: ['back', 'biceps'], pullup: ['back', 'biceps'], hangraise: ['core'], curl: ['biceps'],
+    pushdown: ['triceps'], ohext: ['triceps'], skull: ['triceps'], kickback: ['triceps'], crunch: ['core'],
+    legraise: ['core'], twist: ['core'], woodchop: ['core', 'shoulders'], pallof: ['core'], deadbug: ['core'],
+    birddog: ['core', 'glutes', 'back'], kickbackleg: ['glutes'], sidelying: ['glutes'], superman: ['back', 'glutes'],
+    run: ['quads', 'hams', 'calves'], walk: ['quads', 'calves', 'core'], bike: ['quads', 'calves'],
+    rower: ['back', 'quads', 'biceps'], jumprope: ['calves'], box: ['shoulders', 'core'], kick: ['glutes', 'core'],
+    swim: ['back', 'shoulders'], popup: ['chest', 'triceps', 'quads'], stretchham: ['hams'], stretchquad: ['quads'],
+    stretchhip: ['glutes', 'quads'], stretchup: ['chest', 'shoulders'], childpose: ['back'], circles: ['shoulders'],
+    hipcar: ['glutes'], catcow: ['back', 'core'], roll: [], sled: ['quads', 'glutes'], ropes: ['shoulders', 'core'],
+    throw: ['shoulders', 'core', 'quads'], slam: ['core', 'back'], thruster: ['quads', 'shoulders'],
+    clean: ['back', 'glutes', 'quads'], snatch: ['shoulders', 'back', 'glutes'], carryover: ['shoulders', 'core'],
+    getup: ['core', 'shoulders'], burpee: ['quads', 'chest', 'core'], hold: []
+  };
+  function musclesFor(c) {
+    var list = (PM[c.p] || []).slice();
+    var pri = MUS_HE[c.m] ? c.m : list[0];
+    if (!pri) return [];
+    return [pri].concat(list.filter(function (k) { return k !== pri; }));
+  }
+  function muscles(name) { var c = classify(name); return c ? musclesFor(c) : []; }
 
   /* ---------- ציור ---------- */
   var C = { body: '#F2E9DD', eq: '#C49A6C', gear: '#5E4A39', floor: '#47372A', water: 'rgba(90,150,190,.22)' };
@@ -622,7 +658,7 @@
     var def = P[c.p]; if (!def) return null;
     var s = def.fn(c.e, c.v);
     s.res = s.kf.map(function (k) { return resolve(k.p); });
-    s.e = c.e; s.p = c.p;
+    s.e = c.e; s.p = c.p; s.mus = musclesFor(c);
     if (c.e === 'water' && s.water == null) s.water = -104;
     if (c.alt === 'chestpress') { s.res.forEach(function (r, i) { r.h1 = i === 0 ? add(body(r).sh, [84, 6]) : add(body(r).sh, [20, 30]); r.h2 = [r.h1[0] - 7, r.h1[1]]; r.eb = 'D'; r.eb2 = 'D'; }); }
     s.bb = bounds(s);
@@ -699,6 +735,7 @@
     line(b.hip, b.knee1, C.body, lw); line(b.knee1, b.ank1, C.body, lw); line(b.ank1, b.toe1, C.body, 6);
     circ(b.head, L.head, C.body, true);
     line(b.sh, b.elb1, C.body, lw - 1); line(b.elb1, b.wr1, C.body, lw - 1);
+    drawMuscles(ctx, b, s.mus || []);
 
     var h = s.hold, w = b.wr1, w2 = b.wr2;
     if (h === 'plate') { line([w[0] - 4, w[1]], [w2[0] + 4, w2[1]], C.eq, 4); circ(w, 22, C.eq, true); circ(w, 5, C.gear, true); }
@@ -725,6 +762,43 @@
       for (var q = 1; q <= 8; q++) ctx.lineTo(w[0] + q * 22, -10 + Math.sin(q * 1.3 + t * 18) * 18 * (1 - q / 9) + (w[1] + 10) * (1 - q / 8)); ctx.stroke(); }
     else if (h === 'bag') { rect([w[0] - 16, w[1] - 6, 32, 22], C.eq); }
     if (s.e === 'smith' && (h === 'plate' || h === 'back')) {}
+  }
+
+  /* השריר מצויר כפס צבעוני על הצד הנכון של הגפה: ארבע ראשי בצד שאליו
+     הברך מתכופפת קדימה, המסטרינג בצד השני; יד אחורית בצד של המרפק.
+     הצד נגזר מכיפוף המפרק בכל פריים, ולכן נשאר נכון גם כשהגוף שוכב. */
+  var MC = '#E4622F';
+  function unit(v) { var l = Math.hypot(v[0], v[1]); return l < 0.001 ? [0, 0] : [v[0] / l, v[1] / l]; }
+  function drawMuscles(ctx, b, mus) {
+    if (!mus.length) return;
+    var tv = unit([b.sh[0] - b.hip[0], b.sh[1] - b.hip[1]]), tn = [-tv[1], tv[0]];
+    function side(j, a, c, fb) {
+      var m = [(a[0] + c[0]) / 2, (a[1] + c[1]) / 2], v = [j[0] - m[0], j[1] - m[1]];
+      return Math.hypot(v[0], v[1]) < 3 ? fb : unit(v);
+    }
+    var kc = side(b.knee1, b.hip, b.ank1, tn), ec = side(b.elb1, b.sh, b.wr1, [-tn[0], -tn[1]]);
+    function neg(v) { return [-v[0], -v[1]]; }
+    function seg(a, c, f0, f1, off, alpha) {
+      var o = 3.5;
+      ctx.globalAlpha = alpha; ctx.strokeStyle = MC; ctx.lineWidth = 7; ctx.beginPath();
+      ctx.moveTo(a[0] + (c[0] - a[0]) * f0 + off[0] * o, a[1] + (c[1] - a[1]) * f0 + off[1] * o);
+      ctx.lineTo(a[0] + (c[0] - a[0]) * f1 + off[0] * o, a[1] + (c[1] - a[1]) * f1 + off[1] * o);
+      ctx.stroke(); ctx.globalAlpha = 1;
+    }
+    function dot(p, r, alpha) { ctx.globalAlpha = alpha; ctx.fillStyle = MC; ctx.beginPath(); ctx.arc(p[0], p[1], r, 0, Math.PI * 2); ctx.fill(); ctx.globalAlpha = 1; }
+    mus.forEach(function (k, i) {
+      var a = i === 0 ? 0.95 : 0.5;
+      if (k === 'quads') seg(b.hip, b.knee1, 0.15, 0.85, kc, a);
+      else if (k === 'hams') seg(b.hip, b.knee1, 0.18, 0.85, neg(kc), a);
+      else if (k === 'glutes') { dot([b.hip[0] - tn[0] * 5, b.hip[1] - tn[1] * 5], 7.5, a); }
+      else if (k === 'calves') seg(b.knee1, b.ank1, 0.12, 0.6, neg(kc), a);
+      else if (k === 'chest') seg(b.hip, b.sh, 0.62, 0.92, tn, a);
+      else if (k === 'core') seg(b.hip, b.sh, 0.12, 0.58, tn, a);
+      else if (k === 'back') seg(b.hip, b.sh, 0.3, 0.92, neg(tn), a);
+      else if (k === 'shoulders') dot(b.sh, 7.5, a);
+      else if (k === 'biceps') seg(b.sh, b.elb1, 0.18, 0.85, neg(ec), a);
+      else if (k === 'triceps') seg(b.sh, b.elb1, 0.18, 0.85, ec, a);
+    });
   }
 
   /* ---------- לולאה אחת לכל הקנבסים ---------- */
@@ -783,6 +857,7 @@
       + '<button aria-label="סגירה" onclick="EBAnim.close()" style="width:34px;height:34px;border-radius:50%;border:1px solid #47372A;'
       + 'background:transparent;color:#F2E9DD;font-size:18px;cursor:pointer">×</button></div>'
       + '<canvas data-anim="' + esc(name) + '" style="width:100%;aspect-ratio:1/1;display:block;border-radius:12px;background:#1C150F"></canvas>'
+      + musLegend(musclesFor(c))
       + (note ? '<div style="font-size:13.5px;color:#C49A6C;margin-top:10px;line-height:1.55">' + esc(note) + '</div>' : '')
       + '<div style="font-size:11.5px;color:#9A8A7C;margin-top:8px;line-height:1.5">הדמיה כללית של התנועה. את הטכניקה המדויקת שלך — המשקל, הטווח והקצב — קובע המאמן.</div>'
       + '</div>';
@@ -795,66 +870,118 @@
     document.addEventListener('keydown', escKey);
     return true;
   }
-  function escKey(e) { if (e.key === 'Escape') close(); }
+  function musLegend(mus) {
+    if (!mus.length) return '';
+    return '<div style="display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;margin-top:10px;font-size:12.5px">'
+      + '<span style="color:#B8A898">שרירים עובדים:</span>'
+      + mus.map(function (k, i) {
+          return '<span style="display:inline-flex;align-items:center;gap:5px"><i style="width:10px;height:10px;border-radius:50%;background:' + MC
+            + ';opacity:' + (i === 0 ? 1 : 0.5) + ';display:inline-block"></i>' + esc(MUS_HE[k]) + (i === 0 ? ' <b style="font-weight:600;color:#B8A898">(עיקרי)</b>' : '') + '</span>';
+        }).join('') + '</div>';
+  }
+  function escKey(e) { if (e.key === 'Escape') { if (document.getElementById('ebAnimModal')) close(); else closeLibrary(); } }
   function close() {
     var m = document.getElementById('ebAnimModal'); if (m) m.remove();
     document.removeEventListener('keydown', escKey);
   }
 
-  /* ---------- ספריית ההדמיות (אפליקציית המאמן) ---------- */
+  /* ---------- ספריית ההדמיות ----------
+     אותו תוכן בשני מקומות: מסך באפליקציית המאמן, וחלון בדף המתאמן.
+     כל מיכל מסומן data-animlib; החיפוש מחליף רק את הרשת (כדי לא לאבד
+     את המיקוד בשדה), ובחירת שריר מחליפה גם את הכפתורים. */
   var LQ = '', LM = 'all', LLIM = 48;
   function libItems() {
     var X = window.EBEx; if (!X) return [];
     var q = LQ.trim();
     return X.ALL.filter(function (x) {
-      if (LM !== 'all' && x.m !== LM) return false;
-      if (q && x.n.indexOf(q) < 0 && ((P[(classify(x.n, x.m, x.e) || {}).p] || {}).he || '').indexOf(q) < 0) return false;
-      return !!classify(x.n, x.m, x.e);
+      var c = classify(x.n, x.m, x.e); if (!c) return false;
+      if (LM !== 'all' && x.m !== LM && musclesFor(c).indexOf(LM) < 0) return false;
+      if (q && x.n.indexOf(q) < 0 && ((P[c.p] || {}).he || '').indexOf(q) < 0) return false;
+      return true;
     });
   }
   function libGrid() {
     var items = libItems(), shown = items.slice(0, LLIM);
-    var h = '<div style="font-size:12.5px;color:var(--mut);margin:4px 0 10px">' + items.length + ' תרגילים</div>'
-      + '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:10px">';
+    var h = '<div style="font-size:12.5px;color:var(--mut,#9A8A7C);margin:4px 0 10px">' + items.length + ' תרגילים</div>'
+      + '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px">';
     shown.forEach(function (x) {
-      var c = classify(x.n, x.m, x.e);
+      var c = classify(x.n, x.m, x.e), mus = musclesFor(c);
       h += '<button onclick="EBAnim.open(this.dataset.n)" data-n="' + esc(x.n) + '" style="text-align:right;cursor:pointer;'
         + 'background:var(--card,#2A2019);border:1px solid var(--line,#47372A);border-radius:12px;padding:8px;color:inherit;font:inherit">'
         + '<canvas data-anim="' + esc(x.n) + '" style="width:100%;aspect-ratio:1/1;display:block;border-radius:9px;background:#1C150F"></canvas>'
         + '<div style="font-weight:700;font-size:13px;line-height:1.3;margin-top:7px">' + esc(x.n) + '</div>'
-        + '<div style="font-size:11.5px;color:var(--mut)">' + esc(P[c.p].he) + (EQ_HE[c.e] ? ' · ' + esc(EQ_HE[c.e]) : '') + '</div></button>';
+        + '<div style="font-size:11.5px;color:var(--mut,#9A8A7C)">' + esc(P[c.p].he) + (EQ_HE[c.e] ? ' · ' + esc(EQ_HE[c.e]) : '') + '</div>'
+        + (mus.length ? '<div style="font-size:11.5px;color:' + MC + ';margin-top:2px">' + mus.slice(0, 2).map(function (k) { return esc(MUS_HE[k]); }).join(' · ') + '</div>' : '')
+        + '</button>';
     });
     h += '</div>';
-    if (items.length > shown.length) h += '<button class="btn ghost" style="width:100%;margin-top:12px" onclick="EBAnim.more()">הצג עוד (' + (items.length - shown.length) + ')</button>';
+    if (items.length > shown.length) h += '<button class="btn ghost" style="width:100%;margin-top:12px;padding:11px;border-radius:10px;cursor:pointer;'
+      + 'background:transparent;border:1px solid var(--line,#47372A);color:inherit;font:inherit" onclick="EBAnim.more()">הצג עוד (' + (items.length - shown.length) + ')</button>';
     return h;
+  }
+  function chips() {
+    var X = window.EBEx, h = chip('all', 'הכול');
+    Object.keys(MUS_HE).forEach(function (k) { h += chip(k, MUS_HE[k]); });
+    if (X) ['full', 'cardio', 'mob', 'flex', 'box', 'power', 'surf'].forEach(function (k) { if (X.MUSCLES[k]) h += chip(k, X.MUSCLES[k]); });
+    return h;
+  }
+  function libInner() {
+    return '<input id="anim_q" placeholder="חיפוש לפי שם תרגיל או תנועה" value="' + esc(LQ) + '" oninput="EBAnim.search(this.value)" '
+      + 'style="width:100%;box-sizing:border-box;margin-bottom:10px;padding:11px 12px;border-radius:10px;border:1px solid var(--line,#47372A);'
+      + 'background:var(--ink,#1C150F);color:inherit;font:inherit;font-size:14px">'
+      + '<div data-animchips style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px">' + chips() + '</div>'
+      + '<div data-animgrid>' + libGrid() + '</div>';
   }
   function libView() {
     var X = window.EBEx; if (!X) return '<div class="empty">ספריית התרגילים לא נטענה.</div>';
-    var byM = {}; X.ALL.forEach(function (x) { byM[x.m] = (byM[x.m] || 0) + 1; });
-    var h = '<div class="head"><div><h1>ספריית הדמיות</h1>'
-      + '<p class="muted">דמות שמבצעת את התנועה, לכל ' + X.ALL.length + ' התרגילים. המתאמן רואה אותה בכפתור "▶ הדמיה" מתחת לתרגיל — '
-      + 'אלא אם העלית סרטון משלך, ואז הוא רואה את הסרטון.</p></div></div>'
-      + '<div class="card" style="margin-bottom:12px"><input class="f" id="anim_q" placeholder="חיפוש לפי שם תרגיל או תנועה" value="' + esc(LQ) + '" '
-      + 'oninput="EBAnim.search(this.value)" style="width:100%;margin-bottom:10px">'
-      + '<div style="display:flex;gap:6px;flex-wrap:wrap">' + chip('all', 'הכול');
-    Object.keys(X.MUSCLES).forEach(function (k) { if (byM[k]) h += chip(k, X.MUSCLES[k]); });
-    return h + '</div></div><div id="animGrid">' + libGrid() + '</div>';
+    return '<div class="head"><div><h1>ספריית הדמיות</h1>'
+      + '<p class="muted">דמות שמבצעת את התנועה, לכל ' + X.ALL.length + ' התרגילים, והשרירים שעובדים מסומנים עליה. '
+      + 'המתאמן רואה אותה בכפתור "▶ הדמיה" מתחת לתרגיל ובספריית ההדמיות שלו — אלא אם העלית סרטון משלך, ואז הוא רואה את הסרטון.</p></div></div>'
+      + '<div class="card" data-animlib>' + libInner() + '</div>';
+  }
+  /* חלון הספרייה בדף המתאמן */
+  function openLibrary() {
+    closeLibrary();
+    var ov = document.createElement('div');
+    ov.id = 'ebAnimLib';
+    ov.style.cssText = 'position:fixed;inset:0;z-index:250;background:rgba(10,7,5,.72);display:flex;align-items:flex-end;justify-content:center';
+    ov.innerHTML = '<div role="dialog" aria-modal="true" style="width:min(760px,100%);height:min(92vh,100%);overflow:auto;background:#241B14;'
+      + 'border:1px solid #47372A;border-radius:18px 18px 0 0;padding:16px 14px 28px;color:#F2E9DD;direction:rtl;-webkit-overflow-scrolling:touch">'
+      + '<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px"><div style="flex:1">'
+      + '<div style="font-weight:800;font-size:20px">ספריית הדמיות</div>'
+      + '<div style="font-size:12px;color:#B8A898">לחיצה על תרגיל פותחת אותו בגדול, עם השרירים שעובדים</div></div>'
+      + '<button aria-label="סגירה" onclick="EBAnim.closeLibrary()" style="width:36px;height:36px;border-radius:50%;border:1px solid #47372A;'
+      + 'background:transparent;color:#F2E9DD;font-size:20px;cursor:pointer">×</button></div>'
+      + '<div data-animlib>' + libInner() + '</div></div>';
+    ov.addEventListener('click', function (e) { if (e.target === ov) closeLibrary(); });
+    document.body.appendChild(ov);
+    document.body.style.overflow = 'hidden';
+    document.addEventListener('keydown', escKey);
+    mountAll(ov);
+  }
+  function closeLibrary() {
+    var m = document.getElementById('ebAnimLib'); if (!m) return;
+    m.remove();
+    if (!document.getElementById('categoryModal') && !document.getElementById('exModal')) document.body.style.overflow = '';
   }
   function chip(k, t) {
     var on = LM === k;
     return '<button onclick="EBAnim.muscle(\'' + k + '\')" style="font:inherit;font-size:12.5px;padding:5px 11px;border-radius:20px;cursor:pointer;'
-      + 'border:1px solid ' + (on ? 'var(--or)' : 'var(--line,#47372A)') + ';background:' + (on ? 'var(--or)' : 'transparent') + ';'
+      + 'border:1px solid ' + (on ? 'var(--or,#C49A6C)' : 'var(--line,#47372A)') + ';background:' + (on ? 'var(--or,#C49A6C)' : 'transparent') + ';'
       + 'color:' + (on ? '#221A12' : 'inherit') + '">' + esc(t) + '</button>';
   }
-  function regrid() {
-    var g = document.getElementById('animGrid'); if (!g) return;
-    g.innerHTML = libGrid(); mountAll(g);
+  function regrid(withChips) {
+    document.querySelectorAll('[data-animlib]').forEach(function (box) {
+      var g = box.querySelector('[data-animgrid]'); if (g) { g.innerHTML = libGrid(); mountAll(g); }
+      var ch = box.querySelector('[data-animchips]'); if (ch && withChips) ch.innerHTML = chips();
+    });
   }
   function search(q) { LQ = q; LLIM = 48; regrid(); }
-  function muscle(m) { LM = m; LLIM = 48; if (typeof render === 'function') render(); }
+  function muscle(m) { LM = m; LLIM = 48; regrid(true); }
   function more() { LLIM += 48; regrid(); }
 
   window.EBAnim = { classify: classify, mount: mount, mountAll: mountAll, has: has, label: label,
                     open: open, close: close, view: libView, search: search, muscle: muscle, more: more,
+                    openLibrary: openLibrary, closeLibrary: closeLibrary, muscles: muscles, MUSCLES: MUS_HE,
                     PATTERNS: P, _frame: frame, _build: build, _draw: draw };
 })();
