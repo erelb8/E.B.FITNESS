@@ -22,7 +22,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['anim'] = 'v211';
+  (window.EB_MOD = window.EB_MOD || {})['anim'] = 'v212';
 
   var L = { shin: 62, thigh: 64, torso: 78, uarm: 46, farm: 42, neck: 9, head: 15, foot: 17 };
   var ARM = L.uarm + L.farm;
@@ -546,6 +546,34 @@
     [/לאנג׳|ספליט סקוואט|קידה/, 'lunge'],
     [/סקוואט|גובלט|כריעה|ישיבה בסקוואט|קוזאק|פיסטול|ברווז/, 'squat']
   ];
+  /* סבב שני: שמות שהוקלדו ביד בתוכניות ("כפיפת ברכיים", "היפ תראסט",
+     "הליכת פארמר", "חימום"). רץ רק כשאף כלל למעלה לא תפס — כך הוא לא
+     יכול לשנות סיווג קיים. נמצאו 52 כאלה מתוך 411 שמות בתוכניות. */
+  var SYN = [
+    [/כפיפ\S* בר[כך]/, 'legcurl'],
+    [/פטיש/, 'curl'],
+    [/פארמר|farmer/i, 'walk'],
+    [/לחיצת שיפוע/, 'press:incline'],
+    [/שכיבות פייק|פייק/, 'pushup'],
+    [/תאומים|הרמת עקבים/, 'calf'],
+    [/(הנפ|הרמ)\S* (רגל|ברכ).*תלייה/, 'hangraise'],
+    [/(הנפ|הרמ)\S* (רגל|ברכ)/, 'legraise'],
+    [/תראסט|ת'רסט/, 'hipthrust'],
+    [/חימום|סיבובי מפרק/, 'circles'],
+    [/מתיחות|הרפיה|שחרור|מוביליטי|ניידות/, 'stretchham'],
+    [/אירובי|Z[1-5]|אינטרוול|טמפו/, 'run'],
+    [/צ׳ופ/, 'woodchop'],
+    [/משיכה כנגד|bent over|בנט אובר/i, 'row'],
+    [/פול אובר/, 'pullover'],
+    [/מקרבים/, 'sidelying'],
+    [/l-sit/i, 'plank'],
+    [/הנפת זרוע|כתף קדמית/, 'raise:front'],
+    [/russian/i, 'twist'],
+    [/פשיטה עם חבל/, 'pushdown'],
+    [/לאונג/, 'lunge'],
+    [/גב תחתון/, 'superman'],
+    [/בטן|ליבה/, 'crunch']
+  ];
   var BY_MUSCLE = { chest: 'press', back: 'row', shoulders: 'ohp', biceps: 'curl', triceps: 'pushdown', quads: 'squat',
     hams: 'hinge', glutes: 'hipthrust', calves: 'calf', core: 'plank', full: 'squat', cardio: 'run', box: 'box',
     power: 'jumpsquat', surf: 'popup', mob: 'circles', flex: 'stretchham' };
@@ -576,6 +604,7 @@
     if (e === 'water' && !/שחיי|שחית|חתירות/.test(n)) { var w = classify(n.replace(/במים/, ''), m, eqFromName(n.replace(/במים/, ''))); return { p: w ? w.p : 'walk', v: w && w.v, e: 'water' }; }
     var p = null;
     for (var i = 0; i < RULES.length; i++) if (RULES[i][0].test(n)) { p = RULES[i][1]; break; }
+    if (!p) for (var j = 0; j < SYN.length; j++) if (SYN[j][0].test(n)) { p = SYN[j][1]; break; }
     if (!p) p = BY_MUSCLE[m] || null;
     if (!p) return null;
     var v = null;

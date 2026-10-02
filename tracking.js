@@ -20,7 +20,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['tracking'] = 'v211';
+  (window.EB_MOD = window.EB_MOD || {})['tracking'] = 'v212';
 
   /* ---------- חישוב היעדים ---------- */
   var ACT = [
