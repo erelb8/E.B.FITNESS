@@ -77,8 +77,8 @@ Object.keys(A.PATTERNS).forEach(k => {
     for (let i = 0; i < 20; i++) {
       const b = A._frame(s, i / 20);
       if (Object.keys(b).some(j => !isFinite(b[j][0]) || !isFinite(b[j][1]))) { nan.push(k + '/' + e); break; }
-      [['hip', 'knee1', 'thigh'], ['knee1', 'ank1', 'shin'], ['hip', 'knee2', 'thigh'], ['knee2', 'ank2', 'shin'],
-       ['sh', 'elb1', 'uarm'], ['elb1', 'wr1', 'farm'], ['sh', 'elb2', 'uarm'], ['elb2', 'wr2', 'farm']].forEach(([a, c, l]) => {
+      [['hip', 'knee1', 'thigh'], ['knee1', 'ank1', 'shin'], ['hip2', 'knee2', 'thigh'], ['knee2', 'ank2', 'shin'],
+       ['sh', 'elb1', 'uarm'], ['elb1', 'wr1', 'farm'], ['sh2', 'elb2', 'uarm'], ['elb2', 'wr2', 'farm']].forEach(([a, c, l]) => {
         const err = Math.abs(d(b[a], b[c]) - L[l]);
         if (err > worst.err) worst = { err: err, at: k + '/' + e + ' ' + a + '-' + c };
       });

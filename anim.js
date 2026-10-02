@@ -22,7 +22,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['anim'] = 'v214';
+  (window.EB_MOD = window.EB_MOD || {})['anim'] = 'v215';
 
   var L = { shin: 62, thigh: 64, torso: 78, uarm: 46, farm: 42, neck: 9, head: 15, foot: 17 };
   var ARM = L.uarm + L.farm;
@@ -82,10 +82,14 @@
   function body(p) {
     var sh = add(p.hip, dir(p.torso), L.torso); sh[1] -= p.shy;
     var hd = add(sh, dir(p.torso + p.head), L.neck + L.head);
-    var k1 = ik(p.hip, p.f1, L.thigh, L.shin, p.kb), k2 = ik(p.hip, p.f2, L.thigh, L.shin, p.kb2);
-    var e1 = ik(sh, p.h1, L.uarm, L.farm, p.eb), e2 = ik(sh, p.h2, L.uarm, L.farm, p.eb2);
+    /* הצד הרחוק יוצא מנקודה מוזזת מעט — בלי זה הדמות נראית שטוחה,
+       כאילו שתי הרגליים והידיים יוצאות מאותו מפרק */
+    var tv = dir(p.torso), dep = [-tv[1] * 0 - 4, -2];
+    var hip2 = [p.hip[0] + dep[0], p.hip[1] + dep[1]], sh2 = [sh[0] + dep[0], sh[1] + dep[1]];
+    var k1 = ik(p.hip, p.f1, L.thigh, L.shin, p.kb), k2 = ik(hip2, p.f2, L.thigh, L.shin, p.kb2);
+    var e1 = ik(sh, p.h1, L.uarm, L.farm, p.eb), e2 = ik(sh2, p.h2, L.uarm, L.farm, p.eb2);
     return {
-      hip: p.hip, sh: sh, head: hd,
+      hip: p.hip, sh: sh, head: hd, hip2: hip2, sh2: sh2,
       knee1: k1.mid, ank1: k1.end, toe1: add(k1.end, dir(p.fa1), L.foot),
       knee2: k2.mid, ank2: k2.end, toe2: add(k2.end, dir(p.fa2), L.foot),
       elb1: e1.mid, wr1: e1.end, elb2: e2.mid, wr2: e2.end
@@ -145,18 +149,18 @@
     var s = seq([A, B], 3000); s.hold = h.hold; s.props = [{ k: 'box', r: [20, -52, 80, 52] }]; return s; } };
   P.hinge = { he: 'ציר ירך', fn: function (eq) {
     var back = eq === 'bar' && false;
-    var A = stand({ h1: HANG }), B = stand({ hip: [-36, -116], torso: 80, h1: ['s', 6, 86] });
+    var A = stand({ h1: HANG }), B = stand({ hip: [-62, -110], torso: 76, h1: ['s', -4, 86] });
     var s = seq([A, B], 3000); s.hold = back ? 'back' : (eq === 'bar' ? 'plate' : (eq === 'db' || eq === 'kb') ? 'hand' : eq === 'band' ? 'bandfoot' : null);
     if (eq === 'cable') { s.hold = 'cable'; s.cable = [40, -6]; }
     return s; } };
   P.deadlift = { he: 'דדליפט', fn: function (eq) {
-    var A = stand({ hip: [-42, -82], torso: 60, h1: ['s', 6, 86] }), B = stand({ h1: HANG });
+    var A = stand({ hip: [-54, -76], torso: 56, h1: ['s', -4, 86] }), B = stand({ h1: HANG });
     var s = seq([A, B], 3000); s.hold = eq === 'bar' || eq === 'smith' ? 'plate' : (eq === 'band' ? 'bandfoot' : 'hand'); return s; } };
   P.goodmorning = { he: 'גוד מורנינג', fn: function (eq) {
-    var A = stand({ h1: ['s', -12, 8] }), B = stand({ hip: [-34, -118], torso: 78, h1: ['s', -12, 8] });
+    var A = stand({ h1: ['s', -12, 8] }), B = stand({ hip: [-60, -112], torso: 76, h1: ['s', -12, 8] });
     var s = seq([A, B], 3000); s.hold = eq === 'bw' ? null : 'back'; return s; } };
   P.swing = { he: 'סווינג', fn: function () {
-    var A = stand({ hip: [-38, -108], torso: 70, h1: ['s', -18, 76] }), B = stand({ torso: -4, h1: ['s', 84, 6] });
+    var A = stand({ hip: [-54, -102], torso: 70, h1: ['s', -28, 74] }), B = stand({ torso: -4, h1: ['s', 84, 6] });
     var s = seq([A, B], 1700); s.hold = 'kb'; return s; } };
   P.hipthrust = { he: 'היפ ת׳רסט', fn: function (eq) {
     var A = { hip: [0, -26], torso: -73, f1: [70, 0], h1: ['h', 4, -6], kb: 'U', eb: 'U' };
@@ -239,7 +243,7 @@
     var A = stand({ h1: ['s', 6, 86] }), B = stand({ h1: up });
     var s = seq([A, B], 2600); s.hold = eq === 'cable' ? 'cable' : eq === 'band' ? 'bandfoot' : eq === 'machine' ? 'handle' : 'hand'; s.cable = [-20, -4]; return s; } };
   P.reardelt = { he: 'כתף אחורית', fn: function (eq) {
-    var A = stand({ hip: [-34, -116], torso: 72, h1: ['s', 6, 86] }), B = stand({ hip: [-34, -116], torso: 72, h1: ['s', -40, 30], eb: 'U' });
+    var A = stand({ hip: [-52, -108], torso: 70, h1: ['s', -4, 86] }), B = stand({ hip: [-52, -108], torso: 70, h1: ['s', -42, 26], eb: 'U' });
     var s = seq([A, B], 2600); s.hold = eq === 'cable' ? 'cable' : eq === 'band' ? 'band' : eq === 'machine' ? 'handle' : 'hand'; s.cable = [80, -10]; return s; } };
   P.facepull = { he: 'פייס פול', fn: function (eq) {
     var A = stand({ f2: [-40, 0], h1: ['s', 84, -4] }), B = stand({ f2: [-40, 0], h1: ['s', 22, -26], eb: 'U' });
@@ -251,7 +255,7 @@
     var A = stand({ h1: ['s', 8, 84] }), B = stand({ h1: ['s', 12, 10], eb: 'U' });
     var s = seq([A, B], 2600); s.hold = eq === 'cable' ? 'cable' : eq === 'bar' ? 'plate' : 'hand'; s.cable = [14, -2]; return s; } };
   P.row = { he: 'חתירה', fn: function (eq) {
-    var A = stand({ hip: [-30, -116], torso: 70, h1: ['s', 4, 86] }), B = stand({ hip: [-30, -116], torso: 70, h1: ['s', -34, 48], eb: 'U' });
+    var A = stand({ hip: [-52, -108], torso: 68, h1: ['s', -6, 86] }), B = stand({ hip: [-52, -108], torso: 68, h1: ['s', -42, 44], eb: 'U' });
     var s = seq([A, B], 2600); s.hold = eq === 'bar' || eq === 'smith' ? 'plate' : eq === 'band' ? 'bandfoot' : 'hand'; return s; } };
   P.seatedrow = { he: 'חתירה בישיבה', fn: function (eq) {
     var A = { hip: [0, -30], torso: 8, f1: [110, -26], h1: ['s', 86, 12], kb: 'U', eb: 'L' }, B = { hip: [0, -30], torso: -6, f1: [110, -26], h1: ['s', 18, 42], kb: 'U', eb: 'L' };
@@ -289,7 +293,7 @@
     var B = { hip: [40, -58], torso: -90, f1: [104, 0], h1: ['s', -32, -40], kb: 'U', eb: 'U' };
     var s = seq([A, B], 2600); s.props = [{ k: 'pbench', v: 'flat' }]; s.hold = eq === 'bar' ? 'plate' : eq === 'cable' ? 'cable' : 'hand'; s.cable = [-110, -40]; return s; } };
   P.kickback = { he: 'קיקבק', fn: function (eq) {
-    var A = stand({ hip: [-30, -116], torso: 72, h1: ['s', -16, 40], eb: 'D' }), B = stand({ hip: [-30, -116], torso: 72, h1: ['s', -84, 22] });
+    var A = stand({ hip: [-52, -108], torso: 72, h1: ['s', -18, 40], eb: 'D' }), B = stand({ hip: [-52, -108], torso: 72, h1: ['s', -84, 22] });
     var s = seq([A, B], 2400); s.hold = eq === 'cable' ? 'cable' : 'hand'; s.cable = [60, -10]; return s; } };
   P.crunch = { he: 'כפיפות בטן', fn: function (eq, v) {
     var top = v === 'situp' ? -12 : -58;
@@ -338,14 +342,28 @@
     var A = { hip: [0, -10], torso: -90, f1: [124, -6], h1: ['s', -86, 4], kb: 'D', eb: 'U' };
     var B = { hip: [0, -10], torso: -102, head: -10, f1: [122, -34], h1: ['s', -84, -24], kb: 'D', eb: 'U' };
     return seq([A, B], 2400); } };
+  /* ריצה בארבעה שלבים: נחיתה מתחת לאגן, דחיפה לאחור כשהברך השנייה
+     עולה קדימה, ואותו דבר לצד השני. רגל באוויר מתקפלת (עקב לישבן). */
   P.run = { he: 'ריצה', fn: function () {
-    var A = { hip: [0, -122], torso: 10, f1: [42, -6], f2: [-56, -34], fa2: 160, h1: ['s', -30, 70], h2: ['s', 40, 54], kb: 'R', kb2: 'D' };
-    var B = { hip: [0, -128], torso: 10, f1: [-56, -34], f2: [42, -6], fa1: 160, h1: ['s', 40, 54], h2: ['s', -30, 70], kb: 'D', kb2: 'R' };
-    var s = seq([A, B], 900); s.props = [{ k: 'tread' }]; return s; } };
+    function ph(near, far, up) {
+      return { hip: [0, up ? -130 : -123], torso: 12, f1: near.f, f2: far.f, fa1: near.fa, fa2: far.fa, kb: near.kb, kb2: far.kb,
+               h1: near.f[0] > 0 ? ['s', -34, 64] : ['s', 38, 48], h2: near.f[0] > 0 ? ['s', 38, 48] : ['s', -34, 64] };
+    }
+    var land = { f: [22, -2], fa: 95, kb: 'R' }, push = { f: [-44, -6], fa: 150, kb: 'R' },
+        swingBack = { f: [-58, -52], fa: 170, kb: 'D' }, driveFwd = { f: [26, -54], fa: 120, kb: 'R' };
+    var s = seq([ph(land, swingBack), ph(push, driveFwd, true), ph(swingBack, land), ph(driveFwd, push, true)], 900);
+    s.cyc = true; s.props = [{ k: 'tread' }]; return s; } };
+  /* הליכה: עקב נוחת, כף רגל שטוחה, דחיפה מהבהונות, והרגל השנייה עוברת
+     קדימה בברך כפופה. תמיד רגל אחת על הקרקע. */
   P.walk = { he: 'הליכה', fn: function (eq) {
-    var A = { hip: [0, -123], torso: 2, f1: [30, 0], f2: [-30, 0], h1: HANG, kb: 'R', kb2: 'R' };
-    var B = { hip: [0, -126], torso: 2, f1: [-30, 0], f2: [30, 0], h1: HANG, kb: 'R', kb2: 'R' };
-    var s = seq([A, B], 1300); s.hold = eq === 'db' || eq === 'kb' ? 'hand' : eq === 'other' ? 'bag' : null;
+    var hh = eq === 'db' || eq === 'kb' || eq === 'other' ? ['s', 2, 86] : null;
+    function ph(f1, f2, fa1, fa2, y, arm) {
+      return { hip: [0, y], torso: 3, f1: f1, f2: f2, fa1: fa1, fa2: fa2, kb: 'R', kb2: 'R',
+               h1: hh || ['s', arm, 84], h2: hh ? ['s', -4, 86] : ['s', -arm, 84] };
+    }
+    var s = seq([ph([30, 0], [-30, -2], 80, 140, -121, -14), ph([2, 0], [8, -20], 90, 110, -126, 0),
+                 ph([-30, -2], [30, 0], 140, 80, -121, 14), ph([8, -20], [2, 0], 110, 90, -126, 0)], 1500);
+    s.cyc = true; s.hold = eq === 'db' || eq === 'kb' ? 'hand' : eq === 'other' ? 'bag' : null;
     if (eq === 'water') s.water = -100; return s; } };
   P.bike = { he: 'אופניים', fn: function () {
     var c = [52, -50], r = 22, kf = [];
@@ -381,7 +399,7 @@
     var C = { hip: [20, -104], torso: -14, f1: [-30, 0], f2: [80, 0], h1: ['s', -60, 30], h2: ['s', 60, 30], kb: 'L', kb2: 'R' };
     var s = seq([A, B, C, C], 2400); s.props = [{ k: 'board' }]; return s; } };
   P.stretchham = { he: 'מתיחה אחורית', fn: function () {
-    var A = stand({ hip: [-30, -120], torso: 70, f2: [40, -2], fa2: 40, h1: ['s', 20, 84] }), B = stand({ hip: [-34, -120], torso: 82, f2: [40, -2], fa2: 40, h1: ['s', 30, 86] });
+    var A = stand({ hip: [-40, -120], torso: 68, f2: [40, -2], fa2: 40, h1: ['s', 20, 84] }), B = stand({ hip: [-52, -116], torso: 80, f2: [40, -2], fa2: 40, h1: ['s', 30, 86] });
     A.kb2 = 'U'; B.kb2 = 'U'; return seq([A, B], 3600); } };
   P.stretchquad = { he: 'מתיחה קדמית', fn: function () {
     var A = stand({ f2: [-34, -96], kb2: 'D', fa2: 0, h1: ['s', -10, 80], h2: [-34, -96] }), B = stand({ f2: [-38, -100], kb2: 'D', fa2: 0, h1: ['s', -10, 80], h2: [-38, -100] });
@@ -657,6 +675,7 @@
   function build(c) {
     var def = P[c.p]; if (!def) return null;
     var s = def.fn(c.e, c.v);
+    if (s.kf.length === 2 && (ECC_FIRST[c.p] || STRENGTH[c.p])) s.dur = Math.max(s.dur, 3400);
     s.res = s.kf.map(function (k) { return resolve(k.p); });
     s.e = c.e; s.p = c.p; s.mus = musclesFor(c);
     if (c.e === 'water' && s.water == null) s.water = -104;
@@ -664,10 +683,36 @@
     s.bb = bounds(s);
     return s;
   }
+  /* קצב: בתרגילי כוח הירידה (האקסצנטרית) איטית, העלייה מהירה, ועצירה
+     קצרה בכל קצה — כמו שמבצעים באמת. ECC_FIRST — תבניות שבהן התנוחה
+     הראשונה היא למעלה והתנועה הראשונה היא ירידה. תנועות מחזוריות
+     (ריצה, הליכה, אופניים) רצות ברצף, בלי עצירות. */
+  var ECC_FIRST = { squat: 1, lunge: 1, bulgarian: 1, hinge: 1, goodmorning: 1, press: 1, fly: 1, pushup: 1, dip: 1,
+                    benchdip: 1, legpress: 1, skull: 1, pullover: 1 };
+  var STRENGTH = { deadlift: 1, calf: 1, legext: 1, legcurl: 1, pulldown: 1, pullup: 1, row: 1, seatedrow: 1, invrow: 1,
+                   curl: 1, pushdown: 1, ohext: 1, kickback: 1, raise: 1, reardelt: 1, facepull: 1, shrug: 1, uprow: 1,
+                   hipthrust: 1, bridge: 1, crunch: 1, legraise: 1, stepup: 1, kickbackleg: 1, sidelying: 1, superman: 1,
+                   pallof: 1, hangraise: 1, ohp: 1 };
+  function smooth(f) { return f * f * f * (f * (f * 6 - 15) + 10); }
+  function phase(s, t) {
+    var n = s.res.length;
+    if (s.cyc) { var x = (t % 1) * n, i = Math.floor(x); return { i: i, f: x - i }; }
+    if (n === 2 && (ECC_FIRST[s.p] || STRENGTH[s.p])) {
+      /* [עצירה בתנוחה 1, תנועה 1←2, עצירה בתנוחה 2, תנועה 2←1] */
+      var tp = ECC_FIRST[s.p] ? [0.08, 0.46, 0.1, 0.36] : [0.08, 0.32, 0.16, 0.44];
+      var u = t % 1;
+      if (u < tp[0]) return { i: 0, f: 0 };
+      u -= tp[0]; if (u < tp[1]) return { i: 0, f: smooth(u / tp[1]) };
+      u -= tp[1]; if (u < tp[2]) return { i: 1, f: 0 };
+      u -= tp[2]; return { i: 1, f: smooth(Math.min(1, u / tp[3])) };
+    }
+    var y = (t % 1) * n, j = Math.floor(y), g = y - j;
+    var hold = 0.12, m = g < hold ? 0 : (g - hold) / (1 - hold);
+    return { i: j, f: smooth(m) };
+  }
   function frame(s, t) {
-    var n = s.res.length, x = (t % 1) * n, i = Math.floor(x), f = x - i;
-    var e = (1 - Math.cos(f * Math.PI)) / 2;
-    return body(mix(s.res[i], s.res[(i + 1) % n], e));
+    var ph = phase(s, t), n = s.res.length;
+    return body(mix(s.res[ph.i], s.res[(ph.i + 1) % n], ph.f));
   }
   function bounds(s) {
     var xs = [], ys = [];
@@ -729,8 +774,8 @@
     });
 
     var far = 0.36;
-    line(b.hip, b.knee2, C.body, lw, far); line(b.knee2, b.ank2, C.body, lw, far); line(b.ank2, b.toe2, C.body, 6, far);
-    line(b.sh, b.elb2, C.body, lw - 1, far); line(b.elb2, b.wr2, C.body, lw - 1, far);
+    line(b.hip2, b.knee2, C.body, lw, far); line(b.knee2, b.ank2, C.body, lw, far); line(b.ank2, b.toe2, C.body, 6, far);
+    line(b.sh2, b.elb2, C.body, lw - 1, far); line(b.elb2, b.wr2, C.body, lw - 1, far);
     line(b.hip, b.sh, C.body, lw + 3);
     line(b.hip, b.knee1, C.body, lw); line(b.knee1, b.ank1, C.body, lw); line(b.ank1, b.toe1, C.body, 6);
     circ(b.head, L.head, C.body, true);
