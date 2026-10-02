@@ -14,7 +14,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['guides'] = 'v212';
+  (window.EB_MOD = window.EB_MOD || {})['guides'] = 'v213';
 
   /* {שם} ו-{קישור} מוחלפים בשליחה למתאמן */
   var G = [

@@ -22,7 +22,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['anim'] = 'v212';
+  (window.EB_MOD = window.EB_MOD || {})['anim'] = 'v213';
 
   var L = { shin: 62, thigh: 64, torso: 78, uarm: 46, farm: 42, neck: 9, head: 15, foot: 17 };
   var ARM = L.uarm + L.farm;
@@ -789,7 +789,9 @@
     ov.addEventListener('click', function (e) { if (e.target === ov) close(); });
     document.body.appendChild(ov);
     var cv = ov.querySelector('canvas'); cv.__animOn = 1;
-    requestAnimationFrame(function () { mount(cv, name); });
+    /* מיד ולא ב-requestAnimationFrame: בלשונית ברקע הוא לא רץ, והחלון
+       נשאר ריק. mount מצייר פריים ראשון בעצמו, והלולאה ממשיכה כשנראים. */
+    mount(cv, name);
     document.addEventListener('keydown', escKey);
     return true;
   }
