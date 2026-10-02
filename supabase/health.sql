@@ -147,7 +147,7 @@ language plpgsql
 security definer
 set search_path = public
 as $$
-declare v_id uuid; v_out jsonb;
+declare v_id text; v_out jsonb;
 begin
   select id into v_id from public.trainees
    where access_token = p_token and access_active
@@ -180,7 +180,7 @@ language plpgsql
 security definer
 set search_path = public
 as $$
-declare v_id uuid; v_rows jsonb; v_day text;
+declare v_id text; v_rows jsonb; v_day text;
 begin
   select id into v_id from public.trainees
    where access_token = p_token and access_active

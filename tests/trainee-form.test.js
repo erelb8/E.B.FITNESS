@@ -29,16 +29,17 @@ function t(name, got, want) {
   if (!ok) console.log('FAIL  ' + name + '\n      got=' + JSON.stringify(got) + '  want=' + JSON.stringify(want));
 }
 
-function render(health, formOpen, data) {
+function render(health, formOpen, data, stored) {
   const ctx = {
     EBHealth, esc, TOKEN: 'tok',
     HEALTH: health, HFORM: formOpen, HOPEN: true, FOLDER: false, DATA: data || { name: 'ישראל ישראלי' },
-    localStorage: { getItem: () => null, setItem: () => {} },
+    localStorage: { getItem: () => (stored ? JSON.stringify(stored) : null), setItem: () => {} },
     document: { getElementById: () => null }
   };
   const body = `
     let HEALTH = __H, HFORM = __F;
     ${grab('hKey')}
+    ${grab('hasHealth')}
     ${grab('hLoad')}
     ${grab('healthFiles')}
     ${grab('healthBlock')}
@@ -73,6 +74,14 @@ const c = render({ signedAt: '2026-09-01', answers: { q1: 'no' } }, false);
 t('מאשר שנשלח',  /ההצהרה נשלחה למאמן/.test(c), true);
 t('מציע עדכון',   /hOpen/.test(c), true);
 t('לא מציג טופס', /h_sign/.test(c), false);
+
+console.log('=== השרת מחזיר הצהרה ריקה ===');
+/* השרת מחזיר {} למי שלא חתם. עד אוקטובר 2026 ה-{} הסתיר את ההצהרה
+   שנשמרה במכשיר, כי השליחה לשרת נכשלה תמיד — והמתאמן נשאל שוב. */
+const e1 = render(null, false, { name: 'x', health: {} }, { signedAt: '2026-09-20', answers: { q1: 'no' } });
+t('{} בשרת לא מסתיר הצהרה מהמכשיר', /ההצהרה נשלחה למאמן/.test(e1), true);
+const e2 = render(null, false, { name: 'x', health: {} });
+t('{} בשרת ואין במכשיר — מזמין למילוי', /למילוי ההצהרה/.test(e2), true);
 
 console.log('=== תשובה נבחרת מסומנת ===');
 const d = render({ answers: { q1: 'yes', q2: 'no' } }, true);

@@ -13,8 +13,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="התוכנית שלי">
 <meta name="robots" content="noindex,nofollow">
-<link rel="apple-touch-icon" href="icons/icon-180.png?v=v203">
-<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=v203">
+<link rel="apple-touch-icon" href="icons/icon-180.png?v=v204">
+<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=v204">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -368,7 +368,7 @@ button{cursor:pointer}
 <body>
 
 <header class="top">
-  <div class="brand"><img class="brand-logo" src="icons/logo-96.png?v=v203" alt="" width="34" height="34"><span>E.B<span class="dot"></span>FIT</span></div>
+  <div class="brand"><img class="brand-logo" src="icons/logo-96.png?v=v204" alt="" width="34" height="34"><span>E.B<span class="dot"></span>FIT</span></div>
   <h1 id="hTitle">טוען…</h1>
   <div class="sub" id="hSub"></div>
   <span class="savechip" id="saveChip" aria-live="polite"></span>
@@ -380,19 +380,19 @@ button{cursor:pointer}
 
 <div id="toast"></div>
 
-<script src="vendor/supabase.js?v=v203"></script>
-<script src="config.js?v=v203"></script>
-<script src="meal-library.js?v=v203"></script>
-<script src="exercise-library.js?v=v203"></script>
-<script src="progress.js?v=v203"></script>
-<script src="habits.js?v=v203"></script>
-<script src="coach-bot.js?v=v203"></script>
-<script src="progress-chart.js?v=v203"></script>
-<script src="workout-log.js?v=v203"></script>
-<script src="targets.js?v=v203"></script>
-<script src="health.js?v=v203"></script>
-<script src="privacy.js?v=v203"></script>
-<script src="guides.js?v=v203"></script>
+<script src="vendor/supabase.js?v=v204"></script>
+<script src="config.js?v=v204"></script>
+<script src="meal-library.js?v=v204"></script>
+<script src="exercise-library.js?v=v204"></script>
+<script src="progress.js?v=v204"></script>
+<script src="habits.js?v=v204"></script>
+<script src="coach-bot.js?v=v204"></script>
+<script src="progress-chart.js?v=v204"></script>
+<script src="workout-log.js?v=v204"></script>
+<script src="targets.js?v=v204"></script>
+<script src="health.js?v=v204"></script>
+<script src="privacy.js?v=v204"></script>
+<script src="guides.js?v=v204"></script>
 <script>
 (function () {
   'use strict';
@@ -501,6 +501,7 @@ button{cursor:pointer}
       writeCache(DATA);
       paint();
       loadExtras();
+      hResend();
     } catch (e) {
       if (!DATA) screen(msg('לא הצלחנו להתחבר', 'בדוק חיבור לאינטרנט ונסה שוב.'));
       else toast('אין חיבור — מוצגת הגרסה השמורה');
@@ -516,6 +517,8 @@ button{cursor:pointer}
   /* פתיחה/סגירה של מודלים גם בריענון — התוכן מתחתם מחדש */
   async function refreshData(silent) {
     if (EDIT_W || !TOKEN || !sb || REFRESHING) return;
+    /* שקילה שלא נשלחה — ניסיון נוסף בכל ריענון, לא רק בטעינה */
+    if (window.EBProg) EBProg.flush();
     REFRESHING = true;
     try {
       const { data, error } = await sb.rpc('trainee_program', { p_token: TOKEN });
@@ -2565,8 +2568,11 @@ button{cursor:pointer}
   let HEALTH = null, HFORM = false;
 
   function hKey() { return 'eb_health_' + (TOKEN || 'x'); }
+  /* השרת מחזיר {} למי שלא חתם. אובייקט ריק אינו הצהרה — בלי הבדיקה הזו
+     הוא הסתיר את ההצהרה ששמורה במכשיר, והמתאמן נשאל שוב. */
+  function hasHealth(h) { return !!(h && typeof h === 'object' && Object.keys(h).length); }
   function hLoad() {
-    if (DATA && DATA.health) return DATA.health;
+    if (DATA && hasHealth(DATA.health)) return DATA.health;
     try { return JSON.parse(localStorage.getItem(hKey()) || 'null'); } catch (e) { return null; }
   }
 
@@ -2696,6 +2702,20 @@ button{cursor:pointer}
     try { localStorage.setItem(hKey(), JSON.stringify(HEALTH)); } catch (e) {}
     paint();
     hPush();
+  }
+
+  /* הצהרה שנחתמה במכשיר ולא הגיעה לשרת נשלחת שוב בכל טעינה. עד אוקטובר
+     2026 הפונקציה בשרת נכשלה תמיד (ראה supabase/fix-weigh-health-id.sql),
+     וההצהרות נשארו במכשירים בלי ניסיון נוסף. */
+  async function hResend() {
+    if (!sb || !TOKEN || !DATA || hasHealth(DATA.health)) return;
+    let loc = null;
+    try { loc = JSON.parse(localStorage.getItem(hKey()) || 'null'); } catch (e) {}
+    if (!loc || !loc.signedAt) return;
+    try {
+      const r = await sb.rpc('trainee_health', { p_token: TOKEN, p_health: loc });
+      if (!r.error && r.data) DATA.health = r.data;
+    } catch (e) {}
   }
 
   async function hPush() {
