@@ -6,7 +6,7 @@
 <title>E.B FIT — ניהול מתאמנים</title>
 
 <!-- ===== PWA — הופך את האתר לאפליקציה במסך הבית ===== -->
-<link rel="manifest" href="manifest.json?v=v209">
+<link rel="manifest" href="manifest.json?v=v210">
 <meta name="theme-color" content="#1C140E">
 <meta name="description" content="מערכת לניהול מתאמנים, תוכניות אימון, יומן ותשלומים">
 
@@ -15,9 +15,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="E.B FIT">
-<link rel="apple-touch-icon" href="icons/icon-180.png?v=v209">
-<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=v209">
-<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=v209">
+<link rel="apple-touch-icon" href="icons/icon-180.png?v=v210">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=v210">
+<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=v210">
 <meta name="format-detection" content="telephone=no">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -444,7 +444,7 @@ tbody tr:hover{background:var(--panel)}
 </head>
 <body>
 <header class="top">
-  <div class="brand"><img class="brand-logo" src="icons/logo-96.png?v=v209" alt="" width="30" height="30">E.B<span class="dot"></span>FIT <small id="brandSub">ניהול מתאמנים</small></div>
+  <div class="brand"><img class="brand-logo" src="icons/logo-96.png?v=v210" alt="" width="30" height="30">E.B<span class="dot"></span>FIT <small id="brandSub">ניהול מתאמנים</small></div>
   <div class="spacer"></div>
   <button class="syncpill s-off" id="syncPill" onclick="go('settings')" title="מצב סנכרון">מקומי בלבד</button>
   <span class="now" id="topDate"></span>
@@ -462,8 +462,8 @@ tbody tr:hover{background:var(--panel)}
 <div id="toast"></div>
 
 <!-- ספריית Supabase מקומית (לא מ-CDN) כדי שהאפליקציה תעבוד גם בלי רשת -->
-<script src="vendor/supabase.js?v=v209"></script>
-<script src="config.js?v=v209"></script>
+<script src="vendor/supabase.js?v=v210"></script>
+<script src="config.js?v=v210"></script>
 
 <script>
 /* =======================================================================
@@ -498,7 +498,7 @@ function age(b){ if(!b) return null; const d=new Date(b), t=new Date(); let a=t.
 
 /* ---------------- אחסון ---------------- */
 const KEY='ebfit_v1';
-const EB_VERSION='v209';   // חייב להתאים ל-VERSION ב-sw.js
+const EB_VERSION='v210';   // חייב להתאים ל-VERSION ב-sw.js
 window.EB_APP_VER=EB_VERSION;   // נשלח בכל שורה — השרת דוחה גרסאות ישנות (sync.js)
 let mem=null, canStore=true;
 function load(){
@@ -1824,7 +1824,7 @@ function tabProgram(t){
     ex.forEach((e,ei)=>{
       h+='<tr data-tid="'+t.id+'" data-di="'+di+'" data-ei="'+ei+'">'+exCell(t.id,di,ei,'name',e.name,'שם התרגיל')+exCell(t.id,di,ei,'sets',e.sets)+exCell(t.id,di,ei,'reps',e.reps)
       +exCell(t.id,di,ei,'weight',e.weight)+exCell(t.id,di,ei,'rest',e.rest)+exNoteCell(t.id,di,ei,e.note)
-      +'<td class="noprint"><div class="row" style="gap:4px;flex-wrap:nowrap"><button class="btn sm ghost exercise-edit" onclick="editExercise(\''+t.id+'\','+di+','+ei+')">עריכה</button><button class="iconbtn" title="מחיקת תרגיל" style="width:28px;height:28px" onclick="delEx(\''+t.id+'\','+di+','+ei+')">✕</button></div></td></tr>';
+      +'<td class="noprint"><div class="row" style="gap:4px;flex-wrap:nowrap">'+(window.EBVideo?EBVideo.btn(t,di,ei,e):'')+'<button class="btn sm ghost exercise-edit" onclick="editExercise(\''+t.id+'\','+di+','+ei+')">עריכה</button><button class="iconbtn" title="מחיקת תרגיל" style="width:28px;height:28px" onclick="delEx(\''+t.id+'\','+di+','+ei+')">✕</button></div></td></tr>';
     });
     if(!ex.length) h+='<tr><td colspan="7" class="muted" style="text-align:center;padding:18px">אין תרגילים ביום הזה.</td></tr>';
     h+='</tbody></table></div></div></div>';
@@ -3231,6 +3231,7 @@ function vSettings(){
 
   h+=syncCard();
 
+  if(window.EBVideo) h+=EBVideo.card();
   h+='<div class="card" style="margin-top:14px"><h3 style="font-size:15px;margin-bottom:10px">מה יש במערכת</h3><div class="grid g4">'
    +stat('מתאמנים',S.trainees.length,'')+stat('אימונים',S.sessions.length,'')+stat('מדידות',S.measures.length,'')+stat('גרסה',EB_VERSION,'')+'</div>'+'<div class="muted" style="font-size:12px;margin-top:10px">אם הגרסה כאן שונה מזו שבפיתוח — הדפדפן מציג עותק ישן. '+'<button class="btn sm ghost" onclick="forceUpdate()">רענון מלא</button></div></div>';
   return h;
@@ -3550,36 +3551,37 @@ if (location.protocol === 'file:') {
 }
 </script>
 
-<script src="health.js?v=v209"></script>
-<script src="privacy.js?v=v209"></script>
-<script src="backup.js?v=v209"></script>
-<script src="reorder.js?v=v209"></script>
-<script src="access.js?v=v209"></script>
-<script src="analysis.js?v=v209"></script>
-<script src="reports.js?v=v209"></script>
-<script src="business.js?v=v209"></script>
-<script src="intake.js?v=v209"></script>
-<script src="files.js?v=v209"></script>
-<script src="builder.js?v=v209"></script>
-<script src="import-program.js?v=v209"></script>
-<script src="tracking.js?v=v209"></script>
-<script src="metrics.js?v=v209"></script>
-<script src="targets.js?v=v209"></script>
-<script src="meal-library.js?v=v209"></script>
+<script src="health.js?v=v210"></script>
+<script src="privacy.js?v=v210"></script>
+<script src="backup.js?v=v210"></script>
+<script src="reorder.js?v=v210"></script>
+<script src="access.js?v=v210"></script>
+<script src="analysis.js?v=v210"></script>
+<script src="reports.js?v=v210"></script>
+<script src="business.js?v=v210"></script>
+<script src="intake.js?v=v210"></script>
+<script src="files.js?v=v210"></script>
+<script src="builder.js?v=v210"></script>
+<script src="import-program.js?v=v210"></script>
+<script src="tracking.js?v=v210"></script>
+<script src="metrics.js?v=v210"></script>
+<script src="targets.js?v=v210"></script>
+<script src="meal-library.js?v=v210"></script>
 <!-- חלקים של המאמן בלבד (תאילנדי, פירות). לא נטען ב-t.html בכוונה. -->
-<script src="meal-extra.js?v=v209"></script>
-<script src="progress-chart.js?v=v209"></script>
-<script src="notes.js?v=v209"></script>
-<script src="notes-ui.js?v=v209"></script>
-<script src="guides.js?v=v209"></script>
-<script src="library-ui.js?v=v209"></script>
-<script src="export-plan.js?v=v209"></script>
-<script src="cardio.js?v=v209"></script>
-<script src="cardio-ui.js?v=v209"></script>
-<script src="exercise-library.js?v=v209"></script>
-<script src="exercise-ui.js?v=v209"></script>
-<script src="meals.js?v=v209"></script>
-<script src="sync.js?v=v209"></script>
+<script src="meal-extra.js?v=v210"></script>
+<script src="progress-chart.js?v=v210"></script>
+<script src="notes.js?v=v210"></script>
+<script src="notes-ui.js?v=v210"></script>
+<script src="guides.js?v=v210"></script>
+<script src="library-ui.js?v=v210"></script>
+<script src="export-plan.js?v=v210"></script>
+<script src="cardio.js?v=v210"></script>
+<script src="cardio-ui.js?v=v210"></script>
+<script src="exercise-library.js?v=v210"></script>
+<script src="exercise-ui.js?v=v210"></script>
+<script src="video.js?v=v210"></script>
+<script src="meals.js?v=v210"></script>
+<script src="sync.js?v=v210"></script>
 <script>
 /* =================== חיבור הסנכרון לאפליקציה =================== */
 
@@ -3994,7 +3996,7 @@ async function toggleAccess(id,active){
         metrics נשאר בגרסה ישנה כי לא הופיע ברשימה קבועה.
      2. הרשימה — תופסת מודול שלא נטען כלל ולכן גם לא הספיק להירשם. */
   const stale  = Object.keys(got).filter(k => got[k] !== EB_VERSION);
-  const need   = ['files','intake','builder','import','sync','tracking','metrics','meals','library','libraryUi','exportPlan','cardio','cardioUi','exLibrary','exUi'];
+  const need   = ['files','intake','builder','import','sync','tracking','metrics','meals','library','libraryUi','exportPlan','cardio','cardioUi','exLibrary','exUi','video'];
   const absent = need.filter(k => got[k] === undefined);
   const bad    = stale.concat(absent);
   if(!bad.length) return;

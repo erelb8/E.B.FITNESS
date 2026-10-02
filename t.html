@@ -13,8 +13,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="התוכנית שלי">
 <meta name="robots" content="noindex,nofollow">
-<link rel="apple-touch-icon" href="icons/icon-180.png?v=v209">
-<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=v209">
+<link rel="apple-touch-icon" href="icons/icon-180.png?v=v210">
+<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=v210">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -368,7 +368,7 @@ button{cursor:pointer}
 <body>
 
 <header class="top">
-  <div class="brand"><img class="brand-logo" src="icons/logo-96.png?v=v209" alt="" width="34" height="34"><span>E.B<span class="dot"></span>FIT</span></div>
+  <div class="brand"><img class="brand-logo" src="icons/logo-96.png?v=v210" alt="" width="34" height="34"><span>E.B<span class="dot"></span>FIT</span></div>
   <h1 id="hTitle">טוען…</h1>
   <div class="sub" id="hSub"></div>
   <span class="savechip" id="saveChip" aria-live="polite"></span>
@@ -380,19 +380,19 @@ button{cursor:pointer}
 
 <div id="toast"></div>
 
-<script src="vendor/supabase.js?v=v209"></script>
-<script src="config.js?v=v209"></script>
-<script src="meal-library.js?v=v209"></script>
-<script src="exercise-library.js?v=v209"></script>
-<script src="progress.js?v=v209"></script>
-<script src="habits.js?v=v209"></script>
-<script src="coach-bot.js?v=v209"></script>
-<script src="progress-chart.js?v=v209"></script>
-<script src="workout-log.js?v=v209"></script>
-<script src="targets.js?v=v209"></script>
-<script src="health.js?v=v209"></script>
-<script src="privacy.js?v=v209"></script>
-<script src="guides.js?v=v209"></script>
+<script src="vendor/supabase.js?v=v210"></script>
+<script src="config.js?v=v210"></script>
+<script src="meal-library.js?v=v210"></script>
+<script src="exercise-library.js?v=v210"></script>
+<script src="progress.js?v=v210"></script>
+<script src="habits.js?v=v210"></script>
+<script src="coach-bot.js?v=v210"></script>
+<script src="progress-chart.js?v=v210"></script>
+<script src="workout-log.js?v=v210"></script>
+<script src="targets.js?v=v210"></script>
+<script src="health.js?v=v210"></script>
+<script src="privacy.js?v=v210"></script>
+<script src="guides.js?v=v210"></script>
 <script>
 (function () {
   'use strict';
@@ -502,6 +502,7 @@ button{cursor:pointer}
       paint();
       loadExtras();
       hResend();
+      loadVideos();
     } catch (e) {
       if (!DATA) screen(msg('לא הצלחנו להתחבר', 'בדוק חיבור לאינטרנט ונסה שוב.'));
       else toast('אין חיבור — מוצגת הגרסה השמורה');
@@ -519,6 +520,7 @@ button{cursor:pointer}
     if (EDIT_W || !TOKEN || !sb || REFRESHING) return;
     /* שקילה שלא נשלחה — ניסיון נוסף בכל ריענון, לא רק בטעינה */
     if (window.EBProg) EBProg.flush();
+    loadVideos();
     REFRESHING = true;
     try {
       const { data, error } = await sb.rpc('trainee_program', { p_token: TOKEN });
@@ -653,6 +655,7 @@ button{cursor:pointer}
       writeCache(d);
       paint();
       loadExtras();
+      loadVideos();
       startAutoRefresh();
     } catch (e) {
       loginScreen((e && e.message) || 'לא הצלחנו להיכנס');
@@ -3208,6 +3211,58 @@ button{cursor:pointer}
       + '</div>';
   }
 
+  /* ---------- סרטוני ביצוע ----------
+     אישי (e.video על התרגיל) גובר על הכללי (לפי שם התרגיל, מהגדרות
+     המאמן דרך trainee_videos). בלי הפונקציה בשרת פשוט אין כפתור. */
+  var VIDEOS = {}, VID_LIST = [];   // var: paint() יכול לרוץ לפני השורה הזו
+  async function loadVideos() {
+    if (!sb || !TOKEN) return;
+    try {
+      const { data, error } = await sb.rpc('trainee_videos', { p_token: TOKEN });
+      if (error || !data || typeof data !== 'object') return;
+      if (JSON.stringify(data) === JSON.stringify(VIDEOS)) return;
+      VIDEOS = data;
+      if (DATA && !EDIT_W) paint();
+    } catch (e) {}
+  }
+  function vidKey(n) { return String(n || '').replace(/\s+/g, ' ').trim(); }
+  function vidOf(e) {
+    if (e && e.video && e.video.url) return e.video.url;
+    const g = VIDEOS[vidKey(e && e.name)];
+    return g && g.url ? g.url : '';
+  }
+  function vidBtn(e) {
+    const url = vidOf(e);
+    if (!url) return '';
+    /* מספר קבוע לכל סרטון, ולא מתאפס בציור: חלון קטגוריה שנשאר פתוח
+       לא מצטייר מחדש, והכפתורים שבו חייבים להמשיך להצביע על אותו סרטון */
+    let n = VID_LIST.findIndex(v => v.url === url && v.name === (e.name || ''));
+    if (n < 0) { VID_LIST.push({ url: url, name: e.name || '' }); n = VID_LIST.length - 1; }
+    return '<button onclick="__vidOpen(' + n + ')" style="margin-top:6px;background:none;'
+      + 'border:1px solid var(--line2);border-radius:20px;padding:3px 11px;font:inherit;font-size:12.5px;'
+      + 'color:var(--or);cursor:pointer">▶ צפייה בביצוע</button>';
+  }
+  window.__vidOpen = (i) => {
+    const v = VID_LIST[i]; if (!v) return;
+    const modal = document.createElement('div');
+    modal.className = 'category-modal';
+    modal.id = 'vidModal';
+    modal.style.zIndex = '110';
+    modal.innerHTML = '<div class="category-dialog" role="dialog" aria-modal="true">'
+      + '<div class="category-dialog-head"><div style="flex:1"><h2 style="font-size:18px">' + esc(v.name) + '</h2></div>'
+      + '<button class="category-close" aria-label="סגירה" onclick="__vidClose()">×</button></div>'
+      + '<video src="' + esc(v.url) + '" controls playsinline autoplay preload="metadata" '
+      + 'style="width:100%;max-height:70vh;border-radius:12px;background:#000;margin-top:10px"></video></div>';
+    modal.addEventListener('click', ev => { if (ev.target === modal) __vidClose(); });
+    document.body.appendChild(modal);
+    document.body.style.overflow = 'hidden';
+  };
+  window.__vidClose = () => {
+    const m = document.getElementById('vidModal');
+    if (m) { const vd = m.querySelector('video'); if (vd) vd.pause(); m.remove(); }
+    if (!document.getElementById('categoryModal') && !document.getElementById('exModal')) document.body.style.overflow = '';
+  };
+
   function exCard(e, i, dayIdx) {
     const d  = (dayIdx == null ? DAY : dayIdx);
     if (EDIT_W) {
@@ -3239,6 +3294,7 @@ button{cursor:pointer}
       + '<div style="flex:1;min-width:0"><div class="nm">' + esc(e.name || 'תרגיל') + '</div>'
       + (meta ? '<div class="meta">' + esc(meta) + '</div>' : '')
       + (e.note ? '<div class="note">' + esc(e.note) + '</div>' : '')
+      + vidBtn(e)
       + '</div></div>'
       + '<div class="logs">'
       + '<input data-f="weight" data-i="' + i + '" data-d="' + d + '" inputmode="decimal" placeholder="משקל" value="' + esc(st.weight != null ? st.weight : (e.weight || '')) + '">'
