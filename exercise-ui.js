@@ -8,7 +8,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['exUi'] = 'v206';
+  (window.EB_MOD = window.EB_MOD || {})['exUi'] = 'v207';
 
   var Q = '', MUS = 'all', EQ = 'all', PLACE = 'all', FOR = null, DAY = 0, TARGET = null;
 
@@ -374,7 +374,7 @@
     strength: { n:'כוח',      comp:['5','3-5','180 שנ׳'],   iso:['3','6-8','90 שנ׳'] },
     mass:     { n:'מסה',      comp:['4','8-10','90 שנ׳'],   iso:['3','10-12','60 שנ׳'] },
     cut:      { n:'חיטוב',    comp:['4','10-12','60 שנ׳'],  iso:['3','12-15','45 שנ׳'] },
-    endur:    { n:'סיבולת',   comp:['3','15-20','45 שנ׳'],  iso:['3','15-20','30 שנ׳'] },
+    endur:    { n:'סבולת',   comp:['3','15-20','45 שנ׳'],  iso:['3','15-20','30 שנ׳'] },
     base:     { n:'כושר כללי', comp:['3','10-12','75 שנ׳'],  iso:['3','12','60 שנ׳'] }
   };
 
@@ -384,7 +384,7 @@
 
   function goalKey(t) {
     var g = String((t && t.goal) || '') + ' ' + String((t && t.goal2) || '');
-    if (/סיבולת|מרתון|טריאתלון|ריצה למרחקים/.test(g)) return 'endur';
+    if (/סיבולת|סבולת|מרתון|טריאתלון|ריצה למרחקים/.test(g)) return 'endur';
     if (/כוח|חזק|פאוור|powerlift/i.test(g))            return 'strength';
     if (/חיטוב|ירידה|שומן|הרזי|לרדת|דיאטה|מיצוק/.test(g)) return 'cut';
     if (/מסה|היפרטרופ|בניית שריר|לעלות|עלייה|נפח/.test(g)) return 'mass';
@@ -438,7 +438,7 @@
         + esc(r.raw.slice(0, 60)) + '</div>'
         + '<div class="muted" style="font-size:11.5px;margin-top:4px">'
         + 'בסיס ' + rx.comp[0] + '×' + rx.comp[1] + ' · מנוחה ' + rx.comp[2]
-        + '  ·  בידוד ' + rx.iso[0] + '×' + rx.iso[1] + ' · מנוחה ' + rx.iso[2]
+        + '  · בידוד ' + rx.iso[0] + '×' + rx.iso[1] + ' · מנוחה ' + rx.iso[2]
         + '</div>'
         + '<div class="muted" style="font-size:11.5px;margin-top:3px">'
         + r.changed + ' תרגילים עודכנו'

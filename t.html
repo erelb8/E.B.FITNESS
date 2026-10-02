@@ -13,8 +13,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="התוכנית שלי">
 <meta name="robots" content="noindex,nofollow">
-<link rel="apple-touch-icon" href="icons/icon-180.png?v=v206">
-<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=v206">
+<link rel="apple-touch-icon" href="icons/icon-180.png?v=v207">
+<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=v207">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -368,7 +368,7 @@ button{cursor:pointer}
 <body>
 
 <header class="top">
-  <div class="brand"><img class="brand-logo" src="icons/logo-96.png?v=v206" alt="" width="34" height="34"><span>E.B<span class="dot"></span>FIT</span></div>
+  <div class="brand"><img class="brand-logo" src="icons/logo-96.png?v=v207" alt="" width="34" height="34"><span>E.B<span class="dot"></span>FIT</span></div>
   <h1 id="hTitle">טוען…</h1>
   <div class="sub" id="hSub"></div>
   <span class="savechip" id="saveChip" aria-live="polite"></span>
@@ -380,19 +380,19 @@ button{cursor:pointer}
 
 <div id="toast"></div>
 
-<script src="vendor/supabase.js?v=v206"></script>
-<script src="config.js?v=v206"></script>
-<script src="meal-library.js?v=v206"></script>
-<script src="exercise-library.js?v=v206"></script>
-<script src="progress.js?v=v206"></script>
-<script src="habits.js?v=v206"></script>
-<script src="coach-bot.js?v=v206"></script>
-<script src="progress-chart.js?v=v206"></script>
-<script src="workout-log.js?v=v206"></script>
-<script src="targets.js?v=v206"></script>
-<script src="health.js?v=v206"></script>
-<script src="privacy.js?v=v206"></script>
-<script src="guides.js?v=v206"></script>
+<script src="vendor/supabase.js?v=v207"></script>
+<script src="config.js?v=v207"></script>
+<script src="meal-library.js?v=v207"></script>
+<script src="exercise-library.js?v=v207"></script>
+<script src="progress.js?v=v207"></script>
+<script src="habits.js?v=v207"></script>
+<script src="coach-bot.js?v=v207"></script>
+<script src="progress-chart.js?v=v207"></script>
+<script src="workout-log.js?v=v207"></script>
+<script src="targets.js?v=v207"></script>
+<script src="health.js?v=v207"></script>
+<script src="privacy.js?v=v207"></script>
+<script src="guides.js?v=v207"></script>
 <script>
 (function () {
   'use strict';
@@ -1086,7 +1086,7 @@ button{cursor:pointer}
 
       + '<details style="margin-top:12px"><summary style="cursor:pointer;font-size:13.5px;color:var(--or);font-weight:700">'
       + '+ מוצר שלא במאגר — הזנה מהתווית</summary>'
-      + '<div class="mt" style="font-size:12px;margin:8px 0 6px;line-height:1.6">הערכים לכל מה שאכלת ממנו, לא ל-100 גרם.</div>'
+      + '<div class="mt" style="font-size:12px;margin:8px 0 6px;line-height:1.6">הערכים לכל הכמות שאכלת, לא ל-100 גרם.</div>'
       + '<input data-mf="n" placeholder="שם המוצר" style="width:100%;margin-bottom:6px;' + inpCss + '">'
       + '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px">'
       + ['k:קק״ל', 'p:חלבון', 'c:פחמ׳', 'f:שומן'].map(s => { const [k, l] = s.split(':');
@@ -2084,7 +2084,7 @@ button{cursor:pointer}
     let h = '';
 
     /* ----- מוביליטי ----- */
-    h += '<div style="font-family:Frank Ruhl Libre,serif;font-weight:700;font-size:15px;margin:2px 0 10px">מוביליטי ומתיחות</div>';
+    h += '<div style="font-family:Frank Ruhl Libre,serif;font-weight:700;font-size:15px;margin:2px 0 10px">מוביליות ומתיחות</div>';
     h += trainerNote(prog.mobilityNote, 'הערה למתיחות');
     h += '<div class="card" style="margin-bottom:12px">' + habWeek('mob') + '</div>';
 
@@ -2135,7 +2135,7 @@ button{cursor:pointer}
       + categoryTile('food','תזונה','ארוחות ויעדים')
       + categoryTile('body','גוף','מדדים ובריאות')
       + categoryTile('follow','מעקב','התקדמות והרגלים')
-      + categoryTile('habits','הרגלים','מוביליטי ותזונה')
+      + categoryTile('habits','הרגלים','מוביליות ותזונה')
       + guidesTile()
       + '</div>';
   }
@@ -2751,7 +2751,7 @@ button{cursor:pointer}
       + '<div style="font-family:Frank Ruhl Libre,serif;font-weight:700;font-size:16px;margin-bottom:4px">'
       + 'הצהרת בריאות</div>'
       + '<div style="font-size:12.5px;color:var(--mut);line-height:1.6;margin-bottom:12px">'
-      + 'ענה בכנות. תשובת כן לא מונעת ממך להתאמן — היא רק אומרת שנצטרך '
+      + 'ענה בכנות. תשובת "כן" לא מונעת ממך להתאמן — היא רק אומרת שנצטרך '
       + 'אישור רופא לפני שמתחילים.</div>'
       + (typeof EBPrivacy !== 'undefined' ? EBPrivacy.noticeHTML(true) : '');
 
@@ -3049,7 +3049,7 @@ button{cursor:pointer}
       + 'שבניתי לפי המטרה שלך, וההחלטה מה לאכול היא שלך. אין בהם אבחון, טיפול '
       + 'או תחליף לייעוץ רפואי.'
       + '<br><br>'
-      + 'אם יש לך מצב רפואי, אתה נוטל תרופות, בהיריון או עם אלרגיה או רגישות — '
+      + 'אם יש לך מצב רפואי, אלרגיה או רגישות, אם אתה נוטל תרופות או אם את בהיריון — '
       + 'כדאי להתייעץ עם רופא או דיאטן קליני לפני שינוי בתזונה, ולעדכן אותי '
       + 'במגבלות כדי שאתאים את ההמלצה.'
       + '</div>'
@@ -3217,7 +3217,7 @@ button{cursor:pointer}
         + '<div class="editgrid">'
         + '<label>סטים<input data-ef="sets" data-i="' + i + '" data-d="' + d + '" value="' + esc(e.sets || '') + '"></label>'
         + '<label>חזרות<input data-ef="reps" data-i="' + i + '" data-d="' + d + '" value="' + esc(e.reps || '') + '"></label>'
-        + '<label>מנוחה (שנ)<input data-ef="rest" data-i="' + i + '" data-d="' + d + '" value="' + esc(e.rest || '') + '" inputmode="numeric"></label>'
+        + '<label>מנוחה (שנ׳)<input data-ef="rest" data-i="' + i + '" data-d="' + d + '" value="' + esc(e.rest || '') + '" inputmode="numeric"></label>'
         + '<label>משקל<input data-ef="weight" data-i="' + i + '" data-d="' + d + '" value="' + esc(e.weight || '') + '"></label>'
         + '</div>'
         + '<input class="exnote" data-ef="note" data-i="' + i + '" data-d="' + d + '" value="' + esc(e.note || '') + '" placeholder="הערה (אופציונלי)">'

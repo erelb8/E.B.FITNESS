@@ -6,7 +6,7 @@
 <title>E.B FIT — ניהול מתאמנים</title>
 
 <!-- ===== PWA — הופך את האתר לאפליקציה במסך הבית ===== -->
-<link rel="manifest" href="manifest.json?v=v206">
+<link rel="manifest" href="manifest.json?v=v207">
 <meta name="theme-color" content="#1C140E">
 <meta name="description" content="מערכת לניהול מתאמנים, תוכניות אימון, יומן ותשלומים">
 
@@ -15,9 +15,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="E.B FIT">
-<link rel="apple-touch-icon" href="icons/icon-180.png?v=v206">
-<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=v206">
-<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=v206">
+<link rel="apple-touch-icon" href="icons/icon-180.png?v=v207">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=v207">
+<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=v207">
 <meta name="format-detection" content="telephone=no">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -444,7 +444,7 @@ tbody tr:hover{background:var(--panel)}
 </head>
 <body>
 <header class="top">
-  <div class="brand"><img class="brand-logo" src="icons/logo-96.png?v=v206" alt="" width="30" height="30">E.B<span class="dot"></span>FIT <small id="brandSub">ניהול מתאמנים</small></div>
+  <div class="brand"><img class="brand-logo" src="icons/logo-96.png?v=v207" alt="" width="30" height="30">E.B<span class="dot"></span>FIT <small id="brandSub">ניהול מתאמנים</small></div>
   <div class="spacer"></div>
   <button class="syncpill s-off" id="syncPill" onclick="go('settings')" title="מצב סנכרון">מקומי בלבד</button>
   <span class="now" id="topDate"></span>
@@ -462,8 +462,8 @@ tbody tr:hover{background:var(--panel)}
 <div id="toast"></div>
 
 <!-- ספריית Supabase מקומית (לא מ-CDN) כדי שהאפליקציה תעבוד גם בלי רשת -->
-<script src="vendor/supabase.js?v=v206"></script>
-<script src="config.js?v=v206"></script>
+<script src="vendor/supabase.js?v=v207"></script>
+<script src="config.js?v=v207"></script>
 
 <script>
 /* =======================================================================
@@ -482,7 +482,7 @@ const isoOf = d => d.getFullYear() + '-'
   + String(d.getDate()).padStart(2,'0');
 const todayISO = () => isoOf(new Date());
 const HE_DAYS = ['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'];
-const HE_MON = ['ינו','פבר','מרץ','אפר','מאי','יונ','יול','אוג','ספט','אוק','נוב','דצמ'];
+const HE_MON = ['ינו','פבר','מרץ','אפר','מאי','יוני','יולי','אוג','ספט','אוק','נוב','דצמ'];
 function fmtDate(iso){ if(!iso) return '—'; const d=new Date(iso+'T00:00'); return d.getDate()+' '+HE_MON[d.getMonth()]; }
 function fmtFull(iso){ if(!iso) return '—'; const d=new Date(iso+'T00:00'); return d.getDate()+'.'+(d.getMonth()+1)+'.'+d.getFullYear(); }
 function addDays(iso,n){ const d=new Date(iso+'T00:00'); d.setDate(d.getDate()+n); return isoOf(d); }
@@ -498,7 +498,7 @@ function age(b){ if(!b) return null; const d=new Date(b), t=new Date(); let a=t.
 
 /* ---------------- אחסון ---------------- */
 const KEY='ebfit_v1';
-const EB_VERSION='v206';   // חייב להתאים ל-VERSION ב-sw.js
+const EB_VERSION='v207';   // חייב להתאים ל-VERSION ב-sw.js
 window.EB_APP_VER=EB_VERSION;   // נשלח בכל שורה — השרת דוחה גרסאות ישנות (sync.js)
 let mem=null, canStore=true;
 function load(){
@@ -1634,7 +1634,7 @@ function traineeLinkCard(t){
 
   const link = EBSync.traineeLink(t);
   if(!link){
-    h+='<p class="muted" style="font-size:13px;margin:0">הקישור ייווצר בסנכרון הבא. לחץ סנכרון עכשיו בהגדרות.</p></div>';
+    h+='<p class="muted" style="font-size:13px;margin:0">הקישור ייווצר בסנכרון הבא. אפשר ללחוץ על "סנכרון עכשיו" בהגדרות.</p></div>';
     return h;
   }
 
@@ -2089,7 +2089,7 @@ function mobilityCard(t){
   const list=Array.isArray(p.mobility)?p.mobility:[];
   let h='<div class="card" style="margin-bottom:12px">'
    +'<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">'
-   +'<div style="font-family:Heebo;font-weight:700;font-size:14px;flex:1">מתיחות ומוביליטי</div>'
+   +'<div style="font-family:Heebo;font-weight:700;font-size:14px;flex:1">מתיחות ומוביליות</div>'
    +'<button class="btn sm ghost" onclick="addMob(&#39;'+t.id+'&#39;)">+ מתיחה</button></div>'
    +mobCopyRow(t);
   if(!list.length){
@@ -2667,7 +2667,7 @@ function waMsg(id){
       +'✍️ משהו כאב או הרגיש לא נכון? *הערה למאמן*\n'
       +'ככה אני יודע בדיוק איפה את'+(she?'':'ה')+' ומתאים את התוכנית 🙌'],
     ['לא דיווח/ה','היי '+n+', מה שלומך? 🙂\n'
-      +'ראיתי שהשבוע לא נכנסו דיווחים בדף. הכל בסדר?\n'
+      +'ראיתי שהשבוע לא נכנסו דיווחים בדף. הכול בסדר?\n'
       +'אם משהו לא עובד בקישור או שקשה לסמן — תגיד'+(she?'י':'')+' לי ונסדר.\n'
       +'גם אימון אחד שמסומן עוזר לי להתאים לך את התוכנית 💪'],
     ['כל הכבוד','כל הכבוד על האימון '+n+'! 🔥\nראיתי את הדיווח. שתייה, חלבון ומנוחה טובה.'],
@@ -2718,7 +2718,7 @@ function weeklySummary(t){
   if(fDays) L.push('🍽 תזונה: רשמת '+fDays+' מתוך 7 ימים'+(fSum?' · ממוצע '+Math.round(fSum/fDays).toLocaleString('he-IL')+' קק״ל'+(goal?' (היעד '+Math.round(goal).toLocaleString('he-IL')+')':''):''));
   L.push('');
   // משפט אחד לפי הנתונים
-  if(!wk) L.push('השבוע לא נרשם אימון. הכל בסדר? '+(she?'תכתבי':'תכתוב')+' לי ונתאים את התוכנית לשבוע הקרוב.');
+  if(!wk) L.push('השבוע לא נרשם אימון. הכול בסדר? '+(she?'תכתבי':'תכתוב')+' לי ונתאים את התוכנית לשבוע הקרוב.');
   else if(wk>pw) L.push('שבוע חזק יותר מהקודם — ככה בונים התקדמות 🔥');
   else if(wk>=3) L.push('עקביות מעולה. ממשיכים באותו קצב 👏');
   else L.push('כל אימון נחשב. השבוע הבא — '+(she?'בואי':'בוא')+' ננסה להוסיף עוד אחד.');
@@ -2928,7 +2928,7 @@ function payByCat(list){
      +(by[k].mon?'<span class="muted" style="font-size:12px;margin-inline-end:10px">החודש '+money(by[k].mon)+'</span>':'')
      +'<b style="font-family:Heebo">'+money(by[k].all)+'</b></div>'
      +'<div style="height:5px;background:var(--panel);border-radius:20px;overflow:hidden"><div style="height:100%;width:'+Math.round(by[k].all/max*100)+'%;background:linear-gradient(90deg,var(--or),var(--amber))"></div></div></div>').join('')
-   +'<div class="muted" style="font-size:11.5px;margin-top:8px">לתשלומים ישנים בלי קטגוריה היא מנוחשת מההערה. לחיצה על תשלום פותחת אותו לעריכה.</div></div>';
+   +'<div class="muted" style="font-size:11.5px;margin-top:8px">בתשלומים ישנים בלי קטגוריה, הקטגוריה נקבעת לפי ההערה. לחיצה על תשלום פותחת אותו לעריכה.</div></div>';
 }
 
 /* =================== התקדמות כללית =================== */
@@ -3216,7 +3216,7 @@ function vSettings(){
    +'<div class="sep"></div>'
    +'<h3 style="font-size:15px;margin-bottom:8px">הבוט שבונה פיצ׳רים</h3>'
    +'<p class="muted" style="font-size:13px;margin:0 0 10px">'
-   +'<b style="color:var(--tx)">אופציונלי — המערכת עובדת מלא בלעדיו.</b> '
+   +'<b style="color:var(--tx)">אופציונלי — המערכת עובדת באופן מלא גם בלעדיו.</b> '
    +'מפתח Anthropic API מאפשר לבוט שבלשונית הפיצ׳רים לנסח ולבנות פיצ׳ר חדש בעצמו. '
    +'זה שירות בתשלום לפי שימוש (בערך 10–30 סנט לפיצ׳ר). '
    +'בלי מפתח — 8 המודולים המוכנים עובדים, והרעיונות שתכתוב לבוט נשמרים ברשימה. '
@@ -3540,42 +3540,42 @@ if (location.protocol === 'file:') {
   window.addEventListener('load', () => {
     setTimeout(() => {
       if (typeof toast === 'function')
-        toast('נפתח כקובץ מקומי — הנתונים עלולים לא להישמר');
+        toast('נפתח כקובץ מקומי — ייתכן שהנתונים לא יישמרו');
     }, 1200);
   });
 }
 </script>
 
-<script src="health.js?v=v206"></script>
-<script src="privacy.js?v=v206"></script>
-<script src="backup.js?v=v206"></script>
-<script src="reorder.js?v=v206"></script>
-<script src="access.js?v=v206"></script>
-<script src="analysis.js?v=v206"></script>
-<script src="reports.js?v=v206"></script>
-<script src="business.js?v=v206"></script>
-<script src="intake.js?v=v206"></script>
-<script src="files.js?v=v206"></script>
-<script src="builder.js?v=v206"></script>
-<script src="import-program.js?v=v206"></script>
-<script src="tracking.js?v=v206"></script>
-<script src="metrics.js?v=v206"></script>
-<script src="targets.js?v=v206"></script>
-<script src="meal-library.js?v=v206"></script>
+<script src="health.js?v=v207"></script>
+<script src="privacy.js?v=v207"></script>
+<script src="backup.js?v=v207"></script>
+<script src="reorder.js?v=v207"></script>
+<script src="access.js?v=v207"></script>
+<script src="analysis.js?v=v207"></script>
+<script src="reports.js?v=v207"></script>
+<script src="business.js?v=v207"></script>
+<script src="intake.js?v=v207"></script>
+<script src="files.js?v=v207"></script>
+<script src="builder.js?v=v207"></script>
+<script src="import-program.js?v=v207"></script>
+<script src="tracking.js?v=v207"></script>
+<script src="metrics.js?v=v207"></script>
+<script src="targets.js?v=v207"></script>
+<script src="meal-library.js?v=v207"></script>
 <!-- חלקים של המאמן בלבד (תאילנדי, פירות). לא נטען ב-t.html בכוונה. -->
-<script src="meal-extra.js?v=v206"></script>
-<script src="progress-chart.js?v=v206"></script>
-<script src="notes.js?v=v206"></script>
-<script src="notes-ui.js?v=v206"></script>
-<script src="guides.js?v=v206"></script>
-<script src="library-ui.js?v=v206"></script>
-<script src="export-plan.js?v=v206"></script>
-<script src="cardio.js?v=v206"></script>
-<script src="cardio-ui.js?v=v206"></script>
-<script src="exercise-library.js?v=v206"></script>
-<script src="exercise-ui.js?v=v206"></script>
-<script src="meals.js?v=v206"></script>
-<script src="sync.js?v=v206"></script>
+<script src="meal-extra.js?v=v207"></script>
+<script src="progress-chart.js?v=v207"></script>
+<script src="notes.js?v=v207"></script>
+<script src="notes-ui.js?v=v207"></script>
+<script src="guides.js?v=v207"></script>
+<script src="library-ui.js?v=v207"></script>
+<script src="export-plan.js?v=v207"></script>
+<script src="cardio.js?v=v207"></script>
+<script src="cardio-ui.js?v=v207"></script>
+<script src="exercise-library.js?v=v207"></script>
+<script src="exercise-ui.js?v=v207"></script>
+<script src="meals.js?v=v207"></script>
+<script src="sync.js?v=v207"></script>
 <script>
 /* =================== חיבור הסנכרון לאפליקציה =================== */
 
@@ -3714,10 +3714,10 @@ function traineeGuide(t, link){
    +'4. *הערה למאמן* — אם משהו כאב או הרגיש לא נכון\n'
    +'5. *סיימתי את האימון הזה* — וזה מגיע אליי ✅\n\n'
    +'*🍽 תזונה*\n'
-   +'התפריט הוא אפשרויות, לא חובה לאכול הכל. אכלתם ארוחה? לוחצים *אכלתי?* והיא נספרת מול היעד היומי.\n\n'
+   +'התפריט הוא אפשרויות, לא חובה לאכול הכול. אכלתם ארוחה? לוחצים *אכלתי?* והיא נספרת מול היעד היומי.\n\n'
    +'*⚖️ שקילה*\n'
    +'פעם בשבוע ב*מעקב* — הכי מדויק ביום חמישי בבוקר, לפני שאוכלים.\n\n'
-   +'הכל נשמר לבד. אני רואה מה שמסמנים ומתאים את התוכנית לפי זה.\n'
+   +'הכול נשמר לבד. אני רואה מה שמסמנים ומתאים את התוכנית לפי זה.\n'
    +'הקישור אישי — לא להעביר הלאה. שאלות? אני כאן 🙌';
 }
 function sendProgram(id){
@@ -3837,7 +3837,7 @@ function showLogins(done, failed){
   const txt = 'כתובת הכניסה: '+base+'\n\n'
     + done.map(d=>d.t.name+'\nשם משתמש: '+d.u+'\nסיסמה: '+d.p).join('\n\n');
   h += '</div><div class="mf">'
-    + '<button class="btn" onclick="copyLogins()">העתקת הכל</button>'
+    + '<button class="btn" onclick="copyLogins()">העתקת הכול</button>'
     + '<button class="btn ghost" onclick="closeModal()">סגירה</button></div>';
   window.__logins = txt;
   openModal(h, true);
@@ -3853,7 +3853,7 @@ function sendLogin(id, pass){
   const msg = 'היי '+t.name+'! 💪\n\nהתוכנית שלך מוכנה:\n'+base
     +'\n\nשם משתמש: '+(t._username||'')+'\nסיסמה: '+pass
     +'\n\nשם תראה את היעדים, התוכנית והקבצים שלך, ותוכל לסמן מה ביצעת.'
-    +'\nטיפ: בסאפארי → שיתוף → הוספה למסך הבית, וזה יישב כאפליקציה.';
+    +'\nטיפ: בספארי ← שיתוף ← הוספה למסך הבית, וזה יישב כאפליקציה.';
   let ph=(t.phone||'').replace(/\D/g,''); if(ph.startsWith('0')) ph='972'+ph.slice(1);
   window.open('https://wa.me/'+ph+'?text='+encodeURIComponent(msg),'_blank');
 }
@@ -3884,7 +3884,7 @@ async function quickPass(id){
 
   const p=prompt('סיסמה חדשה ל'+t.name+' (6 תווים לפחות):','');
   if(p===null) return;
-  if(String(p).length<6){ toast('הסיסמה חייבת לפחות 6 תווים'); return; }
+  if(String(p).length<6){ toast('הסיסמה צריכה להכיל לפחות 6 תווים'); return; }
 
   toast('מעדכן…');
   try{
@@ -3912,7 +3912,7 @@ async function saveTraineeLogin(id){
   const t=tById(id); if(!t) return;
   if(!u){ toast('צריך שם משתמש'); return; }
   if(!t._username && !p){ toast('צריך גם סיסמה בפעם הראשונה'); return; }
-  if(p && p.length<6){ toast('הסיסמה חייבת לפחות 6 תווים'); return; }
+  if(p && p.length<6){ toast('הסיסמה צריכה להכיל לפחות 6 תווים'); return; }
 
   /* אזהרה לפני שינוי שם משתמש קיים. מתאמן שכבר קיבל את הפרטים
      נחסם ברגע שהשם משתנה, ובלי האזהרה הזאת זה קרה בשקט. */

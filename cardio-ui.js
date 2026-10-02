@@ -10,7 +10,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['cardioUi'] = 'v206';
+  (window.EB_MOD = window.EB_MOD || {})['cardioUi'] = 'v207';
 
   var SHOW_F = false;   // הצגת הנוסחאות
 
@@ -374,7 +374,7 @@
         + '<td style="padding:8px 5px;border-bottom:1px solid var(--line);color:var(--mut);'
         + 'font-size:11.5px;line-height:1.5">' + esc(r.why) + '</td></tr>';
     });
-    return card('הפוגות - יחסי עבודה ומנוחה', h + '</tbody></table></div>', 'מערכות אנרגיה');
+    return card('הפוגות — יחסי עבודה ומנוחה', h + '</tbody></table></div>', 'מערכות אנרגיה');
   }
 
   /* ---------------- אינטרוולים וספרינטים ---------------- */
@@ -420,7 +420,7 @@
         + esc(x.why) + '</div></div>';
     });
     h += '<div class="muted" style="font-size:11.5px;margin-top:6px">'
-      + 'ספרינטים תמיד אחרי חימום מלא, ולעולם לא בסוף אימון כשהשרירים עייפים - שם רוב '
+      + 'ספרינטים תמיד אחרי חימום מלא, ולעולם לא בסוף אימון כשהשרירים עייפים — שם רוב '
       + 'קרעי ההמסטרינג קורים.</div>';
 
     return card('אינטרוולים וספרינטים', h, iv.list.length + ' פרוטוקולים');

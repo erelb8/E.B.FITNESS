@@ -14,7 +14,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['guides'] = 'v206';
+  (window.EB_MOD = window.EB_MOD || {})['guides'] = 'v207';
 
   /* {שם} ו-{קישור} מוחלפים בשליחה למתאמן */
   var G = [
@@ -41,7 +41,7 @@
 'משקל וחזרות בכל סט. המספר הגדול למעלה הוא הנפח (משקל × חזרות).\n' +
 'רק מהמספרים האלה אני יודע מתי להעלות לך משקל ובכמה.\n\n' +
 '*🍽 תזונה*\n' +
-'התפריט הוא אפשרויות, לא חובה לאכול הכל.\n' +
+'התפריט הוא אפשרויות, לא חובה לאכול הכול.\n' +
 'אכלת ארוחה? לוחצים *אכלתי?* והיא נספרת מול היעד היומי.\n' +
 'אכלת משהו אחר? לוחצים *+ אכלתי משהו שלא בתפריט*, או מוסיפים מ*ספריית הארוחות*.\n' +
 'יש לך ארוחה קבועה שלא בתפריט? *✎ הזנת ארוחה משלי* — בוחרים מה יש בצלחת וכמה, והיא נכנסת לתפריט עם כל הערכים.\n\n' +
@@ -50,8 +50,8 @@
 '*📈 מעקב*\n' +
 'שקילה פעם בשבוע, גרף התקדמות לכל תרגיל, ו"המאמן החכם" שאומר מתי להעלות משקל ומה נתקע.\n\n' +
 '*🧘 הרגלים*\n' +
-'מתיחות ומוביליטי לסימון יומי, וסימון תזונה.\n\n' +
-'*הכל נשמר לבד* — גם בלי אינטרנט במכון. אני רואה מה שסימנת ומתאים את התוכנית לפי זה.' },
+'מתיחות ומוביליות לסימון יומי, וסימון תזונה.\n\n' +
+'*הכול נשמר לבד* — גם בלי אינטרנט במכון. אני רואה מה שסימנת ומתאים את התוכנית לפי זה.' },
 
     { id: 'mark', ic: '✅', t: 'איך מסמנים אימון', d: 'למי שלא מדווח — הסבר קצר וממוקד',
       wa: true,
@@ -68,7 +68,7 @@
       wa: true,
       body:
 '{שם}, לגבי התזונה באפליקציה:\n\n' +
-'• התפריט הוא *אפשרויות* — לא חובה לאכול הכל. בוחרים מכל קטגוריה מה שמתאים היום.\n' +
+'• התפריט הוא *אפשרויות* — לא חובה לאכול הכול. בוחרים מכל קטגוריה מה שמתאים היום.\n' +
 '• אכלת ארוחה מהתפריט? לוחצים *אכלתי?* והיא נספרת מול היעד היומי.\n' +
 '• אכלת משהו שלא בתפריט? לוחצים *+ אכלתי משהו שלא בתפריט*, או מוסיפים מ*ספריית הארוחות*.\n' +
 '• יש לך ארוחה קבועה שלא בתפריט? *✎ הזנת ארוחה משלי* — בוחרים מה יש בצלחת וכמה, והיא נכנסת לתפריט שלך עם כל הערכים.\n\n' +
@@ -239,7 +239,7 @@
         + '<div style="font-size:22px;line-height:1">' + g.ic + '</div>'
         + '<div style="flex:1;min-width:0">'
         + '<div style="font-family:Heebo;font-weight:700;font-size:15px">' + esc(g.t)
-        + (edited(g) ? ' <span class="pill" style="font-size:10.5px">ערוך שלי</span>' : '') + '</div>'
+        + (edited(g) ? ' <span class="pill" style="font-size:10.5px">נערך</span>' : '') + '</div>'
         + '<div class="muted" style="font-size:12.5px;margin-top:2px">' + esc(g.d) + '</div>'
         + '<div class="muted" style="font-size:12px;margin-top:8px;line-height:1.6;'
         + 'overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">'
@@ -248,7 +248,7 @@
         + '<div class="row" style="gap:6px;margin-top:11px;flex-wrap:wrap">'
         + '<button class="btn sm" onclick="EBGuides.copy(\'' + g.id + '\')">העתקה</button>'
         + '<button class="btn sm ghost" onclick="EBGuides.show(\'' + g.id + '\')">תצוגה</button>'
-        + (t ? '<button class="btn sm ghost" onclick="EBGuides.wa(\'' + g.id + '\')">שליחה בוואטסאפ</button>' : '')
+        + (t ? '<button class="btn sm ghost" onclick="EBGuides.wa(\'' + g.id + '\')">שליחה בווטסאפ</button>' : '')
         + (g.warm ? '<div style="flex:1"></div><button class="btn sm ghost" onclick="EBGuides.toWarm()">הכנסה לתוכנית</button>' : '')
         + (g.warm ? '' : '<div style="flex:1"></div><button class="btn sm ghost" onclick="EBGuides.edit(\'' + g.id + '\')">עריכה</button>')
         + '</div></div>';
@@ -288,7 +288,7 @@
       + '<button class="iconbtn" onclick="closeModal()">✕</button></div><div class="mb">'
       + '<textarea class="f" id="gd_show" readonly rows="16" style="width:100%;line-height:1.7;font-size:13.5px">'
       + esc(bodyFor(id)) + '</textarea>'
-      + '<div class="muted" style="font-size:12px;margin-top:8px">אפשר לסמן הכל ולהעתיק ידנית.</div>'
+      + '<div class="muted" style="font-size:12px;margin-top:8px">אפשר לסמן הכול ולהעתיק ידנית.</div>'
       + '</div><div class="mf"><button class="btn" onclick="EBGuides.copy(\'' + id + '\')">העתקה</button>'
       + '<button class="btn ghost" onclick="closeModal()">סגירה</button></div>', true);
   }

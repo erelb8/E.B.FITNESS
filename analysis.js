@@ -18,7 +18,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['analysis'] = 'v206';
+  (window.EB_MOD = window.EB_MOD || {})['analysis'] = 'v207';
 
   /* ---------- כיוון המטרה ---------- */
   var DOWN = ['ירידה', 'להוריד', 'לרדת', 'חיטוב', 'לחטב', 'שריפת שומן', 'הרזיה', 'לרזות', 'אחוז שומן'];
@@ -530,7 +530,7 @@
         + '<td style="font-size:12.5px">' + esc(x.a.monthly.ok ? x.a.monthly.txt : '—') + '</td>'
         + '<td class="muted" style="font-size:12.5px">'
         + (x.a.lastAt ? 'לפני ' + x.a.daysSince + ' ימים' : 'אין') + '</td>'
-        + '<td><button class="btn sm ghost" onclick="go(\'trainee\',\'' + x.t.id + '\')">פתח</button></td></tr>';
+        + '<td><button class="btn sm ghost" onclick="go(\'trainee\',\'' + x.t.id + '\')">פתיחה</button></td></tr>';
     });
 
     return h + '</tbody></table></div></div>';

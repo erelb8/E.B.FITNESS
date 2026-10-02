@@ -20,7 +20,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['tracking'] = 'v206';
+  (window.EB_MOD = window.EB_MOD || {})['tracking'] = 'v207';
 
   /* ---------- חישוב היעדים ---------- */
   var ACT = [
@@ -193,7 +193,7 @@
     h += '<div class="row" style="margin-top:12px">'
       + '<span class="muted" style="font-size:12px">נשמר אוטומטית</span>'
       + '<label style="font-size:13.5px;display:flex;align-items:center;gap:7px;margin-inline-start:8px">'
-      + '<input type="checkbox" id="tr_complete"' + (row && row.complete ? ' checked' : '') + '> הכל הוזן להיום</label>'
+      + '<input type="checkbox" id="tr_complete"' + (row && row.complete ? ' checked' : '') + '> הכול הוזן להיום</label>'
       + '<div style="flex:1"></div>'
       + (suppList.length ? '<button class="btn sm ghost" onclick="EBTrack.editSupps(\'' + t.id + '\')">עריכת תוספים</button>' : '')
       + '</div></div>';
@@ -284,7 +284,7 @@
       + '<button class="iconbtn" onclick="closeModal()">✕</button></div><div class="mb">'
       + '<p class="muted" style="font-size:13px;margin:0 0 10px">רשימה מופרדת בפסיקים. היא תופיע כתיבות סימון בהזנה היומית.</p>'
       + '<input class="f" id="sp_list" value="' + esc(t.supplements || '') + '" '
-      + 'placeholder="אבקת חלבון, קראטין, ויטמין D, אומגה 3, מגנזיום">'
+      + 'placeholder="אבקת חלבון, קריאטין, ויטמין D, אומגה 3, מגנזיום">'
       + '<div class="muted" style="font-size:12px;margin-top:10px">'
       + 'המערכת לא קובעת מינונים — מינון ויטמינים ומינרלים תלוי בבדיקות דם ובתרופות, '
       + 'וזו החלטה של רופא או דיאטן.</div>'
@@ -304,7 +304,7 @@
     var t = tById(id); if (!t) return;
     var m = t.targets || {}, T = targets(t);
     openModal('<div class="mh"><h3>יעדים ידניים</h3><button class="iconbtn" onclick="closeModal()">✕</button></div><div class="mb">'
-      + '<p class="muted" style="font-size:13px;margin:0 0 12px">שדה שתמלא גובר על החישוב. שדה ריק ימשיך להתחשב.</p>'
+      + '<p class="muted" style="font-size:13px;margin:0 0 12px">שדה שתמלא גובר על החישוב. שדה ריק ימשיך להיות מחושב אוטומטית.</p>'
       + '<div class="grid g2">'
       + fld('קלוריות', 'mt_kcal', 'number', m.kcal) + fld('חלבון (ג׳)', 'mt_protein', 'number', m.protein)
       + fld('פחמימות (ג׳)', 'mt_carbs', 'number', m.carbs) + fld('שומן (ג׳)', 'mt_fat', 'number', m.fat)

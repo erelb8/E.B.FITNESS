@@ -15,7 +15,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['access'] = 'v206';
+  (window.EB_MOD = window.EB_MOD || {})['access'] = 'v207';
 
   /* מצב הגישה של מתאמן אחד */
   function check(t) {
@@ -114,7 +114,7 @@
           + '</td>'
         + '<td style="white-space:nowrap">'
         + (c.link ? '<button class="btn sm ghost" onclick="EBAccess.copy(\'' + r.t.id + '\')">העתקת קישור</button>' : '')
-        + '<button class="btn sm ghost" onclick="go(\'trainee\',\'' + r.t.id + '\')">פתח</button>'
+        + '<button class="btn sm ghost" onclick="go(\'trainee\',\'' + r.t.id + '\')">פתיחה</button>'
         + '</td></tr>';
     });
 
@@ -122,7 +122,7 @@
       + '<div class="muted" style="font-size:11.5px;margin-top:10px;line-height:1.6">'
       + 'הבדיקה נעשית על הנתונים שכבר סונכרנו. מתאמן שנוצר ועדיין לא סונכרן '
       + 'לא יופיע כתקין עד שהסנכרון יסתיים. אם מתאמן שמסומן תקין עדיין נכשל — '
-      + 'סביר שהוא מקליד סיסמה שגויה או שהקישור נחתך בשליחה בוואטסאפ.'
+      + 'סביר שהוא מקליד סיסמה שגויה או שהקישור נחתך בשליחה בווטסאפ.'
       + '</div>';
 
     return h;

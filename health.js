@@ -25,7 +25,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['health'] = 'v206';
+  (window.EB_MOD = window.EB_MOD || {})['health'] = 'v207';
 
   /* ---------- שבע שאלות הסינון ---------- */
   /* כל אחת מהן, אם נענתה ב'כן', מחייבת אישור רופא לפני תחילת אימון. */
@@ -383,7 +383,7 @@
         + '<td>' + badge(x.r.level) + '</td>'
         + '<td class="muted" style="font-size:12px">' + (x.r.signed ? 'נחתמה' : 'חסרה') + '</td>'
         + '<td style="font-size:12.5px">' + esc((x.r.reasons[0] || '—').slice(0, 90)) + '</td>'
-        + '<td><button class="btn sm ghost" onclick="go(\'trainee\',\'' + x.t.id + '\')">פתח</button></td>'
+        + '<td><button class="btn sm ghost" onclick="go(\'trainee\',\'' + x.t.id + '\')">פתיחה</button></td>'
         + '</tr>';
     });
 

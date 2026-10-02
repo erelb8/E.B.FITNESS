@@ -14,7 +14,7 @@
   'use strict';
 
   // חותמת גרסה — index.html משווה אליה כדי לזהות קובץ ישן במטמון
-  (window.EB_MOD = window.EB_MOD || {})['builder'] = 'v206';
+  (window.EB_MOD = window.EB_MOD || {})['builder'] = 'v207';
 
   /* ---------- דפוסי תנועה ----------
      החלוקה לפי דפוס ולא לפי שריר, כי כך בונים פיצולים מאוזנים
@@ -196,25 +196,25 @@
       { name: 'תחתון — דגש ירך וישבן', exercises: [
         { name:'היפ ת׳רסט',          sets:'4', reps:'12-15', rest:'75' },
         { name:'דדליפט רומני',       sets:'3', reps:'12-15', rest:'75' },
-        { name:'מכרעים בולגריים',    sets:'3', reps:'12',    rest:'60' },
+        { name:'סקוואט בולגרי',    sets:'3', reps:'12',    rest:'60' },
         { name:'לחיצת רגליים',       sets:'3', reps:'12-15', rest:'60' },
-        { name:'גשר ירכיים',         sets:'3', reps:'15',    rest:'45' },
-        { name:'פלאנק צד',           sets:'3', reps:'30 שנ׳', rest:'45' }
+        { name:'גשר עכוז',         sets:'3', reps:'15',    rest:'45' },
+        { name:'פלאנק צידי',           sets:'3', reps:'30 שנ׳', rest:'45' }
       ] },
       { name: 'עליון', exercises: [
-        { name:'פולי עליון',            sets:'3', reps:'12-15', rest:'75' },
-        { name:'חתירה בכבל',            sets:'3', reps:'12-15', rest:'75' },
-        { name:'לחיצת כתפיים בדמבלים',  sets:'3', reps:'12',    rest:'60' },
-        { name:'לחיצת חזה בדמבלים',     sets:'3', reps:'12',    rest:'60' },
-        { name:'הרחקות צד בדמבלים',     sets:'3', reps:'15',    rest:'45' },
-        { name:'פשיטת מרפקים בכבל',     sets:'3', reps:'12-15', rest:'45' },
+        { name:'משיכת פולי עליון',            sets:'3', reps:'12-15', rest:'75' },
+        { name:'חתירה בפולי תחתון',            sets:'3', reps:'12-15', rest:'75' },
+        { name:'לחיצת כתפיים במשקולות',  sets:'3', reps:'12',    rest:'60' },
+        { name:'לחיצת חזה במשקולות',     sets:'3', reps:'12',    rest:'60' },
+        { name:'הרחקות צד במשקולות',     sets:'3', reps:'15',    rest:'45' },
+        { name:'פשיטת מרפק בפולי עם חבל',     sets:'3', reps:'12-15', rest:'45' },
         { name:'דד באג',                sets:'3', reps:'12',    rest:'45' }
       ] },
       { name: 'תחתון וליבה', exercises: [
-        { name:'סקוואט גובלט',        sets:'4', reps:'12-15', rest:'75' },
+        { name:'גובלט סקוואט',        sets:'4', reps:'12-15', rest:'75' },
         { name:'דדליפט רומני',        sets:'3', reps:'12',    rest:'75' },
-        { name:'עלייה על ספסל',       sets:'3', reps:'12',    rest:'60' },
-        { name:'כפיפת ברכיים במכונה', sets:'3', reps:'12-15', rest:'60' },
+        { name:'סטפ-אפ',       sets:'3', reps:'12',    rest:'60' },
+        { name:'כפיפת ברך שוכב', sets:'3', reps:'12-15', rest:'60' },
         { name:'היפ ת׳רסט',           sets:'3', reps:'15',    rest:'60' },
         { name:'כפיפות בטן בכבל',     sets:'3', reps:'15',    rest:'45' },
         { name:'פלאנק',               sets:'3', reps:'40 שנ׳', rest:'45' }

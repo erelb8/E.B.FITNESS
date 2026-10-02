@@ -15,7 +15,7 @@
   'use strict';
 
   // חותמת גרסה — index.html משווה אליה כדי לזהות קובץ ישן במטמון
-  (window.EB_MOD = window.EB_MOD || {})['sync'] = 'v206';
+  (window.EB_MOD = window.EB_MOD || {})['sync'] = 'v207';
 
   const CFG      = window.EBFIT_CONFIG || { URL: '', ANON: '' };
   const SNAP_KEY = 'ebfit_sync_v1';
@@ -538,7 +538,7 @@
            ועדיף שיבין למה, מאשר שיחשוב שהשמירה נעלמה. */
         if (skipped.stale && skipped.stale.length) {
           window.toast('הסנכרון הושלם. ' + skipped.stale.join(', ')
-            + ' עודכנו במכשיר אחר אחרי שהמכשיר הזה משך אותם, ולכן לא דחפתי עליהם. '
+            + ' עודכנו במכשיר אחר אחרי שהמכשיר הזה משך אותם, ולכן לא שלחתי אותם. '
             + 'מה שמוצג עכשיו הוא הגרסה העדכנית.');
         }
       }
@@ -1076,7 +1076,7 @@
     if (!user)           return { state: 'out',     text: 'לא מחובר' };
     if (adminState === 'denied') return { state: 'error', text: 'אין הרשאת מנהל' };
     if (adminState === 'offline') return { state: 'offline', text: 'עובד מהמכשיר — נסנכרן כשתחזור הרשת' };
-    if (!navigator.onLine) return { state: 'offline', text: 'אין רשת — נסנכרן אח״כ' };
+    if (!navigator.onLine) return { state: 'offline', text: 'אין רשת — נסנכרן אחר כך' };
     if (adminState !== 'allowed') return { state: 'sync', text: 'בודק הרשאות' };
     if (running)         return { state: 'sync',    text: 'מסנכרן…' };
     if (lastError)       return { state: 'error',   text: 'שגיאת סנכרון' };
