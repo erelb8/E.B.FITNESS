@@ -22,7 +22,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['anim'] = 'v224';
+  (window.EB_MOD = window.EB_MOD || {})['anim'] = 'v225';
 
   var L = { shin: 62, thigh: 64, torso: 78, uarm: 46, farm: 42, neck: 9, head: 15, foot: 17 };
   var ARM = L.uarm + L.farm;
@@ -1097,7 +1097,11 @@
     var path = clipsPath(); if (!path || clipsBusy) return;
     clipsBusy = true;
     try {
-      var r = await EBSync.client().storage.from('programs').download(path);
+      /* קישור חתום עם no-store: download() רגיל החזיר עותק ישן מהמטמון
+         של הדפדפן, ואז הוספה חדשה נכתבה מעל רשימה ישנה */
+      var su = await EBSync.client().storage.from('programs').createSignedUrl(path, 60);
+      var res = su.error ? null : await fetch(su.data.signedUrl + '&t=' + Date.now(), { cache: 'no-store' });
+      var r = res && res.ok ? { data: { text: function () { return res.text(); } } } : { error: true };
       if (r.error) {
         /* אין עדיין קובץ: מעבירים אליו את מה שיש בהגדרות, פעם אחת */
         var st = (window.S && window.S.settings) || {};
