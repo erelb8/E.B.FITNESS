@@ -22,7 +22,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['anim'] = 'v223';
+  (window.EB_MOD = window.EB_MOD || {})['anim'] = 'v224';
 
   var L = { shin: 62, thigh: 64, torso: 78, uarm: 46, farm: 42, neck: 9, head: 15, foot: 17 };
   var ARM = L.uarm + L.farm;
@@ -206,6 +206,10 @@
     var A = { hip: [0, -140], torso: 2, f1: [-34, -28], fa1: 170, h1: [4, -130], kb: 'R', eb: 'L' };
     var B = { hip: [-14, -96], torso: 20, f1: [-58, -8], fa1: 170, h1: [4, -130], kb: 'R', eb: 'L' };
     var s = seq([A, B], 2600); s.props = [{ k: 'dipbar', y: -130 }]; return s; } };
+  P.scapdip = { he: 'דיפס שכמות', fn: function () {
+    var A = { hip: [0, -140], torso: 2, f1: [-34, -28], fa1: 170, h1: [4, -130], kb: 'R', eb: 'L' };
+    var B = { hip: [0, -126], torso: 2, shy: 12, f1: [-34, -14], fa1: 170, h1: [4, -130], kb: 'R', eb: 'L' };
+    var s = seq([A, B], 2400); s.props = [{ k: 'dipbar', y: -130 }]; return s; } };
   P.benchdip = { he: 'דיפס על ספסל', fn: function () {
     var A = { hip: [-4, -60], torso: -4, f1: [110, 0], h1: [-22, -48], kb: 'U', eb: 'L' };
     var B = { hip: [-6, -24], torso: 6, f1: [110, 0], h1: [-22, -48], kb: 'U', eb: 'L' };
@@ -512,6 +516,7 @@
   function W(s) { return '(?:^|[^א-ת])[ובלמהש]?(?:' + s + ')(?=$|[^א-ת])'; }
   function R(s, f) { return new RegExp(s, f); }
   var RULES = [
+    [/דיפס שכמות|שכמות במקבילים/, 'scapdip'],
     [/טיפוס חבל/, 'ropeclimb'],
     [/פולי עליון.*(בכריעה|יד אחת)|משיכת פולי עליון ביד אחת/, 'kpulldown'],
     [/פיסטול/, 'pistol'],
@@ -693,7 +698,7 @@
     press: ['chest', 'triceps', 'shoulders'], fly: ['chest'], pullover: ['back', 'chest'], ohp: ['shoulders', 'triceps'],
     raise: ['shoulders'], reardelt: ['shoulders', 'back'], facepull: ['shoulders', 'back'], shrug: ['back'],
     uprow: ['shoulders', 'back'], row: ['back', 'biceps'], seatedrow: ['back', 'biceps'], invrow: ['back', 'biceps'],
-    pulldown: ['back', 'biceps'], pullup: ['back', 'biceps'], hangraise: ['core'], lsitpull: ['back', 'biceps', 'core'], dipraise: ['core'], pullapart: ['shoulders', 'back'], kpulldown: ['back', 'biceps'], ropeclimb: ['back', 'biceps', 'core'], pistol: ['quads', 'glutes', 'core'], hip9090: ['glutes'], inchworm: ['hams', 'shoulders', 'core'], legswing: ['hams', 'glutes'], curl: ['biceps'],
+    pulldown: ['back', 'biceps'], pullup: ['back', 'biceps'], hangraise: ['core'], lsitpull: ['back', 'biceps', 'core'], dipraise: ['core'], pullapart: ['shoulders', 'back'], kpulldown: ['back', 'biceps'], scapdip: ['shoulders', 'back', 'triceps'], ropeclimb: ['back', 'biceps', 'core'], pistol: ['quads', 'glutes', 'core'], hip9090: ['glutes'], inchworm: ['hams', 'shoulders', 'core'], legswing: ['hams', 'glutes'], curl: ['biceps'],
     pushdown: ['triceps'], ohext: ['triceps'], skull: ['triceps'], kickback: ['triceps'], crunch: ['core'],
     legraise: ['core'], twist: ['core'], woodchop: ['core', 'shoulders'], pallof: ['core'], deadbug: ['core'],
     birddog: ['core', 'glutes', 'back'], kickbackleg: ['glutes'], sidelying: ['glutes'], superman: ['back', 'glutes'],
@@ -736,7 +741,7 @@
   var STRENGTH = { deadlift: 1, calf: 1, legext: 1, legcurl: 1, pulldown: 1, pullup: 1, row: 1, seatedrow: 1, invrow: 1,
                    curl: 1, pushdown: 1, ohext: 1, kickback: 1, raise: 1, reardelt: 1, facepull: 1, shrug: 1, uprow: 1,
                    hipthrust: 1, bridge: 1, crunch: 1, legraise: 1, stepup: 1, kickbackleg: 1, sidelying: 1, superman: 1,
-                   pallof: 1, hangraise: 1, ohp: 1, lsitpull: 1, dipraise: 1, pullapart: 1, kpulldown: 1 };
+                   pallof: 1, hangraise: 1, ohp: 1, lsitpull: 1, dipraise: 1, pullapart: 1, kpulldown: 1, scapdip: 1 };
   function smooth(f) { return f * f * f * (f * (f * 6 - 15) + 10); }
   function phase(s, t) {
     var n = s.res.length;
