@@ -22,7 +22,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['anim'] = 'v228';
+  (window.EB_MOD = window.EB_MOD || {})['anim'] = 'v229';
 
   var L = { shin: 62, thigh: 64, torso: 78, uarm: 46, farm: 42, neck: 9, head: 15, foot: 17 };
   var ARM = L.uarm + L.farm;
@@ -168,14 +168,14 @@
     var s = seq([A, B], 2600); s.props = [bench(-125, -46, 70), { k: 'legs', r: [-120, -46, 60, 46] }];
     s.hold = eq === 'bar' || eq === 'smith' || eq === 'db' || eq === 'machine' ? 'hipbar' : (eq === 'band' ? 'hipband' : null); return s; } };
   P.bridge = { he: 'גשר', fn: function (eq) {
-    var A = { hip: [0, -10], torso: -92, f1: [56, 0], h1: ['h', -20, 8], kb: 'U', eb: 'D' };
-    var B = { hip: [0, -56], torso: -121, f1: [56, 0], h1: ['h', -20, 8], kb: 'U', eb: 'D' };
+    var A = { hip: [0, -10], torso: -92, f1: [56, 0], h1: [8, -3], kb: 'U', eb: 'U' };
+    var B = { hip: [0, -56], torso: -121, f1: [56, 0], h1: [8, -3], kb: 'U', eb: 'U' };
     if (eq === 'ball') { A.f1 = B.f1 = [96, -40]; A.hip = [0, -14]; B.hip = [0, -52]; }
     var s = seq([A, B], 2600); s.hold = eq === 'ball' ? 'ballfeet' : (eq === 'band' ? 'hipband' : null);
     if (eq === 'trx') { A.f1 = B.f1 = [100, -40]; s.hold = 'trxfeet'; }
     return s; } };
   P.calf = { he: 'עליות עקבים', fn: function (eq) {
-    var h = holdFor(eq, 'side');
+    var h = holdFor(eq === 'machine' || eq === 'smith' ? 'bar' : eq, 'side');
     var A = stand({ h1: h.h, fa1: 90 }), B = stand({ hip: [0, -139], f1: [0, -14], fa1: 142, h1: h.h });
     var s = seq([A, B], 2000); s.hold = eq === 'machine' || eq === 'smith' || eq === 'bar' ? 'back' : h.hold; return s; } };
   P.legext = { he: 'פשיטת ברך', fn: function () {
@@ -220,8 +220,8 @@
     var s = seq([A, B], 2400); s.props = [bench(-70, -48, 60), { k: 'legs', r: [-65, -48, 50, 48] }]; return s; } };
   P.press = { he: 'לחיצה בשכיבה', fn: function (eq, v) {
     var t = v === 'incline' ? -62 : v === 'decline' ? -100 : -90;
-    var A = { hip: [40, -58], torso: t, f1: [104, 0], h1: ['s', 0, -86], kb: 'U', eb: 'D' };
-    var B = { hip: [40, -58], torso: t, f1: [104, 0], h1: ['s', 6, -12], kb: 'U', eb: 'D' };
+    var A = { hip: [40, -58], torso: t, f1: [104, 0], h1: ['s', 18, -86], kb: 'U', eb: 'D' };
+    var B = { hip: [40, -58], torso: t, f1: [104, 0], h1: ['s', 24, -16], kb: 'U', eb: 'D' };
     var s = seq([A, B], 2600); s.props = [{ k: 'pbench', v: v || 'flat' }];
     s.hold = eq === 'bar' || eq === 'smith' ? 'plate' : eq === 'band' ? 'bandback' : eq === 'machine' ? 'handle' : 'hand';
     if (eq === 'smith') s.props.push({ k: 'rails' }); return s; } };
@@ -310,8 +310,8 @@
     var B = { hip: [-34, -56], torso: 30, f1: [0, 0], f2: [104, -46], kb: 'R', kb2: 'U', h1: ['s', 86, 8] };
     return seq([A, B], 3000); } };
   P.hip9090 = { he: 'סיבובי ירך 90/90', fn: function () {
-    var A = { hip: [0, -18], torso: 0, f1: [56, -4], f2: [-56, -4], kb: 'U', kb2: 'U', fa1: 0, fa2: 180, h1: ['s', 30, 44] };
-    var B = { hip: [0, -18], torso: 4, f1: [96, -4], f2: [-82, -4], kb: 'U', kb2: 'U', fa1: 0, fa2: 180, h1: ['s', 30, 44] };
+    var A = { hip: [0, -18], torso: 0, f1: [10, -4], f2: [-58, -4], kb: 'R', kb2: 'L', fa1: 0, fa2: 180, h1: ['s', 30, 44] };
+    var B = { hip: [0, -18], torso: 0, f1: [58, -4], f2: [-10, -4], kb: 'R', kb2: 'L', fa1: 0, fa2: 180, h1: ['s', 30, 44] };
     return seq([A, B], 3600); } };
   P.inchworm = { he: 'תולעת מדידה', fn: function () {
     var K0 = stand(), K1 = { hip: [-8, -122], torso: 150, f1: [0, 0], h1: [34, 0], kb: 'R', eb: 'D' };
@@ -321,6 +321,18 @@
   P.legswing = { he: 'הנפות רגל', fn: function () {
     var A = stand({ f2: [-60, -20], kb2: 'R', h1: ['s', 30, 50] }), B = stand({ f2: [105, -62], kb2: 'U', h1: ['s', 30, 50] });
     return seq([A, B], 1800); } };
+  P.pigeon = { he: 'מתיחת יונה', fn: function () {
+    var A = { hip: [0, -22], torso: 6, f1: [40, -4], f2: [-124, -4], kb: 'R', kb2: 'D', fa1: 0, fa2: 180, h1: [34, -2], eb: 'R' };
+    var B = { hip: [0, -20], torso: 62, f1: [40, -4], f2: [-124, -4], kb: 'R', kb2: 'D', fa1: 0, fa2: 180, h1: [96, -2], eb: 'D' };
+    return seq([A, B], 3600); } };
+  P.cobra = { he: 'קוברה', fn: function () {
+    var A = { hip: [0, -9], torso: 90, f1: [-124, -4], fa1: 180, h1: [70, -2], kb: 'D', eb: 'U' };
+    var B = { hip: [0, -9], torso: 58, f1: [-124, -4], fa1: 180, h1: [62, -2], kb: 'D', eb: 'U' };
+    return seq([A, B], 3600); } };
+  P.hang = { he: 'תלייה', fn: function () {
+    var A = { hip: [0, -132], torso: 0, f1: [-6, -10], h1: [6, -300], kb: 'L', eb: 'D' };
+    var B = { hip: [4, -132], torso: 3, f1: [-2, -10], h1: [6, -300], kb: 'L', eb: 'D' };
+    var s = seq([A, B], 3600); s.props = [{ k: 'hbar', y: -300 }]; s.ground = false; return s; } };
   P.curl = { he: 'כפיפת מרפקים', fn: function (eq) {
     var A = stand({ h1: ['s', 6, 86] }), B = stand({ h1: ['s', 26, 18], eb: 'D' });
     var s = seq([A, B], 2400); s.hold = eq === 'bar' || eq === 'smith' ? 'plate' : eq === 'cable' ? 'cable' : eq === 'band' ? 'bandfoot' : eq === 'machine' || eq === 'bench' ? 'handle' : eq === 'trx' ? 'trxhands' : 'hand';
@@ -347,8 +359,8 @@
     var s = seq([A, B], 2200); if (eq === 'cable') { s.hold = 'cable'; s.cable = [40, -300]; s.kneel = true; }
     if (eq === 'ball') s.props = [{ k: 'ball', c: [0, -30], r: 30 }]; return s; } };
   P.legraise = { he: 'הרמות רגליים', fn: function () {
-    var A = { hip: [0, -8], torso: -92, f1: [124, -8], h1: ['h', -24, 6], kb: 'U', eb: 'D' };
-    var B = { hip: [0, -8], torso: -92, f1: [14, -126], h1: ['h', -24, 6], kb: 'U', eb: 'D' };
+    var A = { hip: [0, -8], torso: -92, f1: [124, -8], h1: [6, -3], kb: 'U', eb: 'U' };
+    var B = { hip: [0, -8], torso: -92, f1: [14, -126], h1: [6, -3], kb: 'U', eb: 'U' };
     return seq([A, B], 2600); } };
   P.twist = { he: 'סיבוב גו', fn: function (eq) {
     var A = { hip: [0, -10], torso: -38, f1: [74, -30], h1: ['s', 56, 34], kb: 'U', eb: 'D' };
@@ -520,6 +532,12 @@
   function W(s) { return '(?:^|[^א-ת])[ובלמהש]?(?:' + s + ')(?=$|[^א-ת])'; }
   function R(s, f) { return new RegExp(s, f); }
   var RULES = [
+    [/90[\/-]90/, 'hip9090'],
+    [/יונה/, 'pigeon'],
+    [/קוברה/, 'cobra'],
+    [/תלייה על מתח|תלייה פסיבית|תלייה אקטיבית/, 'hang'],
+    [/מתיחת צפרדע/, 'childpose'],
+    [/זריקת כדור מהחזה בשכיבה/, 'press'],
     [/לחיצת רגליים (בישיבה|אופקית)/, 'seatedlegpress'],
     [/דיפס שכמות|שכמות במקבילים/, 'scapdip'],
     [/טיפוס חבל/, 'ropeclimb'],
@@ -703,7 +721,7 @@
     press: ['chest', 'triceps', 'shoulders'], fly: ['chest'], pullover: ['back', 'chest'], ohp: ['shoulders', 'triceps'],
     raise: ['shoulders'], reardelt: ['shoulders', 'back'], facepull: ['shoulders', 'back'], shrug: ['back'],
     uprow: ['shoulders', 'back'], row: ['back', 'biceps'], seatedrow: ['back', 'biceps'], invrow: ['back', 'biceps'],
-    pulldown: ['back', 'biceps'], pullup: ['back', 'biceps'], hangraise: ['core'], lsitpull: ['back', 'biceps', 'core'], dipraise: ['core'], pullapart: ['shoulders', 'back'], kpulldown: ['back', 'biceps'], seatedlegpress: ['quads', 'glutes'], scapdip: ['shoulders', 'back', 'triceps'], ropeclimb: ['back', 'biceps', 'core'], pistol: ['quads', 'glutes', 'core'], hip9090: ['glutes'], inchworm: ['hams', 'shoulders', 'core'], legswing: ['hams', 'glutes'], curl: ['biceps'],
+    pulldown: ['back', 'biceps'], pullup: ['back', 'biceps'], hangraise: ['core'], lsitpull: ['back', 'biceps', 'core'], dipraise: ['core'], pullapart: ['shoulders', 'back'], pigeon: ['glutes'], cobra: ['core', 'back'], hang: ['back', 'shoulders'], kpulldown: ['back', 'biceps'], seatedlegpress: ['quads', 'glutes'], scapdip: ['shoulders', 'back', 'triceps'], ropeclimb: ['back', 'biceps', 'core'], pistol: ['quads', 'glutes', 'core'], hip9090: ['glutes'], inchworm: ['hams', 'shoulders', 'core'], legswing: ['hams', 'glutes'], curl: ['biceps'],
     pushdown: ['triceps'], ohext: ['triceps'], skull: ['triceps'], kickback: ['triceps'], crunch: ['core'],
     legraise: ['core'], twist: ['core'], woodchop: ['core', 'shoulders'], pallof: ['core'], deadbug: ['core'],
     birddog: ['core', 'glutes', 'back'], kickbackleg: ['glutes'], sidelying: ['glutes'], superman: ['back', 'glutes'],
