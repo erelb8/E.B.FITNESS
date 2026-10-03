@@ -22,7 +22,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['anim'] = 'v218';
+  (window.EB_MOD = window.EB_MOD || {})['anim'] = 'v219';
 
   var L = { shin: 62, thigh: 64, torso: 78, uarm: 46, farm: 42, neck: 9, head: 15, foot: 17 };
   var ARM = L.uarm + L.farm;
@@ -278,6 +278,14 @@
     var A = { hip: [0, -132], torso: 0, f1: [6, -8], h1: [6, -300], kb: 'R', eb: 'D' };
     var B = { hip: [0, -132], torso: 0, f1: [120, -150], h1: [6, -300], kb: 'U', eb: 'D' };
     var s = seq([A, B], 2600); s.props = [{ k: 'hbar', y: -300 }]; s.ground = false; return s; } };
+  P.lsitpull = { he: 'מתח L-sit', fn: function () {
+    var A = { hip: [0, -132], torso: -4, f1: [122, -126], h1: [6, -300], kb: 'U', eb: 'D' };
+    var B = { hip: [0, -196], torso: -4, f1: [122, -190], h1: [6, -300], kb: 'U', eb: 'D' };
+    var s = seq([A, B], 2600); s.props = [{ k: 'hbar', y: -300 }]; s.ground = false; return s; } };
+  P.dipraise = { he: 'הרמות רגליים במקבילים', fn: function () {
+    var A = { hip: [0, -140], torso: 2, f1: [-6, -16], fa1: 170, h1: [4, -130], kb: 'R', eb: 'L' };
+    var B = { hip: [0, -140], torso: -6, f1: [122, -136], fa1: 170, h1: [4, -130], kb: 'U', eb: 'L' };
+    var s = seq([A, B], 2600); s.props = [{ k: 'dipbar', y: -130 }]; return s; } };
   P.curl = { he: 'כפיפת מרפקים', fn: function (eq) {
     var A = stand({ h1: ['s', 6, 86] }), B = stand({ h1: ['s', 26, 18], eb: 'D' });
     var s = seq([A, B], 2400); s.hold = eq === 'bar' || eq === 'smith' ? 'plate' : eq === 'cable' ? 'cable' : eq === 'band' ? 'bandfoot' : eq === 'machine' || eq === 'bench' ? 'handle' : eq === 'trx' ? 'trxhands' : 'hand';
@@ -518,10 +526,12 @@
     [/בירד דוג|ברך-מרפק/, 'birddog'],
     [/דד באג/, 'deadbug'],
     [/מטפס הרים/, 'climber'],
+    [/מתח L-sit/, 'lsitpull'],
+    [/הרמות רגליים במקבילים|הרמת רגליים במקבילים/, 'dipraise'],
     [/גלגלת בטן|פלאנק|L-sit|V-sit|הולו|דגל|לוור|פלאנש|עמידת ידיים|זחילת דוב|הליכת דוב|תולעת|סקין דה קאט/, 'plank'],
     [/פאלוף|אנטי-רוטציה|דחיפת מים/, 'pallof'],
     [/וודצ׳ופר|סיבוב לנדמיין|הדף גומייה סיבובי|סיבוב מתפרץ/, 'woodchop'],
-    [/הרמות רגליים בתלייה|ברכיים לחזה בתלייה|בהונות למוט|הרמות רגליים במקבילים|מגבים בתלייה/, 'hangraise'],
+    [/הרמות רגליים בתלייה|ברכיים לחזה בתלייה|בהונות למוט|מגבים בתלייה/, 'hangraise'],
     [/רוסיאן|סיבוב גו|אלכסוניות|כפיפות אופניים/, 'twist'],
     [/הרמות רגליים|בעיטות (רפרוף|מספריים)|הרמת אגן הפוכה|כפיפות בטן הפוכות|פמוט|ברכיים לחזה/, 'legraise'],
     [/סיט-אפ|גלגול כדור מברכיים/, 'crunch:situp'],
@@ -649,7 +659,7 @@
     press: ['chest', 'triceps', 'shoulders'], fly: ['chest'], pullover: ['back', 'chest'], ohp: ['shoulders', 'triceps'],
     raise: ['shoulders'], reardelt: ['shoulders', 'back'], facepull: ['shoulders', 'back'], shrug: ['back'],
     uprow: ['shoulders', 'back'], row: ['back', 'biceps'], seatedrow: ['back', 'biceps'], invrow: ['back', 'biceps'],
-    pulldown: ['back', 'biceps'], pullup: ['back', 'biceps'], hangraise: ['core'], curl: ['biceps'],
+    pulldown: ['back', 'biceps'], pullup: ['back', 'biceps'], hangraise: ['core'], lsitpull: ['back', 'biceps', 'core'], dipraise: ['core'], curl: ['biceps'],
     pushdown: ['triceps'], ohext: ['triceps'], skull: ['triceps'], kickback: ['triceps'], crunch: ['core'],
     legraise: ['core'], twist: ['core'], woodchop: ['core', 'shoulders'], pallof: ['core'], deadbug: ['core'],
     birddog: ['core', 'glutes', 'back'], kickbackleg: ['glutes'], sidelying: ['glutes'], superman: ['back', 'glutes'],
@@ -692,7 +702,7 @@
   var STRENGTH = { deadlift: 1, calf: 1, legext: 1, legcurl: 1, pulldown: 1, pullup: 1, row: 1, seatedrow: 1, invrow: 1,
                    curl: 1, pushdown: 1, ohext: 1, kickback: 1, raise: 1, reardelt: 1, facepull: 1, shrug: 1, uprow: 1,
                    hipthrust: 1, bridge: 1, crunch: 1, legraise: 1, stepup: 1, kickbackleg: 1, sidelying: 1, superman: 1,
-                   pallof: 1, hangraise: 1, ohp: 1 };
+                   pallof: 1, hangraise: 1, ohp: 1, lsitpull: 1, dipraise: 1 };
   function smooth(f) { return f * f * f * (f * (f * 6 - 15) + 10); }
   function phase(s, t) {
     var n = s.res.length;
