@@ -22,7 +22,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['anim'] = 'v222';
+  (window.EB_MOD = window.EB_MOD || {})['anim'] = 'v223';
 
   var L = { shin: 62, thigh: 64, torso: 78, uarm: 46, farm: 42, neck: 9, head: 15, foot: 17 };
   var ARM = L.uarm + L.farm;
@@ -1076,11 +1076,47 @@
 
   /* ---------- הסרטונים שלי · טיוטה ----------
      סרטוני המאמן עם ההדמיה וההסבר על גביהם, לפני שמחליטים לפרסם.
-     יושבים ב-S.settings.coachClips — ההגדרות מסתנכרנות למאמן בלבד, ו-
-     trainee_videos מחזיר למתאמן רק את exVideos. כלומר המתאמן לא רואה
-     אותם בשום מסך עד שהם עוברים במפורש ל-exVideos. */
-  function clips() { var st = (window.S && window.S.settings) || {}; return st.coachClips || []; }
+     הרשימה יושבת בקובץ משלה באחסון (clips/index.json בדלי programs — דלי
+     הסרטונים מקבל רק וידאו) ולא
+     בהגדרות: ההגדרות נשמרות כגוש אחד, וחלון ישן של האפליקציה שפתוח
+     במכשיר אחר דרס אותן פעמיים עם רשימה ישנה. את הקובץ הזה כותבים רק
+     כשמוסיפים או מוחקים סרטון. trainee_videos מחזיר למתאמן רק את
+     exVideos, כך שהמתאמן לא רואה אותם בשום מסך עד שהם עוברים לשם. */
+  var CLIPS = null, clipsBusy = false;
+  function clipsPath() { return window.EBSync && EBSync.user() ? EBSync.user().id + '/clips/index.json' : null; }
+  function clips() {
+    if (CLIPS) return CLIPS;
+    var st = (window.S && window.S.settings) || {}; return st.coachClips || [];
+  }
+  async function clipsLoad() {
+    var path = clipsPath(); if (!path || clipsBusy) return;
+    clipsBusy = true;
+    try {
+      var r = await EBSync.client().storage.from('programs').download(path);
+      if (r.error) {
+        /* אין עדיין קובץ: מעבירים אליו את מה שיש בהגדרות, פעם אחת */
+        var st = (window.S && window.S.settings) || {};
+        if (st.coachClips && st.coachClips.length) await clipsSave(st.coachClips.slice());
+      } else {
+        CLIPS = JSON.parse(await r.data.text());
+      }
+    } catch (e) {} finally { clipsBusy = false; }
+    var box = document.querySelector('[data-animclips]');
+    if (box) box.innerHTML = clipsInner();
+  }
+  async function clipsSave(list) {
+    var path = clipsPath(); if (!path) throw new Error('not signed in');
+    var blob = new Blob([JSON.stringify(list)], { type: 'text/plain' });
+    var r = await EBSync.client().storage.from('programs').upload(path, blob, { upsert: true, contentType: 'text/plain', cacheControl: '0' });
+    if (r.error) throw r.error;
+    CLIPS = list;
+    return list.length;
+  }
   function clipsCard() {
+    setTimeout(clipsLoad, 0);
+    return '<div data-animclips>' + clipsInner() + '</div>';
+  }
+  function clipsInner() {
     var list = clips();
     if (!list.length) return '';
     var mb = list.reduce(function (a, c) { return a + (c.size || 0); }, 0) / 1048576;
@@ -1103,10 +1139,11 @@
   async function clipDelete(i) {
     var list = clips(), c = list[i]; if (!c) return;
     if (!confirm('למחוק את הסרטון "' + (c.exercise || c.name) + '"?')) return;
-    list.splice(i, 1);
-    if (typeof save === 'function') save();
-    try { if (c.path && window.EBSync) await EBSync.client().storage.from('videos').remove([c.path]); } catch (e) {}
-    if (typeof render === 'function') render();
+    list = list.slice(); list.splice(i, 1);
+    try { await clipsSave(list); } catch (e) { alert('המחיקה לא נשמרה — בדקו את החיבור ונסו שוב.'); return; }
+    try { if (c.path) await EBSync.client().storage.from('videos').remove([c.path]); } catch (e) {}
+    var box = document.querySelector('[data-animclips]');
+    if (box) box.innerHTML = clipsInner();
   }
   /* חלון הספרייה בדף המתאמן */
   function openLibrary() {
@@ -1151,6 +1188,6 @@
 
   window.EBAnim = { classify: classify, mount: mount, mountAll: mountAll, has: has, label: label,
                     open: open, close: close, view: libView, search: search, muscle: muscle, more: more,
-                    openLibrary: openLibrary, closeLibrary: closeLibrary, muscles: muscles, MUSCLES: MUS_HE, clipDelete: clipDelete,
+                    openLibrary: openLibrary, closeLibrary: closeLibrary, muscles: muscles, MUSCLES: MUS_HE, clipDelete: clipDelete, clipsLoad: clipsLoad, clipsSave: clipsSave, clips: clips,
                     PATTERNS: P, _frame: frame, _build: build, _draw: draw };
 })();
