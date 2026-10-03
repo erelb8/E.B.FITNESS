@@ -15,7 +15,7 @@
   'use strict';
 
   // חותמת גרסה — index.html משווה אליה כדי לזהות קובץ ישן במטמון
-  (window.EB_MOD = window.EB_MOD || {})['sync'] = 'v227';
+  (window.EB_MOD = window.EB_MOD || {})['sync'] = 'v228';
 
   const CFG      = window.EBFIT_CONFIG || { URL: '', ANON: '' };
   const SNAP_KEY = 'ebfit_sync_v1';
@@ -320,6 +320,8 @@
   /* חתימת שורה בלי המונה — הדחיפה מעלה את rev על האובייקט החי, וזה
      לא שינוי של המאמן */
   let RUN_START_SIG = null, KEPT = null;
+  /* ההגדרות כפי שהגיעו מהשרת במשיכה האחרונה — הבסיס לדחיפה הבאה */
+  let PULLED_PREFS = null;
   function rowSig(o) {
     if (!o || typeof o !== 'object') return '';
     const c = Object.assign({}, o); delete c.rev;
@@ -351,7 +353,7 @@
   }
 
   /* ---------- הגדרות: רק מה שנערך כאן ----------
-     ההגדרות נשמרות בשרת כגוש אחד. עד v227 הדחיפה שלחה את כל הגוש בכל
+     ההגדרות נשמרות בשרת כגוש אחד. עד v228 הדחיפה שלחה את כל הגוש בכל
      שינוי — ומכשיר או חלון שנשאר פתוח עם עותק ישן דרס בכל שמירה את מה
      שמכשיר אחר הוסיף בינתיים. 3.10.2026 כך נעלמו פעמיים סרטונים מהטיוטה.
      עכשיו נשלחים רק המפתחות שהשתנו במכשיר הזה מאז הסנכרון האחרון (base),
@@ -529,6 +531,20 @@
       const skipped = await push(snap);
       await pull();
       writeSnap(snapshotOf(window.S));
+      /* בתצלום נרשמות ההגדרות של השרת ולא של המכשיר. מפתח שנוצר במכשיר
+         בזמן שהסנכרון רץ (אחרי הדחיפה) לא הגיע לשרת — אם התצלום ירשום
+         אותו כ"מסונכרן", הוא לא יישלח לעולם. 3.10.2026 כך מפתח רשימת
+         הטיוטות נשאר רק במכשיר אחד. */
+      if (PULLED_PREFS) {
+        const sn = readSnap();
+        sn._prefs = JSON.stringify(PULLED_PREFS);
+        writeSnap(sn);
+        const mine = Object.assign({}, window.S.settings); delete mine.apiKey;
+        const theirs = Object.assign({}, PULLED_PREFS.settings || {}); delete theirs.apiKey;
+        if (canon(mine) !== canon(theirs) || canon(window.S.features || {}) !== canon(PULLED_PREFS.features || {})) {
+          pending = true; setTimeout(() => schedule(300), 0);
+        }
+      }
       /* שורות שנערכו בזמן הסנכרון: בתצלום נרשמת גרסת השרת (או כלום, אם
          נוצרו עכשיו), כדי שהדחיפה הבאה תזהה אותן כשינוי ותשלח */
       const kept = KEPT || {};
@@ -893,6 +909,7 @@
     });
     const { data: p } = await sb.from('trainer_prefs')
       .select('data').eq('trainer_id', user.id).maybeSingle();
+    PULLED_PREFS = p && p.data ? p.data : null;
     if (p && p.data) {
       if (p.data.settings) {
         // המפתח המקומי מנצח תמיד — הוא לא מסונכרן, ולכן אסור שמשיכה
