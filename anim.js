@@ -22,7 +22,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['anim'] = 'v226';
+  (window.EB_MOD = window.EB_MOD || {})['anim'] = 'v227';
 
   var L = { shin: 62, thigh: 64, torso: 78, uarm: 46, farm: 42, neck: 9, head: 15, foot: 17 };
   var ARM = L.uarm + L.farm;
@@ -210,6 +210,10 @@
     var A = { hip: [0, -140], torso: 2, f1: [-34, -28], fa1: 170, h1: [4, -130], kb: 'R', eb: 'L' };
     var B = { hip: [0, -126], torso: 2, shy: 12, f1: [-34, -14], fa1: 170, h1: [4, -130], kb: 'R', eb: 'L' };
     var s = seq([A, B], 2400); s.props = [{ k: 'dipbar', y: -130 }]; return s; } };
+  P.seatedlegpress = { he: 'לחיצת רגליים בישיבה', fn: function () {
+    var A = { hip: [0, -60], torso: -18, f1: [64, -64], kb: 'U', fa1: 0, h1: ['h', 14, 6], eb: 'D' };
+    var B = { hip: [0, -60], torso: -18, f1: [124, -66], kb: 'U', fa1: 0, h1: ['h', 14, 6], eb: 'D' };
+    var s = seq([A, B], 2600); s.props = [{ k: 'seat' }]; return s; } };
   P.benchdip = { he: 'דיפס על ספסל', fn: function () {
     var A = { hip: [-4, -60], torso: -4, f1: [110, 0], h1: [-22, -48], kb: 'U', eb: 'L' };
     var B = { hip: [-6, -24], torso: 6, f1: [110, 0], h1: [-22, -48], kb: 'U', eb: 'L' };
@@ -516,6 +520,7 @@
   function W(s) { return '(?:^|[^א-ת])[ובלמהש]?(?:' + s + ')(?=$|[^א-ת])'; }
   function R(s, f) { return new RegExp(s, f); }
   var RULES = [
+    [/לחיצת רגליים (בישיבה|אופקית)/, 'seatedlegpress'],
     [/דיפס שכמות|שכמות במקבילים/, 'scapdip'],
     [/טיפוס חבל/, 'ropeclimb'],
     [/פולי עליון.*(בכריעה|יד אחת)|משיכת פולי עליון ביד אחת/, 'kpulldown'],
@@ -698,7 +703,7 @@
     press: ['chest', 'triceps', 'shoulders'], fly: ['chest'], pullover: ['back', 'chest'], ohp: ['shoulders', 'triceps'],
     raise: ['shoulders'], reardelt: ['shoulders', 'back'], facepull: ['shoulders', 'back'], shrug: ['back'],
     uprow: ['shoulders', 'back'], row: ['back', 'biceps'], seatedrow: ['back', 'biceps'], invrow: ['back', 'biceps'],
-    pulldown: ['back', 'biceps'], pullup: ['back', 'biceps'], hangraise: ['core'], lsitpull: ['back', 'biceps', 'core'], dipraise: ['core'], pullapart: ['shoulders', 'back'], kpulldown: ['back', 'biceps'], scapdip: ['shoulders', 'back', 'triceps'], ropeclimb: ['back', 'biceps', 'core'], pistol: ['quads', 'glutes', 'core'], hip9090: ['glutes'], inchworm: ['hams', 'shoulders', 'core'], legswing: ['hams', 'glutes'], curl: ['biceps'],
+    pulldown: ['back', 'biceps'], pullup: ['back', 'biceps'], hangraise: ['core'], lsitpull: ['back', 'biceps', 'core'], dipraise: ['core'], pullapart: ['shoulders', 'back'], kpulldown: ['back', 'biceps'], seatedlegpress: ['quads', 'glutes'], scapdip: ['shoulders', 'back', 'triceps'], ropeclimb: ['back', 'biceps', 'core'], pistol: ['quads', 'glutes', 'core'], hip9090: ['glutes'], inchworm: ['hams', 'shoulders', 'core'], legswing: ['hams', 'glutes'], curl: ['biceps'],
     pushdown: ['triceps'], ohext: ['triceps'], skull: ['triceps'], kickback: ['triceps'], crunch: ['core'],
     legraise: ['core'], twist: ['core'], woodchop: ['core', 'shoulders'], pallof: ['core'], deadbug: ['core'],
     birddog: ['core', 'glutes', 'back'], kickbackleg: ['glutes'], sidelying: ['glutes'], superman: ['back', 'glutes'],
@@ -736,7 +741,7 @@
      קצרה בכל קצה — כמו שמבצעים באמת. ECC_FIRST — תבניות שבהן התנוחה
      הראשונה היא למעלה והתנועה הראשונה היא ירידה. תנועות מחזוריות
      (ריצה, הליכה, אופניים) רצות ברצף, בלי עצירות. */
-  var ECC_FIRST = { pistol: 1, squat: 1, lunge: 1, bulgarian: 1, hinge: 1, goodmorning: 1, press: 1, fly: 1, pushup: 1, dip: 1,
+  var ECC_FIRST = { seatedlegpress: 1, pistol: 1, squat: 1, lunge: 1, bulgarian: 1, hinge: 1, goodmorning: 1, press: 1, fly: 1, pushup: 1, dip: 1,
                     benchdip: 1, legpress: 1, skull: 1, pullover: 1 };
   var STRENGTH = { deadlift: 1, calf: 1, legext: 1, legcurl: 1, pulldown: 1, pullup: 1, row: 1, seatedrow: 1, invrow: 1,
                    curl: 1, pushdown: 1, ohext: 1, kickback: 1, raise: 1, reardelt: 1, facepull: 1, shrug: 1, uprow: 1,
@@ -1088,7 +1093,28 @@
      כשמוסיפים או מוחקים סרטון. trainee_videos מחזיר למתאמן רק את
      exVideos, כך שהמתאמן לא רואה אותם בשום מסך עד שהם עוברים לשם. */
   var CLIPS = null, clipsBusy = false;
-  function clipsPath() { return window.EBSync && EBSync.user() ? EBSync.user().id + '/clips/index.json' : null; }
+  /* שם הקובץ כולל מפתח אקראי ששמור בהגדרות המאמן: הדלי ציבורי, ובלי
+     המפתח אי אפשר לנחש את הנתיב ולראות את רשימת הטיוטות */
+  function clipsKey() {
+    var st = window.S && window.S.settings; if (!st) return null;
+    if (!st.clipsKey) {
+      var a = new Uint8Array(12); (window.crypto || {}).getRandomValues ? crypto.getRandomValues(a) : a.forEach(function (v, i) { a[i] = Math.random() * 256; });
+      st.clipsKey = Array.prototype.map.call(a, function (b) { return ('0' + b.toString(16)).slice(-2); }).join('');
+      if (typeof save === 'function') save();
+    }
+    return st.clipsKey;
+  }
+  function clipsPath() {
+    var k = clipsKey();
+    return window.EBSync && EBSync.user() && k ? EBSync.user().id + '/clips/index-' + k + '.json' : null;
+  }
+  function legacyPath() { return EBSync.user().id + '/clips/index.json'; }
+  async function readJson(path) {
+    var su = await EBSync.client().storage.from('programs').createSignedUrl(path, 60);
+    if (su.error) return null;
+    var res = await fetch(su.data.signedUrl + '&t=' + Date.now(), { cache: 'no-store' });
+    return res.ok ? JSON.parse(await res.text()) : null;
+  }
   function clips() {
     if (CLIPS) return CLIPS;
     var st = (window.S && window.S.settings) || {}; return st.coachClips || [];
@@ -1099,15 +1125,18 @@
     try {
       /* קישור חתום עם no-store: download() רגיל החזיר עותק ישן מהמטמון
          של הדפדפן, ואז הוספה חדשה נכתבה מעל רשימה ישנה */
-      var su = await EBSync.client().storage.from('programs').createSignedUrl(path, 60);
-      var res = su.error ? null : await fetch(su.data.signedUrl + '&t=' + Date.now(), { cache: 'no-store' });
-      var r = res && res.ok ? { data: { text: function () { return res.text(); } } } : { error: true };
-      if (r.error) {
-        /* אין עדיין קובץ: מעבירים אליו את מה שיש בהגדרות, פעם אחת */
+      var list = await readJson(path);
+      if (list) CLIPS = list;
+      else {
+        /* אין עדיין קובץ במפתח הזה: מעבירים אליו מהקובץ הישן (בלי מפתח)
+           או מההגדרות, פעם אחת, ומוחקים את הישן */
+        var old = await readJson(legacyPath());
         var st = (window.S && window.S.settings) || {};
-        if (st.coachClips && st.coachClips.length) await clipsSave(st.coachClips.slice());
-      } else {
-        CLIPS = JSON.parse(await r.data.text());
+        var from = old || (st.coachClips && st.coachClips.length ? st.coachClips.slice() : null);
+        if (from) {
+          await clipsSave(from);
+          if (old) await EBSync.client().storage.from('programs').remove([legacyPath()]);
+        }
       }
     } catch (e) {} finally { clipsBusy = false; }
     var box = document.querySelector('[data-animclips]');
