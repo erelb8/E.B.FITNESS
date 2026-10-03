@@ -161,5 +161,26 @@ const ME = Sy.mergeEdited;
 t('סדר ימים כן משנה',
   C({ days:[{ name:'A' }, { name:'B' }] }) === C({ days:[{ name:'B' }, { name:'A' }] }), false);
 
+/* ---------- הגדרות: חלון ישן לא דורס ----------
+   3.10.2026: חלון שנשאר פתוח עם עותק ישן של ההגדרות שמר אותן כגוש,
+   ומחק פעמיים את רשימת הסרטונים שנוספה ממכשיר אחר. */
+{
+  const MP = Sy.mergePrefs;
+  const server = { settings: { price: 300, coachClips: [1, 2, 3], exVideos: { a: 1 } }, features: { x: true } };
+  const base   = { settings: { price: 250, coachClips: [1] }, features: { x: true } };
+  const local  = { settings: { price: 280, coachClips: [1] }, features: { x: true } };
+  const m = MP(server, base, local);
+  t('חלון ישן: מה שנערך כאן נשמר', m.settings.price, 280);
+  t('חלון ישן: מה שלא נגע בו לא נדרס', JSON.stringify(m.settings.coachClips), '[1,2,3]');
+  t('חלון ישן: מפתח שנוסף בשרת נשאר', JSON.stringify(m.settings.exVideos), '{"a":1}');
+  const del = MP(server, { settings: { price: 250, old: 1 }, features: {} }, { settings: { price: 250 }, features: {} });
+  t('מחיקת מפתח מקומית עוברת', 'old' in del.settings, false);
+  const first = MP(server, null, { settings: { price: 1, onlyLocal: 'y' }, features: {} });
+  t('סנכרון ראשון: השרת גובר', first.settings.price, 300);
+  t('סנכרון ראשון: מה שאין בשרת נכנס', first.settings.onlyLocal, 'y');
+  const key = MP(server, base, { settings: { price: 250, coachClips: [1], apiKey: 'sk-secret' }, features: {} });
+  t('מפתח API לא נשלח לשרת', 'apiKey' in key.settings, false);
+}
+
 console.log(fail ? '\nנכשלו: ' + fail : '\nהכל עבר  |  עברו: ' + pass);
 process.exit(fail ? 1 : 0);

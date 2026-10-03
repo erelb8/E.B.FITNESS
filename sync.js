@@ -15,7 +15,7 @@
   'use strict';
 
   // חותמת גרסה — index.html משווה אליה כדי לזהות קובץ ישן במטמון
-  (window.EB_MOD = window.EB_MOD || {})['sync'] = 'v225';
+  (window.EB_MOD = window.EB_MOD || {})['sync'] = 'v226';
 
   const CFG      = window.EBFIT_CONFIG || { URL: '', ANON: '' };
   const SNAP_KEY = 'ebfit_sync_v1';
@@ -346,6 +346,30 @@
       if (key === 'rev') return;
       if (canon(local[key]) === canon(start[key])) return;
       if (local[key] === undefined) delete out[key]; else out[key] = local[key];
+    });
+    return out;
+  }
+
+  /* ---------- הגדרות: רק מה שנערך כאן ----------
+     ההגדרות נשמרות בשרת כגוש אחד. עד v226 הדחיפה שלחה את כל הגוש בכל
+     שינוי — ומכשיר או חלון שנשאר פתוח עם עותק ישן דרס בכל שמירה את מה
+     שמכשיר אחר הוסיף בינתיים. 3.10.2026 כך נעלמו פעמיים סרטונים מהטיוטה.
+     עכשיו נשלחים רק המפתחות שהשתנו במכשיר הזה מאז הסנכרון האחרון (base),
+     על גבי מה שיש בשרת כרגע. בלי base (סנכרון ראשון במכשיר) השרת גובר,
+     ומהמכשיר נכנס רק מה שאין בשרת בכלל. */
+  function mergePrefs(server, base, local) {
+    const out = {};
+    ['settings', 'features'].forEach(part => {
+      const srv = (server && server[part]) || {}, loc = (local && local[part]) || {};
+      if (!base) { out[part] = Object.assign({}, loc, srv); return; }
+      const b = base[part] || {}, o = Object.assign({}, srv);
+      Object.keys(Object.assign({}, b, loc)).forEach(k => {
+        if (k === 'apiKey') return;
+        if (canon(loc[k]) === canon(b[k])) return;          // לא נערך כאן
+        if (loc[k] === undefined) delete o[k]; else o[k] = loc[k];
+      });
+      delete o.apiKey;
+      out[part] = o;
     });
     return out;
   }
@@ -733,9 +757,16 @@
     delete safeSettings.apiKey;
     const prefs = JSON.stringify({ settings: safeSettings, features: window.S.features });
     if (snap._prefs !== prefs) {
-      const { error } = await sb.from('trainer_prefs')
-        .upsert({ trainer_id: user.id, data: JSON.parse(prefs) }, { onConflict: 'trainer_id' });
-      if (error) throw error;
+      const cur = await sb.from('trainer_prefs').select('data').eq('trainer_id', user.id).maybeSingle();
+      if (cur.error) throw cur.error;
+      let base = null;
+      try { base = snap._prefs ? JSON.parse(snap._prefs) : null; } catch (e) { base = null; }
+      const merged = mergePrefs(cur.data && cur.data.data, base, JSON.parse(prefs));
+      if (canon(merged) !== canon((cur.data && cur.data.data) || {})) {
+        const { error } = await sb.from('trainer_prefs')
+          .upsert({ trainer_id: user.id, data: merged }, { onConflict: 'trainer_id' });
+        if (error) throw error;
+      }
     }
     return { deletes: skippedDeletes, stale: skippedStale };
   }
@@ -1104,7 +1135,7 @@
     checkAdmin,
     /* מצבת מחיקה. חייבת להיקרא לפני שהשורה מוסרת מ-S, אחרת
        הדחיפה תראה היעלמות בלי כוונה ותדלג עליה. */
-    tomb, partitionGone, splitByRev, canon, mergeEdited,
+    tomb, partitionGone, splitByRev, canon, mergeEdited, mergePrefs,
     adminState: () => adminState, lastError: () => lastError,
     signIn, signUp, signOut,
     traineeLogin,
