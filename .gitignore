@@ -20,3 +20,7 @@ t-demo.html
 # תיקיית העבודה של הלוגו: סקריפטים וקווי מתאר שחולצו מתמונות אישיות.
 # הריפו ציבורי — רק התוצרים הסופיים עולים, דרך brand-assets/ ו-icons/.
 brand/
+
+# coach exercise videos prepared for upload — never in the public repo
+coach-videos/
+demo-videos/
