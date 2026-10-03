@@ -22,7 +22,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['anim'] = 'v217';
+  (window.EB_MOD = window.EB_MOD || {})['anim'] = 'v218';
 
   var L = { shin: 62, thigh: 64, torso: 78, uarm: 46, farm: 42, neck: 9, head: 15, foot: 17 };
   var ARM = L.uarm + L.farm;
@@ -726,10 +726,10 @@
     return { x0: Math.min.apply(null, xs) - 26, x1: Math.max.apply(null, xs) + 26, y0: minY, y1: maxY };
   }
 
-  function draw(cv, s, t) {
+  function draw(cv, s, t, fill) {
     var ctx = cv.getContext('2d'), W = cv.width, H = cv.height;
     var bb = s.bb, sc = Math.min(W / (bb.x1 - bb.x0), H / (bb.y1 - bb.y0)) * 0.92;
-    sc = Math.min(sc, (H / 330));   // דמות לא מתנפחת בתבניות קטנות
+    if (!fill) sc = Math.min(sc, (H / 330));   // דמות לא מתנפחת בתבניות קטנות (fill — בסרטון, למלא את המסגרת)
     var ox = W / 2 - (bb.x0 + bb.x1) / 2 * sc, oy = H / 2 - (bb.y0 + bb.y1) / 2 * sc;
     ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, W, H);
     ctx.setTransform(sc, 0, 0, sc, ox, oy);
@@ -1025,7 +1025,43 @@
     return '<div class="head"><div><h1>ספריית הדמיות</h1>'
       + '<p class="muted">דמות שמבצעת את התנועה, לכל ' + X.ALL.length + ' התרגילים, והשרירים שעובדים מסומנים עליה. '
       + 'המתאמן רואה אותה בכפתור "▶ הדמיה" מתחת לתרגיל ובספריית ההדמיות שלו — אלא אם העלית סרטון משלך, ואז הוא רואה את הסרטון.</p></div></div>'
+      + clipsCard()
       + '<div class="card" data-animlib>' + libInner() + '</div>';
+  }
+
+  /* ---------- הסרטונים שלי · טיוטה ----------
+     סרטוני המאמן עם ההדמיה וההסבר על גביהם, לפני שמחליטים לפרסם.
+     יושבים ב-S.settings.coachClips — ההגדרות מסתנכרנות למאמן בלבד, ו-
+     trainee_videos מחזיר למתאמן רק את exVideos. כלומר המתאמן לא רואה
+     אותם בשום מסך עד שהם עוברים במפורש ל-exVideos. */
+  function clips() { var st = (window.S && window.S.settings) || {}; return st.coachClips || []; }
+  function clipsCard() {
+    var list = clips();
+    if (!list.length) return '';
+    var mb = list.reduce(function (a, c) { return a + (c.size || 0); }, 0) / 1048576;
+    var h = '<div class="card" style="margin-bottom:12px"><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px">'
+      + '<h3 style="flex:1;font-size:16px;margin:0">🎬 הסרטונים שלי · טיוטה</h3>'
+      + '<span style="font-size:12px;padding:3px 10px;border-radius:20px;border:1px solid var(--line,#47372A);color:var(--mut,#9A8A7C)">🔒 לא גלוי למתאמנים</span>'
+      + '<span style="font-size:12px;color:var(--mut,#9A8A7C)">' + list.length + ' סרטונים · ' + mb.toFixed(1) + 'MB</span></div>'
+      + '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px">';
+    list.forEach(function (c, i) {
+      h += '<div style="background:var(--ink,#1C150F);border:1px solid var(--line,#47372A);border-radius:12px;padding:8px">'
+        + '<video src="' + esc(c.url) + '" controls playsinline preload="metadata" style="width:100%;border-radius:8px;background:#000;display:block"></video>'
+        + '<div style="display:flex;align-items:center;gap:6px;margin-top:7px"><div style="flex:1;min-width:0">'
+        + '<div style="font-weight:700;font-size:13.5px">' + esc(c.exercise || c.name) + '</div>'
+        + '<div style="font-size:11.5px;color:var(--mut,#9A8A7C)">' + esc(c.at || '') + (c.src ? ' · ' + esc(c.src) : '') + '</div></div>'
+        + '<button onclick="EBAnim.clipDelete(' + i + ')" style="font:inherit;font-size:12px;padding:5px 10px;border-radius:8px;cursor:pointer;'
+        + 'background:transparent;border:1px solid var(--line,#47372A);color:var(--mut,#9A8A7C)">מחיקה</button></div></div>';
+    });
+    return h + '</div></div>';
+  }
+  async function clipDelete(i) {
+    var list = clips(), c = list[i]; if (!c) return;
+    if (!confirm('למחוק את הסרטון "' + (c.exercise || c.name) + '"?')) return;
+    list.splice(i, 1);
+    if (typeof save === 'function') save();
+    try { if (c.path && window.EBSync) await EBSync.client().storage.from('videos').remove([c.path]); } catch (e) {}
+    if (typeof render === 'function') render();
   }
   /* חלון הספרייה בדף המתאמן */
   function openLibrary() {
@@ -1070,6 +1106,6 @@
 
   window.EBAnim = { classify: classify, mount: mount, mountAll: mountAll, has: has, label: label,
                     open: open, close: close, view: libView, search: search, muscle: muscle, more: more,
-                    openLibrary: openLibrary, closeLibrary: closeLibrary, muscles: muscles, MUSCLES: MUS_HE,
+                    openLibrary: openLibrary, closeLibrary: closeLibrary, muscles: muscles, MUSCLES: MUS_HE, clipDelete: clipDelete,
                     PATTERNS: P, _frame: frame, _build: build, _draw: draw };
 })();
