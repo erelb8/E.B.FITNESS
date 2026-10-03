@@ -22,7 +22,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['anim'] = 'v220';
+  (window.EB_MOD = window.EB_MOD || {})['anim'] = 'v221';
 
   var L = { shin: 62, thigh: 64, torso: 78, uarm: 46, farm: 42, neck: 9, head: 15, foot: 17 };
   var ARM = L.uarm + L.farm;
@@ -245,6 +245,9 @@
   P.reardelt = { he: 'כתף אחורית', fn: function (eq) {
     var A = stand({ hip: [-52, -108], torso: 70, h1: ['s', -4, 86] }), B = stand({ hip: [-52, -108], torso: 70, h1: ['s', -42, 26], eb: 'U' });
     var s = seq([A, B], 2600); s.hold = eq === 'cable' ? 'cable' : eq === 'band' ? 'band' : eq === 'machine' ? 'handle' : 'hand'; s.cable = [80, -10]; return s; } };
+  P.pullapart = { he: 'פתיחת גומייה', fn: function (eq) {
+    var A = stand({ h1: ['s', 84, 2] }), B = stand({ h1: ['s', -6, 8] });
+    var s = seq([A, B], 2600); s.hold = eq === 'band' ? 'band' : 'hand'; return s; } };
   P.facepull = { he: 'פייס פול', fn: function (eq) {
     var A = stand({ f2: [-40, 0], h1: ['s', 84, -4] }), B = stand({ f2: [-40, 0], h1: ['s', 22, -26], eb: 'U' });
     var s = seq([A, B], 2600); s.hold = eq === 'band' ? 'band' : 'cable'; s.cable = [190, -205]; return s; } };
@@ -537,7 +540,8 @@
     [/סיט-אפ|גלגול כדור מברכיים/, 'crunch:situp'],
     [/כפיפות בטן|קראנץ׳|העברת כדור בין/, 'crunch'],
     [/פייס פול|משיכה לפנים|משיכת פנים/, 'facepull'],
-    [/פול-אפארט|פרפר הפוך|כתף אחורית|הרחקות בהטיה|פתיחת גומייה לצדדים|הנפת Y|סקאפשן/, 'reardelt'],
+    [/פול-אפארט|פתיחת גומייה לצדדים/, 'pullapart'],
+    [/פרפר הפוך|כתף אחורית|הרחקות בהטיה|הנפת Y|סקאפשן/, 'reardelt'],
     [R('מאסל-אפ|צ׳ין-אפ|' + W('מתח')), 'pullup'],
     [/משיכת פולי|פולי עליון|משיכה אנכית/, 'pulldown'],
     [/חתירה הפוכה|חתירה ברצועות/, 'invrow'],
@@ -659,7 +663,7 @@
     press: ['chest', 'triceps', 'shoulders'], fly: ['chest'], pullover: ['back', 'chest'], ohp: ['shoulders', 'triceps'],
     raise: ['shoulders'], reardelt: ['shoulders', 'back'], facepull: ['shoulders', 'back'], shrug: ['back'],
     uprow: ['shoulders', 'back'], row: ['back', 'biceps'], seatedrow: ['back', 'biceps'], invrow: ['back', 'biceps'],
-    pulldown: ['back', 'biceps'], pullup: ['back', 'biceps'], hangraise: ['core'], lsitpull: ['back', 'biceps', 'core'], dipraise: ['core'], curl: ['biceps'],
+    pulldown: ['back', 'biceps'], pullup: ['back', 'biceps'], hangraise: ['core'], lsitpull: ['back', 'biceps', 'core'], dipraise: ['core'], pullapart: ['shoulders', 'back'], curl: ['biceps'],
     pushdown: ['triceps'], ohext: ['triceps'], skull: ['triceps'], kickback: ['triceps'], crunch: ['core'],
     legraise: ['core'], twist: ['core'], woodchop: ['core', 'shoulders'], pallof: ['core'], deadbug: ['core'],
     birddog: ['core', 'glutes', 'back'], kickbackleg: ['glutes'], sidelying: ['glutes'], superman: ['back', 'glutes'],
@@ -702,7 +706,7 @@
   var STRENGTH = { deadlift: 1, calf: 1, legext: 1, legcurl: 1, pulldown: 1, pullup: 1, row: 1, seatedrow: 1, invrow: 1,
                    curl: 1, pushdown: 1, ohext: 1, kickback: 1, raise: 1, reardelt: 1, facepull: 1, shrug: 1, uprow: 1,
                    hipthrust: 1, bridge: 1, crunch: 1, legraise: 1, stepup: 1, kickbackleg: 1, sidelying: 1, superman: 1,
-                   pallof: 1, hangraise: 1, ohp: 1, lsitpull: 1, dipraise: 1 };
+                   pallof: 1, hangraise: 1, ohp: 1, lsitpull: 1, dipraise: 1, pullapart: 1 };
   function smooth(f) { return f * f * f * (f * (f * 6 - 15) + 10); }
   function phase(s, t) {
     var n = s.res.length;

@@ -11,7 +11,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['notesUi'] = 'v220';
+  (window.EB_MOD = window.EB_MOD || {})['notesUi'] = 'v221';
 
   var CTX = null;   // { kind, exName, get, set, title }
   var Q = '';
