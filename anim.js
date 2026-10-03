@@ -22,7 +22,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['anim'] = 'v221';
+  (window.EB_MOD = window.EB_MOD || {})['anim'] = 'v222';
 
   var L = { shin: 62, thigh: 64, torso: 78, uarm: 46, farm: 42, neck: 9, head: 15, foot: 17 };
   var ARM = L.uarm + L.farm;
@@ -289,6 +289,30 @@
     var A = { hip: [0, -140], torso: 2, f1: [-6, -16], fa1: 170, h1: [4, -130], kb: 'R', eb: 'L' };
     var B = { hip: [0, -140], torso: -6, f1: [122, -136], fa1: 170, h1: [4, -130], kb: 'U', eb: 'L' };
     var s = seq([A, B], 2600); s.props = [{ k: 'dipbar', y: -130 }]; return s; } };
+  P.kpulldown = { he: 'פולי עליון ביד אחת בכריעה', fn: function () {
+    var A = { hip: [-8, -64], torso: -4, f1: [44, 0], f2: [-64, 0], fa2: 125, kb: 'R', kb2: 'D', h1: ['s', 14, -86], eb: 'R', h2: ['s', 2, 60] };
+    var B = { hip: [-8, -64], torso: -6, f1: [44, 0], f2: [-64, 0], fa2: 125, kb: 'R', kb2: 'D', h1: ['s', 10, -4], eb: 'D', h2: ['s', 2, 60] };
+    var s = seq([A, B], 2600); s.hold = 'cable'; s.cable = [20, -330]; return s; } };
+  P.ropeclimb = { he: 'טיפוס חבל', fn: function () {
+    var A = { hip: [0, -150], torso: 4, f1: [18, -100], f2: [12, -104], kb: 'R', kb2: 'R', h1: [22, -318], h2: [22, -262], eb: 'D' };
+    var B = { hip: [0, -176], torso: 2, f1: [16, -58], f2: [12, -60], kb: 'R', kb2: 'R', h1: [22, -262], h2: [22, -318], eb: 'D' };
+    var s = seq([A, B], 2400); s.props = [{ k: 'rope', x: 22 }]; s.ground = false; return s; } };
+  P.pistol = { he: 'פיסטול סקוואט', fn: function () {
+    var A = stand({ f2: [40, -34], kb2: 'R', h1: ['s', 70, 24] });
+    var B = { hip: [-34, -56], torso: 30, f1: [0, 0], f2: [104, -46], kb: 'R', kb2: 'U', h1: ['s', 86, 8] };
+    return seq([A, B], 3000); } };
+  P.hip9090 = { he: 'סיבובי ירך 90/90', fn: function () {
+    var A = { hip: [0, -18], torso: 0, f1: [56, -4], f2: [-56, -4], kb: 'U', kb2: 'U', fa1: 0, fa2: 180, h1: ['s', 30, 44] };
+    var B = { hip: [0, -18], torso: 4, f1: [96, -4], f2: [-82, -4], kb: 'U', kb2: 'U', fa1: 0, fa2: 180, h1: ['s', 30, 44] };
+    return seq([A, B], 3600); } };
+  P.inchworm = { he: 'תולעת מדידה', fn: function () {
+    var K0 = stand(), K1 = { hip: [-8, -122], torso: 150, f1: [0, 0], h1: [34, 0], kb: 'R', eb: 'D' };
+    var K2 = { hip: [40, -100], torso: 110, f1: [0, 0], h1: [140, 0], kb: 'U', eb: 'L', fa1: 120 };
+    var K3 = { hip: [124, -52], torso: 68, f1: [0, 0], h1: [196, 0], kb: 'U', eb: 'L', fa1: 160 };
+    return seq([K0, K1, K2, K3, K2, K1], 6400); } };
+  P.legswing = { he: 'הנפות רגל', fn: function () {
+    var A = stand({ f2: [-60, -20], kb2: 'R', h1: ['s', 30, 50] }), B = stand({ f2: [105, -62], kb2: 'U', h1: ['s', 30, 50] });
+    return seq([A, B], 1800); } };
   P.curl = { he: 'כפיפת מרפקים', fn: function (eq) {
     var A = stand({ h1: ['s', 6, 86] }), B = stand({ h1: ['s', 26, 18], eb: 'D' });
     var s = seq([A, B], 2400); s.hold = eq === 'bar' || eq === 'smith' ? 'plate' : eq === 'cable' ? 'cable' : eq === 'band' ? 'bandfoot' : eq === 'machine' || eq === 'bench' ? 'handle' : eq === 'trx' ? 'trxhands' : 'hand';
@@ -488,6 +512,12 @@
   function W(s) { return '(?:^|[^א-ת])[ובלמהש]?(?:' + s + ')(?=$|[^א-ת])'; }
   function R(s, f) { return new RegExp(s, f); }
   var RULES = [
+    [/טיפוס חבל/, 'ropeclimb'],
+    [/פולי עליון.*(בכריעה|יד אחת)|משיכת פולי עליון ביד אחת/, 'kpulldown'],
+    [/פיסטול/, 'pistol'],
+    [/90\/90/, 'hip9090'],
+    [/תולעת/, 'inchworm'],
+    [/נדנוד רגל קדימה|הנפות רגל קדימה/, 'legswing'],
     [/שחיי|שחית|חתירות.*במים|ספרינטי חתירה|בעיטות בקצה הבריכה/, 'swim'],
     [/פופ-אפ|פופ אפ/, 'popup'],
     [/ברפי|דוויל פרס|מן-מייקר/, 'burpee'],
@@ -663,7 +693,7 @@
     press: ['chest', 'triceps', 'shoulders'], fly: ['chest'], pullover: ['back', 'chest'], ohp: ['shoulders', 'triceps'],
     raise: ['shoulders'], reardelt: ['shoulders', 'back'], facepull: ['shoulders', 'back'], shrug: ['back'],
     uprow: ['shoulders', 'back'], row: ['back', 'biceps'], seatedrow: ['back', 'biceps'], invrow: ['back', 'biceps'],
-    pulldown: ['back', 'biceps'], pullup: ['back', 'biceps'], hangraise: ['core'], lsitpull: ['back', 'biceps', 'core'], dipraise: ['core'], pullapart: ['shoulders', 'back'], curl: ['biceps'],
+    pulldown: ['back', 'biceps'], pullup: ['back', 'biceps'], hangraise: ['core'], lsitpull: ['back', 'biceps', 'core'], dipraise: ['core'], pullapart: ['shoulders', 'back'], kpulldown: ['back', 'biceps'], ropeclimb: ['back', 'biceps', 'core'], pistol: ['quads', 'glutes', 'core'], hip9090: ['glutes'], inchworm: ['hams', 'shoulders', 'core'], legswing: ['hams', 'glutes'], curl: ['biceps'],
     pushdown: ['triceps'], ohext: ['triceps'], skull: ['triceps'], kickback: ['triceps'], crunch: ['core'],
     legraise: ['core'], twist: ['core'], woodchop: ['core', 'shoulders'], pallof: ['core'], deadbug: ['core'],
     birddog: ['core', 'glutes', 'back'], kickbackleg: ['glutes'], sidelying: ['glutes'], superman: ['back', 'glutes'],
@@ -701,12 +731,12 @@
      קצרה בכל קצה — כמו שמבצעים באמת. ECC_FIRST — תבניות שבהן התנוחה
      הראשונה היא למעלה והתנועה הראשונה היא ירידה. תנועות מחזוריות
      (ריצה, הליכה, אופניים) רצות ברצף, בלי עצירות. */
-  var ECC_FIRST = { squat: 1, lunge: 1, bulgarian: 1, hinge: 1, goodmorning: 1, press: 1, fly: 1, pushup: 1, dip: 1,
+  var ECC_FIRST = { pistol: 1, squat: 1, lunge: 1, bulgarian: 1, hinge: 1, goodmorning: 1, press: 1, fly: 1, pushup: 1, dip: 1,
                     benchdip: 1, legpress: 1, skull: 1, pullover: 1 };
   var STRENGTH = { deadlift: 1, calf: 1, legext: 1, legcurl: 1, pulldown: 1, pullup: 1, row: 1, seatedrow: 1, invrow: 1,
                    curl: 1, pushdown: 1, ohext: 1, kickback: 1, raise: 1, reardelt: 1, facepull: 1, shrug: 1, uprow: 1,
                    hipthrust: 1, bridge: 1, crunch: 1, legraise: 1, stepup: 1, kickbackleg: 1, sidelying: 1, superman: 1,
-                   pallof: 1, hangraise: 1, ohp: 1, lsitpull: 1, dipraise: 1, pullapart: 1 };
+                   pallof: 1, hangraise: 1, ohp: 1, lsitpull: 1, dipraise: 1, pullapart: 1, kpulldown: 1 };
   function smooth(f) { return f * f * f * (f * (f * 6 - 15) + 10); }
   function phase(s, t) {
     var n = s.res.length;
@@ -774,6 +804,7 @@
         line([-80, -50], [-80, 0], C.gear, 6); line([60, -50], [60, 0], C.gear, 6); }
       else if (p.k === 'rails') { line([b.wr1[0] - 30, -290], [b.wr1[0] - 30, 0], C.gear, 5); line([b.wr1[0] + 30, -290], [b.wr1[0] + 30, 0], C.gear, 5); }
       else if (p.k === 'hbar') line([-60, p.y], [80, p.y], C.gear, 7);
+      else if (p.k === 'rope') line([p.x, -380], [p.x, -20], C.eq, 6);
       else if (p.k === 'dipbar') { line([-30, p.y], [50, p.y], C.gear, 7); line([40, p.y], [40, 0], C.gear, 6); }
       else if (p.k === 'sled') { line([-30, -20], [150, -150], C.gear, 6); }
       else if (p.k === 'tread') { line([-90, 2], [100, 2], C.gear, 10); line([90, 0], [110, -90], C.gear, 6); }
