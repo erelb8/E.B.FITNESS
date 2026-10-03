@@ -22,7 +22,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['anim'] = 'v219';
+  (window.EB_MOD = window.EB_MOD || {})['anim'] = 'v220';
 
   var L = { shin: 62, thigh: 64, torso: 78, uarm: 46, farm: 42, neck: 9, head: 15, foot: 17 };
   var ARM = L.uarm + L.farm;
@@ -527,7 +527,7 @@
     [/דד באג/, 'deadbug'],
     [/מטפס הרים/, 'climber'],
     [/מתח L-sit/, 'lsitpull'],
-    [/הרמות רגליים במקבילים|הרמת רגליים במקבילים/, 'dipraise'],
+    [/הרמות רגליים במקבילים|הרמת רגליים במקבילים|^L-sit$/, 'dipraise'],
     [/גלגלת בטן|פלאנק|L-sit|V-sit|הולו|דגל|לוור|פלאנש|עמידת ידיים|זחילת דוב|הליכת דוב|תולעת|סקין דה קאט/, 'plank'],
     [/פאלוף|אנטי-רוטציה|דחיפת מים/, 'pallof'],
     [/וודצ׳ופר|סיבוב לנדמיין|הדף גומייה סיבובי|סיבוב מתפרץ/, 'woodchop'],
