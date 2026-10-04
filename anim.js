@@ -22,7 +22,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['anim'] = 'v229';
+  (window.EB_MOD = window.EB_MOD || {})['anim'] = 'v230';
 
   var L = { shin: 62, thigh: 64, torso: 78, uarm: 46, farm: 42, neck: 9, head: 15, foot: 17 };
   var ARM = L.uarm + L.farm;
@@ -1168,6 +1168,68 @@
     CLIPS = list;
     return list.length;
   }
+  /* ---------- פרסום למתאמנים ----------
+     סרטון טיוטה עובר למתאמן דרך exVideos — אותו מנגנון כמו "סרטון כללי":
+     כל מתאמן שיש לו תרגיל באחד השמות האלה רואה "▶ צפייה בביצוע".
+     השמות כוללים את הכתיבים שבאמת מופיעים בתוכניות. בכוונה לא מקשרים
+     תרגיל דומה אבל שונה (שכיבות סמיכה רגילות לסרטון עם עצירה, מקבילים
+     לסרטון על מוט ישר) — המתאמן יראה ביצוע אחר ממה שכתוב לו. */
+  var PUBLISH = {
+    'IMG_1078': ['לחיצת חזה בשיפוע במוט', 'לחיצת חזה בשיפוע עם מוט', 'לחיצת חזה בשיפוע חיובי - מוט', 'לחיצת חזה בשיפוע'],
+    'IMG_0553': ['סקוואט גבי', 'סקוואט'],
+    'IMG_1615': ['לחיצת רגליים', 'לחיצת רגליים במכונה', 'לחיצת רגליים בשיפוע'],
+    'IMG_0257': ['פשיטת ברך במכונה', 'פשיטת ברך'],
+    'IMG_0268': ['משיכת פולי עליון בכריעה יד אחת'],
+    'IMG_1079': ['לחיצת חזה בשיפוע במשקולות', 'לחיצת חזה במשקולות בשיפוע', 'לחיצת חזה בשיפוע — משקולות חופשיות'],
+    'IMG_0084': ['דיפס שכמות במקבילים'],
+    'IMG_0075': ['הרמות רגליים במקבילים'],
+    'IMG_0074': ['מתח L-sit'],
+    'IMG_1077': ['דדליפט רגליים ישרות (Stiff leg)'],
+    'IMG_5652': ['שכיבות סמיכה עם עצירה בתחתית'],
+    'IMG_0094': ['טיפוס חבל'],
+    'IMG_1865-a': ['שכיבות סמיכה אחיזה רחבה'],
+    'IMG_1865-b': ['שכיבות סמיכה יהלום'],
+    'A97-a': ['L-sit'],
+    'A97-b': ['מקבילים על מוט ישר'],
+    'IMG_0253': ['לאנג׳ בסמית׳'],
+    'IMG_1511': ['פתיחת גומייה לצדדים'],
+    'IMG_0260': ['לחיצת רגליים בישיבה'],
+    'IMG_5093': ['כפיפת מרפקים במשקולות', 'כפיפת מרפקים בדמבלים'],
+    'IMG_5096': ['כפיפת מרפקים במוט EZ', 'כפיפות מרפק במוט EZ'],
+    '91A01D94-b': ['פיסטול סקוואט'],
+    'IMG_3448-a': ['פתיחת ירך בכריעה על ברך'],
+    'IMG_3449-a': ['תולעת מדידה']
+  };
+  function vkey(n) { return String(n || '').replace(/\s+/g, ' ').trim(); }
+  function exv() { var st = window.S.settings; return (st.exVideos = st.exVideos || {}); }
+  function namesFor(c) { return PUBLISH[c.src] || []; }
+  function publishedCount(c) {
+    var m = (window.S && window.S.settings && window.S.settings.exVideos) || {};
+    return namesFor(c).filter(function (n) { var v = m[vkey(n)]; return v && v.path === c.path; }).length;
+  }
+  /* סרטון כללי שהמאמן העלה בעצמו (לא מהטיוטות) לא נדרס */
+  function clipsPublish() {
+    var m = exv(), n = 0, kept = 0;
+    clips().forEach(function (c) {
+      namesFor(c).forEach(function (name) {
+        var k = vkey(name), cur = m[k];
+        if (cur && cur.url && !cur.clip && cur.path !== c.path) { kept++; return; }
+        m[k] = { url: c.url, path: c.path, size: c.size, at: c.at, clip: c.src }; n++;
+      });
+    });
+    if (typeof save === 'function') save();
+    if (typeof toast === 'function') toast('פורסם: ' + n + ' תרגילים עם סרטון אצל המתאמנים' + (kept ? ' · ' + kept + ' סרטונים שהעלית בעצמך נשארו' : ''));
+    var box = document.querySelector('[data-animclips]'); if (box) box.innerHTML = clipsInner();
+    return n;
+  }
+  function clipsUnpublish() {
+    if (!confirm('להסתיר את כל סרטוני הטיוטה מהמתאמנים? הסרטונים עצמם נשארים כאן.')) return 0;
+    var m = exv(), n = 0;
+    Object.keys(m).forEach(function (k) { if (m[k] && m[k].clip) { delete m[k]; n++; } });
+    if (typeof save === 'function') save();
+    var box = document.querySelector('[data-animclips]'); if (box) box.innerHTML = clipsInner();
+    return n;
+  }
   function clipsCard() {
     setTimeout(clipsLoad, 0);
     return '<div data-animclips>' + clipsInner() + '</div>';
@@ -1178,7 +1240,11 @@
     var mb = list.reduce(function (a, c) { return a + (c.size || 0); }, 0) / 1048576;
     var h = '<div class="card" style="margin-bottom:12px"><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px">'
       + '<h3 style="flex:1;font-size:16px;margin:0">🎬 הסרטונים שלי · טיוטה</h3>'
-      + '<span style="font-size:12px;padding:3px 10px;border-radius:20px;border:1px solid var(--line,#47372A);color:var(--mut,#9A8A7C)">🔒 לא גלוי למתאמנים</span>'
+      + (list.some(function (c) { return publishedCount(c); })
+        ? '<span style="font-size:12px;padding:3px 10px;border-radius:20px;border:1px solid #3F7D4E;color:#7FC28E">✅ מפורסם למתאמנים</span>'
+          + '<button onclick="EBAnim.clipsUnpublish()" style="font:inherit;font-size:12px;padding:5px 10px;border-radius:8px;cursor:pointer;background:transparent;border:1px solid var(--line,#47372A);color:var(--mut,#9A8A7C)">הסתרה מהמתאמנים</button>'
+        : '<span style="font-size:12px;padding:3px 10px;border-radius:20px;border:1px solid var(--line,#47372A);color:var(--mut,#9A8A7C)">🔒 לא גלוי למתאמנים</span>')
+      + '<button onclick="EBAnim.clipsPublish()" style="font:inherit;font-size:12.5px;font-weight:700;padding:6px 12px;border-radius:8px;cursor:pointer;background:#E4622F;border:0;color:#fff">📢 פרסם הכול למתאמנים</button>'
       + '<span style="font-size:12px;color:var(--mut,#9A8A7C)">' + list.length + ' סרטונים · ' + mb.toFixed(1) + 'MB</span></div>'
       + '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px">';
     list.forEach(function (c, i) {
@@ -1186,7 +1252,8 @@
         + '<video src="' + esc(c.url) + '" controls playsinline preload="metadata" style="width:100%;border-radius:8px;background:#000;display:block"></video>'
         + '<div style="display:flex;align-items:center;gap:6px;margin-top:7px"><div style="flex:1;min-width:0">'
         + '<div style="font-weight:700;font-size:13.5px">' + esc(c.exercise || c.name) + '</div>'
-        + '<div style="font-size:11.5px;color:var(--mut,#9A8A7C)">' + esc(c.at || '') + (c.src ? ' · ' + esc(c.src) : '') + '</div></div>'
+        + '<div style="font-size:11.5px;color:var(--mut,#9A8A7C)">' + esc(c.at || '') + (c.src ? ' · ' + esc(c.src) : '')
+        + (publishedCount(c) ? ' · <span style="color:#7FC28E">גלוי ב-' + publishedCount(c) + ' שמות תרגיל</span>' : (namesFor(c).length ? '' : ' · לא משויך לתרגיל בתוכניות')) + '</div></div>'
         + '<button onclick="EBAnim.clipDelete(' + i + ')" style="font:inherit;font-size:12px;padding:5px 10px;border-radius:8px;cursor:pointer;'
         + 'background:transparent;border:1px solid var(--line,#47372A);color:var(--mut,#9A8A7C)">מחיקה</button></div></div>';
     });
@@ -1196,6 +1263,9 @@
     var list = clips(), c = list[i]; if (!c) return;
     if (!confirm('למחוק את הסרטון "' + (c.exercise || c.name) + '"?')) return;
     list = list.slice(); list.splice(i, 1);
+    var m = (window.S.settings || {}).exVideos || {};
+    Object.keys(m).forEach(function (k) { if (m[k] && m[k].path === c.path) delete m[k]; });
+    if (typeof save === 'function') save();
     try { await clipsSave(list); } catch (e) { alert('המחיקה לא נשמרה — בדקו את החיבור ונסו שוב.'); return; }
     try { if (c.path) await EBSync.client().storage.from('videos').remove([c.path]); } catch (e) {}
     var box = document.querySelector('[data-animclips]');
@@ -1244,6 +1314,6 @@
 
   window.EBAnim = { classify: classify, mount: mount, mountAll: mountAll, has: has, label: label,
                     open: open, close: close, view: libView, search: search, muscle: muscle, more: more,
-                    openLibrary: openLibrary, closeLibrary: closeLibrary, muscles: muscles, MUSCLES: MUS_HE, clipDelete: clipDelete, clipsLoad: clipsLoad, clipsSave: clipsSave, clips: clips,
+                    openLibrary: openLibrary, closeLibrary: closeLibrary, muscles: muscles, MUSCLES: MUS_HE, clipDelete: clipDelete, clipsPublish: clipsPublish, clipsUnpublish: clipsUnpublish, clipsLoad: clipsLoad, clipsSave: clipsSave, clips: clips,
                     PATTERNS: P, _frame: frame, _build: build, _draw: draw };
 })();
