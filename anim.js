@@ -22,7 +22,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['anim'] = 'v231';
+  (window.EB_MOD = window.EB_MOD || {})['anim'] = 'v232';
 
   var L = { shin: 62, thigh: 64, torso: 78, uarm: 46, farm: 42, neck: 9, head: 15, foot: 17 };
   var ARM = L.uarm + L.farm;
@@ -79,7 +79,27 @@
       kb: t < 0.5 ? a.kb : b.kb, kb2: t < 0.5 ? a.kb2 : b.kb2, eb: t < 0.5 ? a.eb : b.eb, eb2: t < 0.5 ? a.eb2 : b.eb2
     };
   }
-  function body(p) {
+  /* מבט מלפנים: אותה דמות ואותו IK, אבל הירכיים והכתפיים זה ליד זה
+     (ניצב לגו) במקום אחד מאחורי השני. כך רואים תנועה לצדדים — לאנג׳
+     צידי, הרחקות צד, הרמת רגל בשכיבה על הצד — שמהצד פשוט לא נראית. */
+  var HW = 13, SW = 21;
+  function bodyFront(p) {
+    var hc = p.hip, sc = add(hc, dir(p.torso), L.torso); sc[1] -= p.shy;
+    var tv = dir(p.torso), n = [-tv[1], tv[0]];
+    var hd = add(sc, dir(p.torso + p.head), L.neck + L.head);
+    var hR = [hc[0] + n[0] * HW, hc[1] + n[1] * HW], hL = [hc[0] - n[0] * HW, hc[1] - n[1] * HW];
+    var sR = [sc[0] + n[0] * SW, sc[1] + n[1] * SW], sL = [sc[0] - n[0] * SW, sc[1] - n[1] * SW];
+    var k1 = ik(hR, p.f1, L.thigh, L.shin, p.kb), k2 = ik(hL, p.f2, L.thigh, L.shin, p.kb2);
+    var e1 = ik(sR, p.h1, L.uarm, L.farm, p.eb), e2 = ik(sL, p.h2, L.uarm, L.farm, p.eb2);
+    return {
+      hip: hR, sh: sR, head: hd, hip2: hL, sh2: sL, hc: hc, sc: sc,
+      knee1: k1.mid, ank1: k1.end, toe1: [k1.end[0] + n[0] * 7, k1.end[1] + n[1] * 7],
+      knee2: k2.mid, ank2: k2.end, toe2: [k2.end[0] - n[0] * 7, k2.end[1] - n[1] * 7],
+      elb1: e1.mid, wr1: e1.end, elb2: e2.mid, wr2: e2.end
+    };
+  }
+  function body(p, front) {
+    if (front) return bodyFront(p);
     var sh = add(p.hip, dir(p.torso), L.torso); sh[1] -= p.shy;
     var hd = add(sh, dir(p.torso + p.head), L.neck + L.head);
     /* הצד הרחוק יוצא מנקודה מוזזת מעט — בלי זה הדמות נראית שטוחה,
@@ -429,6 +449,49 @@
   P.rollfoot = { he: 'גלגול כדור לכף הרגל', fn: function () {
     var A = stand({ f2: [18, -14], kb2: 'R', fa2: 0, h1: ['s', 30, 40] }), B = stand({ f2: [42, -14], kb2: 'R', fa2: 0, h1: ['s', 30, 40] });
     var s = seq([A, B], 2400); s.props = [{ k: 'ball', c: [36, -7], r: 7 }]; return s; } };
+  /* ---------- תבניות במבט מלפנים (s.front) ---------- */
+  function fstand(o) { return Object.assign({ hip: [0, -125], torso: 0, f1: [20, 0], f2: [-20, 0], kb: 'R', kb2: 'L',
+    h1: ['s', 30, 86], h2: ['s', -30, 86], eb: 'R', eb2: 'L', fa1: 90, fa2: 90 }, o || {}); }
+  function front(s) { s.front = true; return s; }
+  P.fsidelunge = { he: 'לאנג׳ צידי', fn: function (eq) {
+    var hands = eq === 'db' || eq === 'kb' ? { h1: ['s', 8, 40], h2: ['s', -8, 40], eb: 'D', eb2: 'D' } : { h1: ['s', 6, 36], h2: ['s', -6, 36], eb: 'D', eb2: 'D' };
+    var A = fstand(Object.assign({ f1: [40, 0], f2: [-40, 0] }, hands));
+    var B = fstand(Object.assign({ hip: [-46, -74], torso: -4, f1: [74, 0], f2: [-86, 0], kb: 'R', kb2: 'L' }, hands));
+    var s = seq([A, B], 3000); s.hold = eq === 'db' || eq === 'kb' ? 'goblet' : null; return front(s); } };
+  P.fraise = { he: 'הרחקות צד', fn: function (eq) {
+    var A = fstand({ h1: ['s', 30, 86], h2: ['s', -30, 86] });
+    var B = fstand({ h1: ['s', 106, 6], h2: ['s', -106, 6], eb: 'D', eb2: 'D' });
+    var s = seq([A, B], 2600); s.hold = eq === 'cable' ? 'cable' : eq === 'band' ? null : (eq === 'machine' ? null : 'hand'); return front(s); } };
+  P.flegside = { he: 'הרחקת רגל בעמידה', fn: function (eq) {
+    var A = fstand({ f1: [20, -4], f2: [-14, 0], h1: ['s', 44, 70], h2: ['s', -40, 76] });
+    var B = fstand({ hip: [-8, -125], torso: -6, f1: [78, -36], f2: [-14, 0], h1: ['s', 44, 70], h2: ['s', -40, 76] });
+    var s = seq([A, B], 2400); s.hold = eq === 'cable' ? 'anklecable' : eq === 'band' ? 'bandank' : null; return front(s); } };
+  P.fskater = { he: 'סקוואט סקייטר', fn: function () {
+    var L1 = fstand({ hip: [-60, -98], torso: -8, f1: [-30, -26], kb: 'L', f2: [-70, 0], kb2: 'L', h1: ['s', 50, 50], h2: ['s', -10, 60] });
+    var M = fstand({ hip: [0, -150], f1: [16, -30], f2: [-16, -30], h1: ['s', 40, 60], h2: ['s', -40, 60] });
+    var R1 = fstand({ hip: [60, -98], torso: 8, f1: [70, 0], kb: 'R', f2: [30, -26], kb2: 'R', h1: ['s', 10, 60], h2: ['s', -50, 50] });
+    var s = seq([L1, M, R1, M], 2800); s.ground = true; return front(s); } };
+  P.fsidebend = { he: 'כפיפה לצד', fn: function () {
+    var A = fstand({ f1: [26, 0], f2: [-26, 0], h1: ['s', 24, -80], eb: 'R', h2: ['s', -30, 80] });
+    var B = fstand({ f1: [26, 0], f2: [-26, 0], torso: -24, h1: ['s', -46, -72], eb: 'R', h2: ['s', -30, 80] });
+    return front(seq([A, B], 3600)); } };
+  P.fsidewalk = { he: 'הליכה צידית עם גומייה', fn: function (eq) {
+    var A = fstand({ hip: [0, -110], f1: [26, 0], f2: [-26, 0], h1: ['s', 24, 50], h2: ['s', -24, 50], eb: 'D', eb2: 'D' });
+    var B = fstand({ hip: [14, -110], f1: [70, 0], f2: [-26, 0], h1: ['s', 24, 50], h2: ['s', -24, 50], eb: 'D', eb2: 'D' });
+    var C2 = fstand({ hip: [40, -110], f1: [70, 0], f2: [14, 0], h1: ['s', 24, 50], h2: ['s', -24, 50], eb: 'D', eb2: 'D' });
+    var s = seq([A, B, C2], 2700); s.hold = eq === 'band' ? 'bandknee' : null; return front(s); } };
+  P.fstepside = { he: 'עלייה צידית', fn: function (eq) {
+    var A = fstand({ f1: [56, -44], kb: 'R', f2: [-14, 0], h1: ['s', 30, 86], h2: ['s', -30, 86] });
+    var B = fstand({ hip: [40, -164], f1: [56, -44], f2: [20, -50], kb2: 'L', h1: ['s', 30, 86], h2: ['s', -30, 86] });
+    var s = seq([A, B], 2800); s.props = [{ k: 'box', r: [30, -44, 70, 44] }]; s.hold = eq === 'db' ? 'hand' : null; return front(s); } };
+  P.fsidelie = { he: 'הרמת רגל בשכיבה על הצד', fn: function (eq) {
+    var A = { hip: [0, -16], torso: -90, f1: [124, -18], f2: [124, -4], kb: 'U', kb2: 'U', h1: ['h', 16, -18], eb: 'U', h2: ['s', -40, 6], eb2: 'U', fa1: 90, fa2: 90 };
+    var B = { hip: [0, -16], torso: -90, f1: [110, -72], f2: [124, -4], kb: 'U', kb2: 'U', h1: ['h', 16, -18], eb: 'U', h2: ['s', -40, 6], eb2: 'U', fa1: 90, fa2: 90 };
+    var s = seq([A, B], 2600); s.hold = eq === 'cable' ? 'anklecable' : null; return front(s); } };
+  P.fsideplank = { he: 'פלאנק צידי', fn: function (eq, v) {
+    var A = { hip: [0, -20], torso: -72, f1: [118, -12], f2: [118, -2], kb: 'U', kb2: 'U', h1: ['h', 4, -14], eb: 'U', h2: [-62, -2], eb2: 'D', fa1: 90, fa2: 90 };
+    var B = { hip: [0, -50], torso: -80, f1: [118, -12], f2: [118, -2], kb: 'U', kb2: 'U', h1: ['s', 6, -84], eb: 'U', h2: [-62, -2], eb2: 'D', fa1: 90, fa2: 90 };
+    return front(seq([A, B], 3000)); } };
   P.curl = { he: 'כפיפת מרפקים', fn: function (eq) {
     var A = stand({ h1: ['s', 6, 86] }), B = stand({ h1: ['s', 26, 18], eb: 'D' });
     var s = seq([A, B], 2400); s.hold = eq === 'bar' || eq === 'smith' ? 'plate' : eq === 'cable' ? 'cable' : eq === 'band' ? 'bandfoot' : eq === 'machine' || eq === 'bench' ? 'handle' : eq === 'trx' ? 'trxhands' : 'hand';
@@ -628,6 +691,15 @@
   function W(s) { return '(?:^|[^א-ת])[ובלמהש]?(?:' + s + ')(?=$|[^א-ת])'; }
   function R(s, f) { return new RegExp(s, f); }
   var RULES = [
+    [/לאנג׳ צידי|סקוואט קוזאק|עמידת קוזאק/, 'fsidelunge'],
+    [/הרחקות צד (במשקולות|בכבל|במכונה|עם גומייה|יד אחת|בישיבה|מאחורי|בקטלבל)/, 'fraise'],
+    [/מרחיקים בכבל בעמידה|הרחקת רגל בעמידה|בעיטה צידית בעמידה|הרחקת רגל לצד במים|נדנוד רגל צידי/, 'flegside'],
+    [/סקוואט סקייטר|קפיצת סקייטר|קפיצה צידית/, 'fskater'],
+    [/מתיחת מותניים בעמידה|מתיחת רצועת ה-IT/, 'fsidebend'],
+    [/הליכת גומייה צידית|הליכה צידית במים/, 'fsidewalk'],
+    [/עלייה צידית על ספסל|סטפ-אפ צידי/, 'fstepside'],
+    [/הרמת רגל צידית בשכיבה|מרחיקים בשכיבה על הצד/, 'fsidelie'],
+    [/הרמת אגן צידית|פלאנק צידי עם ירידת אגן|^פלאנק צידי$|פלאנק צידי עם ברך/, 'fsideplank'],
     [/מתיחת חזה|גלגול כדור לחזה/, 'doorchest'],
     [/מתיחת כתף צולבת|מתיחת כתף אחורית/, 'crossarm'],
     [/מתיחת יד אחורית מעל הראש/, 'ohtri'],
@@ -845,7 +917,7 @@
     press: ['chest', 'triceps', 'shoulders'], fly: ['chest'], pullover: ['back', 'chest'], ohp: ['shoulders', 'triceps'],
     raise: ['shoulders'], reardelt: ['shoulders', 'back'], facepull: ['shoulders', 'back'], shrug: ['back'],
     uprow: ['shoulders', 'back'], row: ['back', 'biceps'], seatedrow: ['back', 'biceps'], invrow: ['back', 'biceps'],
-    pulldown: ['back', 'biceps'], pullup: ['back', 'biceps'], hangraise: ['core'], lsitpull: ['back', 'biceps', 'core'], dipraise: ['core'], pullapart: ['shoulders', 'back'], doorchest: ['chest', 'shoulders'], crossarm: ['shoulders'], ohtri: ['triceps'], forearm: ['biceps'], neck: ['back'], latstretch: ['back'], openbook: ['back', 'chest'], tkneel: ['back'], seatedham: ['hams'], lyingham: ['hams'], butterfly: ['glutes'], wallcalf: ['calves'], figure4: ['glutes'], stephams: ['hams', 'back'], rolldown: ['back', 'hams'], ankle: ['calves'], kneewall: ['calves'], wristcar: ['biceps'], quadhip: ['glutes'], downdog: ['hams', 'calves', 'shoulders'], rollback: ['back'], rollquad: ['quads'], rollglute: ['glutes'], rollcalf: ['calves'], rollfoot: ['calves'], pigeon: ['glutes'], cobra: ['core', 'back'], hang: ['back', 'shoulders'], kpulldown: ['back', 'biceps'], seatedlegpress: ['quads', 'glutes'], scapdip: ['shoulders', 'back', 'triceps'], ropeclimb: ['back', 'biceps', 'core'], pistol: ['quads', 'glutes', 'core'], hip9090: ['glutes'], inchworm: ['hams', 'shoulders', 'core'], legswing: ['hams', 'glutes'], curl: ['biceps'],
+    pulldown: ['back', 'biceps'], pullup: ['back', 'biceps'], hangraise: ['core'], lsitpull: ['back', 'biceps', 'core'], dipraise: ['core'], pullapart: ['shoulders', 'back'], fsidelunge: ['quads', 'glutes'], fraise: ['shoulders'], flegside: ['glutes'], fskater: ['quads', 'glutes'], fsidebend: ['core'], fsidewalk: ['glutes'], fstepside: ['quads', 'glutes'], fsidelie: ['glutes'], fsideplank: ['core'], doorchest: ['chest', 'shoulders'], crossarm: ['shoulders'], ohtri: ['triceps'], forearm: ['biceps'], neck: ['back'], latstretch: ['back'], openbook: ['back', 'chest'], tkneel: ['back'], seatedham: ['hams'], lyingham: ['hams'], butterfly: ['glutes'], wallcalf: ['calves'], figure4: ['glutes'], stephams: ['hams', 'back'], rolldown: ['back', 'hams'], ankle: ['calves'], kneewall: ['calves'], wristcar: ['biceps'], quadhip: ['glutes'], downdog: ['hams', 'calves', 'shoulders'], rollback: ['back'], rollquad: ['quads'], rollglute: ['glutes'], rollcalf: ['calves'], rollfoot: ['calves'], pigeon: ['glutes'], cobra: ['core', 'back'], hang: ['back', 'shoulders'], kpulldown: ['back', 'biceps'], seatedlegpress: ['quads', 'glutes'], scapdip: ['shoulders', 'back', 'triceps'], ropeclimb: ['back', 'biceps', 'core'], pistol: ['quads', 'glutes', 'core'], hip9090: ['glutes'], inchworm: ['hams', 'shoulders', 'core'], legswing: ['hams', 'glutes'], curl: ['biceps'],
     pushdown: ['triceps'], ohext: ['triceps'], skull: ['triceps'], kickback: ['triceps'], crunch: ['core'],
     legraise: ['core'], twist: ['core'], woodchop: ['core', 'shoulders'], pallof: ['core'], deadbug: ['core'],
     birddog: ['core', 'glutes', 'back'], kickbackleg: ['glutes'], sidelying: ['glutes'], superman: ['back', 'glutes'],
@@ -908,7 +980,7 @@
   }
   function frame(s, t) {
     var ph = phase(s, t), n = s.res.length;
-    return body(mix(s.res[ph.i], s.res[(ph.i + 1) % n], ph.f));
+    return body(mix(s.res[ph.i], s.res[(ph.i + 1) % n], ph.f), s.front);
   }
   function bounds(s) {
     var xs = [], ys = [];
@@ -988,6 +1060,7 @@
     /* גוף עם נפח: כל איבר הוא צורה שמצטרת לכיוון המפרק (ירך עבה וברך
        צרה, זרוע ואמה), והצד הרחוק בגוון כהה ולא שקוף — שקיפות יצרה
        חפיפות מוזרות במקום שהגפיים נחצות. */
+    if (s.front) { drawFront(ctx, b, s, C); frontHolds(ctx, b, s, t, line, rect, circ, plate); return; }
     taper(ctx, b.hip2, b.knee2, 14, 10, C.far); taper(ctx, b.knee2, b.ank2, 10, 7, C.far); foot(ctx, b.ank2, b.toe2, C.far);
     taper(ctx, b.sh2, b.elb2, 10, 8, C.far); taper(ctx, b.elb2, b.wr2, 8, 6, C.far); hand(ctx, b.wr2, C.far);
     torso(ctx, b, C.body);
@@ -1021,6 +1094,52 @@
       for (var q = 1; q <= 8; q++) ctx.lineTo(w[0] + q * 22, -10 + Math.sin(q * 1.3 + t * 18) * 18 * (1 - q / 9) + (w[1] + 10) * (1 - q / 8)); ctx.stroke(); }
     else if (h === 'bag') { rect([w[0] - 16, w[1] - 6, 32, 22], C.eq); }
     if (s.e === 'smith' && (h === 'plate' || h === 'back')) {}
+  }
+
+  /* ---------- דמות מלפנים ---------- */
+  function drawFront(ctx, b, s, C) {
+    var col = C.body;
+    taper(ctx, b.hip2, b.knee2, 15, 11, col); taper(ctx, b.knee2, b.ank2, 11, 7.5, col); foot(ctx, b.ank2, b.toe2, col);
+    taper(ctx, b.hip, b.knee1, 15, 11, col); taper(ctx, b.knee1, b.ank1, 11, 7.5, col); foot(ctx, b.ank1, b.toe1, col);
+    var mid = [(b.hc[0] * 0.45 + b.sc[0] * 0.55), (b.hc[1] * 0.45 + b.sc[1] * 0.55)];
+    taper(ctx, b.hc, mid, 36, 40, col); taper(ctx, mid, b.sc, 40, 46, col);
+    taper(ctx, b.sh2, b.sh, 13, 13, col);
+    var tv = unit([b.sc[0] - b.hc[0], b.sc[1] - b.hc[1]]);
+    taper(ctx, b.sc, [b.sc[0] + tv[0] * 10, b.sc[1] + tv[1] * 10], 10, 9, col);
+    ctx.fillStyle = col; ctx.beginPath(); ctx.arc(b.head[0], b.head[1], L.head, 0, Math.PI * 2); ctx.fill();
+    taper(ctx, b.sh2, b.elb2, 10.5, 8, col); taper(ctx, b.elb2, b.wr2, 8, 6, col); hand(ctx, b.wr2, col);
+    taper(ctx, b.sh, b.elb1, 10.5, 8, col); taper(ctx, b.elb1, b.wr1, 8, 6, col); hand(ctx, b.wr1, col);
+    var mus = s.mus || [], tn = [-tv[1], tv[0]];
+    function seg(a, c, f0, f1, al) {
+      ctx.globalAlpha = al; ctx.strokeStyle = MC; ctx.lineWidth = 6.5; ctx.lineCap = 'round'; ctx.beginPath();
+      ctx.moveTo(a[0] + (c[0] - a[0]) * f0, a[1] + (c[1] - a[1]) * f0); ctx.lineTo(a[0] + (c[0] - a[0]) * f1, a[1] + (c[1] - a[1]) * f1);
+      ctx.stroke(); ctx.globalAlpha = 1;
+    }
+    function dot(q, r, al) { ctx.globalAlpha = al; ctx.fillStyle = MC; ctx.beginPath(); ctx.arc(q[0], q[1], r, 0, Math.PI * 2); ctx.fill(); ctx.globalAlpha = 1; }
+    mus.forEach(function (k, i) {
+      var a = i === 0 ? 0.95 : 0.5;
+      if (k === 'quads') { seg(b.hip, b.knee1, 0.2, 0.85, a); seg(b.hip2, b.knee2, 0.2, 0.85, a); }
+      else if (k === 'hams') { seg(b.hip, b.knee1, 0.25, 0.8, a * 0.7); seg(b.hip2, b.knee2, 0.25, 0.8, a * 0.7); }
+      else if (k === 'glutes') { dot([b.hip[0] + tn[0] * 6, b.hip[1] + tn[1] * 6], 7, a); dot([b.hip2[0] - tn[0] * 6, b.hip2[1] - tn[1] * 6], 7, a); }
+      else if (k === 'calves') { seg(b.knee1, b.ank1, 0.15, 0.6, a); seg(b.knee2, b.ank2, 0.15, 0.6, a); }
+      else if (k === 'shoulders') { dot(b.sh, 7.5, a); dot(b.sh2, 7.5, a); }
+      else if (k === 'core') { seg(b.hc, b.sc, 0.12, 0.55, a); }
+      else if (k === 'chest') { seg(b.sh2, b.sh, 0.25, 0.75, a); }
+      else if (k === 'back') { seg(b.hc, b.sc, 0.5, 0.9, a * 0.7); }
+      else if (k === 'biceps') { seg(b.sh, b.elb1, 0.2, 0.85, a); seg(b.sh2, b.elb2, 0.2, 0.85, a); }
+      else if (k === 'triceps') { seg(b.sh, b.elb1, 0.2, 0.85, a * 0.7); seg(b.sh2, b.elb2, 0.2, 0.85, a * 0.7); }
+    });
+  }
+  function frontHolds(ctx, b, s, t, line, rect, circ, plate) {
+    var h = s.hold, w = b.wr1, w2 = b.wr2;
+    function db(q) { rect([q[0] - 3, q[1] - 12, 6, 24], C.eqDark); rect([q[0] - 7, q[1] - 15, 14, 7], C.eq); rect([q[0] - 7, q[1] + 8, 14, 7], C.eq); }
+    if (h === 'hand') { db(w); db(w2); }
+    else if (h === 'goblet') { circ([(w[0] + w2[0]) / 2, (w[1] + w2[1]) / 2 + 10], 13, C.eq, true); }
+    else if (h === 'cable') { line(w, [w[0] - 60, 0], C.eq, 2.5); circ([w[0] - 60, -4], 7, C.gear, true); }
+    else if (h === 'band') { ctx.setLineDash([6, 5]); line(w, w2, C.eq, 3); ctx.setLineDash([]); }
+    else if (h === 'bandank') { ctx.setLineDash([6, 5]); line(b.ank1, b.ank2, C.eq, 3); ctx.setLineDash([]); }
+    else if (h === 'bandknee') { ctx.setLineDash([6, 5]); line([(b.knee1[0] + b.ank1[0]) / 2, (b.knee1[1] + b.ank1[1]) / 2], [(b.knee2[0] + b.ank2[0]) / 2, (b.knee2[1] + b.ank2[1]) / 2], C.eq, 3); ctx.setLineDash([]); }
+    else if (h === 'anklecable') { line(b.ank1, [b.ank1[0] - 90, -6], C.eq, 2.5); circ([b.ank1[0] - 90, -6], 7, C.gear, true); }
   }
 
   /* ---------- צורות הגוף ---------- */
