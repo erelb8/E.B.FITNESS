@@ -22,7 +22,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['anim'] = 'v230';
+  (window.EB_MOD = window.EB_MOD || {})['anim'] = 'v231';
 
   var L = { shin: 62, thigh: 64, torso: 78, uarm: 46, farm: 42, neck: 9, head: 15, foot: 17 };
   var ARM = L.uarm + L.farm;
@@ -333,6 +333,102 @@
     var A = { hip: [0, -132], torso: 0, f1: [-6, -10], h1: [6, -300], kb: 'L', eb: 'D' };
     var B = { hip: [4, -132], torso: 3, f1: [-2, -10], h1: [6, -300], kb: 'L', eb: 'D' };
     var s = seq([A, B], 3600); s.props = [{ k: 'hbar', y: -300 }]; s.ground = false; return s; } };
+  /* ---------- מוביליטי וגמישות ----------
+     לכל סוג מתיחה תנוחה משלה. קודם 21 מתיחות שונות (חזה, צוואר, אמות…)
+     הראו אותה דמות עם ידיים למעלה, ו-9 גלגולי גליל — גליל מתחת לאגן. */
+  var QUAD = { hip: [-76, -62], torso: 66, f1: [-130, 0], h1: [0, 0], kb: 'D', eb: 'L', fa1: 180 };
+  function quad(o) { return Object.assign({}, QUAD, o || {}); }
+  P.doorchest = { he: 'מתיחת חזה', fn: function () {
+    var A = stand({ h1: ['s', -34, -4], eb: 'D' }), B = stand({ hip: [6, -125], torso: 8, h1: ['s', -66, -6], eb: 'D' });
+    var s = seq([A, B], 3600); s.props = [{ k: 'wall', x: -80 }]; return s; } };
+  P.crossarm = { he: 'מתיחת כתף', fn: function () {
+    var A = stand({ h1: ['s', 44, 12], h2: ['s', 30, 18], eb: 'D', eb2: 'D' }), B = stand({ h1: ['s', 26, 10], h2: ['s', 16, 22], eb: 'D', eb2: 'D' });
+    return seq([A, B], 3600); } };
+  P.ohtri = { he: 'מתיחת יד אחורית', fn: function () {
+    var A = stand({ h1: ['s', -12, -36], eb: 'U', h2: ['s', 4, -62], eb2: 'U' }), B = stand({ h1: ['s', -20, -26], eb: 'U', h2: ['s', -2, -58], eb2: 'U' });
+    return seq([A, B], 3600); } };
+  P.forearm = { he: 'מתיחת אמות', fn: function () {
+    var A = stand({ h1: ['s', 86, 2], h2: ['s', 72, 6], eb2: 'D' }), B = stand({ h1: ['s', 84, 16], h2: ['s', 68, 20], eb2: 'D' });
+    return seq([A, B], 3600); } };
+  P.neck = { he: 'מתיחת צוואר', fn: function () {
+    var A = stand({ head: 0, h1: ['s', 6, -50], eb: 'U' }), B = stand({ head: 30, h1: ['s', 12, -44], eb: 'U' });
+    return seq([A, B], 3600); } };
+  P.latstretch = { he: 'מתיחת רחב גבי', fn: function () {
+    var A = { hip: [-40, -118], torso: 78, f1: [0, 0], h1: [124, -128], kb: 'R', eb: 'R' };
+    var B = { hip: [-56, -116], torso: 92, f1: [0, 0], h1: [124, -128], kb: 'R', eb: 'R' };
+    var s = seq([A, B], 3600); s.props = [{ k: 'box', r: [118, -126, 36, 126] }]; return s; } };
+  P.openbook = { he: 'פתיחת ספר', fn: function () {
+    var base = { hip: [0, -12], torso: -92, f1: [50, -2], kb: 'U', fa1: 0, h2: ['s', 60, -40], eb2: 'U' };
+    var A = Object.assign({}, base, { h1: ['s', 60, -42], eb: 'U' }), B = Object.assign({}, base, { h1: ['s', 4, -86], eb: 'U' }),
+        C = Object.assign({}, base, { h1: ['s', -80, -6], eb: 'U' });
+    return seq([A, B, C, B], 5200); } };
+  P.tkneel = { he: 'סיבוב חזה בכריעה', fn: function () {
+    var A = quad({ h1: ['s', -6, 34], eb: 'D', h2: [0, 0] }), B = quad({ h1: ['s', 14, -84], eb: 'U', h2: [0, 0] });
+    return seq([A, B], 3600); } };
+  P.seatedham = { he: 'מתיחת המסטרינג בישיבה', fn: function () {
+    var A = { hip: [0, -14], torso: 4, f1: [124, -4], fa1: 20, h1: ['s', 50, 46], kb: 'U', eb: 'D' };
+    var B = { hip: [0, -14], torso: 56, f1: [124, -4], fa1: 20, h1: [116, -14], kb: 'U', eb: 'D' };
+    return seq([A, B], 3600); } };
+  P.lyingham = { he: 'מתיחת המסטרינג בשכיבה', fn: function () {
+    var A = { hip: [0, -8], torso: -92, f2: [124, -8], f1: [52, -112], kb: 'U', kb2: 'U', h1: [40, -86], eb: 'U' };
+    var B = { hip: [0, -8], torso: -92, f2: [124, -8], f1: [24, -122], kb: 'U', kb2: 'U', h1: [20, -96], eb: 'U' };
+    var s = seq([A, B], 3600); s.hold = null; return s; } };
+  P.butterfly = { he: 'מתיחת פרפר', fn: function () {
+    var A = { hip: [0, -14], torso: 0, f1: [34, -4], f2: [32, -4], kb: 'U', kb2: 'U', fa1: 0, fa2: 0, h1: [40, -8], eb: 'D' };
+    var B = { hip: [0, -14], torso: 34, f1: [34, -4], f2: [32, -4], kb: 'U', kb2: 'U', fa1: 0, fa2: 0, h1: [44, -6], eb: 'D' };
+    return seq([A, B], 3600); } };
+  P.wallcalf = { he: 'מתיחת שוק על קיר', fn: function () {
+    var A = { hip: [-20, -120], torso: 14, f1: [40, 0], f2: [-82, 0], kb: 'R', kb2: 'R', h1: ['s', 74, -4], eb: 'D' };
+    var B = { hip: [-6, -116], torso: 22, f1: [40, 0], f2: [-82, 0], kb: 'R', kb2: 'R', h1: ['s', 66, -2], eb: 'D' };
+    var s = seq([A, B], 3600); s.props = [{ k: 'wall', x: 118 }]; return s; } };
+  P.figure4 = { he: 'מתיחת עכוז (ספרה 4)', fn: function () {
+    var A = { hip: [0, -8], torso: -92, f2: [56, 0], kb2: 'U', f1: [30, -58], kb: 'U', fa1: 0, h1: [36, -50], eb: 'U' };
+    var B = { hip: [0, -8], torso: -92, f2: [38, -52], kb2: 'U', f1: [12, -92], kb: 'U', fa1: 0, h1: [20, -70], eb: 'U' };
+    return seq([A, B], 3600); } };
+  P.stephams = { he: 'מתיחת המסטרינג בעמידה', fn: function () {
+    var A = stand({ hip: [-8, -124], f1: [60, -32], kb: 'R', f2: [-8, 0], h1: ['s', 20, 60] });
+    var B = { hip: [-14, -122], torso: 48, f1: [60, -32], kb: 'R', f2: [-10, 0], h1: ['s', 50, 52], eb: 'D' };
+    var s = seq([A, B], 3600); s.props = [{ k: 'box', r: [44, -30, 56, 30] }]; return s; } };
+  P.rolldown = { he: 'גלגול עמוד שדרה', fn: function () {
+    var A = stand(), B = stand({ hip: [-10, -124], torso: 46, head: 20, h1: ['s', 20, 80] }),
+        C = stand({ hip: [-18, -122], torso: 104, head: 20, h1: ['s', 10, 86] });
+    return seq([A, B, C, B], 5200); } };
+  P.ankle = { he: 'סיבוב קרסול', fn: function () {
+    var kf = [30, 90, 150, 90].map(function (a) { return stand({ f2: [26, -34], kb2: 'R', fa2: a, h1: ['s', 30, 40] }); });
+    return seq(kf, 3200); } };
+  P.kneewall = { he: 'נדנוד קרסול על קיר', fn: function () {
+    var A = { hip: [-12, -64], torso: 4, f1: [40, 0], f2: [-62, 0], fa2: 125, kb: 'R', kb2: 'D', h1: ['s', 70, 0], eb: 'D' };
+    var B = { hip: [10, -60], torso: 8, f1: [40, 0], f2: [-62, 0], fa2: 125, kb: 'R', kb2: 'D', h1: ['s', 64, 2], eb: 'D' };
+    var s = seq([A, B], 2600); s.props = [{ k: 'wall', x: 116 }]; return s; } };
+  P.wristcar = { he: 'סיבוב שורש כף יד', fn: function () {
+    var kf = [[86, -6], [92, 2], [86, 10], [80, 2]].map(function (h) { return stand({ h1: ['s', h[0], h[1]] }); });
+    return seq(kf, 2800); } };
+  P.quadhip = { he: 'סיבוב ירך על ארבע', fn: function () {
+    var kf = [[-130, 0], [-50, -36], [-118, -92], [-196, -48]].map(function (f) { return quad({ f2: f, kb2: 'D', fa2: 180 }); });
+    return seq(kf, 4400); } };
+  P.downdog = { he: 'כלב מביט מטה', fn: function () {
+    var A = { hip: [-50, -114], torso: 130, f1: [-122, 0], fa1: 120, h1: [62, 0], kb: 'R', eb: 'L' };
+    var B = { hip: [-44, -124], torso: 134, f1: [-122, 0], fa1: 150, h1: [62, 0], kb: 'R', eb: 'L' };
+    return seq([A, B], 3600); } };
+  P.rollback = { he: 'גלגול גליל לגב', fn: function () {
+    var A = { hip: [0, -30], torso: -100, f1: [56, 0], kb: 'U', fa1: 0, h1: ['s', -12, -22], eb: 'U' };
+    var B = { hip: [14, -32], torso: -96, f1: [58, 0], kb: 'U', fa1: 0, h1: ['s', -12, -22], eb: 'U' };
+    var s = seq([A, B], 3000); s.props = [{ k: 'rollerAt', at: 'sh' }]; return s; } };
+  P.rollquad = { he: 'גלגול גליל לירך', fn: function () {
+    var A = { hip: [0, -36], torso: 80, f1: [-124, -26], fa1: 180, h1: [118, -6], kb: 'D', eb: 'D' };
+    var B = { hip: [22, -36], torso: 80, f1: [-102, -26], fa1: 180, h1: [140, -6], kb: 'D', eb: 'D' };
+    var s = seq([A, B], 3000); s.props = [{ k: 'rollerAt', at: 'thigh' }]; return s; } };
+  P.rollglute = { he: 'גלגול גליל לעכוז', fn: function () {
+    var A = { hip: [0, -36], torso: -22, f1: [58, 0], kb: 'U', fa1: 0, h1: [-52, 0], eb: 'D' };
+    var B = { hip: [12, -36], torso: -18, f1: [62, 0], kb: 'U', fa1: 0, h1: [-46, 0], eb: 'D' };
+    var s = seq([A, B], 3000); s.props = [{ k: 'rollerAt', at: 'hip' }]; return s; } };
+  P.rollcalf = { he: 'גלגול גליל לשוק', fn: function () {
+    var A = { hip: [0, -24], torso: -32, f1: [122, -30], kb: 'U', fa1: 30, h1: [-42, 0], eb: 'D' };
+    var B = { hip: [-16, -24], torso: -36, f1: [106, -30], kb: 'U', fa1: 30, h1: [-56, 0], eb: 'D' };
+    var s = seq([A, B], 3000); s.props = [{ k: 'rollerAt', at: 'shin' }]; return s; } };
+  P.rollfoot = { he: 'גלגול כדור לכף הרגל', fn: function () {
+    var A = stand({ f2: [18, -14], kb2: 'R', fa2: 0, h1: ['s', 30, 40] }), B = stand({ f2: [42, -14], kb2: 'R', fa2: 0, h1: ['s', 30, 40] });
+    var s = seq([A, B], 2400); s.props = [{ k: 'ball', c: [36, -7], r: 7 }]; return s; } };
   P.curl = { he: 'כפיפת מרפקים', fn: function (eq) {
     var A = stand({ h1: ['s', 6, 86] }), B = stand({ h1: ['s', 26, 18], eb: 'D' });
     var s = seq([A, B], 2400); s.hold = eq === 'bar' || eq === 'smith' ? 'plate' : eq === 'cable' ? 'cable' : eq === 'band' ? 'bandfoot' : eq === 'machine' || eq === 'bench' ? 'handle' : eq === 'trx' ? 'trxhands' : 'hand';
@@ -532,6 +628,34 @@
   function W(s) { return '(?:^|[^א-ת])[ובלמהש]?(?:' + s + ')(?=$|[^א-ת])'; }
   function R(s, f) { return new RegExp(s, f); }
   var RULES = [
+    [/מתיחת חזה|גלגול כדור לחזה/, 'doorchest'],
+    [/מתיחת כתף צולבת|מתיחת כתף אחורית/, 'crossarm'],
+    [/מתיחת יד אחורית מעל הראש/, 'ohtri'],
+    [/מתיחת אמות|מתיחת יד קדמית/, 'forearm'],
+    [/מתיחת צוואר|מתיחת טרפז|סיבוב צוואר/, 'neck'],
+    [/מתיחת רחב גבי בתלייה/, 'hang'],
+    [/מתיחת רחב גבי/, 'latstretch'],
+    [/פתיחת ספר|סיבוב חזה בשכיבה על הצד|מתיחת שינה/, 'openbook'],
+    [/סיבוב חזה בכריעה/, 'tkneel'],
+    [/מתיחת המסטרינג עם גומייה בשכיבה/, 'lyingham'],
+    [/מתיחת המסטרינג בישיבה|מתיחת תאומים עם גומייה בישיבה/, 'seatedham'],
+    [/מתיחת פרפר|מתיחת מקרבים בישיבה|מתיחת אגן בישיבה/, 'butterfly'],
+    [/מתיחת שוק על קיר|מתיחת סוליאוס|מתיחת שוקיים/, 'wallcalf'],
+    [/ספרה 4|פיריפורמיס/, 'figure4'],
+    [/מתיחת המסטרינג בעמידה|מתיחת שרשרת אחורית/, 'stephams'],
+    [/סיבוב עמוד שדרה/, 'rolldown'],
+    [/סיבוב קרסול|סיבובי קרסול/, 'ankle'],
+    [/נדנוד קרסול/, 'kneewall'],
+    [/סיבוב שורש כף יד/, 'wristcar'],
+    [/סיבוב כתף מבוקר|סיבוב שכמות|סיבוב כתפיים עם מקל/, 'circles'],
+    [/סיבובי ירך על ארבע|סיבוב ירך מבוקר/, 'quadhip'],
+    [/כלב מביט מטה/, 'downdog'],
+    [/גלגול גליל (לגב עליון|לרחב גבי)/, 'rollback'],
+    [/גלגול גליל (לארבע ראשי|ל-IT|למקרבים)/, 'rollquad'],
+    [/גלגול גליל לעכוז/, 'rollglute'],
+    [/גלגול גליל לשוק/, 'rollcalf'],
+    [/גלגול כדור לכף הרגל/, 'rollfoot'],
+    [/סומו דינמי/, 'squat'],
     [/90[\/-]90/, 'hip9090'],
     [/יונה/, 'pigeon'],
     [/קוברה/, 'cobra'],
@@ -721,7 +845,7 @@
     press: ['chest', 'triceps', 'shoulders'], fly: ['chest'], pullover: ['back', 'chest'], ohp: ['shoulders', 'triceps'],
     raise: ['shoulders'], reardelt: ['shoulders', 'back'], facepull: ['shoulders', 'back'], shrug: ['back'],
     uprow: ['shoulders', 'back'], row: ['back', 'biceps'], seatedrow: ['back', 'biceps'], invrow: ['back', 'biceps'],
-    pulldown: ['back', 'biceps'], pullup: ['back', 'biceps'], hangraise: ['core'], lsitpull: ['back', 'biceps', 'core'], dipraise: ['core'], pullapart: ['shoulders', 'back'], pigeon: ['glutes'], cobra: ['core', 'back'], hang: ['back', 'shoulders'], kpulldown: ['back', 'biceps'], seatedlegpress: ['quads', 'glutes'], scapdip: ['shoulders', 'back', 'triceps'], ropeclimb: ['back', 'biceps', 'core'], pistol: ['quads', 'glutes', 'core'], hip9090: ['glutes'], inchworm: ['hams', 'shoulders', 'core'], legswing: ['hams', 'glutes'], curl: ['biceps'],
+    pulldown: ['back', 'biceps'], pullup: ['back', 'biceps'], hangraise: ['core'], lsitpull: ['back', 'biceps', 'core'], dipraise: ['core'], pullapart: ['shoulders', 'back'], doorchest: ['chest', 'shoulders'], crossarm: ['shoulders'], ohtri: ['triceps'], forearm: ['biceps'], neck: ['back'], latstretch: ['back'], openbook: ['back', 'chest'], tkneel: ['back'], seatedham: ['hams'], lyingham: ['hams'], butterfly: ['glutes'], wallcalf: ['calves'], figure4: ['glutes'], stephams: ['hams', 'back'], rolldown: ['back', 'hams'], ankle: ['calves'], kneewall: ['calves'], wristcar: ['biceps'], quadhip: ['glutes'], downdog: ['hams', 'calves', 'shoulders'], rollback: ['back'], rollquad: ['quads'], rollglute: ['glutes'], rollcalf: ['calves'], rollfoot: ['calves'], pigeon: ['glutes'], cobra: ['core', 'back'], hang: ['back', 'shoulders'], kpulldown: ['back', 'biceps'], seatedlegpress: ['quads', 'glutes'], scapdip: ['shoulders', 'back', 'triceps'], ropeclimb: ['back', 'biceps', 'core'], pistol: ['quads', 'glutes', 'core'], hip9090: ['glutes'], inchworm: ['hams', 'shoulders', 'core'], legswing: ['hams', 'glutes'], curl: ['biceps'],
     pushdown: ['triceps'], ohext: ['triceps'], skull: ['triceps'], kickback: ['triceps'], crunch: ['core'],
     legraise: ['core'], twist: ['core'], woodchop: ['core', 'shoulders'], pallof: ['core'], deadbug: ['core'],
     birddog: ['core', 'glutes', 'back'], kickbackleg: ['glutes'], sidelying: ['glutes'], superman: ['back', 'glutes'],
@@ -792,7 +916,10 @@
       var b = frame(s, k / 24);
       Object.keys(b).forEach(function (j) { xs.push(b[j][0]); ys.push(b[j][1]); });
     }
-    (s.props || []).forEach(function (p) { if (p.r) { xs.push(p.r[0], p.r[0] + p.r[2]); ys.push(p.r[1], p.r[1] + p.r[3]); } });
+    (s.props || []).forEach(function (p) {
+      if (Array.isArray(p.r)) { xs.push(p.r[0], p.r[0] + p.r[2]); ys.push(p.r[1], p.r[1] + p.r[3]); }
+      else if (p.c && p.r) { xs.push(p.c[0] - p.r, p.c[0] + p.r); ys.push(p.c[1] - p.r, p.c[1] + p.r); }
+    });
     if (s.cable && s.hold && /cable/.test(s.hold)) { xs.push(s.cable[0]); ys.push(s.cable[1]); }
     var minY = Math.min.apply(null, ys) - L.head - 6, maxY = s.ground === false ? Math.max.apply(null, ys) + 10 : Math.max(4, Math.max.apply(null, ys) + 6);
     return { x0: Math.min.apply(null, xs) - 26, x1: Math.max.apply(null, xs) + 26, y0: minY, y1: maxY };
@@ -832,6 +959,11 @@
         line([-80, -50], [-80, 0], C.gear, 6); line([60, -50], [60, 0], C.gear, 6); }
       else if (p.k === 'rails') { line([b.wr1[0] - 30, -290], [b.wr1[0] - 30, 0], C.gear, 5); line([b.wr1[0] + 30, -290], [b.wr1[0] + 30, 0], C.gear, 5); }
       else if (p.k === 'hbar') line([-60, p.y], [80, p.y], C.gear, 7);
+      else if (p.k === 'wall') line([p.x, -330], [p.x, 0], C.gear, 8);
+      else if (p.k === 'rollerAt') { var q = p.at === 'sh' ? b.sh : p.at === 'hip' ? b.hip
+          : p.at === 'thigh' ? [(b.hip[0] + b.knee1[0]) / 2, (b.hip[1] + b.knee1[1]) / 2]
+          : [(b.knee1[0] + b.ank1[0]) / 2, (b.knee1[1] + b.ank1[1]) / 2];
+        circ([q[0], Math.min(-16, q[1] + 18)], 16, C.gear, true); }
       else if (p.k === 'rope') line([p.x, -380], [p.x, -20], C.eq, 6);
       else if (p.k === 'dipbar') { line([-30, p.y], [50, p.y], C.gear, 7); line([40, p.y], [40, 0], C.gear, 6); }
       else if (p.k === 'sled') { line([-30, -20], [150, -150], C.gear, 6); }
