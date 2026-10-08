@@ -13,8 +13,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="התוכנית שלי">
 <meta name="robots" content="noindex,nofollow">
-<link rel="apple-touch-icon" href="icons/icon-180.png?v=v235">
-<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=v235">
+<link rel="apple-touch-icon" href="icons/icon-180.png?v=v236">
+<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=v236">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -368,7 +368,7 @@ button{cursor:pointer}
 <body>
 
 <header class="top">
-  <div class="brand"><img class="brand-logo" src="icons/logo-96.png?v=v235" alt="" width="34" height="34"><span>E.B<span class="dot"></span>FIT</span></div>
+  <div class="brand"><img class="brand-logo" src="icons/logo-96.png?v=v236" alt="" width="34" height="34"><span>E.B<span class="dot"></span>FIT</span></div>
   <h1 id="hTitle">טוען…</h1>
   <div class="sub" id="hSub"></div>
   <span class="savechip" id="saveChip" aria-live="polite"></span>
@@ -380,20 +380,20 @@ button{cursor:pointer}
 
 <div id="toast"></div>
 
-<script src="vendor/supabase.js?v=v235"></script>
-<script src="config.js?v=v235"></script>
-<script src="meal-library.js?v=v235"></script>
-<script src="exercise-library.js?v=v235"></script>
-<script src="anim.js?v=v235"></script>
-<script src="progress.js?v=v235"></script>
-<script src="habits.js?v=v235"></script>
-<script src="coach-bot.js?v=v235"></script>
-<script src="progress-chart.js?v=v235"></script>
-<script src="workout-log.js?v=v235"></script>
-<script src="targets.js?v=v235"></script>
-<script src="health.js?v=v235"></script>
-<script src="privacy.js?v=v235"></script>
-<script src="guides.js?v=v235"></script>
+<script src="vendor/supabase.js?v=v236"></script>
+<script src="config.js?v=v236"></script>
+<script src="meal-library.js?v=v236"></script>
+<script src="exercise-library.js?v=v236"></script>
+<script src="anim.js?v=v236"></script>
+<script src="progress.js?v=v236"></script>
+<script src="habits.js?v=v236"></script>
+<script src="coach-bot.js?v=v236"></script>
+<script src="progress-chart.js?v=v236"></script>
+<script src="workout-log.js?v=v236"></script>
+<script src="targets.js?v=v236"></script>
+<script src="health.js?v=v236"></script>
+<script src="privacy.js?v=v236"></script>
+<script src="guides.js?v=v236"></script>
 <script>
 (function () {
   'use strict';
@@ -1815,6 +1815,7 @@ button{cursor:pointer}
     screen(
         openerBlock(days)
       + nudgeBlock(days)
+      + weeklyBlock(days)
       + journeyBlockSafe()
       + categoryBlock()
       + footerBlock()
@@ -1997,6 +1998,79 @@ button{cursor:pointer}
       try { localStorage.setItem(nudgeKey(), EBHabits.todayISO()); } catch (er) {}
       paint();
     }
+  });
+
+  /* ---------- סיכום השבוע שעבר ----------
+     בראשון עד שלישי: כמה אימונים, נפח מול השבוע שלפניו, שיאים חדשים
+     ושינוי במשקל — מהנתונים שכבר יש בדף. רק מספרים, בלי משפטי עידוד.
+     מוצג רק אם היה לפחות אימון אחד: שבוע ריק כבר מקבל את התזכורת
+     שמעל, ואין טעם לפתוח שבוע ב"0 אימונים". "סגירה" מסתיר עד השבוע הבא. */
+  const weekKey = () => 'ebfit_week_' + String(TOKEN || '').slice(0, 12);
+  function isoLocal(d) {
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+  function weeklyBlock(days) {
+    try {
+      if (!SRV_LOADED || !window.EBWLog) return '';
+      const now = new Date();
+      if (now.getDay() > 2) return '';                         // ראשון-שלישי בלבד
+      const sun = new Date(now); sun.setHours(0, 0, 0, 0); sun.setDate(sun.getDate() - sun.getDay());
+      const prevStart = new Date(sun); prevStart.setDate(sun.getDate() - 7);
+      const prev2Start = new Date(sun); prev2Start.setDate(sun.getDate() - 14);
+      const A = isoLocal(prev2Start), B = isoLocal(prevStart), C = isoLocal(sun);
+      try { if (localStorage.getItem(weekKey()) === B) return ''; } catch (e) {}
+      const dOf = l => String(l.date || '').slice(0, 10);
+      const logs = EXTRAS.logs || [];
+      const wk = logs.filter(l => dOf(l) >= B && dOf(l) < C);
+      if (!wk.length) return '';
+      const wk2 = logs.filter(l => dOf(l) >= A && dOf(l) < B);
+      const planned = days.filter(d => realOf(d).length).length;
+      const vol = wk.reduce((a, l) => a + EBWLog.volumeOf(l.entries || []), 0);
+      const vol2 = wk2.reduce((a, l) => a + EBWLog.volumeOf(l.entries || []), 0);
+
+      /* שיא: הסט הכבד ביותר בתרגיל השבוע, מעל כל מה שהיה לפני השבוע */
+      const top = e => Math.max(0, Number(e.weight) || 0,
+        ...((e.setLog || []).map(s => Number(s.w) || 0)));
+      const before = {};
+      logs.filter(l => dOf(l) < B).forEach(l => (l.entries || []).forEach(e => {
+        const n = e.ex || e.name; if (n) before[n] = Math.max(before[n] || 0, top(e)); }));
+      const best = {};
+      wk.forEach(l => (l.entries || []).forEach(e => {
+        const n = e.ex || e.name; if (n) best[n] = Math.max(best[n] || 0, top(e)); }));
+      const prs = Object.keys(best).filter(n => before[n] > 0 && best[n] > before[n])
+        .sort((x, y) => (best[y] - before[y]) - (best[x] - before[x])).slice(0, 2);
+
+      /* משקל: השקילה האחרונה בשבוע מול האחרונה לפניו */
+      let wTxt = '';
+      try {
+        const W = ((window.EBProg && EBProg.db().logs) || []).filter(x => x && x.date && Number(x.w) > 0);
+        const inWk = W.filter(x => x.date >= B && x.date < C).sort((a, b) => a.date.localeCompare(b.date)).pop();
+        const pre = W.filter(x => x.date < B).sort((a, b) => a.date.localeCompare(b.date)).pop();
+        if (inWk && pre) {
+          const df = Math.round((inWk.w - pre.w) * 10) / 10;
+          wTxt = pre.w + ' → ' + inWk.w + ' (' + (df > 0 ? '+' : '') + df + ')';
+        }
+      } catch (e) {}
+
+      const row = (k, v) => '<div style="display:flex;gap:10px;padding:7px 0;border-top:1px solid var(--line);font-size:13.5px">'
+        + '<span class="mt" style="flex:none;width:92px">' + k + '</span><b style="flex:1;min-width:0">' + v + '</b></div>';
+      const volCh = vol2 > 0 ? ' (' + (vol >= vol2 ? '+' : '') + Math.round((vol - vol2) / vol2 * 100) + '% מהשבוע שלפניו)' : '';
+      return '<div class="card" style="margin-bottom:14px">'
+        + '<div style="display:flex;align-items:baseline;margin-bottom:6px">'
+        + '<div style="flex:1;font-family:Heebo;font-weight:700;font-size:15px">השבוע שעבר</div>'
+        + '<button data-week-hide style="background:none;border:0;color:var(--dim);font-size:12px;cursor:pointer;font-family:inherit">סגירה</button></div>'
+        + row('אימונים', wk.length + (planned ? ' מתוך ' + planned : ''))
+        + (vol ? row('נפח', vol.toLocaleString('en-US') + ' ק״ג' + volCh) : '')
+        + (prs.length ? row('שיא חדש', prs.map(n => esc(n) + ' ' + best[n] + ' ק״ג').join(' · ')) : '')
+        + (wTxt ? row('משקל', '<span dir="ltr" style="unicode-bidi:isolate">' + wTxt + '</span>') : '')
+        + '</div>';
+    } catch (e) { return ''; }
+  }
+  document.addEventListener('click', function (e) {
+    if (!e.target.closest || !e.target.closest('[data-week-hide]')) return;
+    const sun = new Date(); sun.setHours(0, 0, 0, 0); sun.setDate(sun.getDate() - sun.getDay() - 7);
+    try { localStorage.setItem(weekKey(), isoLocal(sun)); } catch (er) {}
+    paint();
   });
 
   function openerBlock(days) {
