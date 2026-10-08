@@ -13,8 +13,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="התוכנית שלי">
 <meta name="robots" content="noindex,nofollow">
-<link rel="apple-touch-icon" href="icons/icon-180.png?v=v232">
-<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=v232">
+<link rel="apple-touch-icon" href="icons/icon-180.png?v=v233">
+<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=v233">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -368,7 +368,7 @@ button{cursor:pointer}
 <body>
 
 <header class="top">
-  <div class="brand"><img class="brand-logo" src="icons/logo-96.png?v=v232" alt="" width="34" height="34"><span>E.B<span class="dot"></span>FIT</span></div>
+  <div class="brand"><img class="brand-logo" src="icons/logo-96.png?v=v233" alt="" width="34" height="34"><span>E.B<span class="dot"></span>FIT</span></div>
   <h1 id="hTitle">טוען…</h1>
   <div class="sub" id="hSub"></div>
   <span class="savechip" id="saveChip" aria-live="polite"></span>
@@ -380,20 +380,20 @@ button{cursor:pointer}
 
 <div id="toast"></div>
 
-<script src="vendor/supabase.js?v=v232"></script>
-<script src="config.js?v=v232"></script>
-<script src="meal-library.js?v=v232"></script>
-<script src="exercise-library.js?v=v232"></script>
-<script src="anim.js?v=v232"></script>
-<script src="progress.js?v=v232"></script>
-<script src="habits.js?v=v232"></script>
-<script src="coach-bot.js?v=v232"></script>
-<script src="progress-chart.js?v=v232"></script>
-<script src="workout-log.js?v=v232"></script>
-<script src="targets.js?v=v232"></script>
-<script src="health.js?v=v232"></script>
-<script src="privacy.js?v=v232"></script>
-<script src="guides.js?v=v232"></script>
+<script src="vendor/supabase.js?v=v233"></script>
+<script src="config.js?v=v233"></script>
+<script src="meal-library.js?v=v233"></script>
+<script src="exercise-library.js?v=v233"></script>
+<script src="anim.js?v=v233"></script>
+<script src="progress.js?v=v233"></script>
+<script src="habits.js?v=v233"></script>
+<script src="coach-bot.js?v=v233"></script>
+<script src="progress-chart.js?v=v233"></script>
+<script src="workout-log.js?v=v233"></script>
+<script src="targets.js?v=v233"></script>
+<script src="health.js?v=v233"></script>
+<script src="privacy.js?v=v233"></script>
+<script src="guides.js?v=v233"></script>
 <script>
 (function () {
   'use strict';
@@ -1814,6 +1814,7 @@ button{cursor:pointer}
 
     screen(
         openerBlock(days)
+      + nudgeBlock(days)
       + journeyBlockSafe()
       + categoryBlock()
       + footerBlock()
@@ -1950,6 +1951,53 @@ button{cursor:pointer}
 
   /* פתיח: משפט אחד שאומר מה יש כאן. בלעדיו הדף נפתח באמצע עניין
      ולא ברור אם זו התוכנית המלאה או קטע ממנה. */
+  /* ---------- תזכורת: עבר זמן מהאימון האחרון ----------
+     מתאמן שלא דיווח ארבעה ימים ומעלה רואה בפתיחת הדף שורה אחת עם
+     האימון הבא שלו בתור וכפתור שפותח אותו. בלי אשמה ובלי משפטי עידוד:
+     כמה ימים עברו, ומה הבא. "לא היום" מסתיר עד מחר.
+
+     מוצג רק אחרי שהדיווחים נטענו מהשרת — לפני כן הרשימה ריקה, והייתה
+     יוצאת תזכורת "עוד לא דיווחת" גם למי שדיווח אתמול. */
+  const NUDGE_DAYS = 4;
+  const nudgeKey = () => 'ebfit_nudge_' + String(TOKEN || '').slice(0, 12);
+  function nudgeBlock(days) {
+    try {
+      if (!SRV_LOADED || !window.EBWLog || !window.EBHabits) return '';
+      if (!days.some(d => realOf(d).length)) return '';
+      const today = EBHabits.todayISO();
+      try { if (localStorage.getItem(nudgeKey()) === today) return ''; } catch (e) {}
+      const logs = EXTRAS.logs || [];
+      let gap = null;
+      if (logs.length) {
+        const last = logs.slice().sort((a, b) => String(a.date).localeCompare(String(b.date))).pop();
+        gap = EBWLog.dayGap(last.date);
+      }
+      if (gap !== null && gap < NUDGE_DAYS) return '';
+      let next = EBWLog.suggestDay(DATA.program, logs);
+      if (!days[next] || !realOf(days[next]).length) next = firstRealDay(days);
+      const name = (days[next] && days[next].name) || 'האימון הבא';
+      const head = gap === null ? 'עוד אין אימון מדווח' : 'עברו ' + gap + ' ימים מהאימון האחרון';
+      const sub  = (gap === null ? 'האימון הראשון שלך: ' : 'האימון הבא שלך: ') + name;
+      return '<div class="card" style="margin-bottom:14px;border-color:var(--or);display:flex;align-items:center;gap:12px">'
+        + '<div style="flex:1;min-width:0">'
+        + '<div style="font-family:Heebo;font-weight:700;font-size:15px">' + esc(head) + '</div>'
+        + '<div class="mt" style="font-size:13px;margin-top:3px">' + esc(sub) + '</div></div>'
+        + '<div style="display:flex;flex-direction:column;gap:6px;flex:none">'
+        + '<button class="btn" data-nudge-go="' + next + '" style="font-size:13.5px;padding:9px 14px">לאימון ←</button>'
+        + '<button data-nudge-hide style="background:none;border:0;color:var(--dim);font-size:12px;cursor:pointer;font-family:inherit">לא היום</button>'
+        + '</div></div>';
+    } catch (e) { return ''; }
+  }
+  document.addEventListener('click', function (e) {
+    if (!e.target.closest) return;
+    const go = e.target.closest('[data-nudge-go]');
+    if (go) { DAY = +go.dataset.nudgeGo; openCategory('workout'); return; }
+    if (e.target.closest('[data-nudge-hide]')) {
+      try { localStorage.setItem(nudgeKey(), EBHabits.todayISO()); } catch (er) {}
+      paint();
+    }
+  });
+
   function openerBlock(days) {
     const first = (DATA.name || '').trim().split(/\s+/)[0] || '';
     const ex    = days.reduce((a, d) => a + realOf(d).length, 0);
