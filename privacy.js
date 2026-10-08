@@ -16,7 +16,19 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['privacy'] = 'v233';
+  (window.EB_MOD = window.EB_MOD || {})['privacy'] = 'v234';
+
+  /* עד אוקטובר 2026 נקרא כאן esc גלובלי. באפליקציה של המאמן הוא קיים,
+     אבל בדף המתאמן esc יושב בתוך הסקריפט ולא גלובלי — כך שהודעת
+     היידוע זרקה שגיאה, וטופס הצהרת הבריאות לא נפתח לאף מתאמן. */
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+
+  /* מספר טלפון בתוך משפט עברי נשבר לשני חלקים בלי בידוד כיוון */
+  function tel(p) { return '<span dir="ltr" style="unicode-bidi:isolate;white-space:nowrap">' + esc(p) + '</span>'; }
 
   var NOTICE_VERSION = '2026-09-05';
 
@@ -50,11 +62,11 @@
       + '<b style="color:var(--tx);display:block;margin-bottom:5px">לפני שאתה ממלא — חשוב שתדע</b>'
       + 'מסירת המידע היא <b>מרצון</b> ואינך חייב בה על פי חוק. בלעדיה לא נוכל לבנות '
       + 'לך תוכנית בטוחה.<br>'
-      + 'המידע נאסף על ידי <b>' + esc(o.name) + '</b> (' + esc(o.biz) + ', ' + esc(o.phone) + ') '
+      + 'המידע נאסף על ידי <b>' + esc(o.name) + '</b> (' + esc(o.biz) + ', ' + tel(o.phone) + ') '
       + 'ומשמש <b>אך ורק</b> לבניית תוכנית האימון והתזונה שלך ולמעקב אחריה.<br>'
       + 'המידע נשמר בשרתי Supabase <b>מחוץ לישראל</b>, ואינו מועבר לאף גורם אחר.<br>'
       + 'בכל רגע אתה רשאי <b>לעיין</b> במידע, <b>לתקן</b> אותו או <b>לבקש שיימחק</b> — '
-      + 'פנה ל' + esc(o.name) + ' בטלפון ' + esc(o.phone) + '.'
+      + 'פנה ל' + esc(o.name) + ' בטלפון ' + tel(o.phone) + '.'
       + '</div>';
   }
 

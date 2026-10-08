@@ -283,6 +283,14 @@ const TRAINEE_DATA = {
     t('אין מסך תקנון למי שאישר', !(await page.$('#termsGate')));
     // תזכורת "עברו X ימים" — הדיווח האחרון כאן לפני יומיים, אז אין
     t('אין תזכורת למי שדיווח לפני יומיים', !(await page.$('[data-nudge-go]')));
+    /* הצהרת בריאות: למתאמן כאן אין הצהרה, ולכן היא נפתחת לפני התוכנית —
+       עם השאלות עצמן. עד אוקטובר 2026 הטופס זרק שגיאה (esc חסר ב-privacy.js)
+       ונפתח ריק, ואף מתאמן לא חתם. */
+    const hg = await page.evaluate(() => {
+      const g = document.getElementById('healthGate');
+      return g ? g.querySelectorAll('[onclick*="hPick"]').length : -1;
+    });
+    t('הצהרת הבריאות נפתחת עם 7 השאלות', hg === 14, 'כפתורי כן/לא: ' + hg);
     for (const cat of ['יומן', 'אימון', 'תזונה', 'גוף', 'מעקב', 'הרגלים', 'מדריכים']) {
       const ok = await page.evaluate(async c => {
         document.querySelector('#categoryModal')?.remove();

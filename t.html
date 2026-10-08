@@ -13,8 +13,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="התוכנית שלי">
 <meta name="robots" content="noindex,nofollow">
-<link rel="apple-touch-icon" href="icons/icon-180.png?v=v233">
-<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=v233">
+<link rel="apple-touch-icon" href="icons/icon-180.png?v=v234">
+<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=v234">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -368,7 +368,7 @@ button{cursor:pointer}
 <body>
 
 <header class="top">
-  <div class="brand"><img class="brand-logo" src="icons/logo-96.png?v=v233" alt="" width="34" height="34"><span>E.B<span class="dot"></span>FIT</span></div>
+  <div class="brand"><img class="brand-logo" src="icons/logo-96.png?v=v234" alt="" width="34" height="34"><span>E.B<span class="dot"></span>FIT</span></div>
   <h1 id="hTitle">טוען…</h1>
   <div class="sub" id="hSub"></div>
   <span class="savechip" id="saveChip" aria-live="polite"></span>
@@ -380,20 +380,20 @@ button{cursor:pointer}
 
 <div id="toast"></div>
 
-<script src="vendor/supabase.js?v=v233"></script>
-<script src="config.js?v=v233"></script>
-<script src="meal-library.js?v=v233"></script>
-<script src="exercise-library.js?v=v233"></script>
-<script src="anim.js?v=v233"></script>
-<script src="progress.js?v=v233"></script>
-<script src="habits.js?v=v233"></script>
-<script src="coach-bot.js?v=v233"></script>
-<script src="progress-chart.js?v=v233"></script>
-<script src="workout-log.js?v=v233"></script>
-<script src="targets.js?v=v233"></script>
-<script src="health.js?v=v233"></script>
-<script src="privacy.js?v=v233"></script>
-<script src="guides.js?v=v233"></script>
+<script src="vendor/supabase.js?v=v234"></script>
+<script src="config.js?v=v234"></script>
+<script src="meal-library.js?v=v234"></script>
+<script src="exercise-library.js?v=v234"></script>
+<script src="anim.js?v=v234"></script>
+<script src="progress.js?v=v234"></script>
+<script src="habits.js?v=v234"></script>
+<script src="coach-bot.js?v=v234"></script>
+<script src="progress-chart.js?v=v234"></script>
+<script src="workout-log.js?v=v234"></script>
+<script src="targets.js?v=v234"></script>
+<script src="health.js?v=v234"></script>
+<script src="privacy.js?v=v234"></script>
+<script src="guides.js?v=v234"></script>
 <script>
 (function () {
   'use strict';
@@ -1823,6 +1823,7 @@ button{cursor:pointer}
     /* אחרי הציור ולא לפניו: המתאמן רואה שהתוכנית שלו שם, ורק אז
        מתבקש לאשר. שער שנפתח על מסך ריק נראה כמו חסימה. */
     termsGate();
+    healthGate();
   }
 
   function categoryContent(key) {
@@ -2097,6 +2098,7 @@ button{cursor:pointer}
       writeState();
       queueStateSync();
       w.remove();
+      healthGate();
     };
   }
 
@@ -2621,7 +2623,44 @@ button{cursor:pointer}
   /* ---------- הצהרת בריאות ----------
      שבע שאלות הסינון מגיעות מ-health.js, אותו מקור שהמאמן קורא ממנו,
      כדי שלא ייווצר מצב ששני הצדדים שואלים שאלות שונות. */
-  let HEALTH = null, HFORM = false;
+  let HEALTH = null, HFORM = false, HGATE = false;
+
+  /* ---------- הצהרת בריאות לפני התוכנית ----------
+     אחרי אישור התקנון, מי שלא חתם ממלא את ההצהרה לפני שהוא רואה את
+     התוכנית. עד אוקטובר 2026 היא ישבה בתיקייה "גוף" עם שורת תזכורת,
+     ואף מתאמן לא מילא — 18 מתוך 18 בלי הצהרה. אין "אחר כך": זה מה
+     שקובע אם מתחילים לאמן בכלל או שצריך קודם אישור רופא.
+
+     מוצג רק אחרי שהשרת ענה (SRV_LOADED) — אחרת מי שחתם בטלפון אחר
+     היה נשאל שוב. ההסכמה לאיסוף המידע נשארת חובה בתוך הטופס. */
+  function healthGate() {
+    if (!TOKEN || !DATA || typeof EBHealth === 'undefined' || !window.EBPrivacy) return;
+    if (!termsOK()) return;                               // קודם התקנון
+    if (!SRV_LOADED) { setTimeout(healthGate, 400); return; }
+    HEALTH = HEALTH || hLoad();
+    let w = document.getElementById('healthGate');
+    if (HEALTH && HEALTH.signedAt) { HGATE = false; if (w) w.remove(); return; }
+    HGATE = true; HFORM = true; HEALTH = HEALTH || { answers: {} };
+    if (!w) {
+      w = document.createElement('div');
+      w.id = 'healthGate';
+      w.style.cssText = 'position:fixed;inset:0;z-index:9998;background:rgba(15,11,7,.86);'
+        + 'display:flex;align-items:flex-end;justify-content:center;padding:14px';
+      w.innerHTML = '<div class="hg-box" style="background:var(--card);border:1px solid var(--line2);border-radius:16px;'
+        + 'padding:18px 16px;max-width:520px;width:100%;max-height:88vh;overflow:auto">'
+        + '<div style="font-family:Frank Ruhl Libre,serif;font-weight:700;font-size:19px;margin-bottom:6px">'
+        + 'לפני שמתחילים לאמן</div>'
+        + '<div style="font-size:13px;line-height:1.7;color:var(--mut);margin-bottom:10px">'
+        + 'שבע שאלות קצרות על הבריאות שלך. בלי זה אני לא יכול לדעת אם התוכנית בטוחה בשבילך. '
+        + 'אחרי השליחה התוכנית נפתחת.</div>'
+        + '<div class="hg-body"></div></div>';
+      document.body.appendChild(w);
+    }
+    const box = w.querySelector('.hg-box'), y = box.scrollTop;
+    try { w.querySelector('.hg-body').innerHTML = healthBlock(); }
+    catch (e) { console.error('healthGate', e); w.remove(); HGATE = false; return; }
+    box.scrollTop = y;
+  }
 
   function hKey() { return 'eb_health_' + (TOKEN || 'x'); }
   /* השרת מחזיר {} למי שלא חתם. אובייקט ריק אינו הצהרה — בלי הבדיקה הזו
@@ -2842,7 +2881,7 @@ button{cursor:pointer}
 
       + '<div style="display:flex;gap:8px">'
       + '<button class="btn" onclick="EBT.hSave()" style="font-weight:700">שליחה</button>'
-      + '<button class="btn ghost" onclick="EBT.hCancel()">ביטול</button></div>'
+      + (HGATE ? '' : '<button class="btn ghost" onclick="EBT.hCancel()">ביטול</button>') + '</div>'
       + healthFiles()
       + '</div>';
     return h;
@@ -2893,7 +2932,7 @@ button{cursor:pointer}
     HEALTH.signedAt = new Date().toISOString().slice(0, 10);
     try { localStorage.setItem(hKey(), JSON.stringify(HEALTH)); } catch (e) {}
     HFORM = false;
-    paint();
+    paint();                    // healthGate בתוך paint רואה שנחתם ומסיר את השער
 
     var anyYes = EBHealth.PARQ.some(function (q) { return HEALTH.answers[q.k] === 'yes'; });
     toast(anyYes ? 'נשלח. נצטרך אישור רופא לפני שמתחילים.' : 'ההצהרה נשלחה, תודה.');

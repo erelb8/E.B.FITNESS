@@ -37,7 +37,7 @@ function render(health, formOpen, data, stored) {
     document: { getElementById: () => null }
   };
   const body = `
-    let HEALTH = __H, HFORM = __F;
+    let HEALTH = __H, HFORM = __F, HGATE = false;
     ${grab('hKey')}
     ${grab('hasHealth')}
     ${grab('hLoad')}
