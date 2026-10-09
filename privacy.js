@@ -16,7 +16,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['privacy'] = 'v238';
+  (window.EB_MOD = window.EB_MOD || {})['privacy'] = 'v239';
 
   /* עד אוקטובר 2026 נקרא כאן esc גלובלי. באפליקציה של המאמן הוא קיים,
      אבל בדף המתאמן esc יושב בתוך הסקריפט ולא גלובלי — כך שהודעת

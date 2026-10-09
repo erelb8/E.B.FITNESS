@@ -110,6 +110,20 @@ const TRAINEE_DATA = {
       await tryM('mealEdit', () => EBMeals.edit('a1'));
       await tryM('weekly', () => { openWeekly('a1'); if (!/סיכום השבוע/.test(document.getElementById('wa_t').value)) throw new Error('empty summary'); });
       await tryM('waMsg', () => waMsg('a1'));
+      await tryM('animFix', () => {
+        const days = tById('a1').program.days, keep = JSON.stringify(days);
+        days[0].exercises.push({ name: 'דאמבלים לכשל', sets: '3', reps: '12', weight: '10' });
+        const ei = days[0].exercises.length - 1;
+        VIEW = 'dash'; V.innerHTML = vDash();
+        if (!/תרגיל אחד בלי הדמיה/.test(V.textContent)) throw new Error('no dashboard alert');
+        if (!/אין הדמיה/.test(noAnimBtn('a1', 0, ei, days[0].exercises[ei]))) throw new Error('no row marker');
+        animFix('a1', 0, ei);
+        const b = document.querySelector('[data-n]'); if (!b) throw new Error('no suggestions');
+        b.click();
+        const e = tById('a1').program.days[0].exercises[ei];
+        if (!EBAnim.has(e.name) || e.weight !== '10') throw new Error('not replaced: ' + e.name);
+        tById('a1').program.days = JSON.parse(keep);
+      });
       await tryM('unpaidCard', () => {
         VIEW = 'dash'; V.innerHTML = vDash();
         const card = [].find.call(V.querySelectorAll('.card'), c => /לא שילמו ב/.test(c.textContent));

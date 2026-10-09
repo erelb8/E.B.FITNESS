@@ -6,7 +6,7 @@
 <title>E.B FIT — ניהול מתאמנים</title>
 
 <!-- ===== PWA — הופך את האתר לאפליקציה במסך הבית ===== -->
-<link rel="manifest" href="manifest.json?v=v238">
+<link rel="manifest" href="manifest.json?v=v239">
 <meta name="theme-color" content="#1C140E">
 <meta name="description" content="מערכת לניהול מתאמנים, תוכניות אימון, יומן ותשלומים">
 
@@ -15,9 +15,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="E.B FIT">
-<link rel="apple-touch-icon" href="icons/icon-180.png?v=v238">
-<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=v238">
-<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=v238">
+<link rel="apple-touch-icon" href="icons/icon-180.png?v=v239">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=v239">
+<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=v239">
 <meta name="format-detection" content="telephone=no">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -444,7 +444,7 @@ tbody tr:hover{background:var(--panel)}
 </head>
 <body>
 <header class="top">
-  <div class="brand"><img class="brand-logo" src="icons/logo-96.png?v=v238" alt="" width="30" height="30">E.B<span class="dot"></span>FIT <small id="brandSub">ניהול מתאמנים</small></div>
+  <div class="brand"><img class="brand-logo" src="icons/logo-96.png?v=v239" alt="" width="30" height="30">E.B<span class="dot"></span>FIT <small id="brandSub">ניהול מתאמנים</small></div>
   <div class="spacer"></div>
   <button class="syncpill s-off" id="syncPill" onclick="go('settings')" title="מצב סנכרון">מקומי בלבד</button>
   <span class="now" id="topDate"></span>
@@ -462,8 +462,8 @@ tbody tr:hover{background:var(--panel)}
 <div id="toast"></div>
 
 <!-- ספריית Supabase מקומית (לא מ-CDN) כדי שהאפליקציה תעבוד גם בלי רשת -->
-<script src="vendor/supabase.js?v=v238"></script>
-<script src="config.js?v=v238"></script>
+<script src="vendor/supabase.js?v=v239"></script>
+<script src="config.js?v=v239"></script>
 
 <script>
 /* =======================================================================
@@ -498,7 +498,7 @@ function age(b){ if(!b) return null; const d=new Date(b), t=new Date(); let a=t.
 
 /* ---------------- אחסון ---------------- */
 const KEY='ebfit_v1';
-const EB_VERSION='v238';   // חייב להתאים ל-VERSION ב-sw.js
+const EB_VERSION='v239';   // חייב להתאים ל-VERSION ב-sw.js
 window.EB_APP_VER=EB_VERSION;   // נשלח בכל שורה — השרת דוחה גרסאות ישנות (sync.js)
 let mem=null, canStore=true;
 function load(){
@@ -1353,6 +1353,11 @@ function vDash(){
   act.filter(x=>x.status==='active' && !(((x.program||{}).days)||[]).length && !(x.meals||[]).length).forEach(x=>{
     alerts+=alertRow('📋','ל'+esc(x.name)+' אין עדיין תוכנית אימון','בניית תוכנית','go(\'trainee\',\''+x.id+'\');SUBTAB=\'program\';render()');
   });
+  act.filter(x=>x.status==='active').forEach(x=>{
+    const n=(((x.program||{}).days)||[]).reduce((a,d)=>a+(d.exercises||[]).filter(needsAnim).length,0);
+    if(n) alerts+=alertRow('🎬','ל'+esc(x.name)+(n===1?' יש תרגיל אחד':' יש '+n+' תרגילים')+' בלי הדמיה — השם לא מזוהה',
+      'לתוכנית','go(\'trainee\',\''+x.id+'\');SUBTAB=\'program\';render()');
+  });
   act.filter(x=>x.balanceDue>0).forEach(x=>{ alerts+=alertRow('₪','ל'+esc(x.name)+' יתרת חוב '+money(x.balanceDue),'רישום תשלום','openPay(\''+x.id+'\')'); });
   /* "לא פעיל" לפי כל מקור — דיווח בדף, שקילה ואימון ביומן. מחכים
      לדיווחים לפני שמכריזים על מישהו שנעלם, אחרת כולם נראים נעלמים
@@ -1881,7 +1886,7 @@ function tabProgram(t){
     ex.forEach((e,ei)=>{
       h+='<tr data-tid="'+t.id+'" data-di="'+di+'" data-ei="'+ei+'">'+exCell(t.id,di,ei,'name',e.name,'שם התרגיל')+exCell(t.id,di,ei,'sets',e.sets)+exCell(t.id,di,ei,'reps',e.reps)
       +exCell(t.id,di,ei,'weight',e.weight)+exCell(t.id,di,ei,'rest',e.rest)+exNoteCell(t.id,di,ei,e.note)
-      +'<td class="noprint"><div class="row" style="gap:4px;flex-wrap:nowrap">'+(window.EBVideo?EBVideo.btn(t,di,ei,e):'')+'<button class="btn sm ghost exercise-edit" onclick="editExercise(\''+t.id+'\','+di+','+ei+')">עריכה</button><button class="iconbtn" title="מחיקת תרגיל" style="width:28px;height:28px" onclick="delEx(\''+t.id+'\','+di+','+ei+')">✕</button></div></td></tr>';
+      +'<td class="noprint"><div class="row" style="gap:4px;flex-wrap:nowrap">'+noAnimBtn(t.id,di,ei,e)+(window.EBVideo?EBVideo.btn(t,di,ei,e):'')+'<button class="btn sm ghost exercise-edit" onclick="editExercise(\''+t.id+'\','+di+','+ei+')">עריכה</button><button class="iconbtn" title="מחיקת תרגיל" style="width:28px;height:28px" onclick="delEx(\''+t.id+'\','+di+','+ei+')">✕</button></div></td></tr>';
     });
     if(!ex.length) h+='<tr><td colspan="7" class="muted" style="text-align:center;padding:18px">אין תרגילים ביום הזה.</td></tr>';
     h+='</tbody></table></div></div></div>';
@@ -1941,6 +1946,78 @@ function confirmLeaveProgram(){ commitProgram(); return true; }
 
 function programDock(){ return ''; }
 function updateProgramDock(){ scheduleProgramAutosave(); }
+/* =====================================================================
+   תרגיל בלי הדמיה
+   ---------------------------------------------------------------------
+   שם שהוקלד ביד ושההדמיות לא מזהות ("דאמבלים לכשל") משאיר את המתאמן
+   בלי הדמיה, ואף אחד לא שם לב. השורה מקבלת סימן, והלחיצה מציעה שמות
+   מהספרייה: לפי מילים משותפות, ולפני הכול לפי התנועה של התרגילים
+   שלידו ביום — "דאמבלים" אחרי "פטישים" הם כנראה כפיפת מרפקים. מילים
+   כמו "לכשל" עוברות לשם החדש, כל עוד גם איתן יש הדמיה.
+   ===================================================================== */
+const NO_ANIM_ROWS=['למה זה בתוכנית'];        // שורות הסבר שהאירובי מוסיף — לא תרגיל
+function needsAnim(e){
+  const n=String((e&&e.name)||'').trim();
+  return !!(n && window.EBAnim && NO_ANIM_ROWS.indexOf(n)<0 && !EBAnim.has(n));
+}
+function noAnimBtn(tid,di,ei,e){
+  if(!needsAnim(e)) return '';
+  return '<button class="btn sm ghost" title="לשם הזה אין הדמיה — לחיצה מציעה שם מהספרייה" style="color:var(--cop);border-color:var(--cop);white-space:nowrap" '
+    +'onclick="animFix(\''+tid+'\','+di+','+ei+')">אין הדמיה</button>';
+}
+const ANIM_KEEP=['לכשל','איטי','בקצב איטי','עם עצירה','חימום','דרופ סט','סופר סט'];
+const ANIM_SYN={ 'דאמבל':'משקולות','דאמבלים':'משקולות','משקולת':'משקולות','בר':'מוט','מוטות':'מוט','קייבל':'כבל','כבלים':'כבל',
+  'פולי':'כבל','מכונות':'מכונה','גומיה':'גומייה','גומיות':'גומייה','קטלבלים':'קטלבל' };
+function animTokens(s){
+  return String(s||'').replace(/[()\-–—,.׳'"]/g,' ').split(/\s+/)
+    .filter(w=>w && ANIM_KEEP.indexOf(w)<0 && ['עם','על','של','או','את'].indexOf(w)<0).map(w=>{
+      let x=w; if(x.length>3 && /^[בלהו]/.test(x) && !ANIM_SYN[x]) x=x.slice(1);
+      return ANIM_SYN[x]||ANIM_SYN[w]||x;
+    }).filter(w=>w.length>1);
+}
+function animSuggest(tid,di,ei){
+  const d=tById(tid).program.days[di], e=d.exercises[ei], name=String(e.name||'');
+  const keep=ANIM_KEEP.filter(k=>name.indexOf(k)>-1).sort((a,b)=>b.length-a.length).slice(0,1);
+  const mine=animTokens(name);
+  /* התנועות של התרגילים הסמוכים ביום */
+  const near={};
+  [ei-1,ei+1,ei-2,ei+2].forEach((j,k)=>{ const x=d.exercises[j]; const c=x&&x.name&&EBAnim.classify(x.name); if(c) near[c.p]=(near[c.p]||0)+(k<2?3:1); });
+  const seen=new Set();
+  return EBEx.ALL.map(x=>{
+    const c=EBAnim.classify(x.n,x.m,x.e); if(!c) return null;
+    const toks=animTokens(x.n);
+    let s=0; mine.forEach(w=>{ if(toks.some(t=>t===w)) s+=4; else if(toks.some(t=>t.indexOf(w)>-1||w.indexOf(t)>-1)) s+=2; });
+    if(!s && !near[c.p]) return null;
+    s+=near[c.p]||0;
+    s-=toks.length*0.1;                       // שם קצר וכללי לפני וריאציה
+    const n=keep.length && EBAnim.has(x.n+' '+keep[0]) ? x.n+' '+keep[0] : x.n;
+    return {n,s};
+  }).filter(Boolean).sort((a,b)=>b.s-a.s).filter(o=>!seen.has(o.n)&&seen.add(o.n)).slice(0,6).map(o=>o.n);
+}
+function animFix(tid,di,ei){
+  const t=tById(tid), e=t&&t.program&&t.program.days[di]&&t.program.days[di].exercises[ei]; if(!e) return;
+  const sug=animSuggest(tid,di,ei);
+  openModal('<div class="mh"><h3>אין הדמיה ל"'+esc(e.name)+'"</h3><button class="iconbtn" onclick="closeModal()">✕</button></div><div class="mb">'
+   +'<div class="muted" style="font-size:12.5px;line-height:1.6;margin-bottom:10px">ההדמיות לא מזהות את השם הזה, ולכן המתאמן לא רואה איך עושים. '
+   +'בחירה של שם מהספרייה מחליפה רק את השם — סטים, חזרות, משקל והערה נשארים.</div>'
+   +(sug.length?'<label class="f">הצעות</label><div style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px">'
+     +sug.map(n=>'<button class="btn ghost" style="justify-content:flex-start;text-align:right" data-n="'+esc(n)+'" onclick="animFixSet(\''+tid+'\','+di+','+ei+',this.dataset.n)">'
+       +esc(n)+' <span class="muted" style="font-size:12px;font-weight:400">· '+esc(EBAnim.label(n))+'</span></button>').join('')+'</div>':'')
+   +'<label class="f">או חיפוש בספרייה</label><input class="f" id="af_q" placeholder="למשל: כפיפת מרפקים" oninput="animFixList(\''+tid+'\','+di+','+ei+')">'
+   +'<div id="af_list" style="display:flex;flex-direction:column;gap:6px;margin-top:8px"></div></div>'
+   +'<div class="mf"><button class="btn" onclick="closeModal()">סגירה</button></div>', true);
+}
+function animFixList(tid,di,ei){
+  const q=String(gv('af_q')||'').trim(), box=document.getElementById('af_list'); if(!box) return;
+  if(q.length<2){ box.innerHTML=''; return; }
+  box.innerHTML=EBEx.ALL.filter(x=>x.n.indexOf(q)>-1 && EBAnim.has(x.n)).slice(0,8)
+    .map(x=>'<button class="btn sm ghost" style="justify-content:flex-start;text-align:right" data-n="'+esc(x.n)+'" onclick="animFixSet(\''+tid+'\','+di+','+ei+',this.dataset.n)">'+esc(x.n)+'</button>').join('')
+    || '<div class="muted" style="font-size:12.5px">לא נמצא בספרייה.</div>';
+}
+function animFixSet(tid,di,ei,n){
+  setEx(tid,di,ei,'name',n); save(); closeModal(); toast('השם הוחלף — יש הדמיה'); render();
+}
+
 function editExercise(tid,di,ei){
   const t=tById(tid), e=t&&t.program&&t.program.days[di]&&t.program.days[di].exercises[ei];
   if(!e) return;
@@ -3608,38 +3685,38 @@ if (location.protocol === 'file:') {
 }
 </script>
 
-<script src="health.js?v=v238"></script>
-<script src="privacy.js?v=v238"></script>
-<script src="backup.js?v=v238"></script>
-<script src="reorder.js?v=v238"></script>
-<script src="access.js?v=v238"></script>
-<script src="analysis.js?v=v238"></script>
-<script src="reports.js?v=v238"></script>
-<script src="business.js?v=v238"></script>
-<script src="intake.js?v=v238"></script>
-<script src="files.js?v=v238"></script>
-<script src="builder.js?v=v238"></script>
-<script src="import-program.js?v=v238"></script>
-<script src="tracking.js?v=v238"></script>
-<script src="metrics.js?v=v238"></script>
-<script src="targets.js?v=v238"></script>
-<script src="meal-library.js?v=v238"></script>
+<script src="health.js?v=v239"></script>
+<script src="privacy.js?v=v239"></script>
+<script src="backup.js?v=v239"></script>
+<script src="reorder.js?v=v239"></script>
+<script src="access.js?v=v239"></script>
+<script src="analysis.js?v=v239"></script>
+<script src="reports.js?v=v239"></script>
+<script src="business.js?v=v239"></script>
+<script src="intake.js?v=v239"></script>
+<script src="files.js?v=v239"></script>
+<script src="builder.js?v=v239"></script>
+<script src="import-program.js?v=v239"></script>
+<script src="tracking.js?v=v239"></script>
+<script src="metrics.js?v=v239"></script>
+<script src="targets.js?v=v239"></script>
+<script src="meal-library.js?v=v239"></script>
 <!-- חלקים של המאמן בלבד (תאילנדי, פירות). לא נטען ב-t.html בכוונה. -->
-<script src="meal-extra.js?v=v238"></script>
-<script src="progress-chart.js?v=v238"></script>
-<script src="notes.js?v=v238"></script>
-<script src="notes-ui.js?v=v238"></script>
-<script src="guides.js?v=v238"></script>
-<script src="library-ui.js?v=v238"></script>
-<script src="export-plan.js?v=v238"></script>
-<script src="cardio.js?v=v238"></script>
-<script src="cardio-ui.js?v=v238"></script>
-<script src="exercise-library.js?v=v238"></script>
-<script src="exercise-ui.js?v=v238"></script>
-<script src="video.js?v=v238"></script>
-<script src="anim.js?v=v238"></script>
-<script src="meals.js?v=v238"></script>
-<script src="sync.js?v=v238"></script>
+<script src="meal-extra.js?v=v239"></script>
+<script src="progress-chart.js?v=v239"></script>
+<script src="notes.js?v=v239"></script>
+<script src="notes-ui.js?v=v239"></script>
+<script src="guides.js?v=v239"></script>
+<script src="library-ui.js?v=v239"></script>
+<script src="export-plan.js?v=v239"></script>
+<script src="cardio.js?v=v239"></script>
+<script src="cardio-ui.js?v=v239"></script>
+<script src="exercise-library.js?v=v239"></script>
+<script src="exercise-ui.js?v=v239"></script>
+<script src="video.js?v=v239"></script>
+<script src="anim.js?v=v239"></script>
+<script src="meals.js?v=v239"></script>
+<script src="sync.js?v=v239"></script>
 <script>
 /* =================== חיבור הסנכרון לאפליקציה =================== */
 
