@@ -18,7 +18,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['video'] = 'v236';
+  (window.EB_MOD = window.EB_MOD || {})['video'] = 'v237';
 
   var BUCKET = 'videos';
   var MAX    = 50 * 1024 * 1024;

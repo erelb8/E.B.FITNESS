@@ -6,7 +6,7 @@
 <title>E.B FIT — ניהול מתאמנים</title>
 
 <!-- ===== PWA — הופך את האתר לאפליקציה במסך הבית ===== -->
-<link rel="manifest" href="manifest.json?v=v236">
+<link rel="manifest" href="manifest.json?v=v237">
 <meta name="theme-color" content="#1C140E">
 <meta name="description" content="מערכת לניהול מתאמנים, תוכניות אימון, יומן ותשלומים">
 
@@ -15,9 +15,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="E.B FIT">
-<link rel="apple-touch-icon" href="icons/icon-180.png?v=v236">
-<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=v236">
-<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=v236">
+<link rel="apple-touch-icon" href="icons/icon-180.png?v=v237">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=v237">
+<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=v237">
 <meta name="format-detection" content="telephone=no">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -444,7 +444,7 @@ tbody tr:hover{background:var(--panel)}
 </head>
 <body>
 <header class="top">
-  <div class="brand"><img class="brand-logo" src="icons/logo-96.png?v=v236" alt="" width="30" height="30">E.B<span class="dot"></span>FIT <small id="brandSub">ניהול מתאמנים</small></div>
+  <div class="brand"><img class="brand-logo" src="icons/logo-96.png?v=v237" alt="" width="30" height="30">E.B<span class="dot"></span>FIT <small id="brandSub">ניהול מתאמנים</small></div>
   <div class="spacer"></div>
   <button class="syncpill s-off" id="syncPill" onclick="go('settings')" title="מצב סנכרון">מקומי בלבד</button>
   <span class="now" id="topDate"></span>
@@ -462,8 +462,8 @@ tbody tr:hover{background:var(--panel)}
 <div id="toast"></div>
 
 <!-- ספריית Supabase מקומית (לא מ-CDN) כדי שהאפליקציה תעבוד גם בלי רשת -->
-<script src="vendor/supabase.js?v=v236"></script>
-<script src="config.js?v=v236"></script>
+<script src="vendor/supabase.js?v=v237"></script>
+<script src="config.js?v=v237"></script>
 
 <script>
 /* =======================================================================
@@ -498,7 +498,7 @@ function age(b){ if(!b) return null; const d=new Date(b), t=new Date(); let a=t.
 
 /* ---------------- אחסון ---------------- */
 const KEY='ebfit_v1';
-const EB_VERSION='v236';   // חייב להתאים ל-VERSION ב-sw.js
+const EB_VERSION='v237';   // חייב להתאים ל-VERSION ב-sw.js
 window.EB_APP_VER=EB_VERSION;   // נשלח בכל שורה — השרת דוחה גרסאות ישנות (sync.js)
 let mem=null, canStore=true;
 function load(){
@@ -1081,6 +1081,59 @@ function genderFixCard(){
 }
 
 /* =====================================================================
+   לא שילמו החודש
+   ---------------------------------------------------------------------
+   מתאמן פעיל בלי תשלום בחודש הנוכחי. ליד כל אחד התשלום האחרון שלו,
+   תזכורת מוכנה לווטסאפ ורישום תשלום. התזכורת האוטומטית ב-10 לחודש
+   רצה מכרום, ולא עובדת כשהאפליקציה שם מנותקת — הכרטיס הזה כן.
+   מושהה וארכיון לא נכנסים: מהם לא גובים.
+   ===================================================================== */
+const HE_MON_FULL = ['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
+function unpaidThisMonth(){
+  const mon=todayISO().slice(0,7);
+  return S.trainees.filter(t=>t.status==='active').map(t=>{
+    const ps=S.payments.filter(p=>p.traineeId===t.id && Number(p.amount)>0)
+      .sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+    return { t, last:ps[0]||null, paid:ps.some(p=>(p.date||'').slice(0,7)===mon) };
+  }).filter(o=>!o.paid)
+    .sort((a,b)=>((a.last&&a.last.date)||'').localeCompare((b.last&&b.last.date)||'') || a.t.name.localeCompare(b.t.name,'he'));
+}
+function payRemindText(t, last){
+  const m=HE_MON_FULL[new Date().getMonth()];
+  return 'היי '+firstName(t)+', תזכורת קטנה לתשלום של חודש '+m
+    +(last&&last.amount?' ('+moneyTxt(last.amount)+')':'')+'.\nאפשר בביט או בהעברה. תודה!';
+}
+function payRemind(id){
+  const t=tById(id); if(!t) return;
+  const o=unpaidThisMonth().find(x=>x.t.id===id);
+  openModal('<div class="mh"><h3>תזכורת תשלום ל'+esc(t.name)+'</h3><button class="iconbtn" onclick="closeModal()">✕</button></div><div class="mb">'
+   +'<div class="muted" style="font-size:12.5px;margin-bottom:8px">אפשר לערוך לפני השליחה.</div>'
+   +'<textarea class="f" id="wa_t" style="min-height:110px;line-height:1.6">'+esc(payRemindText(t, o&&o.last))+'</textarea></div>'
+   +'<div class="mf"><button class="btn" onclick="sendWa(\''+esc(t.phone||'')+'\')">פתיחה בווטסאפ</button>'
+   +'<button class="btn ghost" onclick="navigator.clipboard&&navigator.clipboard.writeText(gv(\'wa_t\')).then(()=>toast(\'הועתק\'))">העתקה</button>'
+   +'<button class="btn ghost" onclick="closeModal()">סגירה</button></div>', true);
+}
+function dashUnpaid(){
+  const act=S.trainees.filter(t=>t.status==='active'), list=unpaidThisMonth();
+  if(!act.length || !list.length) return '';
+  const m=HE_MON_FULL[new Date().getMonth()];
+  return '<div class="card" style="margin-top:14px">'
+   +'<div class="row" style="align-items:center;margin-bottom:6px">'
+   +'<h3 style="flex:1;font-size:16px">לא שילמו ב'+m+'</h3>'
+   +'<span class="pill">'+(act.length-list.length)+' מתוך '+act.length+' שילמו</span></div>'
+   +list.map(o=>
+      '<div class="line-item" style="align-items:center;gap:8px">'
+     +'<div class="av" style="background:'+tColor(o.t)+';width:30px;height:30px;flex:0 0 30px;border-radius:9px;font-size:12px">'+esc(initials(o.t.name))+'</div>'
+     +'<div style="flex:1;min-width:0;cursor:pointer" onclick="go(\'trainee\',\''+o.t.id+'\')">'
+     +'<div style="font-size:13.5px;font-weight:600">'+esc(o.t.name)+'</div>'
+     +'<div class="muted" style="font-size:12px">'+(o.last?'תשלום אחרון: '+moneyTxt(o.last.amount)+' · '+fmtDate(o.last.date):'עוד לא נרשם תשלום')+'</div></div>'
+     +'<button class="btn sm ghost" onclick="payRemind(\''+o.t.id+'\')">תזכורת</button>'
+     +'<button class="btn sm ghost" onclick="openPay(\''+o.t.id+'\')">רישום</button>'
+     +'</div>').join('')
+   +'</div>';
+}
+
+/* =====================================================================
    לוח הבקרה
    ---------------------------------------------------------------------
    הדבר הראשון שהמאמן רוצה לראות הוא מה המתאמנים עשו: מי דיווח אימון
@@ -1251,6 +1304,7 @@ function vDash(){
    + '</div>';
 
   h += genderFixCard();
+  h += dashUnpaid();
 
   h+='<div class="dash-top">'+dashFeed()+dashWeek()+'</div>';
 
@@ -3554,38 +3608,38 @@ if (location.protocol === 'file:') {
 }
 </script>
 
-<script src="health.js?v=v236"></script>
-<script src="privacy.js?v=v236"></script>
-<script src="backup.js?v=v236"></script>
-<script src="reorder.js?v=v236"></script>
-<script src="access.js?v=v236"></script>
-<script src="analysis.js?v=v236"></script>
-<script src="reports.js?v=v236"></script>
-<script src="business.js?v=v236"></script>
-<script src="intake.js?v=v236"></script>
-<script src="files.js?v=v236"></script>
-<script src="builder.js?v=v236"></script>
-<script src="import-program.js?v=v236"></script>
-<script src="tracking.js?v=v236"></script>
-<script src="metrics.js?v=v236"></script>
-<script src="targets.js?v=v236"></script>
-<script src="meal-library.js?v=v236"></script>
+<script src="health.js?v=v237"></script>
+<script src="privacy.js?v=v237"></script>
+<script src="backup.js?v=v237"></script>
+<script src="reorder.js?v=v237"></script>
+<script src="access.js?v=v237"></script>
+<script src="analysis.js?v=v237"></script>
+<script src="reports.js?v=v237"></script>
+<script src="business.js?v=v237"></script>
+<script src="intake.js?v=v237"></script>
+<script src="files.js?v=v237"></script>
+<script src="builder.js?v=v237"></script>
+<script src="import-program.js?v=v237"></script>
+<script src="tracking.js?v=v237"></script>
+<script src="metrics.js?v=v237"></script>
+<script src="targets.js?v=v237"></script>
+<script src="meal-library.js?v=v237"></script>
 <!-- חלקים של המאמן בלבד (תאילנדי, פירות). לא נטען ב-t.html בכוונה. -->
-<script src="meal-extra.js?v=v236"></script>
-<script src="progress-chart.js?v=v236"></script>
-<script src="notes.js?v=v236"></script>
-<script src="notes-ui.js?v=v236"></script>
-<script src="guides.js?v=v236"></script>
-<script src="library-ui.js?v=v236"></script>
-<script src="export-plan.js?v=v236"></script>
-<script src="cardio.js?v=v236"></script>
-<script src="cardio-ui.js?v=v236"></script>
-<script src="exercise-library.js?v=v236"></script>
-<script src="exercise-ui.js?v=v236"></script>
-<script src="video.js?v=v236"></script>
-<script src="anim.js?v=v236"></script>
-<script src="meals.js?v=v236"></script>
-<script src="sync.js?v=v236"></script>
+<script src="meal-extra.js?v=v237"></script>
+<script src="progress-chart.js?v=v237"></script>
+<script src="notes.js?v=v237"></script>
+<script src="notes-ui.js?v=v237"></script>
+<script src="guides.js?v=v237"></script>
+<script src="library-ui.js?v=v237"></script>
+<script src="export-plan.js?v=v237"></script>
+<script src="cardio.js?v=v237"></script>
+<script src="cardio-ui.js?v=v237"></script>
+<script src="exercise-library.js?v=v237"></script>
+<script src="exercise-ui.js?v=v237"></script>
+<script src="video.js?v=v237"></script>
+<script src="anim.js?v=v237"></script>
+<script src="meals.js?v=v237"></script>
+<script src="sync.js?v=v237"></script>
 <script>
 /* =================== חיבור הסנכרון לאפליקציה =================== */
 

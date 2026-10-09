@@ -110,6 +110,14 @@ const TRAINEE_DATA = {
       await tryM('mealEdit', () => EBMeals.edit('a1'));
       await tryM('weekly', () => { openWeekly('a1'); if (!/סיכום השבוע/.test(document.getElementById('wa_t').value)) throw new Error('empty summary'); });
       await tryM('waMsg', () => waMsg('a1'));
+      await tryM('unpaidCard', () => {
+        VIEW = 'dash'; V.innerHTML = vDash();
+        const card = [].find.call(V.querySelectorAll('.card'), c => /לא שילמו ב/.test(c.textContent));
+        if (!card) throw new Error('no unpaid card');
+        if (!/יוסי בדיקה/.test(card.textContent) || !/עוד לא נרשם תשלום/.test(card.textContent)) throw new Error('trainee without payment missing');
+        payRemind('b1');
+        if (!/היי יוסי, תזכורת קטנה לתשלום של חודש/.test(document.getElementById('wa_t').value)) throw new Error('no reminder text');
+      });
       await tryM('mealLibrary', async () => { EBLibUI.browse('a1'); EBLibUI.setType('sec:thai');
         if (!document.querySelector('[data-mid]')) throw new Error('no thai meals'); });
       await tryM('exerciseLibrary', async () => {
