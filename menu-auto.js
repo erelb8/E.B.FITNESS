@@ -16,7 +16,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['menuAuto'] = 'v241';
+  (window.EB_MOD = window.EB_MOD || {})['menuAuto'] = 'v242';
 
   /* משבצות לכל דיאטה. pool: מאיזה חלק בספרייה; types: אילו סוגי ארוחה
      מתאימים למשבצת (הראשון קודם); ובצום — גם תבנית לשם, כדי ש"ארוחה

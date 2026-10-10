@@ -14,7 +14,7 @@
   'use strict';
 
   // חותמת גרסה — index.html משווה אליה כדי לזהות קובץ ישן במטמון
-  (window.EB_MOD = window.EB_MOD || {})['builder'] = 'v241';
+  (window.EB_MOD = window.EB_MOD || {})['builder'] = 'v242';
 
   /* ---------- דפוסי תנועה ----------
      החלוקה לפי דפוס ולא לפי שריר, כי כך בונים פיצולים מאוזנים
@@ -24,8 +24,18 @@
     HPULL: 'משיכה אופקית', VPULL: 'משיכה אנכית',
     SQUAT: 'ברך',          HINGE: 'ירך',
     CORE : 'ליבה',         ARMS : 'ידיים',
-    SHLD : 'כתפיים',       CARDIO:'אירובי'
+    SHLD : 'כתפיים',       CARDIO:'אירובי',
+    /* תתי-דפוסים לפיצולי חדר כושר: "חזה ויד אחורית" צריך יד אחורית,
+       לא סתם תרגיל ידיים. בספרייה הם נשארים P.ARMS — ראו matchPat */
+    BI   : 'יד קדמית',     TRI  : 'יד אחורית',     CALF : 'תאומים'
   };
+  var RX_BI  = /כפיפת מרפקים|פטישים/;
+  var RX_TRI = /פשיטת מרפק|צרפתי|ליד אחורית|קיקבק|אחיזה צרה/;
+  function matchPat(x, pat) {
+    if (pat === P.BI)  return x.p === P.ARMS && RX_BI.test(x.n);
+    if (pat === P.TRI) return x.p === P.ARMS && RX_TRI.test(x.n);
+    return x.p === pat;
+  }
 
   /* eq: gym=חדר כושר מאובזר, home=ציוד ביתי/משקל גוף, park=פארק
      bad: מגבלות שהתרגיל בעייתי עבורן */
@@ -38,6 +48,34 @@
     { n:'שכיבות סמיכה',          p:P.HPUSH, eq:['gym','home','park'], lvl:1, bad:['שורש כף יד'] },
     { n:'מקבילים לחזה',               p:P.HPUSH, eq:['gym','park'],        lvl:3, bad:['כתף'] },
     { n:'פרפר בכבלים אמצעי',           p:P.HPUSH, eq:['gym'],               lvl:2, bad:['כתף'] },
+    /* הרחבה לפיצולי חדר כושר (ABC, ABCD): יום חזה צריך שלוש-ארבע
+       לחיצות, ויום גב ארבע משיכות — בלי לחזור על אותו תרגיל */
+    { n:'לחיצת חזה בשיפוע במשקולות', p:P.HPUSH, eq:['gym','home'],     lvl:1, bad:[] },
+    { n:'פרפר במכונה (פק-דק)',   p:P.HPUSH, eq:['gym'],               lvl:1, bad:[] },
+    { n:'פרפר במשקולות',         p:P.HPUSH, eq:['gym','home'],        lvl:1, bad:['כתף'] },
+    { n:'לחיצת כתפיים ארנולד',   p:P.VPUSH, eq:['gym','home'],        lvl:2, bad:['כתף'] },
+    { n:'לחיצת כתפיים במוט בישיבה', p:P.VPUSH, eq:['gym'],             lvl:2, bad:['כתף'] },
+    { n:'משיכת פולי עליון אחיזה צרה', p:P.VPULL, eq:['gym'],           lvl:1, bad:[] },
+    { n:'משיכת פולי עליון אחיזה נייטרלית', p:P.VPULL, eq:['gym'],      lvl:1, bad:[] },
+    { n:'מתח סופינציה (צ׳ין-אפ)', p:P.VPULL, eq:['gym','park'],       lvl:3, bad:['כתף'] },
+    { n:'חתירה במוט T',          p:P.HPULL, eq:['gym'],               lvl:2, bad:['גב'] },
+    { n:'חתירה במכונת האמר',     p:P.HPULL, eq:['gym'],               lvl:1, bad:[] },
+    { n:'הרחקות צד בכבל',        p:P.SHLD,  eq:['gym'],               lvl:1, bad:[] },
+    { n:'פרפר הפוך במכונה',      p:P.SHLD,  eq:['gym'],               lvl:1, bad:[] },
+    { n:'הנפה קדמית במשקולת',    p:P.SHLD,  eq:['gym','home'],        lvl:1, bad:['כתף'] },
+    { n:'פטישים',                p:P.ARMS,  eq:['gym','home'],        lvl:1, bad:[] },
+    { n:'כפיפת מרפקים במוט EZ',  p:P.ARMS,  eq:['gym'],               lvl:1, bad:[] },
+    { n:'כפיפת מרפקים בכבל',     p:P.ARMS,  eq:['gym'],               lvl:1, bad:[] },
+    { n:'פשיטת מרפק בפולי ידית ישרה', p:P.ARMS, eq:['gym'],           lvl:1, bad:[] },
+    { n:'צרפתי (skull crusher)', p:P.ARMS,  eq:['gym'],               lvl:2, bad:['כתף'] },
+    { n:'פשיטת מרפק מעל הראש',   p:P.ARMS,  eq:['gym','home'],        lvl:1, bad:['כתף'] },
+    { n:'מקבילים ליד אחורית',    p:P.ARMS,  eq:['gym','park'],        lvl:2, bad:['כתף'] },
+    { n:'סקוואט קדמי',           p:P.SQUAT, eq:['gym'],               lvl:3, bad:['ברך','גב'] },
+    { n:'הק סקוואט',             p:P.SQUAT, eq:['gym'],               lvl:1, bad:['ברך'] },
+    { n:'כפיפת ברך בישיבה',      p:P.HINGE, eq:['gym'],               lvl:1, bad:[] },
+    { n:'עליות עקבים בעמידה',    p:P.CALF,  eq:['gym'],               lvl:1, bad:[] },
+    { n:'עליות עקבים בישיבה',    p:P.CALF,  eq:['gym'],               lvl:1, bad:[] },
+    { n:'עליות עקבים במשקולות',  p:P.CALF,  eq:['gym','home'],        lvl:1, bad:[] },
 
     // דחיפה אנכית
     { n:'לחיצת כתפיים במשקולות',  p:P.VPUSH, eq:['gym','home'],        lvl:1, bad:['כתף'] },
@@ -134,6 +172,54 @@
          { t:'רגליים A',    pat:[P.SQUAT,P.HINGE,P.SQUAT,P.CORE] },
          { t:'ידיים וליבה', pat:[P.ARMS,P.ARMS,P.CORE,P.CORE] },
          { t:'רגליים B',    pat:[P.HINGE,P.SQUAT,P.HINGE,P.CORE] } ]
+  };
+
+  /* ---------- פיצולים של חדר כושר, לבחירת המאמן ----------
+     "לפי מספר הימים" נשאר ברירת המחדל (SPLITS למעלה). כאן המאמן בוחר
+     את המבנה בעצמו — AB, ABC וכו' — ומספר הימים נגזר ממנו. השם של כל
+     יום מתחיל באות, כמו שמאמנים כותבים על הלוח. */
+  var SPLIT_TYPES = {
+    FB2:  { t: 'AB · גוף מלא', d: [
+            { t:'A · גוף מלא', pat:[P.SQUAT,P.HPUSH,P.HPULL,P.HINGE,P.SHLD,P.BI] },
+            { t:'B · גוף מלא', pat:[P.HINGE,P.VPULL,P.VPUSH,P.SQUAT,P.TRI,P.SHLD] } ] },
+    FB3:  { t: 'ABC · גוף מלא', d: [
+            { t:'A · גוף מלא', pat:[P.SQUAT,P.HPUSH,P.HPULL,P.HINGE,P.SHLD,P.BI] },
+            { t:'B · גוף מלא', pat:[P.HINGE,P.VPULL,P.VPUSH,P.SQUAT,P.TRI,P.CALF] },
+            { t:'C · גוף מלא', pat:[P.SQUAT,P.HPULL,P.HPUSH,P.HINGE,P.VPULL,P.SHLD] } ] },
+    UL2:  { t: 'AB · עליון / תחתון', d: [
+            { t:'A · פלג גוף עליון', pat:[P.HPUSH,P.HPULL,P.VPUSH,P.VPULL,P.SHLD,P.BI,P.TRI] },
+            { t:'B · פלג גוף תחתון', pat:[P.SQUAT,P.HINGE,P.SQUAT,P.HINGE,P.SQUAT,P.CALF] } ] },
+    UL4:  { t: 'ABAB · עליון / תחתון, 4 ימים', d: [
+            { t:'A · פלג גוף עליון', pat:[P.HPUSH,P.HPULL,P.VPUSH,P.VPULL,P.SHLD,P.BI] },
+            { t:'B · פלג גוף תחתון', pat:[P.SQUAT,P.HINGE,P.SQUAT,P.HINGE,P.CALF] },
+            { t:'C · פלג גוף עליון', pat:[P.VPUSH,P.VPULL,P.HPUSH,P.HPULL,P.SHLD,P.TRI] },
+            { t:'D · פלג גוף תחתון', pat:[P.HINGE,P.SQUAT,P.HINGE,P.SQUAT,P.CALF] } ] },
+    PPL:  { t: 'ABC · דחיפה / משיכה / רגליים', d: [
+            { t:'A · דחיפה — חזה, כתפיים, יד אחורית', pat:[P.HPUSH,P.HPUSH,P.VPUSH,P.SHLD,P.TRI,P.TRI] },
+            { t:'B · משיכה — גב, יד קדמית', pat:[P.VPULL,P.HPULL,P.VPULL,P.HPULL,P.SHLD,P.BI,P.BI] },
+            { t:'C · רגליים', pat:[P.SQUAT,P.HINGE,P.SQUAT,P.HINGE,P.SQUAT,P.CALF] } ] },
+    ABC:  { t: 'ABC · חזה / גב / רגליים וכתפיים', d: [
+            { t:'A · חזה ויד אחורית', pat:[P.HPUSH,P.HPUSH,P.HPUSH,P.HPUSH,P.TRI,P.TRI] },
+            { t:'B · גב ויד קדמית', pat:[P.VPULL,P.HPULL,P.VPULL,P.HPULL,P.BI,P.BI] },
+            { t:'C · רגליים וכתפיים', pat:[P.SQUAT,P.HINGE,P.SQUAT,P.VPUSH,P.SHLD,P.SHLD,P.CALF] } ] },
+    ABCD: { t: 'ABCD · חזה / גב / רגליים / כתפיים', d: [
+            { t:'A · חזה ויד אחורית', pat:[P.HPUSH,P.HPUSH,P.HPUSH,P.HPUSH,P.TRI] },
+            { t:'B · גב ויד קדמית', pat:[P.VPULL,P.HPULL,P.VPULL,P.HPULL,P.BI] },
+            { t:'C · רגליים', pat:[P.SQUAT,P.HINGE,P.SQUAT,P.HINGE,P.SQUAT,P.CALF] },
+            { t:'D · כתפיים וידיים', pat:[P.VPUSH,P.SHLD,P.SHLD,P.VPUSH,P.BI,P.TRI] } ] },
+    ABCDE:{ t: 'ABCDE · שריר ליום, 5 ימים', d: [
+            { t:'A · חזה', pat:[P.HPUSH,P.HPUSH,P.HPUSH,P.HPUSH,P.TRI] },
+            { t:'B · גב', pat:[P.VPULL,P.HPULL,P.VPULL,P.HPULL,P.SHLD] },
+            { t:'C · רגליים', pat:[P.SQUAT,P.HINGE,P.SQUAT,P.HINGE,P.CALF] },
+            { t:'D · כתפיים', pat:[P.VPUSH,P.SHLD,P.SHLD,P.VPUSH,P.SHLD] },
+            { t:'E · ידיים', pat:[P.BI,P.TRI,P.BI,P.TRI,P.BI,P.TRI] } ] },
+    PPL6: { t: 'ABCABC · דחיפה / משיכה / רגליים ×2', d: [
+            { t:'A · דחיפה', pat:[P.HPUSH,P.VPUSH,P.HPUSH,P.SHLD,P.TRI] },
+            { t:'B · משיכה', pat:[P.VPULL,P.HPULL,P.HPULL,P.SHLD,P.BI] },
+            { t:'C · רגליים', pat:[P.SQUAT,P.HINGE,P.SQUAT,P.CALF] },
+            { t:'D · דחיפה', pat:[P.VPUSH,P.HPUSH,P.HPUSH,P.SHLD,P.TRI] },
+            { t:'E · משיכה', pat:[P.HPULL,P.VPULL,P.VPULL,P.SHLD,P.BI] },
+            { t:'F · רגליים', pat:[P.HINGE,P.SQUAT,P.HINGE,P.CALF] } ] }
   };
 
   /* ---------- פיצול לפי תבנית הנשים ----------
@@ -317,9 +403,10 @@
     /* פיצול הנשים נכנס רק כשהתבנית המובנית היא ההתייחסות בפועל.
        בחר המאמן תוכנית אמיתית כהתייחסות — הפיצול הרגיל חוזר, כי אז
        הכוונה היא ללכת אחרי אותה תוכנית ולא אחרי התבנית. */
-    var useF = isFemale() && houseId() === TEMPLATE_F_ID;
+    var ST   = opt.split && SPLIT_TYPES[opt.split];
+    var useF = !ST && isFemale() && houseId() === TEMPLATE_F_ID;
     var tbl  = useF ? SPLITS_F : SPLITS;
-    var days = tbl[opt.days] || tbl[3] || SPLITS[3];
+    var days = ST ? ST.d : (tbl[opt.days] || tbl[3] || SPLITS[3]);
     var L    = learn();
 
     // ברירות המחדל של המאמן מנצחות את שלי
@@ -343,18 +430,27 @@
       return x.eq.indexOf(FALLBACK[eq] || 'gym') > -1;
     }
 
-    function pick(pattern) {
-      var pool = LIB.filter(function (x) {
-        if (x.p !== pattern) return false;
-        if (used[x.n]) return false;
+    function pick(pattern, today) {
+      var pool = candidates(pattern, today, false);
+      /* בשישה ימים המאגר של דפוס יכול להיגמר. אז מותר לחזור על תרגיל
+         מיום אחר — אבל לא באותו אימון */
+      if (!pool.length && today) pool = candidates(pattern, today, true);
+      if (!pool.length) return null;
+      return choose(pool);
+    }
+    function candidates(pattern, today, again) {
+      return LIB.filter(function (x) {
+        if (!matchPat(x, pattern)) return false;
+        if (!again && used[x.n]) return false;
+        if (today && today[x.n]) return false;
         if (!here(x)) return false;
         if (x.lvl > lvl + (lvl === 1 ? 0 : 1)) return false;   // לא לזרוק מתחיל למתקדם
         for (var i = 0; i < bad.length; i++)
           if (x.bad.indexOf(bad[i]) > -1) return false;
         return true;
       });
-      if (!pool.length) return null;
-
+    }
+    function choose(pool) {
       // דירוג: תרגילים שהמאמן כבר משתמש בהם עולים לראש
       pool.sort(function (a, b) {
         var ua = L.uses[a.n] || 0, ub = L.uses[b.n] || 0;
@@ -412,13 +508,14 @@
     }
 
     var outDays = days.map(function (d, di) {
-      var ex = [];
+      var ex = [], today = {};
       /* הליבה שבדפוס יוצאת מהלולאה: היא מתווספת בסוף בכמות קבועה,
          ובלי זה היו שלושה תרגילי ליבה בימים שכבר כללו אחד. */
       d.pat.filter(function (pat) { return pat !== P.CORE; }).forEach(function (pat) {
-        var x = pick(pat);
+        var x = pick(pat, today);
         if (!x) return;
-        var isCore = x.p === P.CORE, isArm = x.p === P.ARMS || x.p === P.SHLD;
+        today[x.n] = 1;
+        var isCore = x.p === P.CORE, isArm = x.p === P.ARMS || x.p === P.SHLD || x.p === P.CALF;
         ex.push({
           name  : x.n,
           sets  : String(isCore ? Math.max(2, sets - 1) : sets),
@@ -463,7 +560,7 @@
     return {
       days: outDays,
       meta: {
-        goal: g.t, level: opt.level, eq: eq, limits: bad,
+        goal: g.t, level: opt.level, eq: eq, limits: bad, split: ST ? ST.t : '',
         learned: L.programs, sets: sets, reps: reps, rest: rest,
         usedMine: !!(mySets || myRest)
       }
@@ -530,6 +627,14 @@
             + L.programs + '</b> תוכניות שכתבת, ויעדיף את התרגילים והמספרים שאתה נותן בפועל.</p>'
           : '<p class="muted" style="font-size:13px;margin:0 0 12px">זו התוכנית הראשונה, אז הבוט משתמש בברירות מחדל. '
             + 'ככל שתכתוב עוד — הוא ילמד את הסגנון שלך.</p>')
+      + '<label class="f">סוג תוכנית</label>'
+      + '<select class="f" id="bd_split" style="width:100%;margin-bottom:4px" onchange="EBBuild.splitChange()">'
+      + '<option value="">לפי מספר הימים בשבוע</option>'
+      + Object.keys(SPLIT_TYPES).map(function (k) {
+          return '<option value="' + k + '">' + esc(SPLIT_TYPES[k].t) + '</option>';
+        }).join('')
+      + '</select>'
+      + '<div class="muted" id="bd_split_info" style="font-size:12px;margin-bottom:10px">הבוט בוחר את החלוקה לפי מספר הימים.</div>'
       + '<div class="grid g2">'
       + sel('ימים בשבוע','bd_days',[['2','2'],['3','3'],['4','4'],['5','5']], String(days))
       + sel('מטרה','bd_goal',[['mass','מסת שריר'],['cut','חיטוב וירידה'],['power','כוח'],['fit','כושר כללי']], goal)
@@ -601,12 +706,26 @@
       return el && el.checked;
     });
     return {
+      split: gv('bd_split') || '',
       days: Number(gv('bd_days')) || 3,
       goal: gv('bd_goal'),
       level: gv('bd_lvl'),
       eq: gv('bd_eq'),
       limits: lim
     };
+  }
+
+  /* בפיצול שנבחר מספר הימים קבוע, ולכן שדה הימים ננעל ומראה אותו */
+  function splitChange() {
+    var k = gv('bd_split'), ST = SPLIT_TYPES[k];
+    var dEl = document.getElementById('bd_days'), info = document.getElementById('bd_split_info');
+    if (dEl) {
+      if (ST && ST.d.length <= 5) dEl.value = String(ST.d.length);
+      dEl.disabled = !!ST;
+    }
+    if (info) info.textContent = ST
+      ? ST.d.length + ' ימים: ' + ST.d.map(function (d) { return d.t; }).join(' · ')
+      : 'הבוט בוחר את החלוקה לפי מספר הימים.';
   }
 
   function gen() {
@@ -624,7 +743,7 @@
       + '<button class="iconbtn" onclick="closeModal()">✕</button></div><div class="mb">';
 
     h += '<div class="row" style="margin-bottom:12px;gap:8px;flex-wrap:wrap">'
-      + pill(m.goal) + pill(DRAFT.days.length + ' ימים') + pill(total + ' תרגילים')
+      + (m.split ? pill(m.split) : '') + pill(m.goal) + pill(DRAFT.days.length + ' ימים') + pill(total + ' תרגילים')
       + pill(m.sets + ' סטים · ' + m.reps) + pill('מנוחה ' + m.rest + ' שנ׳')
       + (m.limits.length ? pill('בלי: ' + m.limits.join(', '), 1) : '')
       + '</div>';
@@ -696,7 +815,7 @@
     preview();
   }
 
-  window.EBBuild = { open: open, gen: gen, apply: apply, build: build,
+  window.EBBuild = { open: open, gen: gen, apply: apply, build: build, splitChange: splitChange, SPLIT_TYPES: SPLIT_TYPES,
                      learn: learn, fromLib: fromLib, drop: drop,
                      setHouse: setHouse, houseId: houseId };
 })();

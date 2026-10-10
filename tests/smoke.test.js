@@ -149,6 +149,29 @@ const TRAINEE_DATA = {
         VIEW = 'trainee'; ARG = 'a1'; SUBTAB = 'nutri'; V.innerHTML = vTrainee('a1');
         if (!/קיטו עתיר חלבון/.test(V.textContent)) throw new Error('no diet picker');
       });
+      await tryM('splits', async () => {
+        const bad = [];
+        for (const k of Object.keys(EBBuild.SPLIT_TYPES)) {
+          for (const lvl of ['מתחיל', 'בינוני', 'מתקדם']) {
+            const d = EBBuild.build({ split: k, days: 3, goal: 'mass', level: lvl, eq: 'gym', limits: [] });
+            const want = EBBuild.SPLIT_TYPES[k].d.length;
+            if (d.days.length !== want) bad.push(k + ': ' + d.days.length + ' ימים');
+            d.days.forEach(day => {
+              const n = day.exercises.map(e => e.name);
+              if (n.length < 6) bad.push(k + '/' + lvl + ' ' + day.name + ': ' + n.length + ' תרגילים');
+              if (new Set(n).size !== n.length) bad.push(k + ' ' + day.name + ': כפילות');
+              if (/יד אחורית/.test(day.name) && !n.some(x => /פשיטת מרפק|צרפתי|ליד אחורית|קיקבק|אחיזה צרה/.test(x))) bad.push(day.name + ': אין יד אחורית');
+              if (/יד קדמית/.test(day.name) && !n.some(x => /כפיפת מרפקים|פטישים/.test(x))) bad.push(day.name + ': אין יד קדמית');
+              if (!/^[A-F] · /.test(day.name)) bad.push(day.name + ': בלי אות');
+            });
+          }
+        }
+        if (bad.length) throw new Error(bad.slice(0, 6).join(' | '));
+        EBBuild.open('a1');
+        const s = document.getElementById('bd_split'); s.value = 'ABC'; EBBuild.splitChange();
+        if (document.getElementById('bd_days').value !== '3' || !/חזה ויד אחורית/.test(document.getElementById('bd_split_info').textContent)) throw new Error('split picker');
+        closeModal();
+      });
       await tryM('autoMenu', async () => {
         const t = tById('a1'), keep = JSON.stringify(t.meals || []);
         t.height = 165; t.birth = '1995-01-01';
