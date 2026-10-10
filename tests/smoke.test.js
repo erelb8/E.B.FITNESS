@@ -149,6 +149,22 @@ const TRAINEE_DATA = {
         VIEW = 'trainee'; ARG = 'a1'; SUBTAB = 'nutri'; V.innerHTML = vTrainee('a1');
         if (!/קיטו עתיר חלבון/.test(V.textContent)) throw new Error('no diet picker');
       });
+      await tryM('autoMenu', async () => {
+        const t = tById('a1'), keep = JSON.stringify(t.meals || []);
+        t.height = 165; t.birth = '1995-01-01';
+        for (const d of ['', 'keto', 'keto_hp', 'med', 'if16']) {
+          if (d) t.diet = d; else delete t.diet;
+          t.meals = [];
+          EBMenu.open('a1');
+          if (!/תפריט אוטומטי/.test(document.querySelector('.mh').textContent)) throw new Error(d + ': no menu');
+          EBMenu.swap(0); EBMenu.apply();
+          const k = t.meals.reduce((a, m) => a + Number(m.kcal), 0), goal = EBMetrics.compute(t).kcal;
+          if (!t.meals.length || Math.abs(k - goal) / goal > 0.12) throw new Error(d + ': ' + k + ' vs ' + goal);
+        }
+        t.diet = 'keto_cyc'; t.meals = []; EBMenu.open('a1', true); EBMenu.apply();
+        if (!/יום טעינה/.test(t.meals[0].name)) throw new Error('no refeed day');
+        delete t.diet; t.meals = JSON.parse(keep);
+      });
       await tryM('mealLibrary', async () => { EBLibUI.browse('a1'); EBLibUI.setType('sec:thai');
         if (!document.querySelector('[data-mid]')) throw new Error('no thai meals'); });
       await tryM('exerciseLibrary', async () => {

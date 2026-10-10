@@ -16,7 +16,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['chart'] = 'v240';
+  (window.EB_MOD = window.EB_MOD || {})['chart'] = 'v241';
 
   var STATE = {};      // לכל פאנל: הדיווחים, התרגיל, המדד, טבלה או גרף
   var GEO = {};        // רוחב הציור לכל פאנל — בשביל מיקום החלונית הצפה

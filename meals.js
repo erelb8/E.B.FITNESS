@@ -12,7 +12,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['meals'] = 'v240';
+  (window.EB_MOD = window.EB_MOD || {})['meals'] = 'v241';
 
   var BUCKET = 'programs';
   var MAXW   = 900;          // רוחב מרבי אחרי הקטנה
@@ -192,6 +192,7 @@
 
     var h = '<div class="row" style="margin-bottom:12px">'
       + '<h3 style="flex:1;font-size:16px">תפריט · ' + list.length + ' ארוחות</h3>'
+      + (on && window.EBMenu ? '<button class="btn sm ghost" onclick="EBMenu.open(\'' + t.id + '\')">תפריט אוטומטי</button>' : '')
       + (on ? '<button class="btn sm ghost" onclick="EBLibUI.browse(\'' + t.id + '\')">ספריית ארוחות</button>'
             + '<button class="btn sm" onclick="EBMeals.edit(\'' + t.id + '\')">+ ארוחה</button>' : '')
       + '</div>';
@@ -254,7 +255,8 @@
     if (!list.length && !((t.mealsSelf || []).length) && !(t.mealsCustom || []).some(function (x) { return x && x.custom; }))
       return h + '<div class="empty"><div class="big">🍽</div>אין עדיין ארוחות.<br>'
         + '<div class="row" style="justify-content:center;margin-top:12px">'
-        + '<button class="btn" onclick="EBLibUI.browse(\'' + t.id + '\')">בחירה מהספרייה</button>'
+        + (window.EBMenu ? '<button class="btn" onclick="EBMenu.open(\'' + t.id + '\')">תפריט אוטומטי</button>' : '')
+        + '<button class="btn ' + (window.EBMenu ? 'ghost' : '') + '" onclick="EBLibUI.browse(\'' + t.id + '\')">בחירה מהספרייה</button>'
         + '<button class="btn ghost" onclick="EBMeals.edit(\'' + t.id + '\')">ארוחה משלי</button></div></div>';
 
     /* רשימה מקובצת לפי סוג */
