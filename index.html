@@ -6,7 +6,7 @@
 <title>E.B FIT — ניהול מתאמנים</title>
 
 <!-- ===== PWA — הופך את האתר לאפליקציה במסך הבית ===== -->
-<link rel="manifest" href="manifest.json?v=v239">
+<link rel="manifest" href="manifest.json?v=v240">
 <meta name="theme-color" content="#1C140E">
 <meta name="description" content="מערכת לניהול מתאמנים, תוכניות אימון, יומן ותשלומים">
 
@@ -15,9 +15,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="E.B FIT">
-<link rel="apple-touch-icon" href="icons/icon-180.png?v=v239">
-<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=v239">
-<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=v239">
+<link rel="apple-touch-icon" href="icons/icon-180.png?v=v240">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=v240">
+<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=v240">
 <meta name="format-detection" content="telephone=no">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -444,7 +444,7 @@ tbody tr:hover{background:var(--panel)}
 </head>
 <body>
 <header class="top">
-  <div class="brand"><img class="brand-logo" src="icons/logo-96.png?v=v239" alt="" width="30" height="30">E.B<span class="dot"></span>FIT <small id="brandSub">ניהול מתאמנים</small></div>
+  <div class="brand"><img class="brand-logo" src="icons/logo-96.png?v=v240" alt="" width="30" height="30">E.B<span class="dot"></span>FIT <small id="brandSub">ניהול מתאמנים</small></div>
   <div class="spacer"></div>
   <button class="syncpill s-off" id="syncPill" onclick="go('settings')" title="מצב סנכרון">מקומי בלבד</button>
   <span class="now" id="topDate"></span>
@@ -462,8 +462,8 @@ tbody tr:hover{background:var(--panel)}
 <div id="toast"></div>
 
 <!-- ספריית Supabase מקומית (לא מ-CDN) כדי שהאפליקציה תעבוד גם בלי רשת -->
-<script src="vendor/supabase.js?v=v239"></script>
-<script src="config.js?v=v239"></script>
+<script src="vendor/supabase.js?v=v240"></script>
+<script src="config.js?v=v240"></script>
 
 <script>
 /* =======================================================================
@@ -498,7 +498,7 @@ function age(b){ if(!b) return null; const d=new Date(b), t=new Date(); let a=t.
 
 /* ---------------- אחסון ---------------- */
 const KEY='ebfit_v1';
-const EB_VERSION='v239';   // חייב להתאים ל-VERSION ב-sw.js
+const EB_VERSION='v240';   // חייב להתאים ל-VERSION ב-sw.js
 window.EB_APP_VER=EB_VERSION;   // נשלח בכל שורה — השרת דוחה גרסאות ישנות (sync.js)
 let mem=null, canStore=true;
 function load(){
@@ -567,6 +567,37 @@ function setMacroGoal(id,g){
   if(g) t.macroGoal=g; else delete t.macroGoal;
   save(); render();
 }
+/* סוג תזונה — משנה את חלוקת המאקרו באותן קלוריות (metrics.js) */
+function setDiet(id,d){
+  const t=tById(id); if(!t) return;
+  if(d) t.diet=d; else delete t.diet;
+  save(); render();
+}
+function dietRow(t){
+  if(!window.EBMetrics || !EBMetrics.DIETS) return '';
+  const cur=String(t.diet||''), D=EBMetrics.DIETS;
+  const opts=[['','רגילה']].concat(Object.keys(D).map(k=>[k,D[k].he]));
+  return '<div class="muted" style="font-size:12px;margin:2px 0 6px">סוג תזונה</div>'
+   +'<div class="row" style="gap:6px;flex-wrap:wrap;margin-bottom:10px">'
+   +opts.map(g=>{
+      const on=g[0]===cur;
+      return '<button onclick="setDiet(&#39;'+t.id+'&#39;,&#39;'+g[0]+'&#39;)" '
+        +(g[0]?'title="'+esc(D[g[0]].sub)+'" ':'')
+        +'style="padding:7px 12px;border-radius:9px;font-family:inherit;font-size:12.5px;'
+        +'font-weight:'+(on?'800':'600')+';cursor:pointer;'
+        +'border:1px solid '+(on?'var(--cop)':'var(--line)')+';'
+        +'background:'+(on?'rgba(184,144,31,.14)':'transparent')+';'
+        +'color:'+(on?'var(--cop)':'var(--mut)')+'">'+esc(g[1])+'</button>';
+    }).join('')+'</div>'
+   +(cur&&D[cur]?'<div class="muted" style="font-size:12px;margin:-4px 0 10px">'+esc(D[cur].sub)+dietExtra(t)+'</div>':'');
+}
+function dietExtra(t){
+  let m=null; try{ m=EBMetrics.compute(t); }catch(e){}
+  if(!m) return '';
+  if(m.refeed) return ' · ביום טעינה: '+m.refeed.carbs+' ג׳ פחמימה, '+m.refeed.fat+' ג׳ שומן';
+  if(m.window) return ' · חלון אכילה '+m.window;
+  return '';
+}
 function macroCard(t){
   let m=null;
   if(window.EBMetrics){ try{ m=EBMetrics.compute(t); }catch(e){ m=null; } }
@@ -585,7 +616,7 @@ function macroCard(t){
         +'background:'+(on?'rgba(184,144,31,.14)':'transparent')+';'
         +'color:'+(on?'var(--cop)':'var(--mut)')+'">'+esc(g[1])+'</button>';
     }).join('')
-   +'</div>';
+   +'</div>'+dietRow(t);
 
   if(!m || !m.kcal){
     /* compute כבר מחזיק רשימת חסרים משלו — משתמשים בה ולא מנחשים
@@ -2738,7 +2769,7 @@ function calcNutriCard(t){
         +'border:1px solid '+(on?'var(--cop)':'var(--line)')+';'
         +'background:'+(on?'rgba(184,144,31,.14)':'transparent')+';'
         +'color:'+(on?'var(--cop)':'var(--mut)')+'">'+esc(g[1])+'</button>';
-    }).join('')+'</div>';
+    }).join('')+'</div>'+dietRow(t);
 
   if(!m || !m.kcal){
     const miss=(m&&m.missing)||[];
@@ -3685,38 +3716,38 @@ if (location.protocol === 'file:') {
 }
 </script>
 
-<script src="health.js?v=v239"></script>
-<script src="privacy.js?v=v239"></script>
-<script src="backup.js?v=v239"></script>
-<script src="reorder.js?v=v239"></script>
-<script src="access.js?v=v239"></script>
-<script src="analysis.js?v=v239"></script>
-<script src="reports.js?v=v239"></script>
-<script src="business.js?v=v239"></script>
-<script src="intake.js?v=v239"></script>
-<script src="files.js?v=v239"></script>
-<script src="builder.js?v=v239"></script>
-<script src="import-program.js?v=v239"></script>
-<script src="tracking.js?v=v239"></script>
-<script src="metrics.js?v=v239"></script>
-<script src="targets.js?v=v239"></script>
-<script src="meal-library.js?v=v239"></script>
+<script src="health.js?v=v240"></script>
+<script src="privacy.js?v=v240"></script>
+<script src="backup.js?v=v240"></script>
+<script src="reorder.js?v=v240"></script>
+<script src="access.js?v=v240"></script>
+<script src="analysis.js?v=v240"></script>
+<script src="reports.js?v=v240"></script>
+<script src="business.js?v=v240"></script>
+<script src="intake.js?v=v240"></script>
+<script src="files.js?v=v240"></script>
+<script src="builder.js?v=v240"></script>
+<script src="import-program.js?v=v240"></script>
+<script src="tracking.js?v=v240"></script>
+<script src="metrics.js?v=v240"></script>
+<script src="targets.js?v=v240"></script>
+<script src="meal-library.js?v=v240"></script>
 <!-- חלקים של המאמן בלבד (תאילנדי, פירות). לא נטען ב-t.html בכוונה. -->
-<script src="meal-extra.js?v=v239"></script>
-<script src="progress-chart.js?v=v239"></script>
-<script src="notes.js?v=v239"></script>
-<script src="notes-ui.js?v=v239"></script>
-<script src="guides.js?v=v239"></script>
-<script src="library-ui.js?v=v239"></script>
-<script src="export-plan.js?v=v239"></script>
-<script src="cardio.js?v=v239"></script>
-<script src="cardio-ui.js?v=v239"></script>
-<script src="exercise-library.js?v=v239"></script>
-<script src="exercise-ui.js?v=v239"></script>
-<script src="video.js?v=v239"></script>
-<script src="anim.js?v=v239"></script>
-<script src="meals.js?v=v239"></script>
-<script src="sync.js?v=v239"></script>
+<script src="meal-extra.js?v=v240"></script>
+<script src="progress-chart.js?v=v240"></script>
+<script src="notes.js?v=v240"></script>
+<script src="notes-ui.js?v=v240"></script>
+<script src="guides.js?v=v240"></script>
+<script src="library-ui.js?v=v240"></script>
+<script src="export-plan.js?v=v240"></script>
+<script src="cardio.js?v=v240"></script>
+<script src="cardio-ui.js?v=v240"></script>
+<script src="exercise-library.js?v=v240"></script>
+<script src="exercise-ui.js?v=v240"></script>
+<script src="video.js?v=v240"></script>
+<script src="anim.js?v=v240"></script>
+<script src="meals.js?v=v240"></script>
+<script src="sync.js?v=v240"></script>
 <script>
 /* =================== חיבור הסנכרון לאפליקציה =================== */
 

@@ -20,7 +20,16 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['metrics'] = 'v239';
+  (window.EB_MOD = window.EB_MOD || {})['metrics'] = 'v240';
+
+  /* סוגי תזונה שהמאמן בוחר למתאמן. משנים רק את חלוקת המאקרו — ראו compute */
+  var DIETS = {
+    keto:     { he: 'קיטו קלאסי',        sub: '25 ג׳ פחמימה, חלבון מתון, השאר שומן' },
+    keto_hp:  { he: 'קיטו עתיר חלבון',    sub: '30 ג׳ פחמימה, חלבון גבוה — מתאים למתאמנים' },
+    keto_cyc: { he: 'קיטו מחזורי',        sub: '5 ימי קיטו ו-2 ימי טעינת פחמימה' },
+    med:      { he: 'ים תיכונית',         sub: '35% שומן משמן זית, אגוזים ודגים' },
+    if16:     { he: 'צום לסירוגין 16:8',  sub: 'אותו מאקרו, בחלון אכילה של 8 שעות' }
+  };
 
   var r1 = function (x) { return Math.round(x * 10) / 10; };
   var r2 = function (x) { return Math.round(x * 100) / 100; };
@@ -281,9 +290,53 @@
                + ' (0.8 ג׳/ק״ג או 20% מהקלוריות)';
 
       o.carbs = Math.max(0, Math.round((o.kcal - o.protein*4 - o.fatG*9) / 4));
-      o.carbsPct = Math.round(o.carbs*4 / o.kcal * 100);
       o.f.carbs = '(' + o.kcal + ' − ' + o.protein + '×4 − ' + o.fatG + '×9) ÷ 4';
+
+      /* ---------- סוג תזונה ----------
+         הקלוריות לא משתנות — רק החלוקה ביניהן. בקיטו הפחמימה קבועה
+         בגרמים (מתחת ל-30 ג׳ נכנסים לקטוזיס אצל רוב האנשים) והשומן
+         הוא היתרה, הפוך מהחישוב הרגיל. */
+      var dt = DIETS[t.diet] ? t.diet : '';
+      o.diet = dt; o.dietTxt = dt ? DIETS[dt].he : '';
+      if (dt === 'keto' || dt === 'keto_cyc' || dt === 'keto_hp') {
+        if (dt === 'keto_hp') {
+          var pHp = Math.round(base * (onLean ? 2.6 : 2.2));
+          if (pHp > o.protein) { o.protein = pHp; o.f.protein = base + ' × ' + (onLean ? 2.6 : 2.2) + ' ג׳/ק״ג — קיטו עתיר חלבון'; }
+        } else {
+          /* קיטו קלאסי: חלבון מתון. עודף חלבון הופך בכבד לגלוקוז
+             ומוציא מקטוזיס — ולכן התקרה */
+          var pCap = Math.round(base * (onLean ? 1.9 : 1.6));
+          if (o.protein > pCap) { o.protein = pCap; o.f.protein = base + ' × ' + (onLean ? 1.9 : 1.6) + ' ג׳/ק״ג — קיטו: חלבון מתון'; }
+        }
+        o.carbs = dt === 'keto_hp' ? 30 : 25;
+        o.f.carbs = o.carbs + ' ג׳ קבוע — קיטו';
+        o.fatG = Math.max(0, Math.round((o.kcal - o.protein*4 - o.carbs*4) / 9));
+        o.f.fatG = '(' + o.kcal + ' − ' + o.protein + '×4 − ' + o.carbs + '×4) ÷ 9 — השומן הוא היתרה';
+        if (dt === 'keto_cyc') {
+          /* 5 ימי קיטו ו-2 ימי טעינה. ביום טעינה הפחמימה עולה והשומן
+             יורד, באותן קלוריות */
+          var rc = Math.round(w * 4);
+          var rf = Math.max(Math.round(w * 0.5), Math.round((o.kcal - o.protein*4 - rc*4) / 9));
+          o.refeed = { carbs: rc, fat: rf };
+          o.f.refeed = w + ' × 4 ג׳ פחמימה ליום טעינה, שומן ' + rf + ' ג׳';
+        }
+      } else if (dt === 'med') {
+        /* ים תיכונית: יותר שומן (שמן זית, אגוזים, דגים) על חשבון פחמימה */
+        o.fatG = Math.round(o.kcal * 0.35 / 9);
+        o.f.fatG = '35% מ-' + o.kcal + ' קק״ל ÷ 9 — ים תיכונית';
+        o.carbs = Math.max(0, Math.round((o.kcal - o.protein*4 - o.fatG*9) / 4));
+        o.f.carbs = '(' + o.kcal + ' − ' + o.protein + '×4 − ' + o.fatG + '×9) ÷ 4';
+      } else if (dt === 'if16') {
+        /* צום לסירוגין: אותו מאקרו, בחלון של 8 שעות. 2–3 ארוחות, ולכן
+           החלבון למנה גבוה יותר */
+        o.window = '12:00–20:00';
+        o.perMeal = [Math.round(o.protein / 3), Math.round(o.protein / 2)];
+        o.f.perMeal = o.protein + ' ג׳ חלבון ב-2–3 ארוחות';
+      }
+      o.fatPct = Math.round(o.fatG*9 / o.kcal * 100);
+      o.carbsPct = Math.round(o.carbs*4 / o.kcal * 100);
       o.proteinPct = Math.round(o.protein*4 / o.kcal * 100);
+      o.proteinPerKg = r1(o.protein / w);
 
       o.water = Math.max(2.5, r1(w * 35 / 1000));
       o.f.water = w + ' × 35 מ״ל/ק״ג';
@@ -453,11 +506,14 @@
     /* --- מאקרו --- */
     var mc = '';
     if (o.protein) {
+      if (o.diet) mc += row('סוג תזונה', o.dietTxt, DIETS[o.diet].sub);
       mc += row('חלבון', o.protein + ' ג׳', o.proteinPct + '% · ' + o.proteinPerKg + ' ג׳/ק״ג', '', o.f.protein);
       mc += row('· טווח ISSN', o.proteinRange[0] + '–' + o.proteinRange[1] + ' ג׳');
       mc += row('· למנה', o.perMeal[0] + '–' + o.perMeal[1] + ' ג׳', 'כל 3–4 שעות', '', o.f.perMeal);
       mc += row('פחמימות', o.carbs + ' ג׳', o.carbsPct + '%', '', o.f.carbs);
       mc += row('שומן', o.fatG + ' ג׳', o.fatPct + '%', o.fatPct < 20 ? 'נמוך' : '', o.f.fatG);
+      if (o.refeed) mc += row('· יום טעינה', o.refeed.carbs + ' ג׳ פחמימה · ' + o.refeed.fat + ' ג׳ שומן', '2 ימים בשבוע', '', o.f.refeed);
+      if (o.window) mc += row('· חלון אכילה', o.window, '16 שעות צום');
       mc += row('סיבים', o.fiber + ' ג׳', '14 ג׳ לכל 1000 קק״ל', '', o.f.fiber);
       mc += row('מים', o.water + ' ליטר', '', '', o.f.water);
     }
@@ -533,5 +589,5 @@
         }).join('') + '</div>';
   }
 
-  window.EBMetrics = { tab:tab, compute:compute, toggle:toggle, rm:rm, calcRM:calcRM, oneRM:oneRM };
+  window.EBMetrics = { tab:tab, compute:compute, toggle:toggle, rm:rm, calcRM:calcRM, oneRM:oneRM, DIETS:DIETS };
 })();

@@ -11,7 +11,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['libraryUi'] = 'v239';
+  (window.EB_MOD = window.EB_MOD || {})['libraryUi'] = 'v240';
 
   var Q = '', TYPE = 'all', OPEN = {}, TAB = 'meals';
 
@@ -98,11 +98,19 @@
     });
     var nk = EBLib.MEALS.filter(function (m) { return !inSection(m) && EBLib.kosherOf(m) !== 'ok'; }).length;
     if (nk) h += btn('nonkosher', 'לא כשר', nk);
+    /* דיאטות בשורה נפרדת עם כותרת — הן לא עוד סוג ארוחה אלא דרך
+       אכילה שלמה, והמאמן מחפש אותן כקבוצה */
+    var DIET = EBLib.DIET_SECTIONS || [], dh = '';
     Object.keys(EBLib.SECTIONS || {}).forEach(function (k) {
       var n = EBLib.MEALS.filter(function (m) { return m.section === k; }).length;
-      if (n) h += btn('sec:' + k, EBLib.SECTIONS[k], n);
+      if (!n) return;
+      if (DIET.indexOf(k) > -1) dh += btn('sec:' + k, EBLib.SECTIONS[k], n);
+      else h += btn('sec:' + k, EBLib.SECTIONS[k], n);
     });
-    return h + '</div>';
+    h += '</div>';
+    if (dh) h += '<div style="font-family:Heebo;font-weight:700;font-size:13px;color:var(--cop);margin:-2px 0 7px">דיאטות</div>'
+      + '<div class="row" style="gap:6px;flex-wrap:wrap;margin-bottom:12px;padding:10px;border:1px solid var(--line);border-radius:12px">' + dh + '</div>';
+    return h;
   }
 
   /* אוכל לא כשר לא מופיע ברשימה הרגילה — רק בקטגוריה שלו. מי שלא

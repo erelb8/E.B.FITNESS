@@ -132,6 +132,23 @@ const TRAINEE_DATA = {
         payRemind('b1');
         if (!/היי יוסי, תזכורת קטנה לתשלום של חודש/.test(document.getElementById('wa_t').value)) throw new Error('no reminder text');
       });
+      await tryM('diets', async () => {
+        const t = tById('a1'); t.height = 165; t.birth = '1995-01-01';
+        const base = EBMetrics.compute(t);
+        for (const k of ['keto', 'keto_hp', 'keto_cyc', 'med', 'if16']) {
+          t.diet = k; const m = EBMetrics.compute(t);
+          if (m.kcal !== base.kcal) throw new Error(k + ': calories changed');
+          if (Math.abs(m.protein * 4 + m.carbs * 4 + m.fatG * 9 - m.kcal) > 20) throw new Error(k + ': macros do not add up');
+          if (/^keto/.test(k) && m.carbs > 30) throw new Error(k + ': carbs ' + m.carbs);
+          if (k === 'keto_cyc' && !m.refeed) throw new Error('no refeed day');
+          EBLibUI.browse('a1'); EBLibUI.setType('sec:' + k);
+          if (!document.querySelector('[data-mid]')) throw new Error('no ' + k + ' meals');
+          closeModal();
+        }
+        delete t.diet;
+        VIEW = 'trainee'; ARG = 'a1'; SUBTAB = 'nutri'; V.innerHTML = vTrainee('a1');
+        if (!/קיטו עתיר חלבון/.test(V.textContent)) throw new Error('no diet picker');
+      });
       await tryM('mealLibrary', async () => { EBLibUI.browse('a1'); EBLibUI.setType('sec:thai');
         if (!document.querySelector('[data-mid]')) throw new Error('no thai meals'); });
       await tryM('exerciseLibrary', async () => {
