@@ -172,6 +172,20 @@ const TRAINEE_DATA = {
         if (document.getElementById('bd_days').value !== '3' || !/חזה ויד אחורית/.test(document.getElementById('bd_split_info').textContent)) throw new Error('split picker');
         closeModal();
       });
+      await tryM('periodCard', async () => {
+        const t = tById('a1'), T0 = addDays(todayISO(), -40);
+        t.program.planStart = T0; t.program.planMonths = 1;
+        const logs = [0, 7, 14, 21].map((d, i) => ({ date: addDays(T0, d), entries: [{ ex: 'לחיצת חזה במוט', done: true, setLog: [{ w: 50 + i * 5, r: 8 }] }] }));
+        const keepW = t.weighins; t.weighins = [{ date: addDays(T0, 1), weight: 64 }, { date: addDays(T0, 20), weight: 61.5 }];
+        const d = EBPeriod.compute(t, 'plan', logs);
+        if (!d.weight || d.weight.d !== -2.5) throw new Error('weight ' + JSON.stringify(d.weight));
+        if (d.workouts !== 4 || d.records !== 1 || d.gains[0].b !== 65) throw new Error('logs ' + d.workouts + '/' + d.records);
+        const cv = EBPeriod.draw(d, null);
+        if (cv.width !== 1080 || cv.height !== 1350) throw new Error('size');
+        VIEW = 'trainee'; ARG = 'a1'; SUBTAB = 'program';
+        if (!/סיכום תקופה/.test(vTrainee('a1'))) throw new Error('no button');
+        t.weighins = keepW; delete t.program.planStart; delete t.program.planMonths;
+      });
       await tryM('autoMenu', async () => {
         const t = tById('a1'), keep = JSON.stringify(t.meals || []);
         t.height = 165; t.birth = '1995-01-01';
