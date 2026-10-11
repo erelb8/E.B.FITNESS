@@ -17,7 +17,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['period'] = 'v243';
+  (window.EB_MOD = window.EB_MOD || {})['period'] = 'v244';
 
   var W = 1080, H = 1350, PAD = 80;
   var C = { bg1: '#2b1d13', bg2: '#140d08', card: 'rgba(255,255,255,.045)', line: 'rgba(196,154,108,.22)',

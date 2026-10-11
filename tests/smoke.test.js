@@ -124,6 +124,18 @@ const TRAINEE_DATA = {
         if (!EBAnim.has(e.name) || e.weight !== '10') throw new Error('not replaced: ' + e.name);
         tById('a1').program.days = JSON.parse(keep);
       });
+      await tryM('noPlanCard', () => {
+        VIEW = 'dash'; V.innerHTML = vDash();
+        const card = [].find.call(V.querySelectorAll('.card'), c => /חסרה תקופת מעקב/.test(c.textContent));
+        if (!card || !/יוסי בדיקה/.test(card.textContent)) throw new Error('no card');
+        const t = tById('b1'), keep = JSON.stringify(t.program);
+        t.joined = '2026-09-04'; quickPlan('b1', 2);
+        if (t.program.planStart !== '2026-09-04' || t.program.planMonths !== 2 || !planOf(t)) throw new Error('not set ' + JSON.stringify(t.program));
+        V.innerHTML = vDash();
+        const again = [].find.call(V.querySelectorAll('.card'), c => /חסרה תקופת מעקב/.test(c.textContent));
+        if (again && /יוסי בדיקה/.test(again.textContent)) throw new Error('still listed');
+        t.program = JSON.parse(keep); delete t.joined;
+      });
       await tryM('unpaidCard', () => {
         VIEW = 'dash'; V.innerHTML = vDash();
         const card = [].find.call(V.querySelectorAll('.card'), c => /לא שילמו ב/.test(c.textContent));
