@@ -22,7 +22,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['backup'] = 'v247';
+  (window.EB_MOD = window.EB_MOD || {})['backup'] = 'v248';
 
   var LAST_KEY = 'ebfit_backup_at';
   var TABLES = ['trainees', 'sessions', 'measures', 'payments'];
@@ -64,7 +64,7 @@
       נוצר: new Date().toISOString(),
       גרסה: (typeof EB_VERSION !== 'undefined' ? EB_VERSION : ''),
       מאמן: user.email || '',
-      הערה: 'גיבוי מלא של E.B FIT מהשרת. כולל הצהרות בריאות, שקילות '
+      הערה: 'גיבוי מלא של BAUER POWER מהשרת. כולל הצהרות בריאות, שקילות '
            + 'ודיווחי מתאמנים שאינם נמצאים בייצוא המקומי.',
       טבלאות: {}
     };

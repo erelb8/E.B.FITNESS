@@ -16,7 +16,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['privacy'] = 'v247';
+  (window.EB_MOD = window.EB_MOD || {})['privacy'] = 'v248';
 
   /* עד אוקטובר 2026 נקרא כאן esc גלובלי. באפליקציה של המאמן הוא קיים,
      אבל בדף המתאמן esc יושב בתוך הסקריפט ולא גלובלי — כך שהודעת
@@ -48,7 +48,7 @@
     var s = (typeof S !== 'undefined' && S.settings) ? S.settings : {};
     return {
       name: s.trainer || 'אראל באואר',
-      biz: s.business || 'E.B FIT',
+      biz: s.business || 'BAUER POWER',
       phone: s.phone || '054-268-7313'
     };
   }
@@ -111,7 +111,7 @@
     };
     return {
       נוצר: new Date().toISOString(),
-      הערה: 'כל המידע השמור על ' + t.name + ' במערכת E.B FIT.',
+      הערה: 'כל המידע השמור על ' + t.name + ' במערכת BAUER POWER.',
       פרטים: {
         שם: t.name, טלפון: t.phone || '', גובה: t.height || '',
         תאריך_לידה: t.birth || '', מטרה: t.goal || '',

@@ -19,7 +19,7 @@
   'use strict';
 
   // חותמת גרסה — index.html משווה אליה כדי לזהות קובץ ישן במטמון
-  (window.EB_MOD = window.EB_MOD || {})['import'] = 'v247';
+  (window.EB_MOD = window.EB_MOD || {})['import'] = 'v248';
 
   var FOR = null, DRAFT = null, FNAME = '';
 
@@ -587,7 +587,7 @@
   function parse(src) {
     var own = fromOwn(src);
     if (own) {
-      return { days: JSON.parse(JSON.stringify(own.program.days)), how: 'קובץ תוכנית של E.B FIT',
+      return { days: JSON.parse(JSON.stringify(own.program.days)), how: 'קובץ תוכנית של BAUER POWER',
                nutrition: '', note: own.program.note || '', program: own.program,
                meals: own.meals || [], from: own.name || '' };
     }

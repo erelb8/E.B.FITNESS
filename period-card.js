@@ -17,7 +17,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['period'] = 'v247';
+  (window.EB_MOD = window.EB_MOD || {})['period'] = 'v248';
 
   var W = 1080, H = 1350, PAD = 80;
   var C = { bg1: '#2b1d13', bg2: '#140d08', card: 'rgba(255,255,255,.045)', line: 'rgba(196,154,108,.22)',
@@ -142,7 +142,7 @@
     var R = W - PAD, y = PAD;
     // ראש: לוגו ושם המותג
     if (logo) ctx.drawImage(logo, R - 84, y - 6, 84, 84);
-    txt(ctx, 'E.B FIT', R - 104, y + 30, 34, C.gold, 800);
+    txt(ctx, 'BAUER POWER', R - 104, y + 30, 34, C.gold, 800);
     txt(ctx, 'סיכום תקופה', R - 104, y + 70, 28, C.mut, 500);
     txt(ctx, heDate(D.R.from) + ' – ' + heDate(D.R.to), PAD, y + 30, 28, C.mut, 500, 'left', 'ltr');
     txt(ctx, D.R.label, PAD, y + 70, 28, C.mut, 500, 'left');
@@ -213,7 +213,7 @@
 
     /* --- תחתית --- */
     var coach = (S.settings && S.settings.trainer) || '';
-    txt(ctx, (coach ? 'המאמן: ' + coach + ' · ' : '') + 'E.B FIT', W / 2, H - 56, 26, C.mut, 500, 'center');
+    txt(ctx, (coach ? 'המאמן: ' + coach + ' · ' : '') + 'BAUER POWER', W / 2, H - 56, 26, C.mut, 500, 'center');
     return cv;
   }
 
