@@ -82,19 +82,16 @@ body::before{
 .btn[disabled]{ filter:saturate(.5) brightness(.8); box-shadow:none; }
 @keyframes fx-sheen{ to { inset-inline-start:130%; } }
 
-/* ---------- כותרת: קו חי בתחתית ----------
-   התנועה היא transform על פס ברוחב כפול ולא background-position:
-   הזזת רקע מציירת מחדש את כל הכותרת בכל פריים — כולל הטשטוש שמאחוריה
-   — וזה מה שהאט את כל האפליקציה בטלפון חלש. transform רץ בכרטיס
-   הגרפי ולא נוגע בציור. */
-.fx-coach .top, .fx-trainee .top{ overflow:hidden; }
-.fx-coach .top::after, .fx-trainee .top:after{
-  content:''; position:absolute; bottom:0; height:1px; right:auto; left:0; width:200%;
-  background:linear-gradient(90deg, transparent 0%, var(--or) 15%, var(--cop) 25%, var(--or) 35%, transparent 50%,
-                                    transparent 50%, var(--or) 65%, var(--cop) 75%, var(--or) 85%, transparent 100%);
-  opacity:.55; will-change:transform; animation:fx-flow 8s linear infinite;
+/* ---------- כותרת: קו זהב בתחתית ----------
+   קו סטטי, בכוונה. גרסה זזה — גם כ-transform, שרץ בכרטיס הגרפי —
+   הורידה את הגלילה בטלפון חלש מ-62 ל-48 פריימים בשנייה: לכותרת יש
+   backdrop-filter, וכל תזוזה בתוכה מכריחה לטשטש מחדש את מה שמאחוריה
+   בכל פריים. נמדד באוקטובר 2026 — לא להחזיר אנימציה לכאן. */
+.fx-coach .top::after{
+  content:''; position:absolute; right:0; left:0; bottom:-1px; height:1px;
+  background:linear-gradient(90deg, transparent, var(--or) 30%, var(--cop) 50%, var(--or) 70%, transparent);
+  opacity:.55;
 }
-@keyframes fx-flow{ from{transform:translateX(0)} to{transform:translateX(-50%)} }
 
 /* ---------- חלון קופץ: קצה מואר ---------- */
 .modal{ box-shadow:0 24px 60px rgba(0,0,0,.55), 0 0 0 1px rgba(196,154,108,.14), inset 0 1px 0 rgba(255,255,255,.05); }
