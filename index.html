@@ -6,7 +6,7 @@
 <title>BAUER POWER — ניהול מתאמנים</title>
 
 <!-- ===== PWA — הופך את האתר לאפליקציה במסך הבית ===== -->
-<link rel="manifest" href="manifest.json?v=v248">
+<link rel="manifest" href="manifest.json?v=v249">
 <meta name="theme-color" content="#1C140E">
 <meta name="description" content="מערכת לניהול מתאמנים, תוכניות אימון, יומן ותשלומים">
 
@@ -15,9 +15,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="BAUER POWER">
-<link rel="apple-touch-icon" href="icons/icon-180.png?v=v248">
-<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=v248">
-<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=v248">
+<link rel="apple-touch-icon" href="icons/icon-180.png?v=v249">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=v249">
+<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=v249">
 <meta name="format-detection" content="telephone=no">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -445,11 +445,11 @@ tbody tr:hover{background:var(--panel)}
   .rep-sub{flex-basis:100%;margin-inline-start:106px}
 }
 </style>
-<link rel="stylesheet" href="ui-fx.css?v=v248">
+<link rel="stylesheet" href="ui-fx.css?v=v249">
 </head>
 <body>
 <header class="top">
-  <div class="brand"><img class="brand-logo" src="icons/logo-96.png?v=v248" alt="" width="30" height="30"><span class="brand-word" dir="ltr">BAUER<span class="dot"></span>POWER</span> <small id="brandSub">ניהול מתאמנים</small></div>
+  <div class="brand"><img class="brand-logo" src="icons/logo-96.png?v=v249" alt="" width="30" height="30"><span class="brand-word" dir="ltr">BAUER<span class="dot"></span>POWER</span> <small id="brandSub">ניהול מתאמנים</small></div>
   <div class="spacer"></div>
   <button class="syncpill s-off" id="syncPill" onclick="go('settings')" title="מצב סנכרון">מקומי בלבד</button>
   <span class="now" id="topDate"></span>
@@ -467,8 +467,8 @@ tbody tr:hover{background:var(--panel)}
 <div id="toast"></div>
 
 <!-- ספריית Supabase מקומית (לא מ-CDN) כדי שהאפליקציה תעבוד גם בלי רשת -->
-<script src="vendor/supabase.js?v=v248"></script>
-<script src="config.js?v=v248"></script>
+<script src="vendor/supabase.js?v=v249"></script>
+<script src="config.js?v=v249"></script>
 
 <script>
 /* =======================================================================
@@ -503,7 +503,7 @@ function age(b){ if(!b) return null; const d=new Date(b), t=new Date(); let a=t.
 
 /* ---------------- אחסון ---------------- */
 const KEY='ebfit_v1';
-const EB_VERSION='v248';   // חייב להתאים ל-VERSION ב-sw.js
+const EB_VERSION='v249';   // חייב להתאים ל-VERSION ב-sw.js
 window.EB_APP_VER=EB_VERSION;   // נשלח בכל שורה — השרת דוחה גרסאות ישנות (sync.js)
 let mem=null, canStore=true;
 function load(){
@@ -1138,17 +1138,38 @@ function unpaidThisMonth(){
   }).filter(o=>!o.paid)
     .sort((a,b)=>((a.last&&a.last.date)||'').localeCompare((b.last&&b.last.date)||'') || a.t.name.localeCompare(b.t.name,'he'));
 }
+/* קישור התשלום (ביט / פייבוקס) והמספר לביט נכנסים לתזכורת לבד. את
+   הקישור יוצרים פעם אחת באפליקציה של ביט או פייבוקס ומדביקים בהגדרות
+   — אין דרך ליצור אותו מכאן, וגם לא לדעת אם שולם: את הרישום עושים
+   כרגיל ב"רישום". */
 function payRemindText(t, last){
   const m=HE_MON_FULL[new Date().getMonth()];
+  const link=String(S.settings.payLink||'').trim();
+  let bit=String(S.settings.bitPhone||S.settings.phone||'').trim();
+  const dg=bit.replace(/[^0-9]/g,'');
+  if(/^05[0-9]{8}$/.test(dg)) bit=dg.slice(0,3)+'-'+dg.slice(3,6)+'-'+dg.slice(6);   // 054-268-7313
   return 'היי '+firstName(t)+', תזכורת קטנה לתשלום של חודש '+m
-    +(last&&last.amount?' ('+moneyTxt(last.amount)+')':'')+'.\nאפשר בביט או בהעברה. תודה!';
+    +(last&&last.amount?' ('+moneyTxt(last.amount)+')':'')+'.\n'
+    +(link?'לתשלום בלחיצה: '+link+'\n':'')
+    +(bit?(link?'או ':'')+'בביט למספר '+bit+'.\n':(link?'':'אפשר בביט או בהעברה.\n'))
+    +'תודה!';
+}
+function setPayLink(v){
+  S.settings.payLink=String(v||'').trim(); save();
+  const ta=document.getElementById('wa_t'), id=ta&&ta.dataset.tid;
+  if(ta&&id){ const o=unpaidThisMonth().find(x=>x.t.id===id); ta.value=payRemindText(tById(id), o&&o.last); }
+  toast(S.settings.payLink?'הקישור נשמר — ייכנס לכל התזכורות':'הקישור הוסר');
 }
 function payRemind(id){
   const t=tById(id); if(!t) return;
   const o=unpaidThisMonth().find(x=>x.t.id===id);
   openModal('<div class="mh"><h3>תזכורת תשלום ל'+esc(t.name)+'</h3><button class="iconbtn" onclick="closeModal()">✕</button></div><div class="mb">'
    +'<div class="muted" style="font-size:12.5px;margin-bottom:8px">אפשר לערוך לפני השליחה.</div>'
-   +'<textarea class="f" id="wa_t" style="min-height:110px;line-height:1.6">'+esc(payRemindText(t, o&&o.last))+'</textarea></div>'
+   +'<textarea class="f" id="wa_t" data-tid="'+esc(t.id)+'" style="min-height:170px;line-height:1.6">'+esc(payRemindText(t, o&&o.last))+'</textarea>'
+   +(S.settings.payLink?'':'<div style="margin-top:10px"><label class="f">קישור לתשלום (ביט או פייבוקס)</label>'
+     +'<input class="f" placeholder="מדביקים כאן את הקישור מהאפליקציה של ביט או פייבוקס" onchange="setPayLink(this.value)">'
+     +'<div class="muted" style="font-size:11.5px;margin-top:4px">פעם אחת, והוא ייכנס לכל התזכורות. אפשר לשנות בהגדרות.</div></div>')
+   +'</div>'
    +'<div class="mf"><button class="btn" onclick="sendWa(\''+esc(t.phone||'')+'\')">פתיחה בווטסאפ</button>'
    +'<button class="btn ghost" onclick="navigator.clipboard&&navigator.clipboard.writeText(gv(\'wa_t\')).then(()=>toast(\'הועתק\'))">העתקה</button>'
    +'<button class="btn ghost" onclick="closeModal()">סגירה</button></div>', true);
@@ -3481,7 +3502,10 @@ function vSettings(){
   h+='<div class="grid g2"><div class="card" data-auto="settings"><h3 style="font-size:15px;margin-bottom:12px">פרטי העסק</h3><div class="grid g2">'
    +fld('שם העסק','st_biz','text',S.settings.business)+fld('שם המאמן','st_trainer','text',S.settings.trainer)
    +fld('טלפון','st_phone','tel',S.settings.phone)+fld('מטבע','st_cur','text',S.settings.currency)
+   +fld('קישור לתשלום (ביט / פייבוקס)','st_paylink','url',S.settings.payLink||'')
+   +fld('מספר לביט','st_bit','tel',S.settings.bitPhone||'')
   +'</div>'
+  +'<div class="muted" style="font-size:12px;margin-top:8px">הקישור והמספר נכנסים לבד לתזכורת התשלום בוואטסאפ. בלי מספר לביט נכנס הטלפון של העסק.</div>'
   +'<div class="muted" style="font-size:12px;margin-top:10px">נשמר אוטומטית עם כל שינוי.</div></div>';
 
   h+='<div class="card"><h3 style="font-size:15px;margin-bottom:12px">גיבוי ושחזור</h3>'
@@ -3517,7 +3541,7 @@ function vSettings(){
 function saveSettings(){
   if(!document.getElementById('st_biz')) return;
   Object.assign(S.settings,{business:gv('st_biz'),trainer:gv('st_trainer'),phone:gv('st_phone'),
-    currency:gv('st_cur')||'₪'});
+    currency:gv('st_cur')||'₪',payLink:String(gv('st_paylink')||'').trim(),bitPhone:String(gv('st_bit')||'').trim()});
   save();
 }
 AUTO_INLINE.settings=saveSettings;
@@ -3827,41 +3851,41 @@ if (location.protocol === 'file:') {
 }
 </script>
 
-<script src="health.js?v=v248"></script>
-<script src="privacy.js?v=v248"></script>
-<script src="backup.js?v=v248"></script>
-<script src="reorder.js?v=v248"></script>
-<script src="access.js?v=v248"></script>
-<script src="analysis.js?v=v248"></script>
-<script src="reports.js?v=v248"></script>
-<script src="business.js?v=v248"></script>
-<script src="intake.js?v=v248"></script>
-<script src="files.js?v=v248"></script>
-<script src="builder.js?v=v248"></script>
-<script src="import-program.js?v=v248"></script>
-<script src="tracking.js?v=v248"></script>
-<script src="metrics.js?v=v248"></script>
-<script src="targets.js?v=v248"></script>
-<script src="meal-library.js?v=v248"></script>
+<script src="health.js?v=v249"></script>
+<script src="privacy.js?v=v249"></script>
+<script src="backup.js?v=v249"></script>
+<script src="reorder.js?v=v249"></script>
+<script src="access.js?v=v249"></script>
+<script src="analysis.js?v=v249"></script>
+<script src="reports.js?v=v249"></script>
+<script src="business.js?v=v249"></script>
+<script src="intake.js?v=v249"></script>
+<script src="files.js?v=v249"></script>
+<script src="builder.js?v=v249"></script>
+<script src="import-program.js?v=v249"></script>
+<script src="tracking.js?v=v249"></script>
+<script src="metrics.js?v=v249"></script>
+<script src="targets.js?v=v249"></script>
+<script src="meal-library.js?v=v249"></script>
 <!-- חלקים של המאמן בלבד (תאילנדי, פירות). לא נטען ב-t.html בכוונה. -->
-<script src="meal-extra.js?v=v248"></script>
-<script src="progress-chart.js?v=v248"></script>
-<script src="notes.js?v=v248"></script>
-<script src="notes-ui.js?v=v248"></script>
-<script src="guides.js?v=v248"></script>
-<script src="library-ui.js?v=v248"></script>
-<script src="menu-auto.js?v=v248"></script>
-<script src="period-card.js?v=v248"></script>
-<script src="ui-fx.js?v=v248"></script>
-<script src="export-plan.js?v=v248"></script>
-<script src="cardio.js?v=v248"></script>
-<script src="cardio-ui.js?v=v248"></script>
-<script src="exercise-library.js?v=v248"></script>
-<script src="exercise-ui.js?v=v248"></script>
-<script src="video.js?v=v248"></script>
-<script src="anim.js?v=v248"></script>
-<script src="meals.js?v=v248"></script>
-<script src="sync.js?v=v248"></script>
+<script src="meal-extra.js?v=v249"></script>
+<script src="progress-chart.js?v=v249"></script>
+<script src="notes.js?v=v249"></script>
+<script src="notes-ui.js?v=v249"></script>
+<script src="guides.js?v=v249"></script>
+<script src="library-ui.js?v=v249"></script>
+<script src="menu-auto.js?v=v249"></script>
+<script src="period-card.js?v=v249"></script>
+<script src="ui-fx.js?v=v249"></script>
+<script src="export-plan.js?v=v249"></script>
+<script src="cardio.js?v=v249"></script>
+<script src="cardio-ui.js?v=v249"></script>
+<script src="exercise-library.js?v=v249"></script>
+<script src="exercise-ui.js?v=v249"></script>
+<script src="video.js?v=v249"></script>
+<script src="anim.js?v=v249"></script>
+<script src="meals.js?v=v249"></script>
+<script src="sync.js?v=v249"></script>
 <script>
 /* =================== חיבור הסנכרון לאפליקציה =================== */
 

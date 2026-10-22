@@ -143,6 +143,11 @@ const TRAINEE_DATA = {
         if (!/יוסי בדיקה/.test(card.textContent) || !/עוד לא נרשם תשלום/.test(card.textContent)) throw new Error('trainee without payment missing');
         payRemind('b1');
         if (!/היי יוסי, תזכורת קטנה לתשלום של חודש/.test(document.getElementById('wa_t').value)) throw new Error('no reminder text');
+        closeModal(); S.settings.payLink = 'https://paybox.example/erel'; S.settings.phone = '0542687313'; delete S.settings.bitPhone;
+        payRemind('b1');
+        const txt = document.getElementById('wa_t').value;
+        if (!/לתשלום בלחיצה: https:[/][/]paybox.example[/]erel/.test(txt) || !/או בביט למספר 054-268-7313/.test(txt)) throw new Error('no pay link: ' + txt);
+        delete S.settings.payLink;
       });
       await tryM('diets', async () => {
         const t = tById('a1'); t.height = 165; t.birth = '1995-01-01';
