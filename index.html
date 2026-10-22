@@ -6,7 +6,7 @@
 <title>E.B FIT — ניהול מתאמנים</title>
 
 <!-- ===== PWA — הופך את האתר לאפליקציה במסך הבית ===== -->
-<link rel="manifest" href="manifest.json?v=v246">
+<link rel="manifest" href="manifest.json?v=v247">
 <meta name="theme-color" content="#1C140E">
 <meta name="description" content="מערכת לניהול מתאמנים, תוכניות אימון, יומן ותשלומים">
 
@@ -15,9 +15,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="E.B FIT">
-<link rel="apple-touch-icon" href="icons/icon-180.png?v=v246">
-<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=v246">
-<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=v246">
+<link rel="apple-touch-icon" href="icons/icon-180.png?v=v247">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=v247">
+<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=v247">
 <meta name="format-detection" content="telephone=no">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -441,11 +441,11 @@ tbody tr:hover{background:var(--panel)}
   .rep-sub{flex-basis:100%;margin-inline-start:106px}
 }
 </style>
-<link rel="stylesheet" href="ui-fx.css?v=v246">
+<link rel="stylesheet" href="ui-fx.css?v=v247">
 </head>
 <body>
 <header class="top">
-  <div class="brand"><img class="brand-logo" src="icons/logo-96.png?v=v246" alt="" width="30" height="30">E.B<span class="dot"></span>FIT <small id="brandSub">ניהול מתאמנים</small></div>
+  <div class="brand"><img class="brand-logo" src="icons/logo-96.png?v=v247" alt="" width="30" height="30">E.B<span class="dot"></span>FIT <small id="brandSub">ניהול מתאמנים</small></div>
   <div class="spacer"></div>
   <button class="syncpill s-off" id="syncPill" onclick="go('settings')" title="מצב סנכרון">מקומי בלבד</button>
   <span class="now" id="topDate"></span>
@@ -463,8 +463,8 @@ tbody tr:hover{background:var(--panel)}
 <div id="toast"></div>
 
 <!-- ספריית Supabase מקומית (לא מ-CDN) כדי שהאפליקציה תעבוד גם בלי רשת -->
-<script src="vendor/supabase.js?v=v246"></script>
-<script src="config.js?v=v246"></script>
+<script src="vendor/supabase.js?v=v247"></script>
+<script src="config.js?v=v247"></script>
 
 <script>
 /* =======================================================================
@@ -499,7 +499,7 @@ function age(b){ if(!b) return null; const d=new Date(b), t=new Date(); let a=t.
 
 /* ---------------- אחסון ---------------- */
 const KEY='ebfit_v1';
-const EB_VERSION='v246';   // חייב להתאים ל-VERSION ב-sw.js
+const EB_VERSION='v247';   // חייב להתאים ל-VERSION ב-sw.js
 window.EB_APP_VER=EB_VERSION;   // נשלח בכל שורה — השרת דוחה גרסאות ישנות (sync.js)
 let mem=null, canStore=true;
 function load(){
@@ -3450,9 +3450,11 @@ async function doTweak(id){
    ולכן הם ייראו זהה בכל מקום — בהדפסה, על חולצה, אצל גרפיקאי. */
 function logoCard(){
   const f=[
-    ['brand-assets/eb-fit-logo-1200.png','לוגו PNG','לאינסטגרם, לווטסאפ ולפוסטים'],
-    ['brand-assets/eb-fit-logo.svg','לוגו SVG','להדפסה, לחולצות ולגרפיקאי — לא מאבד איכות בשום גודל'],
-    ['brand-assets/eb-fit-icon-512.png','לוגו קטן PNG','לתמונת פרופיל ולסטורי']
+    /* BAUER POWER מאוקטובר 2026. המקור הוא תמונה ולא וקטור, ולכן אין
+       כאן SVG — לגרפיקאי שולחים את הקובץ המקורי ומבקשים וקטור. */
+    ['brand-assets/eb-fit-logo-1200.png','לוגו מלא PNG','לאינסטגרם, לווטסאפ ולפוסטים'],
+    ['brand-assets/bauer-power-logo.jpg','הקובץ המקורי','להדפסה ולגרפיקאי'],
+    ['brand-assets/eb-fit-icon-512.png','לוגו מרובע PNG','לתמונת פרופיל ולסטורי']
   ];
   return '<div class="card" style="margin-bottom:12px">'
    +'<div class="row" style="align-items:center;gap:12px;margin-bottom:10px">'
@@ -3817,41 +3819,41 @@ if (location.protocol === 'file:') {
 }
 </script>
 
-<script src="health.js?v=v246"></script>
-<script src="privacy.js?v=v246"></script>
-<script src="backup.js?v=v246"></script>
-<script src="reorder.js?v=v246"></script>
-<script src="access.js?v=v246"></script>
-<script src="analysis.js?v=v246"></script>
-<script src="reports.js?v=v246"></script>
-<script src="business.js?v=v246"></script>
-<script src="intake.js?v=v246"></script>
-<script src="files.js?v=v246"></script>
-<script src="builder.js?v=v246"></script>
-<script src="import-program.js?v=v246"></script>
-<script src="tracking.js?v=v246"></script>
-<script src="metrics.js?v=v246"></script>
-<script src="targets.js?v=v246"></script>
-<script src="meal-library.js?v=v246"></script>
+<script src="health.js?v=v247"></script>
+<script src="privacy.js?v=v247"></script>
+<script src="backup.js?v=v247"></script>
+<script src="reorder.js?v=v247"></script>
+<script src="access.js?v=v247"></script>
+<script src="analysis.js?v=v247"></script>
+<script src="reports.js?v=v247"></script>
+<script src="business.js?v=v247"></script>
+<script src="intake.js?v=v247"></script>
+<script src="files.js?v=v247"></script>
+<script src="builder.js?v=v247"></script>
+<script src="import-program.js?v=v247"></script>
+<script src="tracking.js?v=v247"></script>
+<script src="metrics.js?v=v247"></script>
+<script src="targets.js?v=v247"></script>
+<script src="meal-library.js?v=v247"></script>
 <!-- חלקים של המאמן בלבד (תאילנדי, פירות). לא נטען ב-t.html בכוונה. -->
-<script src="meal-extra.js?v=v246"></script>
-<script src="progress-chart.js?v=v246"></script>
-<script src="notes.js?v=v246"></script>
-<script src="notes-ui.js?v=v246"></script>
-<script src="guides.js?v=v246"></script>
-<script src="library-ui.js?v=v246"></script>
-<script src="menu-auto.js?v=v246"></script>
-<script src="period-card.js?v=v246"></script>
-<script src="ui-fx.js?v=v246"></script>
-<script src="export-plan.js?v=v246"></script>
-<script src="cardio.js?v=v246"></script>
-<script src="cardio-ui.js?v=v246"></script>
-<script src="exercise-library.js?v=v246"></script>
-<script src="exercise-ui.js?v=v246"></script>
-<script src="video.js?v=v246"></script>
-<script src="anim.js?v=v246"></script>
-<script src="meals.js?v=v246"></script>
-<script src="sync.js?v=v246"></script>
+<script src="meal-extra.js?v=v247"></script>
+<script src="progress-chart.js?v=v247"></script>
+<script src="notes.js?v=v247"></script>
+<script src="notes-ui.js?v=v247"></script>
+<script src="guides.js?v=v247"></script>
+<script src="library-ui.js?v=v247"></script>
+<script src="menu-auto.js?v=v247"></script>
+<script src="period-card.js?v=v247"></script>
+<script src="ui-fx.js?v=v247"></script>
+<script src="export-plan.js?v=v247"></script>
+<script src="cardio.js?v=v247"></script>
+<script src="cardio-ui.js?v=v247"></script>
+<script src="exercise-library.js?v=v247"></script>
+<script src="exercise-ui.js?v=v247"></script>
+<script src="video.js?v=v247"></script>
+<script src="anim.js?v=v247"></script>
+<script src="meals.js?v=v247"></script>
+<script src="sync.js?v=v247"></script>
 <script>
 /* =================== חיבור הסנכרון לאפליקציה =================== */
 
