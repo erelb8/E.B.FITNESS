@@ -174,12 +174,25 @@ const TRAINEE_DATA = {
               if (new Set(n).size !== n.length) bad.push(k + ' ' + day.name + ': כפילות');
               if (/יד אחורית/.test(day.name) && !n.some(x => /פשיטת מרפק|צרפתי|ליד אחורית|קיקבק|אחיזה צרה/.test(x))) bad.push(day.name + ': אין יד אחורית');
               if (/יד קדמית/.test(day.name) && !n.some(x => /כפיפת מרפקים|פטישים/.test(x))) bad.push(day.name + ': אין יד קדמית');
-              if (!/^[A-F] · /.test(day.name)) bad.push(day.name + ': בלי אות');
+              if (!EBBuild.SPLIT_TYPES[k].fixed && !/^[A-F] · /.test(day.name)) bad.push(day.name + ': בלי אות');
             });
           }
         }
         if (bad.length) throw new Error(bad.slice(0, 6).join(' | '));
+        /* התוכנית הקבועה של אראל: ברירת המחדל, 5 ימים, וכל תרגיל קיים בספרייה ויש לו הדמיה */
+        const eb = EBBuild.build({ split: 'EB5', days: 3, goal: 'mass', level: 'בינוני', eq: 'gym', limits: [] });
+        const n5 = eb.days.map(d => d.exercises.length).join(',');
+        if (n5 !== '12,9,9,15,10') throw new Error('EB5 days ' + n5);
+        eb.days.flatMap(d => d.exercises).forEach(e => {
+          if (!EBEx.ALL.some(x => x.n === e.name)) bad.push('לא בספרייה: ' + e.name);
+          if (!EBAnim.has(e.name)) bad.push('בלי הדמיה: ' + e.name);
+        });
+        if (eb.days.filter(d => d.exercises.some(e => e.name === 'דדליפט קלאסי')).length !== 2) bad.push('דדליפט לא בשני הימים');
+        const one = eb.days[2].exercises.find(e => e.name === 'פשיטת ברך רגל-רגל');
+        if (!one || one.reps !== '20' || !/משקל נמוך/.test(one.note)) bad.push('פשיטת ברך רגל-רגל');
+        if (bad.length) throw new Error(bad.slice(0, 6).join(' | '));
         EBBuild.open('a1');
+        if (document.getElementById('bd_split').value !== 'EB5' || document.getElementById('bd_days').value !== '5') throw new Error('default is not EB5');
         const s = document.getElementById('bd_split'); s.value = 'ABC'; EBBuild.splitChange();
         if (document.getElementById('bd_days').value !== '3' || !/חזה ויד אחורית/.test(document.getElementById('bd_split_info').textContent)) throw new Error('split picker');
         closeModal();
@@ -197,6 +210,21 @@ const TRAINEE_DATA = {
         VIEW = 'trainee'; ARG = 'a1'; SUBTAB = 'program';
         if (!/סיכום תקופה/.test(vTrainee('a1'))) throw new Error('no button');
         t.weighins = keepW; delete t.program.planStart; delete t.program.planMonths;
+      });
+      await tryM('quickEB5', async () => {
+        const t = tById('b1'), keep = JSON.stringify(t.program);
+        t.program = { days: [] };
+        VIEW = 'trainee'; ARG = 'b1'; SUBTAB = 'program'; V.innerHTML = vTrainee('b1');
+        if (!/5 הימים שלי/.test(V.textContent)) throw new Error('no button');
+        EBBuild.quick('b1');
+        if (t.program.days.length !== 5) throw new Error('empty: ' + t.program.days.length);
+        EBBuild.quick('b1');
+        if (!/כבר יש 5 ימים/.test(document.querySelector('.mb').textContent)) throw new Error('no choice for existing');
+        EBBuild.apply(1);
+        if (t.program.days.length !== 10) throw new Error('append: ' + t.program.days.length);
+        EBBuild.quick('b1'); EBBuild.apply(0, true);
+        if (t.program.days.length !== 5) throw new Error('replace: ' + t.program.days.length);
+        t.program = JSON.parse(keep);
       });
       await tryM('autoMenu', async () => {
         const t = tById('a1'), keep = JSON.stringify(t.meals || []);

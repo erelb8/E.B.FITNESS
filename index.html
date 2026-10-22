@@ -6,7 +6,7 @@
 <title>E.B FIT — ניהול מתאמנים</title>
 
 <!-- ===== PWA — הופך את האתר לאפליקציה במסך הבית ===== -->
-<link rel="manifest" href="manifest.json?v=v244">
+<link rel="manifest" href="manifest.json?v=v245">
 <meta name="theme-color" content="#1C140E">
 <meta name="description" content="מערכת לניהול מתאמנים, תוכניות אימון, יומן ותשלומים">
 
@@ -15,9 +15,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="E.B FIT">
-<link rel="apple-touch-icon" href="icons/icon-180.png?v=v244">
-<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=v244">
-<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=v244">
+<link rel="apple-touch-icon" href="icons/icon-180.png?v=v245">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=v245">
+<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=v245">
 <meta name="format-detection" content="telephone=no">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -441,10 +441,11 @@ tbody tr:hover{background:var(--panel)}
   .rep-sub{flex-basis:100%;margin-inline-start:106px}
 }
 </style>
+<link rel="stylesheet" href="ui-fx.css?v=v245">
 </head>
 <body>
 <header class="top">
-  <div class="brand"><img class="brand-logo" src="icons/logo-96.png?v=v244" alt="" width="30" height="30">E.B<span class="dot"></span>FIT <small id="brandSub">ניהול מתאמנים</small></div>
+  <div class="brand"><img class="brand-logo" src="icons/logo-96.png?v=v245" alt="" width="30" height="30">E.B<span class="dot"></span>FIT <small id="brandSub">ניהול מתאמנים</small></div>
   <div class="spacer"></div>
   <button class="syncpill s-off" id="syncPill" onclick="go('settings')" title="מצב סנכרון">מקומי בלבד</button>
   <span class="now" id="topDate"></span>
@@ -462,8 +463,8 @@ tbody tr:hover{background:var(--panel)}
 <div id="toast"></div>
 
 <!-- ספריית Supabase מקומית (לא מ-CDN) כדי שהאפליקציה תעבוד גם בלי רשת -->
-<script src="vendor/supabase.js?v=v244"></script>
-<script src="config.js?v=v244"></script>
+<script src="vendor/supabase.js?v=v245"></script>
+<script src="config.js?v=v245"></script>
 
 <script>
 /* =======================================================================
@@ -498,7 +499,7 @@ function age(b){ if(!b) return null; const d=new Date(b), t=new Date(); let a=t.
 
 /* ---------------- אחסון ---------------- */
 const KEY='ebfit_v1';
-const EB_VERSION='v244';   // חייב להתאים ל-VERSION ב-sw.js
+const EB_VERSION='v245';   // חייב להתאים ל-VERSION ב-sw.js
 window.EB_APP_VER=EB_VERSION;   // נשלח בכל שורה — השרת דוחה גרסאות ישנות (sync.js)
 let mem=null, canStore=true;
 function load(){
@@ -1145,6 +1146,58 @@ function payRemind(id){
    +'<button class="btn ghost" onclick="closeModal()">סגירה</button></div>', true);
 }
 /* =====================================================================
+   צ׳ק-אין חודשי
+   ---------------------------------------------------------------------
+   המתאמן עונה בדף שלו פעם בחודש (t.html: checkinBlock), והתשובות
+   מגיעות בשורת המתאמן (sync.js: checkins). כאן: מי ענה החודש, ומי
+   צריך תשומת לב — כאב, או ציון 1–2 באחת השאלות — קודם לכל השאר.
+   ===================================================================== */
+const CK_LABELS=[['sleep','שינה'],['energy','אנרגיה'],['food','תזונה'],['mot','מוטיבציה']];
+function ckOf(t,month){ return (t.checkins||[]).find(c=>c&&c.month===month)||null; }
+function ckFlag(c){ return !!c && (c.pain || CK_LABELS.some(k=>Number(c[k[0]])<=2)); }
+function ckLine(c){
+  return CK_LABELS.map(k=>{
+    const v=Number(c[k[0]]);
+    return '<span style="white-space:nowrap'+(v<=2?';color:var(--bad);font-weight:700':'')+'">'+k[1]+' '+(v||'—')+'</span>';
+  }).join(' · ');
+}
+function dashCheckins(){
+  const mon=todayISO().slice(0,7), act=S.trainees.filter(t=>t.status==='active');
+  if(!act.length) return '';
+  const done=act.map(t=>({t,c:ckOf(t,mon)})).filter(o=>o.c);
+  if(!done.length && Number(todayISO().slice(8,10))<3) return '';   // בתחילת החודש עוד מוקדם
+  const flag=done.filter(o=>ckFlag(o.c)), ok=done.filter(o=>!ckFlag(o.c));
+  const row=(o,full)=>'<div class="line-item" style="flex-direction:column;align-items:stretch;gap:3px;cursor:pointer" onclick="go(\'trainee\',\''+o.t.id+'\')">'
+    +'<div style="font-size:13.5px;font-weight:600">'+esc(o.t.name)+(o.c.pain?' <span style="color:var(--bad)">· כואב</span>':'')+'</div>'
+    +'<div class="muted" style="font-size:12px">'+ckLine(o.c)+'</div>'
+    +(full&&o.c.pain&&o.c.painNote?'<div style="font-size:12.5px">כאב: '+esc(o.c.painNote)+'</div>':'')
+    +(full&&o.c.note?'<div style="font-size:12.5px" class="muted">"'+esc(o.c.note)+'"</div>':'')
+    +'</div>';
+  return '<div class="card" style="margin-top:14px'+(flag.length?';border-color:var(--cop)':'')+'">'
+   +'<div class="row" style="align-items:center;margin-bottom:6px">'
+   +'<h3 style="flex:1;font-size:16px">צ׳ק-אין חודשי</h3>'
+   +'<span class="pill">'+done.length+' מתוך '+act.length+' ענו</span></div>'
+   +(flag.length?'<div style="font-size:12.5px;font-weight:700;color:var(--cop);margin:4px 0">צריך תשומת לב</div>'+flag.map(o=>row(o,true)).join(''):'')
+   +(ok.length?'<div class="muted" style="font-size:12.5px;margin:8px 0 2px">בסדר</div>'+ok.map(o=>row(o,true)).join(''):'')
+   +(!done.length?'<div class="muted" style="font-size:12.5px">עוד אף אחד לא ענה החודש. השאלון מופיע להם בראש הדף.</div>':'')
+   +'</div>';
+}
+function checkinCard(t){
+  const list=(t.checkins||[]).filter(Boolean).slice().sort((a,b)=>String(b.month).localeCompare(String(a.month))).slice(0,4);
+  if(!list.length) return '';
+  const HE=['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
+  return '<div class="card" style="margin-bottom:12px">'
+   +'<div style="font-family:Heebo;font-weight:700;font-size:14px;margin-bottom:6px">צ׳ק-אין חודשי</div>'
+   +list.map(c=>'<div class="line-item" style="flex-direction:column;align-items:stretch;gap:3px">'
+     +'<div style="font-size:13px;font-weight:700">'+(HE[Number(String(c.month).slice(5,7))-1]||c.month)+(c.pain?' <span style="color:var(--bad)">· כואב</span>':'')+'</div>'
+     +'<div class="muted" style="font-size:12px">'+ckLine(c)+'</div>'
+     +(c.pain&&c.painNote?'<div style="font-size:12.5px">כאב: '+esc(c.painNote)+'</div>':'')
+     +(c.note?'<div class="muted" style="font-size:12.5px">"'+esc(c.note)+'"</div>':'')
+     +'</div>').join('')
+   +'</div>';
+}
+
+/* =====================================================================
    חסרה תקופת מעקב
    ---------------------------------------------------------------------
    בלי planStart ו-planMonths אין למתאמן התראת חידוש, אין "שבוע X
@@ -1374,6 +1427,7 @@ function vDash(){
    + '</div>';
 
   h += genderFixCard();
+  h += dashCheckins();
   h += dashUnpaid();
   h += dashNoPlan();
 
@@ -1900,7 +1954,8 @@ function tabProgram(t){
    +'<div class="program-stat"><b>'+exerciseCount+'</b><span>תרגילים</span></div>'
    +'<div class="program-stat"><b>'+activeDays+'</b><span>ימים פעילים</span></div></div>'
    +'<div class="program-actions noprint"><div class="secondary-actions">'
-   +'<button class="btn sm" onclick="EBBuild.open(\''+t.id+'\')">🤖 בנייה חכמה</button>'
+   +'<button class="btn sm" onclick="EBBuild.quick(\''+t.id+'\')">⚡ 5 הימים שלי</button>'
+   +'<button class="btn sm ghost" onclick="EBBuild.open(\''+t.id+'\')">🤖 בנייה חכמה</button>'
    +'<button class="btn sm ghost" onclick="addDay(\''+t.id+'\')">+ יום אימון</button>'
    +'<button class="btn sm ghost" onclick="EBImport.open(\''+t.id+'\')">ייבוא</button>'
    +'<button class="btn sm ghost" onclick="EBExport.preview(\''+t.id+'\')">תצוגה</button>'
@@ -1918,12 +1973,14 @@ function tabProgram(t){
   }
   h+=programHealthCard(t);
   h+=planCard(t);
+  h+=checkinCard(t);
   h+=macroCard(t);
   h+=targetsCard(t);
   h+=noteBox(t,'note','הערה כללית לתוכנית','למשל: להתחמם 10 דקות לפני כל אימון, ולשתות לפחות 3 ליטר ביום.');
   h+=warmupCard(t);
   h+=mobilityCard(t);
-  if(!p.days.length) return h+'<div class="empty"><div class="big">🏋</div>אין עדיין תוכנית מוקלדת. אפשר לפתוח יום אימון ראשון (A), או לצרף תוכנית מוכנה כקובץ למטה.</div>'+EBFiles.card(t);
+  if(!p.days.length) return h+'<div class="empty"><div class="big">🏋</div>אין עדיין תוכנית מוקלדת. אפשר לפתוח יום אימון ראשון (A), או לצרף תוכנית מוכנה כקובץ למטה.'
+    +'<div style="margin-top:12px"><button class="btn" onclick="EBBuild.quick(\''+t.id+'\')">⚡ 5 הימים שלי בלחיצה</button></div></div>'+EBFiles.card(t);
   h+=selfExBlock(t);
 
   /* כל יום הוא תיקייה שנפתחת בלחיצה. תוכנית של 13 ימים פרושה בבת אחת
@@ -3760,40 +3817,41 @@ if (location.protocol === 'file:') {
 }
 </script>
 
-<script src="health.js?v=v244"></script>
-<script src="privacy.js?v=v244"></script>
-<script src="backup.js?v=v244"></script>
-<script src="reorder.js?v=v244"></script>
-<script src="access.js?v=v244"></script>
-<script src="analysis.js?v=v244"></script>
-<script src="reports.js?v=v244"></script>
-<script src="business.js?v=v244"></script>
-<script src="intake.js?v=v244"></script>
-<script src="files.js?v=v244"></script>
-<script src="builder.js?v=v244"></script>
-<script src="import-program.js?v=v244"></script>
-<script src="tracking.js?v=v244"></script>
-<script src="metrics.js?v=v244"></script>
-<script src="targets.js?v=v244"></script>
-<script src="meal-library.js?v=v244"></script>
+<script src="health.js?v=v245"></script>
+<script src="privacy.js?v=v245"></script>
+<script src="backup.js?v=v245"></script>
+<script src="reorder.js?v=v245"></script>
+<script src="access.js?v=v245"></script>
+<script src="analysis.js?v=v245"></script>
+<script src="reports.js?v=v245"></script>
+<script src="business.js?v=v245"></script>
+<script src="intake.js?v=v245"></script>
+<script src="files.js?v=v245"></script>
+<script src="builder.js?v=v245"></script>
+<script src="import-program.js?v=v245"></script>
+<script src="tracking.js?v=v245"></script>
+<script src="metrics.js?v=v245"></script>
+<script src="targets.js?v=v245"></script>
+<script src="meal-library.js?v=v245"></script>
 <!-- חלקים של המאמן בלבד (תאילנדי, פירות). לא נטען ב-t.html בכוונה. -->
-<script src="meal-extra.js?v=v244"></script>
-<script src="progress-chart.js?v=v244"></script>
-<script src="notes.js?v=v244"></script>
-<script src="notes-ui.js?v=v244"></script>
-<script src="guides.js?v=v244"></script>
-<script src="library-ui.js?v=v244"></script>
-<script src="menu-auto.js?v=v244"></script>
-<script src="period-card.js?v=v244"></script>
-<script src="export-plan.js?v=v244"></script>
-<script src="cardio.js?v=v244"></script>
-<script src="cardio-ui.js?v=v244"></script>
-<script src="exercise-library.js?v=v244"></script>
-<script src="exercise-ui.js?v=v244"></script>
-<script src="video.js?v=v244"></script>
-<script src="anim.js?v=v244"></script>
-<script src="meals.js?v=v244"></script>
-<script src="sync.js?v=v244"></script>
+<script src="meal-extra.js?v=v245"></script>
+<script src="progress-chart.js?v=v245"></script>
+<script src="notes.js?v=v245"></script>
+<script src="notes-ui.js?v=v245"></script>
+<script src="guides.js?v=v245"></script>
+<script src="library-ui.js?v=v245"></script>
+<script src="menu-auto.js?v=v245"></script>
+<script src="period-card.js?v=v245"></script>
+<script src="ui-fx.js?v=v245"></script>
+<script src="export-plan.js?v=v245"></script>
+<script src="cardio.js?v=v245"></script>
+<script src="cardio-ui.js?v=v245"></script>
+<script src="exercise-library.js?v=v245"></script>
+<script src="exercise-ui.js?v=v245"></script>
+<script src="video.js?v=v245"></script>
+<script src="anim.js?v=v245"></script>
+<script src="meals.js?v=v245"></script>
+<script src="sync.js?v=v245"></script>
 <script>
 /* =================== חיבור הסנכרון לאפליקציה =================== */
 

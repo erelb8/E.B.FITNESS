@@ -13,8 +13,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="התוכנית שלי">
 <meta name="robots" content="noindex,nofollow">
-<link rel="apple-touch-icon" href="icons/icon-180.png?v=v244">
-<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=v244">
+<link rel="apple-touch-icon" href="icons/icon-180.png?v=v245">
+<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=v245">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -364,11 +364,12 @@ button{cursor:pointer}
 .hstat.dim b{color:var(--dim)}
 @media(max-width:400px){.hstat b{font-size:23px}.hstat span{font-size:10px}}
 </style>
+<link rel="stylesheet" href="ui-fx.css?v=v245">
 </head>
 <body>
 
 <header class="top">
-  <div class="brand"><img class="brand-logo" src="icons/logo-96.png?v=v244" alt="" width="34" height="34"><span>E.B<span class="dot"></span>FIT</span></div>
+  <div class="brand"><img class="brand-logo" src="icons/logo-96.png?v=v245" alt="" width="34" height="34"><span>E.B<span class="dot"></span>FIT</span></div>
   <h1 id="hTitle">טוען…</h1>
   <div class="sub" id="hSub"></div>
   <span class="savechip" id="saveChip" aria-live="polite"></span>
@@ -380,20 +381,20 @@ button{cursor:pointer}
 
 <div id="toast"></div>
 
-<script src="vendor/supabase.js?v=v244"></script>
-<script src="config.js?v=v244"></script>
-<script src="meal-library.js?v=v244"></script>
-<script src="exercise-library.js?v=v244"></script>
-<script src="anim.js?v=v244"></script>
-<script src="progress.js?v=v244"></script>
-<script src="habits.js?v=v244"></script>
-<script src="coach-bot.js?v=v244"></script>
-<script src="progress-chart.js?v=v244"></script>
-<script src="workout-log.js?v=v244"></script>
-<script src="targets.js?v=v244"></script>
-<script src="health.js?v=v244"></script>
-<script src="privacy.js?v=v244"></script>
-<script src="guides.js?v=v244"></script>
+<script src="vendor/supabase.js?v=v245"></script>
+<script src="config.js?v=v245"></script>
+<script src="meal-library.js?v=v245"></script>
+<script src="exercise-library.js?v=v245"></script>
+<script src="anim.js?v=v245"></script>
+<script src="progress.js?v=v245"></script>
+<script src="habits.js?v=v245"></script>
+<script src="coach-bot.js?v=v245"></script>
+<script src="progress-chart.js?v=v245"></script>
+<script src="workout-log.js?v=v245"></script>
+<script src="targets.js?v=v245"></script>
+<script src="health.js?v=v245"></script>
+<script src="privacy.js?v=v245"></script>
+<script src="guides.js?v=v245"></script>
 <script>
 (function () {
   'use strict';
@@ -1815,6 +1816,7 @@ button{cursor:pointer}
     screen(
         openerBlock(days)
       + nudgeBlock(days)
+      + checkinBlock()
       + monthlyBlock(days)
       + weeklyBlock(days)
       + journeyBlockSafe()
@@ -1999,6 +2001,94 @@ button{cursor:pointer}
       try { localStorage.setItem(nudgeKey(), EBHabits.todayISO()); } catch (er) {}
       paint();
     }
+  });
+
+  /* ---------- צ׳ק-אין חודשי ----------
+     פעם בחודש, מה-1 בחודש ועד שעונים: ארבע שאלות של 1–5 בלחיצה
+     (שינה, אנרגיה, תזונה, מוטיבציה), האם משהו כואב, והערה חופשית.
+     התשובות נשמרות ב-STATE.checkins ונשלחות דרך trainee_save_state —
+     הדרך היחידה שכבר קיימת לשמור נתוני מתאמן בלי SQL חדש, כמו
+     ההרגלים. המאמן קורא אותן משורת המתאמן (sync.js: checkins).
+     "אחר כך" מסתיר לשלושה ימים, לא עד החודש הבא — שאלון שנדחה בלי
+     תאריך פשוט לא נענה. */
+  const CK_Q = [
+    ['sleep',  'איך הייתה השינה החודש?'],
+    ['energy', 'כמה אנרגיה הייתה באימונים?'],
+    ['food',   'כמה הצלחת להיצמד לתפריט?'],
+    ['mot',    'כמה מוטיבציה יש עכשיו?']
+  ];
+  let CK = {};
+  const ckKey = () => 'ebfit_ck_' + String(TOKEN || '').slice(0, 12);
+  const ckMonth = () => isoLocal(new Date()).slice(0, 7);
+  function ckDone() { return (STATE.checkins || []).some(c => c && c.month === ckMonth()); }
+  function checkinBlock() {
+    try {
+      if (!SRV_LOADED || !termsOK() || ckDone()) return '';
+      try { const until = localStorage.getItem(ckKey()); if (until && until > isoLocal(new Date())) return ''; } catch (e) {}
+      const scale = (k) => '<div style="display:flex;gap:6px;margin-top:6px">'
+        + [1, 2, 3, 4, 5].map(v => '<button data-ck="' + k + ':' + v + '" style="flex:1;padding:9px 0;border-radius:10px;font-family:inherit;'
+          + 'font-size:15px;font-weight:700;cursor:pointer;border:1px solid ' + (CK[k] === v ? 'var(--or)' : 'var(--line)') + ';'
+          + 'background:' + (CK[k] === v ? 'var(--or)' : 'transparent') + ';color:' + (CK[k] === v ? 'var(--ink)' : 'var(--tx)') + '">' + v + '</button>').join('')
+        + '</div>';
+      const ready = CK_Q.every(q => CK[q[0]]) && (CK.pain === true || CK.pain === false);
+      return '<div class="card" style="margin-bottom:14px;border-color:var(--or)">'
+        + '<div style="display:flex;align-items:baseline;margin-bottom:2px">'
+        + '<div style="flex:1;font-family:Heebo;font-weight:700;font-size:15px">צ׳ק-אין חודשי</div>'
+        + '<button data-ck-later style="background:none;border:0;color:var(--dim);font-size:12px;cursor:pointer;font-family:inherit">אחר כך</button></div>'
+        + '<div class="mt" style="font-size:12.5px;margin-bottom:10px">חצי דקה. ככה אני יודע מה לשנות בתוכנית.</div>'
+        + CK_Q.map(q => '<div style="margin-bottom:12px"><div style="font-size:13.5px;font-weight:600">' + q[1] + '</div>'
+          + '<div class="mt" style="display:flex;justify-content:space-between;font-size:11px;margin-top:3px"><span>1 = חלש</span><span>5 = מצוין</span></div>'
+          + scale(q[0]) + '</div>').join('')
+        + '<div style="font-size:13.5px;font-weight:600">משהו כואב או פציעה?</div>'
+        + '<div style="display:flex;gap:6px;margin-top:6px">'
+        + [[true, 'כן'], [false, 'לא']].map(o => '<button data-ck-pain="' + o[0] + '" style="flex:1;padding:9px 0;border-radius:10px;font-family:inherit;'
+          + 'font-size:14px;font-weight:700;cursor:pointer;border:1px solid ' + (CK.pain === o[0] ? 'var(--or)' : 'var(--line)') + ';'
+          + 'background:' + (CK.pain === o[0] ? 'var(--or)' : 'transparent') + ';color:' + (CK.pain === o[0] ? 'var(--ink)' : 'var(--tx)') + '">' + o[1] + '</button>').join('')
+        + '</div>'
+        + (CK.pain === true ? '<textarea data-ck-text="painNote" rows="2" placeholder="איפה, ומתי זה מרגיש" style="width:100%;margin-top:8px;background:var(--ink);'
+          + 'border:1px solid var(--line);border-radius:10px;padding:9px;color:var(--tx);font-family:inherit;font-size:13.5px">' + esc(CK.painNote || '') + '</textarea>' : '')
+        + '<div style="font-size:13.5px;font-weight:600;margin-top:12px">משהו שכדאי שאדע או אשנה? <span class="mt" style="font-weight:400">(לא חובה)</span></div>'
+        + '<textarea data-ck-text="note" rows="2" style="width:100%;margin-top:6px;background:var(--ink);border:1px solid var(--line);'
+        + 'border-radius:10px;padding:9px;color:var(--tx);font-family:inherit;font-size:13.5px">' + esc(CK.note || '') + '</textarea>'
+        + '<button class="btn" data-ck-send style="width:100%;margin-top:12px"' + (ready ? '' : ' disabled') + '>שליחה</button>'
+        + '</div>';
+    } catch (e) { return ''; }
+  }
+  /* צ׳ק-אין שנענה במכשיר אחר מגיע מהשרת. איחוד לפי חודש — החדש גובר */
+  function mergeCheckins(srv) {
+    if (!Array.isArray(srv) || !srv.length) return;
+    const by = {};
+    (STATE.checkins || []).concat(srv).forEach(c => {
+      if (c && c.month && (!by[c.month] || String(c.at) > String(by[c.month].at))) by[c.month] = c;
+    });
+    STATE.checkins = Object.keys(by).sort().slice(-12).map(k => by[k]);
+    writeState();
+  }
+  document.addEventListener('click', function (e) {
+    if (!e.target.closest) return;
+    const b = e.target.closest('[data-ck]');
+    if (b) { const p = b.dataset.ck.split(':'); CK[p[0]] = +p[1]; paint(); return; }
+    const pn = e.target.closest('[data-ck-pain]');
+    if (pn) { CK.pain = pn.dataset.ckPain === 'true'; paint(); return; }
+    if (e.target.closest('[data-ck-later]')) {
+      const d = new Date(); d.setDate(d.getDate() + 3);
+      try { localStorage.setItem(ckKey(), isoLocal(d)); } catch (er) {}
+      paint(); return;
+    }
+    if (e.target.closest('[data-ck-send]')) {
+      const c = { month: ckMonth(), at: new Date().toISOString(), sleep: CK.sleep, energy: CK.energy, food: CK.food, mot: CK.mot,
+                  pain: !!CK.pain, painNote: CK.pain ? String(CK.painNote || '').trim().slice(0, 300) : '',
+                  note: String(CK.note || '').trim().slice(0, 500) };
+      STATE.checkins = (STATE.checkins || []).filter(x => x && x.month !== c.month).concat([c]).slice(-12);
+      writeState(); queueStateSync();
+      CK = {};
+      toast('נשלח. תודה!');
+      paint();
+    }
+  });
+  document.addEventListener('input', function (e) {
+    const tx = e.target.closest && e.target.closest('[data-ck-text]');
+    if (tx) CK[tx.dataset.ckText] = tx.value;
   });
 
   /* ---------- סיכום השבוע שעבר ----------
@@ -3926,6 +4016,7 @@ button{cursor:pointer}
       }
       mergeCustom(srv.myMeals);
       mergeFood(srv.foodLog);
+      mergeCheckins(srv.checkins);
       if (window.EBProg) EBProg.mergeServer(EXTRAS.weighins);
       feedBot();
       paint();
@@ -4084,5 +4175,6 @@ button{cursor:pointer}
   });
 })();
 </script>
+<script src="ui-fx.js?v=v245"></script>
 </body>
 </html>

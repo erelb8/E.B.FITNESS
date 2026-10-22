@@ -1,0 +1,132 @@
+/* =====================================================================
+   E.B FIT — שכבת עיצוב: מראה טכנולוגי יותר, באותה פלטה
+   ---------------------------------------------------------------------
+   נטען אחרי העיצוב של כל דף (index.html ו-t.html) ומוסיף עליו בלבד:
+   רשת עדינה ברקע, כרטיסים עם עומק וקצה מואר, מספרים בגרדיאנט זהב,
+   כפתור ראשי עם ברק, קו חי בכותרת, ומעבר רך בין מסכים.
+
+   הפלטה לא משתנה: חום כהה לקרקע, חום בהיר לפעולה, לבן לטקסט, צהוב
+   כהה במינון קטן. בלי ירוק-זית. כל הצבעים כאן נגזרים מ-C49A6C
+   (--or) ו-B8901F (--cop).
+
+   ביצועים: אין backdrop-filter על כרטיסים — בטלפון חלש עשרות כרטיסים
+   מטושטשים מאטים את הגלילה. טשטוש רק בכותרת ובחלון קופץ, שהם אחד.
+   מי שביקש פחות תנועה במכשיר (prefers-reduced-motion) מקבל הכול סטטי.
+   ===================================================================== */
+
+/* ---------- רקע: רשת דקה שנעלמת לכיוון מטה ---------- */
+body::before{
+  content:''; position:fixed; inset:0; z-index:-1; pointer-events:none;
+  background-image:
+    linear-gradient(rgba(196,154,108,.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(196,154,108,.045) 1px, transparent 1px);
+  background-size:44px 44px;
+  -webkit-mask-image:radial-gradient(ellipse 90% 55% at 50% 0%, #000 25%, transparent 78%);
+          mask-image:radial-gradient(ellipse 90% 55% at 50% 0%, #000 25%, transparent 78%);
+}
+
+/* ---------- כרטיסים: עומק וקו אור דק בקצה העליון ----------
+   הקו הוא שכבת רקע ולא ::before — לכרטיסים בדף המתאמן כבר יש
+   פסאודו-אלמנטים משלהם. .hero ו-.category-tile נשארים עם הגרדיאנט
+   שלהם: background-image כאן היה דורס אותו. */
+.card:not(.hero):not(.category-tile){
+  background-image:
+    linear-gradient(90deg, transparent 8%, rgba(196,154,108,.55) 50%, transparent 92%),
+    linear-gradient(180deg, rgba(255,255,255,.035), rgba(255,255,255,0) 42%);
+  background-size:100% 1px, 100% 100%;
+  background-repeat:no-repeat;
+}
+.card{
+  /* צל קצר ורך: צל של 28px על עשרות כרטיסים הוריד את הגלילה בטלפון
+     חלש מ-60 ל-45 פריימים בשנייה */
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.05), 0 4px 12px rgba(0,0,0,.22);
+}
+@media (hover:hover){
+  .card.stat, .category-tile{ transition:border-color .2s, transform .2s, box-shadow .2s; }
+  .card.stat:hover, .category-tile:hover{
+    border-color:rgba(196,154,108,.45);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.06), 0 14px 34px rgba(0,0,0,.32), 0 0 0 1px rgba(196,154,108,.10);
+    transform:translateY(-2px);
+  }
+}
+
+/* ---------- משבצות מספר: מספר בזהב ----------
+   contain: עדכון של מספר (העלייה מאפס) מחשב מחדש רק את המשבצת ולא
+   את כל המסך. בלי זה כל צעד בעלייה עלה כ-60ms בטלפון חלש. */
+.stat{position:relative; overflow:hidden; contain:layout paint style}
+.hstat, .overview-card{contain:layout style}
+.stat .val, .overview-card strong, .hstat:not(.dim) b{
+  background:linear-gradient(180deg, #F3DDB3 0%, #C49A6C 62%, #A9784A 100%);
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+  font-variant-numeric:tabular-nums;
+}
+.stat .ic{box-shadow:0 0 18px rgba(196,154,108,.22)}
+
+/* ---------- כפתור ראשי: גרדיאנט, עומק וברק במעבר ---------- */
+.btn:not(.ghost):not(.danger){
+  position:relative; overflow:hidden;
+  background:linear-gradient(180deg, #D6B087 0%, #C49A6C 55%, #B3875A 100%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.28), 0 6px 18px rgba(196,154,108,.22);
+  transition:transform .12s, box-shadow .2s, filter .2s;
+}
+.btn:not(.ghost):not(.danger)::after{
+  content:''; position:absolute; top:0; bottom:0; width:40%; inset-inline-start:-60%;
+  background:linear-gradient(100deg, transparent, rgba(255,255,255,.35), transparent);
+  transform:skewX(-18deg); pointer-events:none;
+}
+@media (hover:hover){
+  .btn:not(.ghost):not(.danger):hover{ box-shadow:inset 0 1px 0 rgba(255,255,255,.3), 0 8px 24px rgba(196,154,108,.32); }
+  .btn:not(.ghost):not(.danger):hover::after{ animation:fx-sheen .75s ease; }
+}
+.btn:active{ transform:scale(.97); }
+.btn[disabled]{ filter:saturate(.5) brightness(.8); box-shadow:none; }
+@keyframes fx-sheen{ to { inset-inline-start:130%; } }
+
+/* ---------- כותרת: קו חי בתחתית ----------
+   התנועה היא transform על פס ברוחב כפול ולא background-position:
+   הזזת רקע מציירת מחדש את כל הכותרת בכל פריים — כולל הטשטוש שמאחוריה
+   — וזה מה שהאט את כל האפליקציה בטלפון חלש. transform רץ בכרטיס
+   הגרפי ולא נוגע בציור. */
+.fx-coach .top, .fx-trainee .top{ overflow:hidden; }
+.fx-coach .top::after, .fx-trainee .top:after{
+  content:''; position:absolute; bottom:0; height:1px; right:auto; left:0; width:200%;
+  background:linear-gradient(90deg, transparent 0%, var(--or) 15%, var(--cop) 25%, var(--or) 35%, transparent 50%,
+                                    transparent 50%, var(--or) 65%, var(--cop) 75%, var(--or) 85%, transparent 100%);
+  opacity:.55; will-change:transform; animation:fx-flow 8s linear infinite;
+}
+@keyframes fx-flow{ from{transform:translateX(0)} to{transform:translateX(-50%)} }
+
+/* ---------- חלון קופץ: קצה מואר ---------- */
+.modal{ box-shadow:0 24px 60px rgba(0,0,0,.55), 0 0 0 1px rgba(196,154,108,.14), inset 0 1px 0 rgba(255,255,255,.05); }
+
+/* ---------- תגיות ---------- */
+.pill{ background:rgba(196,154,108,.06); }
+
+/* ---------- אריחי הקטגוריות בדף המתאמן ---------- */
+.category-tile{
+  transition:transform .2s, border-color .2s, box-shadow .2s;
+  box-shadow:inset 0 1px 0 rgba(196,154,108,.22), 0 4px 12px rgba(0,0,0,.2);
+}
+.category-tile:active{ transform:scale(.98); }
+.category-icon{ filter:drop-shadow(0 0 10px rgba(196,154,108,.18)); }
+
+/* ---------- מעבר בין מסכים ---------- */
+.fx-in > *{ animation:fx-rise .32s cubic-bezier(.2,.7,.2,1) both; }
+.fx-in > *:nth-child(2){ animation-delay:.03s } .fx-in > *:nth-child(3){ animation-delay:.06s }
+.fx-in > *:nth-child(4){ animation-delay:.09s } .fx-in > *:nth-child(5){ animation-delay:.12s }
+.fx-in > *:nth-child(n+6){ animation-delay:.15s }
+@keyframes fx-rise{ from{ opacity:0; transform:translateY(8px) } to{ opacity:1; transform:none } }
+
+/* ---------- פס התקדמות: ברק שעובר ---------- */
+.fx-bar{ position:relative; overflow:hidden; }
+.fx-bar::after{
+  content:''; position:absolute; inset:0;
+  background:linear-gradient(90deg, transparent, rgba(255,255,255,.22), transparent);
+  transform:translateX(-100%); animation:fx-scan 2.6s ease-in-out infinite;
+}
+@keyframes fx-scan{ 60%,100%{ transform:translateX(100%) } }
+
+@media (prefers-reduced-motion: reduce){
+  *, *::before, *::after{ animation:none !important; transition:none !important; }
+}
+@media print{ body::before, .btn::after{ display:none } }

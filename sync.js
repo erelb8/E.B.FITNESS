@@ -15,7 +15,7 @@
   'use strict';
 
   // חותמת גרסה — index.html משווה אליה כדי לזהות קובץ ישן במטמון
-  (window.EB_MOD = window.EB_MOD || {})['sync'] = 'v244';
+  (window.EB_MOD = window.EB_MOD || {})['sync'] = 'v245';
 
   const CFG      = window.EBFIT_CONFIG || { URL: '', ANON: '' };
   const SNAP_KEY = 'ebfit_sync_v1';
@@ -97,7 +97,8 @@
      כלומר נכתב חזרה כעותק שני של אישור שהמתאמן נתן — מקור אמת כפול
      לרשומה משפטית. */
   const SHARED = ['id', 'name', 'goal', 'program', 'status', 'files', 'meals', 'mealsSelf',
-                  'mealsCustom', 'habitsLog', 'foodLog', 'exercisesSelf', 'health', 'weighins', 'termsAccepted'];
+                  'mealsCustom', 'habitsLog', 'foodLog', 'exercisesSelf', 'health', 'weighins', 'termsAccepted',
+                  'checkins'];
 
   /* גרסת האפליקציה בכל שורה שנדחפת. בשרת (min-client-version.sql)
      שמירה בלי גרסה עדכנית נדחית — כך מכשיר שנשכח פתוח עם גרסה ישנה
@@ -153,6 +154,7 @@
       // סימוני "אכלתי" וההרגלים שהמתאמן סימן בדף שלו — לקריאה בלבד
       habitsLog: (r.session_state || {}).habits || null,
       foodLog: (r.session_state || {}).foodLog || null,   // "אכלתי משהו שלא בתפריט"
+      checkins: (r.session_state || {}).checkins || [],   // צ׳ק-אין חודשי — לקריאה בלבד
       weighins: r.weighins || [],
       status: r.status,
       _token: r.access_token,
@@ -353,7 +355,7 @@
   }
 
   /* ---------- הגדרות: רק מה שנערך כאן ----------
-     ההגדרות נשמרות בשרת כגוש אחד. עד v244 הדחיפה שלחה את כל הגוש בכל
+     ההגדרות נשמרות בשרת כגוש אחד. עד v245 הדחיפה שלחה את כל הגוש בכל
      שינוי — ומכשיר או חלון שנשאר פתוח עם עותק ישן דרס בכל שמירה את מה
      שמכשיר אחר הוסיף בינתיים. 3.10.2026 כך נעלמו פעמיים סרטונים מהטיוטה.
      עכשיו נשלחים רק המפתחות שהשתנו במכשיר הזה מאז הסנכרון האחרון (base),

@@ -14,7 +14,7 @@
   'use strict';
 
   // חותמת גרסה — index.html משווה אליה כדי לזהות קובץ ישן במטמון
-  (window.EB_MOD = window.EB_MOD || {})['builder'] = 'v244';
+  (window.EB_MOD = window.EB_MOD || {})['builder'] = 'v245';
 
   /* ---------- דפוסי תנועה ----------
      החלוקה לפי דפוס ולא לפי שריר, כי כך בונים פיצולים מאוזנים
@@ -179,6 +179,38 @@
      את המבנה בעצמו — AB, ABC וכו' — ומספר הימים נגזר ממנו. השם של כל
      יום מתחיל באות, כמו שמאמנים כותבים על הלוח. */
   var SPLIT_TYPES = {
+    /* התוכנית של אראל — ברירת המחדל בכל בנייה (אוקטובר 2026). תרגילים
+       קבועים ולא דפוסים: שלושה ימי מכון, יום מוביליטי ויום מתיחות.
+       דדליפט גם ביום הגב וגם ביום הרגליים, כמו שביקש. הסטים, החזרות
+       והמנוחה של תרגילי הכוח באים מהמטרה ומהתוכניות שלו (learn), חוץ
+       ממה שנקבע כאן במפורש. */
+    EB5: { t: 'התוכנית שלי · 3 ימי מכון + מוביליטי + מתיחות', fixed: true, d: [
+      { t: 'יום 1 · גב, כתפיים, כתף אחורית, יד קדמית ואמות', ex: [
+        { n: 'דדליפט קלאסי' }, { n: 'משיכת פולי עליון' }, { n: 'חתירה במוט בהטיה' }, { n: 'חתירה בפולי תחתון' },
+        { n: 'לחיצת כתפיים במשקולות' }, { n: 'הרחקות צד במשקולות', iso: 1 }, { n: 'הרחקות בהטיה (כתף אחורית)', iso: 1 },
+        { n: 'כפיפת מרפקים במוט', iso: 1 }, { n: 'פטישים', iso: 1 }, { n: 'כפיפת אמות', iso: 1 },
+        { n: 'כפיפות בטן', s: '2', r: '15-20', rest: '45' }, { n: 'הרמות רגליים בתלייה', s: '2', r: '10-15', rest: '45' } ] },
+      { t: 'יום 2 · חזה, יד אחורית, המסטרינג ותאומים', ex: [
+        { n: 'לחיצת חזה במוט' }, { n: 'לחיצת חזה בשיפוע במשקולות' }, { n: 'פרפר בכבלים אמצעי', iso: 1 },
+        { n: 'פשיטת מרפק בפולי עם חבל', iso: 1 }, { n: 'צרפתי (skull crusher)', iso: 1 }, { n: 'פשיטת מרפק מעל הראש', iso: 1 },
+        { n: 'כפיפת ברך שוכב', iso: 1 }, { n: 'כפיפת ברך בישיבה', iso: 1 }, { n: 'עליות עקבים בעמידה', r: '12-15' } ] },
+      { t: 'יום 3 · רגליים', ex: [
+        { n: 'סקוואט גבי' }, { n: 'דדליפט קלאסי' }, { n: 'דדליפט רומני' },
+        { n: 'היפר-אקסטנשן', note: 'כיסא רומי' },
+        { n: 'לחיצת רגליים', note: 'במכונה בשיפוע' },
+        { n: 'פשיטת ברך רגל-רגל', s: '3', r: '20', rest: '45', note: 'משקל נמוך, כל רגל בנפרד' },
+        { n: 'פשיטת ברך', r: '8-10', note: 'משקל גבוה, שתי רגליים יחד' },
+        { n: 'עליות עקבים בעמידה', r: '12-15' }, { n: 'עליות עקבים בישיבה', r: '15-20' } ] },
+      { t: 'יום 4 · מוביליטי', mob: 1, ex: [
+        '90-90 סיבובי אגן', 'חתול-פרה', 'סיבוב כתף מבוקר (CAR)', 'סיבוב ירך מבוקר (CAR)', 'השחלת מחט',
+        'פתיחת ספר', 'המתיחה הגדולה בעולם', 'לאנג׳ ספיידרמן', 'נדנוד קרסול על קיר', 'תולעת מדידה',
+        'ישיבה בסקוואט נמוך', 'העברת גומייה מעל הראש (Dislocates)', 'סיבוב עמוד שדרה מבוקר (CAR)',
+        'עמידת קוזאק דינמית', 'צעידת ירך מעל משוכות' ] },
+      { t: 'יום 5 · מתיחות', stretch: 1, ex: [
+        'מתיחת יונה', 'מתיחת ספה', 'מתיחת המסטרינג בישיבה', 'מתיחת כופפי ירך בלאנג׳ נמוך', 'מתיחת חזה בפתח דלת',
+        'מתיחת רחב גבי על קיר', 'מתיחת יד אחורית מעל הראש', 'מתיחת שוק על קיר', 'מתיחת עכוז בשכיבה (ספרה 4)',
+        'מתיחת צוואר צידית' ] }
+    ] },
     FB2:  { t: 'AB · גוף מלא', d: [
             { t:'A · גוף מלא', pat:[P.SQUAT,P.HPUSH,P.HPULL,P.HINGE,P.SHLD,P.BI] },
             { t:'B · גוף מלא', pat:[P.HINGE,P.VPULL,P.VPUSH,P.SQUAT,P.TRI,P.SHLD] } ] },
@@ -507,6 +539,23 @@
       return chosen;
     }
 
+    if (ST && ST.fixed) {
+      return {
+        days: ST.d.map(function (d) {
+          return { name: d.t, place: eq, exercises: d.ex.map(function (x) {
+            if (typeof x === 'string') {
+              return d.mob ? { name: x, sets: '2', reps: '8-10', weight: '', rest: '20', note: '' }
+                           : { name: x, sets: '2', reps: '30-45 שנ׳', weight: '', rest: '15', note: 'לכל צד' };
+            }
+            return { name: x.n, sets: String(x.s || sets), reps: String(x.r || (x.iso ? bumpReps(reps) : reps)),
+                     weight: '', rest: String(x.rest || (x.iso ? Math.max(45, rest - 30) : rest)), note: x.note || '' };
+          }) };
+        }),
+        meta: { goal: g.t, level: opt.level, eq: eq, limits: bad, split: ST.t, fixed: true,
+                learned: L.programs, sets: sets, reps: reps, rest: rest, usedMine: !!(mySets || myRest) }
+      };
+    }
+
     var outDays = days.map(function (d, di) {
       var ex = [], today = {};
       /* הליבה שבדפוס יוצאת מהלולאה: היא מתווספת בסוף בכמות קבועה,
@@ -594,6 +643,37 @@
      ===================================================================== */
   var DRAFT = null, FOR = null;
 
+  function guessFor(t) {
+    var ik   = (t.intake && t.intake.answers) || {};
+    var loc  = String(ik.location || '');
+    var eq   = /בית|ביתי/.test(loc) ? 'home' : /פארק|חוץ/.test(loc) ? 'out' : /סטודיו/.test(loc) ? 'studio'
+             : /אגרוף|בוקס/.test(loc) ? 'box' : /קרוספיט/.test(loc) ? 'cross' : /בריכ|שחי/.test(loc) ? 'pool' : 'gym';
+    var src  = [t.health || '', ik.injuries || '', t.notes || ''].join(' ');
+    return { goal: guessGoal(t.goal || ik.goal2 || ''), level: t.level || 'מתחיל', eq: eq,
+             limits: ['כתף','ברך','גב','שורש כף יד'].filter(function (w) { return src.indexOf(w) > -1; }) };
+  }
+
+  /* ---------- 5 הימים של אראל בלחיצה ----------
+     בלי חלון ובלי טיוטה: התוכנית הקבועה (EB5) נבנית לפי המטרה והרמה
+     שבכרטיס ונכנסת לתוכנית. למתאמן בלי תוכנית — מיד. למי שכבר יש לו —
+     שאלה אחת: להחליף או להוסיף אחרי הימים הקיימים. */
+  function quick(traineeId) {
+    var t = tById(traineeId); if (!t) return;
+    var o = guessFor(t);
+    FOR = traineeId;
+    DRAFT = build({ split: 'EB5', days: 5, goal: o.goal, level: o.level, eq: o.eq, limits: o.limits });
+    var has = ((t.program && t.program.days) || []).length;
+    if (!has) { apply(0, true); return; }
+    openModal('<div class="mh"><h3>5 הימים שלי ל' + esc(t.name) + '</h3>'
+      + '<button class="iconbtn" onclick="closeModal()">✕</button></div><div class="mb">'
+      + '<p style="margin:0 0 8px">לתוכנית של ' + esc(t.name) + ' כבר יש ' + has + (has === 1 ? ' יום' : ' ימים') + '.</p>'
+      + '<p class="muted" style="font-size:13px;margin:0">החלפה מוחקת את הימים הקיימים, כולל המשקלים שרשמת בהם. '
+      + 'הוספה שמה את 5 הימים אחרי הקיימים.</p></div>'
+      + '<div class="mf"><button class="btn" style="white-space:nowrap" onclick="EBBuild.apply(0,true)">החלפה</button>'
+      + '<button class="btn ghost" style="white-space:nowrap" onclick="EBBuild.apply(1)">הוספה</button>'
+      + '<div style="flex:1"></div><button class="btn ghost" onclick="closeModal()">ביטול</button></div>');
+  }
+
   function open(traineeId) {
     var t = tById(traineeId); if (!t) return;
     FOR = traineeId;
@@ -629,10 +709,10 @@
             + 'ככל שתכתוב עוד — הוא ילמד את הסגנון שלך.</p>')
       + '<label class="f">סוג תוכנית</label>'
       + '<select class="f" id="bd_split" style="width:100%;margin-bottom:4px" onchange="EBBuild.splitChange()">'
-      + '<option value="">לפי מספר הימים בשבוע</option>'
       + Object.keys(SPLIT_TYPES).map(function (k) {
-          return '<option value="' + k + '">' + esc(SPLIT_TYPES[k].t) + '</option>';
+          return '<option value="' + k + '"' + (k === DEFAULT_SPLIT ? ' selected' : '') + '>' + esc(SPLIT_TYPES[k].t) + '</option>';
         }).join('')
+      + '<option value="">לפי מספר הימים בשבוע</option>'
       + '</select>'
       + '<div class="muted" id="bd_split_info" style="font-size:12px;margin-bottom:10px">הבוט בוחר את החלוקה לפי מספר הימים.</div>'
       + '<div class="grid g2">'
@@ -653,6 +733,7 @@
       + (lim.length ? '<div class="muted" style="font-size:12px;margin-top:8px">סומן אוטומטית לפי הצהרת הבריאות והשאלון.</div>' : '')
       + '</div><div class="mf"><button class="btn" onclick="EBBuild.gen()">בניית טיוטה</button>'
       + '<button class="btn ghost" onclick="closeModal()">ביטול</button></div>', true);
+    splitChange();
   }
 
 
@@ -715,8 +796,10 @@
     };
   }
 
+  var DEFAULT_SPLIT = 'EB5';
   /* בפיצול שנבחר מספר הימים קבוע, ולכן שדה הימים ננעל ומראה אותו */
   function splitChange() {
+    if (typeof document === 'undefined' || !document.getElementById('bd_split')) return;
     var k = gv('bd_split'), ST = SPLIT_TYPES[k];
     var dEl = document.getElementById('bd_days'), info = document.getElementById('bd_split_info');
     if (dEl) {
@@ -745,7 +828,7 @@
     h += '<div class="row" style="margin-bottom:12px;gap:8px;flex-wrap:wrap">'
       + (m.split ? pill(m.split) : '') + pill(m.goal) + pill(DRAFT.days.length + ' ימים') + pill(total + ' תרגילים')
       + pill(m.sets + ' סטים · ' + m.reps) + pill('מנוחה ' + m.rest + ' שנ׳')
-      + (m.limits.length ? pill('בלי: ' + m.limits.join(', '), 1) : '')
+      + (m.limits.length ? pill(m.fixed ? 'מגבלות: ' + m.limits.join(', ') + ' — לבדוק ידנית' : 'בלי: ' + m.limits.join(', '), 1) : '')
       + '</div>';
 
     if (m.usedMine)
@@ -786,9 +869,9 @@
       + 'color:' + (warn ? 'var(--bad)' : 'var(--or)') + '">' + esc(txt) + '</span>';
   }
 
-  function apply(append) {
+  function apply(append, sure) {
     var t = tById(FOR); if (!t || !DRAFT) return;
-    if (!append && ((t.program && t.program.days) || []).length &&
+    if (!append && !sure && ((t.program && t.program.days) || []).length &&
         !confirm('להחליף את התוכנית הקיימת? השינוי לא הפיך.')) return;
 
     t.program = t.program || { days: [] };
@@ -815,7 +898,7 @@
     preview();
   }
 
-  window.EBBuild = { open: open, gen: gen, apply: apply, build: build, splitChange: splitChange, SPLIT_TYPES: SPLIT_TYPES,
+  window.EBBuild = { open: open, quick: quick, gen: gen, apply: apply, build: build, splitChange: splitChange, SPLIT_TYPES: SPLIT_TYPES,
                      learn: learn, fromLib: fromLib, drop: drop,
                      setHouse: setHouse, houseId: houseId };
 })();
