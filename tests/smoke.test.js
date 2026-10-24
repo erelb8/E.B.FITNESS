@@ -136,6 +136,31 @@ const TRAINEE_DATA = {
         if (again && /יוסי בדיקה/.test(again.textContent)) throw new Error('still listed');
         t.program = JSON.parse(keep); delete t.joined;
       });
+      await tryM('packages', () => {
+        const t = tById('b1'), keepP = JSON.stringify(S.payments), keepT = JSON.stringify(t);
+        const mon = todayISO().slice(0, 7);
+        setPkg('b1', 'coach');
+        if (!t.pkg || t.pkg.price !== 350 || t.pkg.months !== 3) throw new Error('coach pkg ' + JSON.stringify(t.pkg));
+        if (!planOf(t) || t.program.planMonths !== 3) throw new Error('plan not set');
+        setPkgPrice('b1', 500); if (t.pkg.price !== 450) throw new Error('max price ' + t.pkg.price);
+        setPkgPrice('b1', 400); setPkgMonths('b1', 6);
+        if (t.program.planMonths !== 6) throw new Error('months not on plan');
+        VIEW = 'money'; V.innerHTML = vMoney();
+        if (!/מי שילם ב/.test(V.textContent) || !/יוסי בדיקה/.test(V.textContent)) throw new Error('no month card');
+        if (!unpaidThisMonth().some(o => o.t.id === 'b1')) throw new Error('should be unpaid');
+        payToggle('b1');
+        const pay = S.payments.find(x => x.traineeId === 'b1' && x.date.slice(0, 7) === mon);
+        if (!pay || pay.amount !== 400 || pay.category !== 'ליווי אונליין חודשי' || !pay.auto) throw new Error('pay ' + JSON.stringify(pay));
+        if (unpaidThisMonth().some(o => o.t.id === 'b1')) throw new Error('still unpaid after pay');
+        payToggle('b1');
+        if (S.payments.some(x => x.id === pay.id)) throw new Error('toggle did not cancel');
+        /* תוכנית חד-פעמית ששולמה בחודש קודם — כבר לא "לא שילם" */
+        setPkg('b1', 'trainfood');
+        S.payments.push({ id: 'old1', traineeId: 'b1', date: addDays(todayISO(), -45), amount: 400, category: 'אימונים + תזונה' });
+        if (unpaidThisMonth().some(o => o.t.id === 'b1')) throw new Error('one-time paid shows unpaid');
+        V.innerHTML = vMoney();
+        S.payments = JSON.parse(keepP); Object.assign(t, JSON.parse(keepT)); delete t.pkg;
+      });
       await tryM('unpaidCard', () => {
         VIEW = 'dash'; V.innerHTML = vDash();
         const card = [].find.call(V.querySelectorAll('.card'), c => /לא שילמו ב/.test(c.textContent));
@@ -229,6 +254,25 @@ const TRAINEE_DATA = {
         if (t.program.days.length !== 10) throw new Error('append: ' + t.program.days.length);
         EBBuild.quick('b1'); EBBuild.apply(0, true);
         if (t.program.days.length !== 5) throw new Error('replace: ' + t.program.days.length);
+        /* הימים הנוספים: כל תרגיל בספרייה ועם הדמיה, נכנסים בסוף, ממוספרים */
+        V.innerHTML = vTrainee('b1');
+        if (!/כוח מתפרץ/.test(V.textContent) || !/מבחן מקסימום/.test(V.textContent)) throw new Error('no extra buttons');
+        EBBuild.extra('b1', 'power'); EBBuild.extra('b1', 'legs'); EBBuild.extra('b1', 'max');
+        const ds = t.program.days, bad = [];
+        if (ds.length !== 8 || ds[5].exercises.length !== 7) throw new Error('extra: ' + ds.length + '/' + (ds[5] || {exercises: []}).exercises.length);
+        if (!/^יום 6 · כוח מתפרץ/.test(ds[5].name) || !/^יום 8 · מבחן מקסימום/.test(ds[7].name)) throw new Error('names ' + ds[5].name);
+        ds.slice(5).flatMap(d => d.exercises).forEach(e => {
+          if (!EBEx.ALL.some(x => x.n === e.name)) bad.push('לא בספרייה: ' + e.name);
+          if (!EBAnim.has(e.name)) bad.push('בלי הדמיה: ' + e.name);
+        });
+        if (!ds[7].exercises.every(e => /רק עם אראל/.test(e.note))) bad.push('max note');
+        for (const lvl of ['מתחיל', 'מתקדם']) {
+          const m = EBBuild.build({ extra: 'max', goal: 'power', level: lvl, eq: 'gym', limits: [] }).days[0].exercises;
+          const p = EBBuild.build({ extra: 'power', goal: 'power', level: lvl, eq: 'gym', limits: [] }).days[0].exercises;
+          if (lvl === 'מתחיל' && (m[0].reps !== '3' || p.some(e => e.name === 'פאוור קלין'))) bad.push('beginner gets 1RM/clean');
+          if (lvl === 'מתקדם' && (m[0].reps !== '1' || p[0].name !== 'פאוור קלין')) bad.push('advanced');
+        }
+        if (bad.length) throw new Error(bad.slice(0, 6).join(' | '));
         t.program = JSON.parse(keep);
       });
       await tryM('autoMenu', async () => {

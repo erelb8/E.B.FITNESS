@@ -10,7 +10,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['cardioUi'] = 'v249';
+  (window.EB_MOD = window.EB_MOD || {})['cardioUi'] = 'v252';
 
   var SHOW_F = false;   // הצגת הנוסחאות
 

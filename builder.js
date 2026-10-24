@@ -14,7 +14,7 @@
   'use strict';
 
   // חותמת גרסה — index.html משווה אליה כדי לזהות קובץ ישן במטמון
-  (window.EB_MOD = window.EB_MOD || {})['builder'] = 'v249';
+  (window.EB_MOD = window.EB_MOD || {})['builder'] = 'v252';
 
   /* ---------- דפוסי תנועה ----------
      החלוקה לפי דפוס ולא לפי שריר, כי כך בונים פיצולים מאוזנים
@@ -254,6 +254,32 @@
             { t:'F · רגליים', pat:[P.HINGE,P.SQUAT,P.HINGE,P.CALF] } ] }
   };
 
+  /* ---------- ימים נוספים לתוכנית של אראל (אוקטובר 2026) ----------
+     יום בלחיצה, שנכנס אחרי הימים הקיימים של המתאמן ולא נוגע בהם. לא
+     חלק מ-EB5 — חמשת הימים נשארים חמישה, והימים האלה נוספים רק למי
+     שאראל בוחר.
+     beg = תחליף למתחיל: קלין ודפת עומק דורשים טכניקה ונחיתה שמתחיל
+     עוד לא בנה, ומקסימום של חזרה אחת לא נותנים למתחיל בכלל. */
+  var EB_EXTRA = {
+    power: { t: 'כוח מתפרץ', ex: [
+      { n: 'פאוור קלין', beg: 'קפיצה עם מוט משושה', s: '5', r: '3', rest: '150', note: 'ראשון באימון, אחרי חימום מלא' },
+      { n: 'דפת עומק (Depth jump)', beg: 'סקוואט קפיצה', s: '4', r: '5', rest: '120' },
+      { n: 'קפיצה לרוחק', s: '5', r: '3', rest: '120' },
+      { n: 'זריקת כדור כוח מסקוואט למעלה', s: '4', r: '5', rest: '90' },
+      { n: 'מסירת כדור כוח מהחזה לקיר', s: '4', r: '8', rest: '90' },
+      { n: 'מתח מתפרץ (חזה למוט)', s: '4', r: '4-6', rest: '120', note: 'עוצרים כשהמהירות יורדת' },
+      { n: 'סווינג רוסי', s: '4', r: '10', rest: '90' } ] },
+    /* יום 3 כבר בנוי על סקוואט גבי ודדליפט, ולכן כאן ארבע ראשי ועכוז */
+    legs: { t: 'רגליים B · ארבע ראשי ועכוז', ex: [
+      { n: 'סקוואט קדמי' }, { n: 'היפ ת׳רסט' }, { n: 'סקוואט בולגרי', r: '10 לכל רגל' }, { n: 'הק סקוואט' },
+      { n: 'לאנג׳ הליכה', iso: 1, r: '12 לכל רגל' }, { n: 'כפיפת ברך בעמידה', iso: 1 }, { n: 'מקרבים במכונה', iso: 1 },
+      { n: 'עליות עקבים בישיבה', r: '15-20' } ] },
+    /* מבוצע רק עם אראל. המשקל שנרשם כאן הוא השיא שסיכום התקופה מציג */
+    max: { t: 'מבחן מקסימום · עם אראל', max: 1, ex: [
+      { n: 'סקוואט גבי' }, { n: 'לחיצת חזה במוט' }, { n: 'דדליפט קלאסי' }, { n: 'לחיצת כתפיים במוט בעמידה' },
+      { n: 'מתח עם משקל', beg: 'מתח אחיזה רחבה', begS: '2', begR: 'מקסימום חזרות' } ] }
+  };
+
   /* ---------- פיצול לפי תבנית הנשים ----------
      אותם דפוסי תנועה, חלוקה אחרת: יותר ימי ירך וברך, ועליון מרוכז
      ליום אחד בפיצולים הקצרים. משמש רק כשתבנית הבית לנשים היא
@@ -435,7 +461,8 @@
     /* פיצול הנשים נכנס רק כשהתבנית המובנית היא ההתייחסות בפועל.
        בחר המאמן תוכנית אמיתית כהתייחסות — הפיצול הרגיל חוזר, כי אז
        הכוונה היא ללכת אחרי אותה תוכנית ולא אחרי התבנית. */
-    var ST   = opt.split && SPLIT_TYPES[opt.split];
+    var ST   = opt.extra ? (EB_EXTRA[opt.extra] && { t: EB_EXTRA[opt.extra].t, fixed: true, d: [EB_EXTRA[opt.extra]] })
+                         : opt.split && SPLIT_TYPES[opt.split];
     var useF = !ST && isFemale() && houseId() === TEMPLATE_F_ID;
     var tbl  = useF ? SPLITS_F : SPLITS;
     var days = ST ? ST.d : (tbl[opt.days] || tbl[3] || SPLITS[3]);
@@ -543,6 +570,11 @@
       return {
         days: ST.d.map(function (d) {
           return { name: d.t, place: eq, exercises: d.ex.map(function (x) {
+            if (x.beg && lvl === 1) x = { n: x.beg, s: x.begS || x.s, r: x.begR || x.r, rest: x.rest, note: x.note, iso: x.iso };
+            if (d.max) return { name: x.n, sets: String(x.s || 5), reps: x.r || (lvl === 1 ? '3' : '1'), weight: '', rest: '180',
+              note: x.r ? 'כמה שיותר חזרות נקיות. רק עם אראל'
+                : lvl === 1 ? 'עלייה הדרגתית עד המשקל המקסימלי ל-3 חזרות. רק עם אראל'
+                : 'עלייה הדרגתית (5, 3, 2, 1) עד חזרה אחת מקסימלית. רק עם אראל' };
             if (typeof x === 'string') {
               return d.mob ? { name: x, sets: '2', reps: '8-10', weight: '', rest: '20', note: '' }
                            : { name: x, sets: '2', reps: '30-45 שנ׳', weight: '', rest: '15', note: 'לכל צד' };
@@ -672,6 +704,22 @@
       + '<div class="mf"><button class="btn" style="white-space:nowrap" onclick="EBBuild.apply(0,true)">החלפה</button>'
       + '<button class="btn ghost" style="white-space:nowrap" onclick="EBBuild.apply(1)">הוספה</button>'
       + '<div style="flex:1"></div><button class="btn ghost" onclick="closeModal()">ביטול</button></div>');
+  }
+
+  /* יום נוסף בלחיצה (EB_EXTRA): נכנס בסוף התוכנית בלי שאלה, כי הוא לא
+     מוחק כלום. המספר ממשיך את הימים הקיימים. */
+  function extra(traineeId, key) {
+    var t = tById(traineeId); if (!t || !EB_EXTRA[key]) return;
+    var o = guessFor(t);
+    FOR = traineeId;
+    var day = build({ extra: key, goal: o.goal, level: o.level, eq: o.eq, limits: o.limits }).days[0];
+    t.program = t.program || { days: [] };
+    t.program.days = t.program.days || [];
+    day.name = 'יום ' + (t.program.days.length + 1) + ' · ' + day.name;
+    t.program.days.push(day);
+    save(); SUBTAB = 'program'; render();
+    /* הימים קבועים ולא מסננים מגבלות — לכן רק אזהרה, כמו בטיוטה של EB5 */
+    toast('נוסף ' + day.name + (o.limits.length ? ' · יש מגבלת ' + o.limits.join(', ') + ', לבדוק את התרגילים' : ''));
   }
 
   function open(traineeId) {
@@ -898,7 +946,7 @@
     preview();
   }
 
-  window.EBBuild = { open: open, quick: quick, gen: gen, apply: apply, build: build, splitChange: splitChange, SPLIT_TYPES: SPLIT_TYPES,
+  window.EBBuild = { open: open, quick: quick, extra: extra, EB_EXTRA: EB_EXTRA, gen: gen, apply: apply, build: build, splitChange: splitChange, SPLIT_TYPES: SPLIT_TYPES,
                      learn: learn, fromLib: fromLib, drop: drop,
                      setHouse: setHouse, houseId: houseId };
 })();

@@ -25,7 +25,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['habits'] = 'v249';
+  (window.EB_MOD = window.EB_MOD || {})['habits'] = 'v252';
 
   var KEEP_DAYS = 120;
   var KINDS = ['mob', 'food'];
@@ -83,11 +83,59 @@
         if (Object.keys(mob).length)   day.mob   = mob;
         if (Object.keys(meals).length) day.meals = meals;
         if (src.food === true) day.food = true;
+        var dl = cleanDaily(src.daily);
+        if (dl) day.daily = dl;
         if (Object.keys(day).length) marks[iso] = day;
       });
     }
     return { own: own, marks: marks };
   }
+  /* ---------- הסיכום היומי ----------
+     "איך היה היום?" — שלוש שאלות בערב בדף המתאמן, ומה שכתב כשמשהו
+     לא הלך. יושב באותו יום ב-marks, ולכן נשמר, נמחק אחרי KEEP_DAYS
+     ומגיע למאמן בדיוק כמו שאר ההרגלים. */
+  var DAILY_VALS = { tr: ['yes', 'no', 'rest'], ate: ['yes', 'partial', 'no'], all: ['yes', 'no'] };
+  function cleanDaily(d) {
+    if (!d || typeof d !== 'object') return null;
+    var out = {};
+    Object.keys(DAILY_VALS).forEach(function (k) { if (DAILY_VALS[k].indexOf(d[k]) > -1) out[k] = d[k]; });
+    if (!Object.keys(out).length) return null;
+    var note = String(d.note == null ? '' : d.note).trim().slice(0, 400);
+    if (note) out.note = note;
+    if (d.at) out.at = String(d.at).slice(0, 30);
+    if (Array.isArray(d.auto)) out.auto = d.auto.filter(function (x) { return typeof x === 'string'; }).slice(0, 20);
+    return out;
+  }
+  function getDaily(habits, iso) {
+    var day = ((habits || {}).marks || {})[iso];
+    return (day && day.daily) || null;
+  }
+
+  /* ---------- הבוט: מה שהמתאמן ענה וכתב נכנס לטבלת ההרגלים ----------
+     "אכלתי לפי התפריט: כן" מסמן את התזונה של היום. מתיחה מהרשימה
+     שמוזכרת בשמה בטקסט מסומנת — אלא אם לפניה "לא" ("לא עשיתי חתול-
+     פרה"). שום דבר לא מנוחש: בלי שם מפורש אין סימון. מחזיר את מה
+     שסומן, כדי שהמתאמן יראה מה נכנס. */
+  var NEG = /(לא|בלי|דילגתי על|שכחתי)\s*\S*\s*$/;
+  function applyDaily(habits, iso, d, list) {
+    var h = habits || { own: [], marks: {} };
+    var done = [];
+    if (d.ate === 'yes') { mark(h, iso, 'food', null, true); done.push('תזונה'); }
+    var text = String(d.note || '');
+    (list || []).forEach(function (it) {
+      if (!it || !it.name || it.name.length < 3) return;
+      var at = text.indexOf(it.name);
+      if (at < 0) return;
+      if (NEG.test(text.slice(Math.max(0, at - 18), at))) return;
+      mark(h, iso, 'mob', it.id, true); done.push(it.name);
+    });
+    var c = cleanDaily(Object.assign({}, d, { auto: done, at: d.at || new Date().toISOString() }));
+    h.marks = h.marks || {};
+    var day = h.marks[iso] = h.marks[iso] || {};
+    if (c) day.daily = c;
+    return done;
+  }
+
   function objOfTrue(o) {
     var out = {};
     Object.keys(o).forEach(function (k) { if (o[k] === true) out[k] = true; });
@@ -216,6 +264,7 @@
     Object.keys(b.marks).forEach(function (iso) {
       var src = b.marks[iso], dst = a.marks[iso] = a.marks[iso] || {};
       if (src.food === true) dst.food = true;
+      if (src.daily && (!dst.daily || String(src.daily.at || '') > String(dst.daily.at || ''))) dst.daily = src.daily;
       ['mob', 'meals'].forEach(function (bag) {
         if (!src[bag]) return;
         dst[bag] = dst[bag] || {};
@@ -237,6 +286,7 @@
     todayISO: todayISO, localISO: localISO, shiftISO: shiftISO, idOf: idOf,
     normalize: normalize, items: items,
     mark: mark, isMarked: isMarked, dayDone: dayDone,
+    getDaily: getDaily, applyDaily: applyDaily, cleanDaily: cleanDaily,
     week: week, adherence: adherence, streak: streak, prune: prune
   };
 })();

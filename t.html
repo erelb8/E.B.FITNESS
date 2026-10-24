@@ -13,8 +13,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="התוכנית שלי">
 <meta name="robots" content="noindex,nofollow">
-<link rel="apple-touch-icon" href="icons/icon-180.png?v=v249">
-<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=v249">
+<link rel="apple-touch-icon" href="icons/icon-180.png?v=v252">
+<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=v252">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -364,12 +364,12 @@ button{cursor:pointer}
 .hstat.dim b{color:var(--dim)}
 @media(max-width:400px){.hstat b{font-size:23px}.hstat span{font-size:10px}}
 </style>
-<link rel="stylesheet" href="ui-fx.css?v=v249">
+<link rel="stylesheet" href="ui-fx.css?v=v252">
 </head>
 <body>
 
 <header class="top">
-  <div class="brand"><img class="brand-logo" src="icons/logo-96.png?v=v249" alt="" width="34" height="34"><span>BAUER<span class="dot"></span>POWER</span></div>
+  <div class="brand"><img class="brand-logo" src="icons/logo-96.png?v=v252" alt="" width="34" height="34"><span>BAUER<span class="dot"></span>POWER</span></div>
   <h1 id="hTitle">טוען…</h1>
   <div class="sub" id="hSub"></div>
   <span class="savechip" id="saveChip" aria-live="polite"></span>
@@ -381,20 +381,20 @@ button{cursor:pointer}
 
 <div id="toast"></div>
 
-<script src="vendor/supabase.js?v=v249"></script>
-<script src="config.js?v=v249"></script>
-<script src="meal-library.js?v=v249"></script>
-<script src="exercise-library.js?v=v249"></script>
-<script src="anim.js?v=v249"></script>
-<script src="progress.js?v=v249"></script>
-<script src="habits.js?v=v249"></script>
-<script src="coach-bot.js?v=v249"></script>
-<script src="progress-chart.js?v=v249"></script>
-<script src="workout-log.js?v=v249"></script>
-<script src="targets.js?v=v249"></script>
-<script src="health.js?v=v249"></script>
-<script src="privacy.js?v=v249"></script>
-<script src="guides.js?v=v249"></script>
+<script src="vendor/supabase.js?v=v252"></script>
+<script src="config.js?v=v252"></script>
+<script src="meal-library.js?v=v252"></script>
+<script src="exercise-library.js?v=v252"></script>
+<script src="anim.js?v=v252"></script>
+<script src="progress.js?v=v252"></script>
+<script src="habits.js?v=v252"></script>
+<script src="coach-bot.js?v=v252"></script>
+<script src="progress-chart.js?v=v252"></script>
+<script src="workout-log.js?v=v252"></script>
+<script src="targets.js?v=v252"></script>
+<script src="health.js?v=v252"></script>
+<script src="privacy.js?v=v252"></script>
+<script src="guides.js?v=v252"></script>
 <script>
 (function () {
   'use strict';
@@ -1816,6 +1816,7 @@ button{cursor:pointer}
     screen(
         openerBlock(days)
       + nudgeBlock(days)
+      + dailyBlock()
       + checkinBlock()
       + monthlyBlock(days)
       + weeklyBlock(days)
@@ -2379,10 +2380,111 @@ button{cursor:pointer}
       + (mine ? '<button class="hb-del" data-habdel="' + esc(id) + '" aria-label="מחיקה">×</button>' : '')
       + '</div></div>';
   }
+  /* ---------- "איך היה היום?" — הסיכום היומי ----------
+     מ-17:00, פעם ביום, בראש הדף: שלוש שאלות בלחיצה. תשובה שלילית
+     פותחת שדה "מה עשית ומה לא", ו-EBHabits.applyDaily (הבוט) מכניס את
+     זה לטבלת ההרגלים: "אכלתי לפי התפריט" מסמן תזונה, ומתיחה שמוזכרת
+     בשמה מסומנת. זו לא התראת טלפון — זה מה שמחכה כשנכנסים לאפליקציה
+     בערב; התראה שקופצת כשהאפליקציה סגורה דורשת שרת התראות. */
+  const DY_Q = [
+    ['tr',  'התאמנת היום?',              [['yes', 'כן'], ['no', 'לא'], ['rest', 'יום מנוחה']]],
+    ['ate', 'אכלת לפי התפריט?',          [['yes', 'כן'], ['partial', 'חלקית'], ['no', 'לא']]],
+    ['all', 'עשית את כל השאר כמו שצריך?', [['yes', 'כן'], ['no', 'לא']]]
+  ];
+  const DY_HOUR = 17;
+  let DY = {}, DY_EDIT = false;
+  const dyKey = () => 'ebfit_dy_' + String(TOKEN || '').slice(0, 12);
+  function dyNeg(d) { return d.tr === 'no' || d.ate === 'no' || d.ate === 'partial' || d.all === 'no'; }
+  function dailyBlock() {
+    try {
+      if (!SRV_LOADED || !termsOK() || !window.EBHabits || !EBHabits.applyDaily) return '';
+      const today = EBHabits.todayISO();
+      if (!DY_EDIT) {
+        if (new Date().getHours() < DY_HOUR) return '';
+        if (EBHabits.getDaily(HABITS, today)) return '';
+        try { if (localStorage.getItem(dyKey()) === today) return ''; } catch (e) {}
+      }
+      const btn = (k, v, l) => '<button data-dy="' + k + ':' + v + '" style="flex:1;padding:9px 4px;border-radius:10px;font-family:inherit;'
+        + 'font-size:13.5px;font-weight:700;cursor:pointer;border:1px solid ' + (DY[k] === v ? 'var(--or)' : 'var(--line)') + ';'
+        + 'background:' + (DY[k] === v ? 'var(--or)' : 'transparent') + ';color:' + (DY[k] === v ? 'var(--ink)' : 'var(--tx)') + '">' + l + '</button>';
+      const ready = DY_Q.every(q => DY[q[0]]);
+      const neg = dyNeg(DY);
+      return '<div class="card" style="margin-bottom:14px;border-color:var(--or)">'
+        + '<div style="display:flex;align-items:baseline;margin-bottom:8px">'
+        + '<div style="flex:1;font-family:Heebo;font-weight:700;font-size:15px">איך היה היום?</div>'
+        + (DY_EDIT ? '' : '<button data-dy-later style="background:none;border:0;color:var(--dim);font-size:12px;cursor:pointer;font-family:inherit">לא היום</button>')
+        + '</div>'
+        + DY_Q.map(q => '<div style="margin-bottom:10px"><div style="font-size:13.5px;font-weight:600;margin-bottom:5px">' + q[1] + '</div>'
+          + '<div style="display:flex;gap:6px">' + q[2].map(o => btn(q[0], o[0], o[1])).join('') + '</div></div>').join('')
+        + (neg ? '<div style="font-size:13.5px;font-weight:600;margin:4px 0 5px">מה עשית ומה לא?</div>'
+          + '<textarea data-dy-note rows="3" placeholder="למשל: לא התאמנתי, עשיתי חתול-פרה, אכלתי פיצה בערב" style="width:100%;background:var(--ink);'
+          + 'border:1px solid var(--line);border-radius:10px;padding:9px;color:var(--tx);font-family:inherit;font-size:13.5px">' + esc(DY.note || '') + '</textarea>'
+          + '<div class="mt" style="font-size:11.5px;margin-top:4px">מה שכותבים כאן נכנס לבד לטבלת ההרגלים ומגיע למאמן.</div>' : '')
+        + '<button class="btn" data-dy-save style="width:100%;margin-top:10px"' + (ready ? '' : ' disabled') + '>שמירה</button>'
+        + '</div>';
+    } catch (e) { return ''; }
+  }
+  document.addEventListener('click', function (e) {
+    if (!e.target.closest) return;
+    const b = e.target.closest('[data-dy]');
+    if (b) { const p = b.dataset.dy.split(':'); DY[p[0]] = p[1]; repaintDaily(); return; }
+    if (e.target.closest('[data-dy-later]')) {
+      try { localStorage.setItem(dyKey(), EBHabits.todayISO()); } catch (er) {}
+      paint(); return;
+    }
+    if (e.target.closest('[data-dy-edit]')) {
+      DY = Object.assign({}, EBHabits.getDaily(HABITS, EBHabits.todayISO()) || {}); DY_EDIT = true;
+      closeCategory(); paint(); window.scrollTo(0, 0); return;
+    }
+    if (e.target.closest('[data-dy-save]')) {
+      const today = EBHabits.todayISO();
+      const d = { tr: DY.tr, ate: DY.ate, all: DY.all, note: dyNeg(DY) ? String(DY.note || '').trim() : '', at: new Date().toISOString() };
+      const got = EBHabits.applyDaily(HABITS, today, d, habitItems());
+      saveHabits();
+      DY = {}; DY_EDIT = false;
+      toast(got.length ? 'נשמר. נכנס להרגלים: ' + got.join(', ') : 'נשמר. תודה!');
+      paint();
+    }
+  });
+  document.addEventListener('input', function (e) {
+    const n = e.target.closest && e.target.closest('[data-dy-note]');
+    if (n) DY.note = n.value;
+  });
+  /* בחירה לא מציירת את כל הדף — רק את הכרטיס, כדי שהטקסט שבשדה והגלילה יישארו */
+  function repaintDaily() {
+    const card = document.querySelector('[data-dy-save]');
+    const host = card && card.closest('.card');
+    if (!host) { paint(); return; }
+    const tmp = document.createElement('div'); tmp.innerHTML = dailyBlock();
+    if (tmp.firstElementChild) host.replaceWith(tmp.firstElementChild); else paint();
+  }
+  /* בטבלת ההרגלים: 7 הימים האחרונים של "איך היה היום?" */
+  function dailyHistory() {
+    if (!window.EBHabits || !EBHabits.getDaily) return '';
+    const L = { yes: '✓', no: '✗', rest: 'מנוחה', partial: '½' };
+    const rows = [];
+    for (let i = 0; i < 7; i++) {
+      const iso = EBHabits.shiftISO(EBHabits.todayISO(), i), d = EBHabits.getDaily(HABITS, iso);
+      if (!d) continue;
+      const dd = new Date(iso + 'T00:00');
+      rows.push('<div style="padding:8px 0;border-top:1px solid var(--line);font-size:13px">'
+        + '<div style="display:flex;gap:10px;flex-wrap:wrap"><b style="min-width:58px">' + (i === 0 ? 'היום' : i === 1 ? 'אתמול' : dd.getDate() + '.' + (dd.getMonth() + 1)) + '</b>'
+        + '<span>אימון ' + (L[d.tr] || '—') + '</span><span>תזונה ' + (L[d.ate] || '—') + '</span><span>השאר ' + (L[d.all] || '—') + '</span></div>'
+        + (d.note ? '<div class="mt" style="font-size:12.5px;margin-top:3px">' + esc(d.note) + '</div>' : '')
+        + '</div>');
+    }
+    const today = EBHabits.getDaily(HABITS, EBHabits.todayISO());
+    return '<div style="font-family:Frank Ruhl Libre,serif;font-weight:700;font-size:15px;margin:2px 0 10px">איך היה היום</div>'
+      + '<div class="card" style="margin-bottom:16px">'
+      + (rows.length ? rows.join('') : '<div class="mt" style="font-size:13px">עוד אין סיכומים. כל ערב מ-' + DY_HOUR + ':00 מופיעות שלוש שאלות בראש הדף.</div>')
+      + '<button class="btn sm' + (today ? ' ghost' : '') + '" data-dy-edit style="margin-top:10px">' + (today ? 'עריכת הסיכום של היום' : 'מילוי הסיכום של היום') + '</button>'
+      + '</div>';
+  }
+
   function habitsScreen() {
     if (!window.EBHabits) return '<div class="muted">לא נטען.</div>';
     const prog = (DATA && DATA.program) || {};
-    let h = '';
+    let h = dailyHistory();
 
     /* ----- מוביליטי ----- */
     h += '<div style="font-family:Frank Ruhl Libre,serif;font-weight:700;font-size:15px;margin:2px 0 10px">מוביליות ומתיחות</div>';
@@ -4175,6 +4277,6 @@ button{cursor:pointer}
   });
 })();
 </script>
-<script src="ui-fx.js?v=v249"></script>
+<script src="ui-fx.js?v=v252"></script>
 </body>
 </html>
