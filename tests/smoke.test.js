@@ -161,6 +161,15 @@ const TRAINEE_DATA = {
         V.innerHTML = vMoney();
         S.payments = JSON.parse(keepP); Object.assign(t, JSON.parse(keepT)); delete t.pkg;
       });
+      await tryM('dashPro', () => {
+        VIEW = 'dash'; V.innerHTML = vDash();
+        if (!/דופק העסק/.test(V.textContent)) throw new Error('no pulse card');
+        if (V.querySelectorAll('.kpi-spark').length !== 4) throw new Error('sparks ' + V.querySelectorAll('.kpi-spark').length);
+        if (V.querySelectorAll('.pulse-ring').length !== 3) throw new Error('rings');
+        const se = dashSeries();
+        if (se.wo.length !== 8 || se.inc.length !== 6) throw new Error('series');
+        for (const k of ['renew', 'ended', 'risk', 'ck']) { dashList(k); if (!document.querySelector('.mh')) throw new Error('list ' + k); closeModal(); }
+      });
       await tryM('unpaidCard', () => {
         VIEW = 'dash'; V.innerHTML = vDash();
         const card = [].find.call(V.querySelectorAll('.card'), c => /לא שילמו ב/.test(c.textContent));

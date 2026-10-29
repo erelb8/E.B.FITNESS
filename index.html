@@ -6,7 +6,7 @@
 <title>BAUER POWER — ניהול מתאמנים</title>
 
 <!-- ===== PWA — הופך את האתר לאפליקציה במסך הבית ===== -->
-<link rel="manifest" href="manifest.json?v=v253">
+<link rel="manifest" href="manifest.json?v=v254">
 <meta name="theme-color" content="#1C140E">
 <meta name="description" content="מערכת לניהול מתאמנים, תוכניות אימון, יומן ותשלומים">
 
@@ -15,9 +15,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="BAUER POWER">
-<link rel="apple-touch-icon" href="icons/icon-180.png?v=v253">
-<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=v253">
-<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=v253">
+<link rel="apple-touch-icon" href="icons/icon-180.png?v=v254">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=v254">
+<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=v254">
 <meta name="format-detection" content="telephone=no">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -230,6 +230,28 @@ main{flex:1;min-width:0;padding:22px 24px 90px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px}
 .grid{display:grid;gap:14px}
 .g4{grid-template-columns:repeat(4,1fr)}
+/* ---------- לוח בקרה מתקדם ---------- */
+.kpi .sub{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.kpi-spark{order:5;display:block;width:100%;height:30px;margin-top:10px;opacity:.9;pointer-events:none}
+.kpi-delta{font-size:11px;font-weight:700;padding:2px 7px;border-radius:20px;white-space:nowrap}
+.kpi-delta.up{color:var(--ok);background:rgba(221,191,142,.12)}
+.kpi-delta.down{color:var(--bad);background:rgba(217,96,90,.12)}
+.kpi-delta.flat{color:var(--dim);background:rgba(151,135,116,.12)}
+.pulse-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.pulse-item{position:relative;text-align:center;padding:4px 2px}
+.pulse-ring{width:76px;height:76px;display:block;margin:0 auto;transform:rotate(-90deg)}
+.pr-bg{fill:none;stroke:var(--line);stroke-width:7}
+.pr-fg{fill:none;stroke:var(--or);stroke-width:7;stroke-linecap:round;transition:stroke-dasharray .6s ease}
+.pulse-num{position:absolute;top:4px;left:0;right:0;height:76px;display:grid;place-items:center;font-family:'Heebo';font-weight:900;font-size:18px;color:var(--tx)}
+.pulse-lbl{font-size:12.5px;font-weight:700;margin-top:6px}
+.pulse-sub{font-size:11px;color:var(--dim);line-height:1.35;margin-top:2px}
+.pulse-chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
+.pulse-chip{font-family:inherit;font-size:12.5px;color:var(--mut);background:rgba(196,154,108,.06);border:1px solid var(--line2);border-radius:20px;padding:6px 12px;cursor:pointer}
+.pulse-chip b{color:var(--tx);font-family:'Heebo';font-size:13.5px}
+.pulse-chip.warn{border-color:rgba(184,144,31,.5);color:var(--tx)}
+.pulse-chip.warn b{color:var(--cop)}
+@media(max-width:520px){ .pulse-ring{width:64px;height:64px} .pulse-num{height:64px;font-size:16px} .pulse-grid{gap:4px} }
+
 .g3{grid-template-columns:repeat(3,1fr)}
 .g2{grid-template-columns:repeat(2,1fr)}
 /* מתמלאת לפי מספר הכרטיסים בפועל, כדי שהסתרת אחד מהם לא תשאיר חור */
@@ -445,11 +467,11 @@ tbody tr:hover{background:var(--panel)}
   .rep-sub{flex-basis:100%;margin-inline-start:106px}
 }
 </style>
-<link rel="stylesheet" href="ui-fx.css?v=v253">
+<link rel="stylesheet" href="ui-fx.css?v=v254">
 </head>
 <body>
 <header class="top">
-  <div class="brand"><img class="brand-logo" src="icons/logo-96.png?v=v253" alt="" width="30" height="30"><span class="brand-word" dir="ltr">BAUER<span class="dot"></span>POWER</span> <small id="brandSub">ניהול מתאמנים</small></div>
+  <div class="brand"><img class="brand-logo" src="icons/logo-96.png?v=v254" alt="" width="30" height="30"><span class="brand-word" dir="ltr">BAUER<span class="dot"></span>POWER</span> <small id="brandSub">ניהול מתאמנים</small></div>
   <div class="spacer"></div>
   <button class="syncpill s-off" id="syncPill" onclick="go('settings')" title="מצב סנכרון">מקומי בלבד</button>
   <span class="now" id="topDate"></span>
@@ -467,8 +489,8 @@ tbody tr:hover{background:var(--panel)}
 <div id="toast"></div>
 
 <!-- ספריית Supabase מקומית (לא מ-CDN) כדי שהאפליקציה תעבוד גם בלי רשת -->
-<script src="vendor/supabase.js?v=v253"></script>
-<script src="config.js?v=v253"></script>
+<script src="vendor/supabase.js?v=v254"></script>
+<script src="config.js?v=v254"></script>
 
 <script>
 /* =======================================================================
@@ -503,7 +525,7 @@ function age(b){ if(!b) return null; const d=new Date(b), t=new Date(); let a=t.
 
 /* ---------------- אחסון ---------------- */
 const KEY='ebfit_v1';
-const EB_VERSION='v253';   // חייב להתאים ל-VERSION ב-sw.js
+const EB_VERSION='v254';   // חייב להתאים ל-VERSION ב-sw.js
 window.EB_APP_VER=EB_VERSION;   // נשלח בכל שורה — השרת דוחה גרסאות ישנות (sync.js)
 let mem=null, canStore=true;
 function load(){
@@ -1447,6 +1469,123 @@ function lastActivity(x){
   (x.weighins||[]).forEach(w=>{ if(w&&w.date) a.push(w.date); });
   return a.sort().pop()||'';
 }
+/* =====================================================================
+   לוח בקרה מתקדם: מגמות, מדדים ודופק העסק
+   ---------------------------------------------------------------------
+   שורת המספרים העליונה מראה גם לאן הם הולכים: לכל משבצת גרף קטן של
+   8 השבועות האחרונים (בהכנסות — 6 חודשים) וחץ מול התקופה הקודמת.
+   מתחתיה שלושה מדדים בטבעת — ביצוע התוכנית, גבייה ומעורבות — ושורת
+   סימנים שלוחצים עליהם ומקבלים את השמות: מי מסיים בקרוב, מי בסיכון.
+
+   שבוע = 7 ימים אחורה מהיום ולא שבוע לוח: ביום שני "השבוע" היה יומיים,
+   והחץ היה תמיד מראה ירידה. הנתונים הם אותם נתונים של שאר הלוח:
+   דיווחים מהדף (DASH.logs, 8 שבועות), אימונים ביומן ושקילות.
+   ===================================================================== */
+function dashSeries(){
+  const t=todayISO(), act=activeTrainees(), ids=new Set(act.map(x=>x.id));
+  const W=8, wk=Array.from({length:W},()=>({act:new Set(),wo:0,wg:0}));
+  const bucket=d=>{ const gap=Math.round((new Date(t+'T00:00')-new Date(String(d).slice(0,10)+'T00:00'))/86400000); return gap>=0&&gap<W*7?Math.floor(gap/7):-1; };
+  (DASH.logs||[]).forEach(l=>{ if(!ids.has(l.trainee_id)) return; const b=bucket(l.date); if(b<0) return; wk[b].wo++; wk[b].act.add(l.trainee_id); });
+  S.sessions.forEach(s=>{ if(s.status!=='done'||!ids.has(s.traineeId)) return; const b=bucket(s.date); if(b<0) return; wk[b].wo++; wk[b].act.add(s.traineeId); });
+  act.forEach(x=>(x.weighins||[]).forEach(w=>{ if(!w||!w.date) return; const b=bucket(w.date); if(b<0) return; wk[b].wg++; wk[b].act.add(x.id); }));
+  const mons=[]; const d0=new Date();
+  for(let i=0;i<6;i++){ const m=new Date(d0.getFullYear(),d0.getMonth()-i,1), key=isoOf(m).slice(0,7);
+    mons.push(S.payments.filter(p=>(p.date||'').slice(0,7)===key).reduce((a,p)=>a+Number(p.amount||0),0)); }
+  return { act:wk.map(x=>x.act.size), wo:wk.map(x=>x.wo), wg:wk.map(x=>x.wg), inc:mons, n:act.length };
+}
+/* גרף קטן. החדש משמאל, כמו בשורת "פעילים השבוע" שמתחת */
+function sparkSVG(vals){
+  const v=vals.slice().reverse(), max=Math.max(1,...v), n=v.length, W=120, H=34;
+  const pts=v.map((y,i)=>[ (n-1-i)/(n-1)*W, H-3-(y/max)*(H-8) ]);
+  const line=pts.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');
+  const id='sp'+Math.random().toString(36).slice(2,7);
+  return '<svg class="kpi-spark" viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none" aria-hidden="true">'
+    +'<defs><linearGradient id="'+id+'" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#C49A6C" stop-opacity=".35"/><stop offset="1" stop-color="#C49A6C" stop-opacity="0"/></linearGradient></defs>'
+    +'<polygon points="'+W+','+H+' '+line+' 0,'+H+'" fill="url(#'+id+')"/>'
+    +'<polyline points="'+line+'" fill="none" stroke="#C49A6C" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/>'
+    +'<circle cx="'+pts[pts.length-1][0].toFixed(1)+'" cy="'+pts[pts.length-1][1].toFixed(1)+'" r="2.6" fill="#E6D3A8"/></svg>';
+}
+function deltaChip(cur,prev,label){
+  if(prev==null) return '';
+  const d=cur-prev;
+  if(!d) return '<span class="kpi-delta flat">= '+label+'</span>';
+  return '<span class="kpi-delta '+(d>0?'up':'down')+'"><bdi dir="ltr">'+(d>0?'↑ ':'↓ ')+Math.abs(d)+'</bdi> '+label+'</span>';
+}
+function kpi(l,v,s,ic,series,chip){
+  return '<div class="card stat kpi">'
+    + (ic ? '<div class="ic">'+ic+'</div>' : '')
+    + '<div class="val">'+v+'</div>'
+    + '<div class="lbl">'+l+'</div>'
+    + '<div class="sub">'+(chip||'')+(s?'<span>'+s+'</span>':'')+'</div>'
+    + (series ? sparkSVG(series) : '')
+    + '</div>';
+}
+function ring(pct,label,sub,onclick){
+  const p=Math.max(0,Math.min(100,Math.round(pct||0))), r=30, c=2*Math.PI*r;
+  return '<div class="pulse-item"'+(onclick?' onclick="'+onclick+'" style="cursor:pointer"':'')+'>'
+    +'<svg viewBox="0 0 76 76" class="pulse-ring" aria-hidden="true"><circle cx="38" cy="38" r="'+r+'" class="pr-bg"/>'
+    +'<circle cx="38" cy="38" r="'+r+'" class="pr-fg" stroke-dasharray="'+(c*p/100).toFixed(1)+' '+c.toFixed(1)+'"/></svg>'
+    +'<div class="pulse-num"><bdi dir="ltr">'+p+'%</bdi></div>'
+    +'<div class="pulse-lbl">'+label+'</div><div class="pulse-sub">'+sub+'</div></div>';
+}
+/* מה צפוי לגבייה החודש — לפי החבילות, באותו כלל של "מי שילם" */
+function monthExpect(mon){
+  let expect=0, due=0, paid=0;
+  S.trainees.filter(t=>t.status==='active').forEach(t=>{
+    const p=pkgOf(t), got=pkgPaid(t,mon);
+    if(p && !p.monthly && got && (got.date||'').slice(0,7)!==mon) return;
+    due++; if(got) paid++; if(p) expect+=p.price;
+  });
+  return {expect,due,paid};
+}
+function dashGroups(){
+  const t=todayISO(), act=activeTrainees().filter(x=>x.status==='active');
+  const renew=act.map(x=>({x,p:planOf(x)})).filter(o=>o.p&&!o.p.ended&&o.p.left<=4).sort((a,b)=>a.p.left-b.p.left);
+  const ended=act.map(x=>({x,p:planOf(x)})).filter(o=>o.p&&o.p.ended);
+  const risk=act.filter(x=>{ const d=lastActivity(x); const since=String(x.joined||'').slice(0,10); return since<addDays(t,-10) && (!d||d<addDays(t,-10)); });
+  const ck=act.filter(x=>ckFlag(ckOf(x,t.slice(0,7))));
+  return {renew,ended,risk,ck};
+}
+function dashList(kind){
+  const g=dashGroups(), t=todayISO();
+  const titles={renew:'מסיימים ב-30 הימים הקרובים',ended:'תקופה שהסתיימה',risk:'בסיכון: בלי פעילות 10 ימים',ck:'צ׳ק-אין שדורש תשומת לב'};
+  const rows=kind==='renew'?g.renew.map(o=>[o.x,'מסתיים '+fmtDate(o.p.endISO)])
+    :kind==='ended'?g.ended.map(o=>[o.x,'הסתיים '+fmtDate(o.p.endISO)])
+    :kind==='risk'?g.risk.map(x=>[x,lastActivity(x)?'פעילות אחרונה '+fmtDate(lastActivity(x)):'עוד לא דיווח'])
+    :g.ck.map(x=>{ const c=ckOf(x,t.slice(0,7)); return [x,c.pain?'כואב: '+(c.painNote||''):ckLine(c).replace(/<[^>]+>/g,'')]; });
+  openModal('<div class="mh"><h3>'+titles[kind]+'</h3><button class="iconbtn" onclick="closeModal()">✕</button></div><div class="mb">'
+    +(rows.length?rows.map(r=>'<div class="line-item" style="align-items:center;gap:8px;cursor:pointer" onclick="closeModal();go(\'trainee\',\''+r[0].id+'\')">'
+      +'<div class="av" style="background:'+tColor(r[0])+';width:30px;height:30px;flex:0 0 30px;border-radius:9px;font-size:12px">'+esc(initials(r[0].name))+'</div>'
+      +'<div style="flex:1;min-width:0"><div style="font-size:13.5px;font-weight:600">'+esc(r[0].name)+'</div><div class="muted" style="font-size:12px">'+esc(r[1])+'</div></div>'
+      +(kind==='risk'&&S.features.whatsapp?'<button class="btn sm ghost" onclick="event.stopPropagation();closeModal();waMsg(\''+r[0].id+'\')">הודעה</button>':'')
+      +(kind!=='risk'&&window.EBPeriod&&(kind==='renew'||kind==='ended')?'<button class="btn sm ghost" onclick="event.stopPropagation();closeModal();EBPeriod.open(\''+r[0].id+'\')">סיכום</button>':'')
+      +'</div>').join(''):'<div class="muted">אין כרגע.</div>')
+    +'</div><div class="mf"><button class="btn ghost" onclick="closeModal()">סגירה</button></div>');
+}
+function dashPulse(se){
+  const t=todayISO(), act=activeTrainees().filter(x=>x.status==='active');
+  const planned=act.reduce((a,x)=>a+(((x.program||{}).days)||[]).filter(d=>(d.exercises||[]).length&&!/מוביליטי|מתיחות/.test(d.name||'')).length,0);
+  const done=se.wo[0];
+  const me=monthExpect(t.slice(0,7));
+  const inMon=se.inc[0];
+  const g=dashGroups();
+  const chip=(kind,n,label,warn)=>'<button class="pulse-chip'+(n&&warn?' warn':'')+'" onclick="dashList(\''+kind+'\')"><b>'+n+'</b> '+label+'</button>';
+  return '<div class="card pulse" style="margin-top:14px">'
+    +'<div class="row" style="align-items:center;margin-bottom:10px"><h3 style="flex:1;font-size:16px">דופק העסק</h3>'
+    +'<span class="muted" style="font-size:12px">7 הימים האחרונים · '+HE_MON_FULL[new Date().getMonth()]+'</span></div>'
+    +'<div class="pulse-grid">'
+    +ring(planned?done/planned*100:0,'ביצוע התוכנית',done+' מתוך '+planned+' אימונים מתוכננים')
+    +ring(me.expect?inMon/me.expect*100:(me.due?me.paid/me.due*100:0),'גבייה',me.expect?moneyTxt(inMon)+' מתוך '+moneyTxt(me.expect):me.paid+' מתוך '+me.due+' שילמו',"go('money')")
+    +ring(se.n?se.act[0]/se.n*100:0,'מעורבות',se.act[0]+' מתוך '+se.n+' פעילים')
+    +'</div>'
+    +'<div class="pulse-chips">'
+    +chip('renew',g.renew.length,'מסיימים ב-30 יום',true)
+    +chip('ended',g.ended.length,'תקופה הסתיימה',true)
+    +chip('risk',g.risk.length,'בסיכון',true)
+    +chip('ck',g.ck.length,'צ׳ק-אין לטיפול',true)
+    +'</div></div>';
+}
+
 function vDash(){
   dashLoad();
   const t=todayISO(), act=activeTrainees(), ids=new Set(act.map(x=>x.id));
@@ -1465,12 +1604,16 @@ function vDash(){
     'יום '+HE_DAYS[new Date().getDay()]+' · '+fmtFull(t),
     '<button class="btn" onclick="editTrainee()">+ מתאמן חדש</button><button class="btn ghost" onclick="editSession()">+ אימון</button>');
 
+  const se=dashSeries();
+  const meK=monthExpect(mon);
   h+='<div class="grid g4">'
-   + stat('פעילים השבוע', activeWk, 'מתוך '+act.length+' מתאמנים', ICO.users)
-   + stat('אימונים השבוע', wkDone, 'דיווחים ואימונים ביומן', ICO.check)
-   + stat('שקילות השבוע', wkWeigh, 'שהמתאמנים הזינו', ICO.cal)
-   + stat('הכנסות החודש', money(income), pays.length+' תשלומים', ICO.wallet)
+   + kpi('פעילים השבוע', activeWk, 'מתוך '+act.length, ICO.users, se.act, deltaChip(se.act[0],se.act[1],'משבוע שעבר'))
+   + kpi('אימונים השבוע', wkDone, '', ICO.check, se.wo, deltaChip(se.wo[0],se.wo[1],'משבוע שעבר'))
+   + kpi('שקילות השבוע', wkWeigh, '', ICO.cal, se.wg, deltaChip(se.wg[0],se.wg[1],'משבוע שעבר'))
+   + kpi('הכנסות החודש', money(income), meK.expect?'מתוך '+moneyTxt(meK.expect)+' צפוי':pays.length+' תשלומים', ICO.wallet, se.inc,
+         se.inc[1]?'<span class="kpi-delta flat">חודש שעבר '+moneyTxt(se.inc[1])+'</span>':'')
    + '</div>';
+  h += dashPulse(se);
 
   h += genderFixCard();
   h += dashCheckins();
@@ -3998,41 +4141,41 @@ if (location.protocol === 'file:') {
 }
 </script>
 
-<script src="health.js?v=v253"></script>
-<script src="privacy.js?v=v253"></script>
-<script src="backup.js?v=v253"></script>
-<script src="reorder.js?v=v253"></script>
-<script src="access.js?v=v253"></script>
-<script src="analysis.js?v=v253"></script>
-<script src="reports.js?v=v253"></script>
-<script src="business.js?v=v253"></script>
-<script src="intake.js?v=v253"></script>
-<script src="files.js?v=v253"></script>
-<script src="builder.js?v=v253"></script>
-<script src="import-program.js?v=v253"></script>
-<script src="tracking.js?v=v253"></script>
-<script src="metrics.js?v=v253"></script>
-<script src="targets.js?v=v253"></script>
-<script src="meal-library.js?v=v253"></script>
+<script src="health.js?v=v254"></script>
+<script src="privacy.js?v=v254"></script>
+<script src="backup.js?v=v254"></script>
+<script src="reorder.js?v=v254"></script>
+<script src="access.js?v=v254"></script>
+<script src="analysis.js?v=v254"></script>
+<script src="reports.js?v=v254"></script>
+<script src="business.js?v=v254"></script>
+<script src="intake.js?v=v254"></script>
+<script src="files.js?v=v254"></script>
+<script src="builder.js?v=v254"></script>
+<script src="import-program.js?v=v254"></script>
+<script src="tracking.js?v=v254"></script>
+<script src="metrics.js?v=v254"></script>
+<script src="targets.js?v=v254"></script>
+<script src="meal-library.js?v=v254"></script>
 <!-- חלקים של המאמן בלבד (תאילנדי, פירות). לא נטען ב-t.html בכוונה. -->
-<script src="meal-extra.js?v=v253"></script>
-<script src="progress-chart.js?v=v253"></script>
-<script src="notes.js?v=v253"></script>
-<script src="notes-ui.js?v=v253"></script>
-<script src="guides.js?v=v253"></script>
-<script src="library-ui.js?v=v253"></script>
-<script src="menu-auto.js?v=v253"></script>
-<script src="period-card.js?v=v253"></script>
-<script src="ui-fx.js?v=v253"></script>
-<script src="export-plan.js?v=v253"></script>
-<script src="cardio.js?v=v253"></script>
-<script src="cardio-ui.js?v=v253"></script>
-<script src="exercise-library.js?v=v253"></script>
-<script src="exercise-ui.js?v=v253"></script>
-<script src="video.js?v=v253"></script>
-<script src="anim.js?v=v253"></script>
-<script src="meals.js?v=v253"></script>
-<script src="sync.js?v=v253"></script>
+<script src="meal-extra.js?v=v254"></script>
+<script src="progress-chart.js?v=v254"></script>
+<script src="notes.js?v=v254"></script>
+<script src="notes-ui.js?v=v254"></script>
+<script src="guides.js?v=v254"></script>
+<script src="library-ui.js?v=v254"></script>
+<script src="menu-auto.js?v=v254"></script>
+<script src="period-card.js?v=v254"></script>
+<script src="ui-fx.js?v=v254"></script>
+<script src="export-plan.js?v=v254"></script>
+<script src="cardio.js?v=v254"></script>
+<script src="cardio-ui.js?v=v254"></script>
+<script src="exercise-library.js?v=v254"></script>
+<script src="exercise-ui.js?v=v254"></script>
+<script src="video.js?v=v254"></script>
+<script src="anim.js?v=v254"></script>
+<script src="meals.js?v=v254"></script>
+<script src="sync.js?v=v254"></script>
 <script>
 /* =================== חיבור הסנכרון לאפליקציה =================== */
 
