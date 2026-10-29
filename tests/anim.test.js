@@ -137,5 +137,23 @@ t('אין NaN ואין קריסה', nan, []);
 t('גפיים לא נמתחות (סטייה < 0.5)', worst.err < 0.5, true);
 if (worst.err >= 0.5) console.log('      worst:', JSON.stringify(worst));
 
+console.log('=== מרפק וברך לא קופצים בין פריימים ===');
+/* עד אוקטובר 2026 צד הכיפוף התחלף בבת אחת באמצע התנועה, והמרפק או
+   הברך "קפצו" לצד השני בפריים אחד — בכמאה תבניות. 400 פריימים לסיבוב:
+   תזוזה רגילה של מפרק היא 1-8 יחידות לפריים. */
+const jumps = [], seenJ = {};
+X.ALL.forEach(x => {
+  const c = A.classify(x.n, x.m, x.e), k = c.p + '/' + c.e + '/' + (c.v || '') + (c.alt || '');
+  if (seenJ[k]) return; seenJ[k] = 1;
+  const s = A._build(c); let prev = null, worst = 0;
+  for (let i = 0; i <= 400; i++) {
+    const b = A._frame(s, i / 400);
+    if (prev) ['elb1', 'elb2', 'knee1', 'knee2'].forEach(j => { worst = Math.max(worst, d(b[j], prev[j])); });
+    prev = b;
+  }
+  if (worst > 14) jumps.push(x.n + ' (' + Math.round(worst) + ')');
+});
+t('אין קפיצות מפרק', jumps, []);
+
 console.log('\n' + (fail ? '### נכשלו: ' + fail : 'הכל עבר') + '  |  עברו: ' + pass);
 process.exit(fail ? 1 : 0);
