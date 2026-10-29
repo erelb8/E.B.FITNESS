@@ -18,7 +18,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['wlog'] = 'v254';
+  (window.EB_MOD = window.EB_MOD || {})['wlog'] = 'v255';
 
   function esc(s) {
     return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
@@ -179,9 +179,50 @@
     return best;
   }
 
+  /* ---------- מבנה הסטים ----------
+     הכלל של המאמן, זהה לכל המתאמנים: 5 סטים = חימום תנועה בלי משקל,
+     חימום במשקל נמוך ושלושה סטי עבודה; 4 סטים = חימום במשקל נמוך
+     ושלושה סטי עבודה; 3 סטים = שלושתם עבודה. מוביליטי, מתיחות ותרגיל
+     שנמדד בזמן אינם "משקל גבוה" — שם אין תוויות. */
+  var FLEX_RE = /מוביליטי|מתיח|גמישות|mobility|stretch/i;
+  function isFlexDay(day) { return FLEX_RE.test(String((day || {}).name || '')); }
+  function setRoles(ex, day) {
+    ex = ex || {};
+    if (day && isFlexDay(day)) return null;
+    if (FLEX_RE.test(String(ex.name || ''))) return null;
+    if (/שנ|דק|sec|min/i.test(String(ex.reps || ''))) return null;
+    var raw = String(ex.sets || '').match(/\d+/);
+    if (!raw) return null;
+    var n = Math.min(8, Number(raw[0]));
+    if (n < 3) return null;
+    var out = [];
+    for (var i = 0; i < n; i++) out.push('work');
+    if (n >= 5) { out[0] = 'move'; out[1] = 'warm'; }
+    else if (n === 4) out[0] = 'warm';
+    return out;
+  }
+  var ROLE_LABEL = { move: 'חימום תנועה · בלי משקל', warm: 'חימום · משקל נמוך', work: 'עבודה · משקל גבוה' };
+  function rolesLine(roles) {
+    if (!roles) return '';
+    var work = roles.filter(function (r) { return r === 'work'; }).length;
+    var parts = [];
+    if (roles[0] === 'move') parts.push('סט 1 חימום תנועה', 'סט 2 חימום קל');
+    else if (roles[0] === 'warm') parts.push('סט 1 חימום קל');
+    parts.push(work + ' סטי עבודה במשקל גבוה');
+    return parts.join(' · ');
+  }
+  /* ההסבר המלא — מוצג למעלה בכל יום אימון, כדי שלא יפספסו */
+  var SETS_GUIDE = [
+    ['5 סטים', 'סט 1 חימום תנועה בלי משקל · סט 2 חימום במשקל נמוך · 3 סטי עבודה במשקל גבוה'],
+    ['4 סטים', 'סט 1 חימום במשקל נמוך · 3 סטי עבודה במשקל גבוה'],
+    ['3 סטים', '3 סטי עבודה במשקל גבוה']
+  ];
+
   window.EBWLog = {
     localISO: localISO, dayGap: dayGap,
     suggestDay: suggestDay, setCount: setCount,
+    setRoles: setRoles, rolesLine: rolesLine, isFlexDay: isFlexDay,
+    ROLE_LABEL: ROLE_LABEL, SETS_GUIDE: SETS_GUIDE,
     isInfo: isInfo, isReal: isReal, realCount: realCount,
     draftOf: draftOf, setKey: setKey,
     buildEntries: buildEntries, volumeOf: volumeOf, lastTimeOf: lastTimeOf,

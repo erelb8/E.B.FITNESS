@@ -20,7 +20,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['metrics'] = 'v254';
+  (window.EB_MOD = window.EB_MOD || {})['metrics'] = 'v255';
 
   /* סוגי תזונה שהמאמן בוחר למתאמן. משנים רק את חלוקת המאקרו — ראו compute */
   var DIETS = {

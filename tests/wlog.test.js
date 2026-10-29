@@ -88,6 +88,22 @@ t('בלי יומן — הראשון',    W.suggestDay(PROG, []), 0);
 t('תוכנית ריקה',          W.suggestDay({ days: [] }, LOGS), 0);
 
 /* ---------- תאריכים ---------- */
+console.log('=== מבנה הסטים ===');
+t('5 סטים — תנועה, חימום, 3 עבודה', W.setRoles({ name: 'סקוואט', sets: '5', reps: '8' }),
+  ['move', 'warm', 'work', 'work', 'work']);
+t('4 סטים — חימום ו-3 עבודה',       W.setRoles({ name: 'לחיצת חזה', sets: '4', reps: '10' }),
+  ['warm', 'work', 'work', 'work']);
+t('3 סטים — כולם עבודה',             W.setRoles({ name: 'חתירה', sets: '3', reps: '12' }),
+  ['work', 'work', 'work']);
+t('2 סטים בטן — בלי תוויות',          W.setRoles({ name: 'כפיפות בטן', sets: '2', reps: '15' }), null);
+t('יום מוביליטי — בלי תוויות',        W.setRoles({ name: 'פתיחת ירך', sets: '3' }, { name: 'יום 4 · מוביליטי' }), null);
+t('תרגיל זמן — בלי תוויות',           W.setRoles({ name: 'פלאנק', sets: '3', reps: '30 שנ׳' }), null);
+t('בלי מספר סטים — בלי תוויות',      W.setRoles({ name: 'סקוואט', sets: '' }), null);
+t('טווח 4-5 — הנמוך קובע',            W.setRoles({ name: 'דדליפט', sets: '4-5' })[0], 'warm');
+t('שורת 5 סטים',                      W.rolesLine(W.setRoles({ sets: '5' })),
+  'סט 1 חימום תנועה · סט 2 חימום קל · 3 סטי עבודה במשקל גבוה');
+t('שורת 3 סטים',                      W.rolesLine(W.setRoles({ sets: '3' })), '3 סטי עבודה במשקל גבוה');
+
 console.log('=== תאריכים ===');
 t('היום הוא אפס',         W.dayGap(ago(0)), 0);
 t('אתמול הוא אחד',        W.dayGap(ago(1)), 1);
