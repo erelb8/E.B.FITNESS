@@ -22,7 +22,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['anim'] = 'v257';
+  (window.EB_MOD = window.EB_MOD || {})['anim'] = 'v258';
 
   var L = { shin: 62, thigh: 64, torso: 78, uarm: 46, farm: 42, neck: 9, head: 15, foot: 17 };
   var ARM = L.uarm + L.farm;
@@ -590,6 +590,18 @@
     return front(seq([A, B], 3600)); } };
   /* סיבוב חיצוני / פנימי: המרפק צמוד לגוף, האמה מסתובבת מהבטן החוצה.
      מהצד זה לא נראה בכלל — קודם הוצגה כאן הרחקת כתף. */
+  /* סיבוב קובני ביד אחת, מלפנים: המרפק עולה הצידה לגובה הכתף (האמה
+     תלויה), האמה מסתובבת למעלה (90/90), לחיצה מעל הראש וחזרה באותה דרך.
+     קודם הוצגה כאן הנפה רגילה מהצד, בלי הסיבוב — שהוא כל העניין. */
+  P.fcuban = { he: 'סיבוב קובני', fn: function (eq) {
+    var hang = fstand({ h1: ['s', 30, 86] });
+    var row = fstand({ h1: ['s', 67, 42], eb: 'U' });
+    var up = fstand({ h1: ['s', 67, -42], eb: 'D' });
+    var press = fstand({ h1: ['s', 40, -84], eb: 'D' });
+    /* באמצע הסיבוב האמה מכוונת אלינו ונראית קצרה (fs) — בלי זה המרפק קפץ */
+    var mid = fstand({ h1: ['s', 71, 0], eb: 'D', fs: 0.1 });
+    var s = seq([hang, row, mid, up, press, up, mid, row], 5600); s.hold = eq === 'cable' ? 'sidecable' : eq === 'band' ? 'sideband' : 'hand1';
+    return front(s); } };
   P.fextrot = { he: 'סיבוב כתף', fn: function (eq) {
     var A = fstand({ h1: ['s', -21, 46], eb: 'D' }), B = fstand({ h1: ['s', 63, 46], eb: 'D' });
     /* באמצע האמה מכוונת אלינו ונראית קצרה (fs) — בלי זה היד עברה דרך
@@ -967,7 +979,8 @@
     [/פולאובר/, 'pullover'],
     [/הנפה קדמית/, 'raise:front'],
     [/סיבוב (חיצוני|פנימי)|הרחקה בגומייה ב-90/, 'fextrot'],
-    [/הרחק|סיבוב קובני|בר זרוע/, 'raise'],
+    [/סיבוב קובני|קובני/, 'fcuban'],
+    [/הרחק|בר זרוע/, 'raise'],
     [/מקבילים|דיפס במכונה/, 'dip'],
     [/דיפס על ספסל/, 'benchdip'],
     [/שכיבות סמיכה|שכיבת סמיכה|אטומיק|פושאפ|לחיצת חזה ברצועות/, 'pushup'],
@@ -1104,7 +1117,7 @@
     getup: ['core', 'shoulders'], burpee: ['quads', 'chest', 'core'], hold: [],
     hyper: ['back', 'glutes', 'hams'], revhyper: ['glutes', 'hams', 'back'], straightpull: ['back', 'shoulders'],
     hspu: ['shoulders', 'triceps', 'core'], vup: ['core'], hollow: ['core'], nordic: ['hams', 'glutes'],
-    fhipmachine: ['glutes'], fextrot: ['shoulders']
+    fhipmachine: ['glutes'], fextrot: ['shoulders'], fcuban: ['shoulders', 'back']
   };
   function musclesFor(c) {
     var list = (PM[c.p] || []).slice();
