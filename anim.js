@@ -22,7 +22,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['anim'] = 'v256';
+  (window.EB_MOD = window.EB_MOD || {})['anim'] = 'v257';
 
   var L = { shin: 62, thigh: 64, torso: 78, uarm: 46, farm: 42, neck: 9, head: 15, foot: 17 };
   var ARM = L.uarm + L.farm;
@@ -1873,30 +1873,37 @@
      לסרטון על מוט ישר) — המתאמן יראה ביצוע אחר ממה שכתוב לו. */
   var PUBLISH = {
     'IMG_1078': ['לחיצת חזה בשיפוע במוט', 'לחיצת חזה בשיפוע עם מוט', 'לחיצת חזה בשיפוע חיובי - מוט', 'לחיצת חזה בשיפוע'],
-    'IMG_0553': ['סקוואט גבי', 'סקוואט'],
     'IMG_1615': ['לחיצת רגליים', 'לחיצת רגליים במכונה', 'לחיצת רגליים בשיפוע'],
     'IMG_0257': ['פשיטת ברך במכונה', 'פשיטת ברך'],
     'IMG_0268': ['משיכת פולי עליון בכריעה יד אחת'],
-    'IMG_1079': ['לחיצת חזה בשיפוע במשקולות', 'לחיצת חזה במשקולות בשיפוע', 'לחיצת חזה בשיפוע — משקולות חופשיות'],
     'IMG_0084': ['דיפס שכמות במקבילים'],
     'IMG_0075': ['הרמות רגליים במקבילים'],
     'IMG_0074': ['מתח L-sit'],
     'IMG_1077': ['דדליפט רגליים ישרות (Stiff leg)'],
-    'IMG_5652': ['שכיבות סמיכה עם עצירה בתחתית'],
     'IMG_0094': ['טיפוס חבל'],
-    'IMG_1865-a': ['שכיבות סמיכה אחיזה רחבה'],
-    'IMG_1865-b': ['שכיבות סמיכה יהלום'],
     'A97-a': ['L-sit'],
-    'A97-b': ['מקבילים על מוט ישר'],
     'IMG_0253': ['לאנג׳ בסמית׳'],
     'IMG_1511': ['פתיחת גומייה לצדדים'],
     'IMG_0260': ['לחיצת רגליים בישיבה'],
-    'IMG_5093': ['כפיפת מרפקים במשקולות', 'כפיפת מרפקים בדמבלים'],
     'IMG_5096': ['כפיפת מרפקים במוט EZ', 'כפיפות מרפק במוט EZ'],
     '91A01D94-b': ['פיסטול סקוואט'],
     'IMG_3448-a': ['פתיחת ירך בכריעה על ברך'],
     'IMG_3449-a': ['תולעת מדידה']
   };
+  /* סרטונים שאסור שיגיעו למתאמנים: אנשים אחרים בפריים (מתאמנים ברקע,
+     מישהו על ההליכון, יד בפינה). הכלל של אראל — רק הוא בפריים, גם לא
+     לרגע. נמצאו בבדיקה פריים-פריים בנובמבר 2026 והורדו מ-PUBLISH. דף
+     המתאמן מסנן אותם גם אם הם עדיין רשומים ב-exVideos, והאפליקציה של
+     המאמן מוחקת אותם משם כשנפתחת ספריית ההדמיות. */
+  var CLIP_BLOCK = { 'IMG_0553': 1, 'IMG_1079': 1, 'IMG_1081': 1, 'IMG_5651': 1, 'IMG_5652': 1,
+                     'IMG_1865-a': 1, 'IMG_1865-b': 1, 'A97-b': 1, 'IMG_5093': 1 };
+  function blocked(v) { return !!(v && v.clip && CLIP_BLOCK[v.clip]); }
+  function clipsPurge() {
+    var m = window.S && window.S.settings && window.S.settings.exVideos; if (!m) return 0;
+    var n = 0; Object.keys(m).forEach(function (k) { if (blocked(m[k])) { delete m[k]; n++; } });
+    if (n && typeof save === 'function') save();
+    return n;
+  }
   function vkey(n) { return String(n || '').replace(/\s+/g, ' ').trim(); }
   function exv() { var st = window.S.settings; return (st.exVideos = st.exVideos || {}); }
   function namesFor(c) { return PUBLISH[c.src] || []; }
@@ -1928,7 +1935,7 @@
     return n;
   }
   function clipsCard() {
-    setTimeout(clipsLoad, 0);
+    setTimeout(function () { clipsPurge(); clipsLoad(); }, 0);
     return '<div data-animclips>' + clipsInner() + '</div>';
   }
   function clipsInner() {
@@ -2011,6 +2018,6 @@
 
   window.EBAnim = { classify: classify, mount: mount, mountAll: mountAll, has: has, label: label,
                     open: open, close: close, view: libView, search: search, muscle: muscle, more: more,
-                    openLibrary: openLibrary, closeLibrary: closeLibrary, muscles: muscles, MUSCLES: MUS_HE, clipDelete: clipDelete, clipsPublish: clipsPublish, clipsUnpublish: clipsUnpublish, clipsLoad: clipsLoad, clipsSave: clipsSave, clips: clips,
+                    openLibrary: openLibrary, closeLibrary: closeLibrary, muscles: muscles, MUSCLES: MUS_HE, clipDelete: clipDelete, clipsPublish: clipsPublish, clipsUnpublish: clipsUnpublish, clipsLoad: clipsLoad, clipsSave: clipsSave, clips: clips, blocked: blocked, clipsPurge: clipsPurge,
                     PATTERNS: P, _frame: frame, _build: build, _draw: draw };
 })();

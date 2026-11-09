@@ -25,7 +25,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['health'] = 'v256';
+  (window.EB_MOD = window.EB_MOD || {})['health'] = 'v257';
 
   /* ---------- שבע שאלות הסינון ---------- */
   /* כל אחת מהן, אם נענתה ב'כן', מחייבת אישור רופא לפני תחילת אימון. */

@@ -137,6 +137,15 @@ t('אין NaN ואין קריסה', nan, []);
 t('גפיים לא נמתחות (סטייה < 0.5)', worst.err < 0.5, true);
 if (worst.err >= 0.5) console.log('      worst:', JSON.stringify(worst));
 
+console.log('=== סרטונים עם אנשים אחרים לא מגיעים למתאמן ===');
+t('סרטון חסום מסונן', A.blocked({ url: 'x', clip: 'IMG_5652' }), true);
+t('סרטון נקי עובר', A.blocked({ url: 'x', clip: 'IMG_1078' }), false);
+t('סרטון שהמאמן העלה בעצמו עובר', A.blocked({ url: 'x' }), false);
+const src = fs.readFileSync(__dirname + '/../anim.js', 'utf8');
+const pub = src.slice(src.indexOf('var PUBLISH = {'), src.indexOf('};', src.indexOf('var PUBLISH = {')));
+t('אף מקור חסום לא ב-PUBLISH', ['IMG_0553', 'IMG_1079', 'IMG_1081', 'IMG_5651', 'IMG_5652', 'IMG_1865-a', 'IMG_1865-b', 'A97-b', 'IMG_5093'].filter(k => pub.indexOf("'" + k + "'") > -1), []);
+t('דף המתאמן מסנן', /EBAnim\.blocked\(data\[k\]\)/.test(fs.readFileSync(__dirname + '/../t.html', 'utf8')), true);
+
 console.log('=== מרפק וברך לא קופצים בין פריימים ===');
 /* עד אוקטובר 2026 צד הכיפוף התחלף בבת אחת באמצע התנועה, והמרפק או
    הברך "קפצו" לצד השני בפריים אחד — בכמאה תבניות. 400 פריימים לסיבוב:
