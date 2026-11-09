@@ -22,7 +22,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['anim'] = 'v255';
+  (window.EB_MOD = window.EB_MOD || {})['anim'] = 'v256';
 
   var L = { shin: 62, thigh: 64, torso: 78, uarm: 46, farm: 42, neck: 9, head: 15, foot: 17 };
   var ARM = L.uarm + L.farm;
@@ -1237,7 +1237,8 @@
     return { x0: Math.min.apply(null, xs) - 26, x1: Math.max.apply(null, xs) + 26, y0: minY, y1: maxY };
   }
 
-  function draw(cv, s, t, fill) {
+  function draw(cv, s, t, fill, lite) {
+    LITE = !!lite;
     var ctx = cv.getContext('2d'), W = cv.width, H = cv.height;
     var bb = s.bb, sc = Math.min(W / (bb.x1 - bb.x0), H / (bb.y1 - bb.y0)) * 0.92;
     if (!fill) sc = Math.min(sc, (H / 330));   // דמות לא מתנפחת בתבניות קטנות (fill — בסרטון, למלא את המסגרת)
@@ -1304,13 +1305,7 @@
        צרה, זרוע ואמה), והצד הרחוק בגוון כהה ולא שקוף — שקיפות יצרה
        חפיפות מוזרות במקום שהגפיים נחצות. */
     if (s.front) { drawFront(ctx, b, s, C); frontHolds(ctx, b, s, t, line, rect, circ, plate); return; }
-    taper(ctx, b.hip2, b.knee2, 14, 10, C.far); taper(ctx, b.knee2, b.ank2, 10, 7, C.far); foot(ctx, b.ank2, b.toe2, C.far);
-    taper(ctx, b.sh2, b.elb2, 10, 8, C.far); taper(ctx, b.elb2, b.wr2, 8, 6, C.far); hand(ctx, b.wr2, C.far);
-    torso(ctx, b, C.body);
-    taper(ctx, b.hip, b.knee1, 15, 11, C.body); taper(ctx, b.knee1, b.ank1, 11, 7.5, C.body); foot(ctx, b.ank1, b.toe1, C.body);
-    head(ctx, b, s.res[0], C.body);
-    taper(ctx, b.sh, b.elb1, 10.5, 8, C.body); taper(ctx, b.elb1, b.wr1, 8, 6, C.body); hand(ctx, b.wr1, C.body);
-    drawMuscles(ctx, b, s.mus || []);
+    bodySide(ctx, b, s.mus || []);
 
     var h = s.hold, w = b.wr1, w2 = b.wr2;
     if (h === 'plate') { line([w[0] - 4, w[1]], [w2[0] + 4, w2[1]], C.eqDark, 4); plate(w); }
@@ -1341,39 +1336,7 @@
   }
 
   /* ---------- דמות מלפנים ---------- */
-  function drawFront(ctx, b, s, C) {
-    var col = C.body;
-    taper(ctx, b.hip2, b.knee2, 15, 11, col); taper(ctx, b.knee2, b.ank2, 11, 7.5, col); foot(ctx, b.ank2, b.toe2, col);
-    taper(ctx, b.hip, b.knee1, 15, 11, col); taper(ctx, b.knee1, b.ank1, 11, 7.5, col); foot(ctx, b.ank1, b.toe1, col);
-    var mid = [(b.hc[0] * 0.45 + b.sc[0] * 0.55), (b.hc[1] * 0.45 + b.sc[1] * 0.55)];
-    taper(ctx, b.hc, mid, 36, 40, col); taper(ctx, mid, b.sc, 40, 46, col);
-    taper(ctx, b.sh2, b.sh, 13, 13, col);
-    var tv = unit([b.sc[0] - b.hc[0], b.sc[1] - b.hc[1]]);
-    taper(ctx, b.sc, [b.sc[0] + tv[0] * 10, b.sc[1] + tv[1] * 10], 10, 9, col);
-    ctx.fillStyle = col; ctx.beginPath(); ctx.arc(b.head[0], b.head[1], L.head, 0, Math.PI * 2); ctx.fill();
-    taper(ctx, b.sh2, b.elb2, 10.5, 8, col); taper(ctx, b.elb2, b.wr2, 8, 6, col); hand(ctx, b.wr2, col);
-    taper(ctx, b.sh, b.elb1, 10.5, 8, col); taper(ctx, b.elb1, b.wr1, 8, 6, col); hand(ctx, b.wr1, col);
-    var mus = s.mus || [], tn = [-tv[1], tv[0]];
-    function seg(a, c, f0, f1, al) {
-      ctx.globalAlpha = al; ctx.strokeStyle = MC; ctx.lineWidth = 6.5; ctx.lineCap = 'round'; ctx.beginPath();
-      ctx.moveTo(a[0] + (c[0] - a[0]) * f0, a[1] + (c[1] - a[1]) * f0); ctx.lineTo(a[0] + (c[0] - a[0]) * f1, a[1] + (c[1] - a[1]) * f1);
-      ctx.stroke(); ctx.globalAlpha = 1;
-    }
-    function dot(q, r, al) { ctx.globalAlpha = al; ctx.fillStyle = MC; ctx.beginPath(); ctx.arc(q[0], q[1], r, 0, Math.PI * 2); ctx.fill(); ctx.globalAlpha = 1; }
-    mus.forEach(function (k, i) {
-      var a = i === 0 ? 0.95 : 0.5;
-      if (k === 'quads') { seg(b.hip, b.knee1, 0.2, 0.85, a); seg(b.hip2, b.knee2, 0.2, 0.85, a); }
-      else if (k === 'hams') { seg(b.hip, b.knee1, 0.25, 0.8, a * 0.7); seg(b.hip2, b.knee2, 0.25, 0.8, a * 0.7); }
-      else if (k === 'glutes') { dot([b.hip[0] + tn[0] * 6, b.hip[1] + tn[1] * 6], 7, a); dot([b.hip2[0] - tn[0] * 6, b.hip2[1] - tn[1] * 6], 7, a); }
-      else if (k === 'calves') { seg(b.knee1, b.ank1, 0.15, 0.6, a); seg(b.knee2, b.ank2, 0.15, 0.6, a); }
-      else if (k === 'shoulders') { dot(b.sh, 7.5, a); dot(b.sh2, 7.5, a); }
-      else if (k === 'core') { seg(b.hc, b.sc, 0.12, 0.55, a); }
-      else if (k === 'chest') { seg(b.sh2, b.sh, 0.25, 0.75, a); }
-      else if (k === 'back') { seg(b.hc, b.sc, 0.5, 0.9, a * 0.7); }
-      else if (k === 'biceps') { seg(b.sh, b.elb1, 0.2, 0.85, a); seg(b.sh2, b.elb2, 0.2, 0.85, a); }
-      else if (k === 'triceps') { seg(b.sh, b.elb1, 0.2, 0.85, a * 0.7); seg(b.sh2, b.elb2, 0.2, 0.85, a * 0.7); }
-    });
-  }
+  function drawFront(ctx, b, s, C) { bodyFrontDraw(ctx, b, s.mus || []); }
   function frontHolds(ctx, b, s, t, line, rect, circ, plate) {
     var h = s.hold, w = b.wr1, w2 = b.wr2;
     function db(q) { rect([q[0] - 3, q[1] - 12, 6, 24], C.eqDark); rect([q[0] - 7, q[1] - 15, 14, 7], C.eq); rect([q[0] - 7, q[1] + 8, 14, 7], C.eq); }
@@ -1390,83 +1353,317 @@
     else if (h === 'anklecable') { line(b.ank1, [b.ank1[0] - 90, -6], C.eq, 2.5); circ([b.ank1[0] - 90, -6], 7, C.gear, true); }
   }
 
-  /* ---------- צורות הגוף ---------- */
-  function taper(ctx, a, c, w1, w2, col) {
+  /* ---------- גוף מאויר ----------
+     עד נובמבר 2026 הדמות הייתה בובת מקלות שמנמנה: כל איבר היה צורה
+     ישרה שמצטרת. עכשיו כל איבר מצויר לפי פרופיל אנטומי — שני צדדים
+     שונים לאורך העצם: ארבע ראשי בולט מקדימה וההמסטרינג מאחור, השוק
+     עבה מאחור (תאומים), דו-ראשי מקדימה ותלת-ראשי מאחור, וגו עם חזה,
+     בטן, גב תחתון מעוקל וישבן. לדמות יש פנים, שיער, אוזן, חולצה,
+     מכנסיים קצרים ונעליים, וקו מתאר כהה כמו באיור.
+
+     פרופיל: [t, רוחב בצד הקדמי, רוחב בצד האחורי] — t לאורך העצם
+     (0 בשורש, 1 בקצה). הצד הקדמי נגזר מכיפוף המפרק בכל פריים (אותו
+     חישוב של צד השריר), ולכן הבליטות נשארות בצד הנכון גם כשהגוף שוכב,
+     תלוי או מתהפך.
+
+     השריר העובד מסומן בצורת השריר עצמו — עדשה כתומה שצמודה לדופן
+     הנכונה של האיבר — במקום פס על קו העצם. */
+  var MC = '#E4622F';
+  var SK = {
+    skin: '#D9A47E', skinFar: '#9C6B4E', line: '#1A110B',
+    shirt: '#EFE6D8', shirtFar: '#A99C8C', shorts: '#6E4D34', shortsFar: '#4A3324',
+    shoe: '#EDE3D6', shoeFar: '#9A8B7C', sole: '#3A2C21', hair: '#2E1E14', hairLine: '#6A4A35',
+    shade: 'rgba(70,32,12,.24)', lw: 1.9
+  };
+  var KT = {
+    thigh: [[0, 9.5, 9.5], [0.3, 9.8, 8.8], [0.65, 7.8, 7.3], [0.92, 6, 5.8], [1, 5.7, 5.7]],
+    shin:  [[0, 5.7, 5.5], [0.15, 4.9, 6.9], [0.3, 4.5, 7.6], [0.55, 4, 5.3], [0.85, 3.3, 3.5], [1, 3.2, 3.2]],
+    uarm:  [[0, 7.6, 7.6], [0.15, 7.2, 7.7], [0.42, 6.8, 6.5], [0.72, 5.5, 5.3], [1, 4.4, 4.4]],
+    farm:  [[0, 4.6, 4.6], [0.2, 5.4, 5], [0.5, 4.4, 4], [1, 2.9, 2.9]],
+    hand:  [[0, 3, 3], [0.35, 4.4, 3.6], [0.75, 3.9, 3.3], [1, 2.7, 2.5]],
+    torso: [[-0.19, 2.5, 5], [-0.12, 7, 12.5], [-0.05, 9.5, 16], [0, 11, 17.5], [0.12, 12, 15], [0.3, 12.5, 10.5], [0.45, 12, 11.5],
+            [0.62, 14.5, 13.5], [0.76, 17, 14.5], [0.9, 14, 13], [1, 10, 10], [1.06, 6.5, 5.5]],
+    neck:  [[0, 5.6, 6.4], [0.35, 4.8, 5.4], [0.7, 4.8, 5.2], [1, 4.8, 5]],
+    shoe:  [[0, 3.8, 4.6], [0.25, 6.2, 4.6], [0.5, 4.8, 4.6], [0.8, 3.6, 4.4], [1, 2.6, 3]],
+    /* מלפנים: "קדימה" = הצד החיצוני של הגפה */
+    fthigh: [[0, 10, 8.5], [0.3, 10.2, 8.5], [0.7, 8, 7.2], [1, 6.2, 5.9]],
+    fshin:  [[0, 6, 6], [0.25, 7.4, 6.8], [0.6, 5, 4.6], [1, 3.4, 3.4]],
+    fuarm:  [[0, 7.4, 6.2], [0.3, 7.2, 6.2], [0.7, 5.6, 5.2], [1, 4.4, 4.4]],
+    ftorso: [[-0.18, 17, 17], [0, 19, 19], [0.15, 17, 17], [0.38, 14.5, 14.5], [0.6, 16.5, 16.5], [0.8, 19.5, 19.5],
+             [0.95, 22, 22], [1.02, 19, 19], [1.1, 8, 8]],
+    fshoe:  [[0, 3.4, 4.4], [0.5, 4.8, 4.6], [1, 3.4, 4.4]]
+  };
+  function unit(v) { var l = Math.hypot(v[0], v[1]); return l < 0.001 ? [0, 0] : [v[0] / l, v[1] / l]; }
+  function ease(x) { return (1 - Math.cos(Math.PI * x)) / 2; }
+  function profAt(K, t) {
+    if (t <= K[0][0]) return [K[0][1], K[0][2]];
+    for (var i = 1; i < K.length; i++) if (t <= K[i][0]) {
+      var a = K[i - 1], c = K[i], f = ease((t - a[0]) / (c[0] - a[0]));
+      return [lerp(a[1], c[1], f), lerp(a[2], c[2], f)];
+    }
+    var z = K[K.length - 1]; return [z[1], z[2]];
+  }
+  /* איבר מ-a אל c. side — וקטור שמצביע לצד ה"קדמי" של האיבר */
+  function part(a, c, K, side) {
     var v = unit([c[0] - a[0], c[1] - a[1]]), n = [-v[1], v[0]];
-    ctx.fillStyle = col; ctx.beginPath();
-    ctx.moveTo(a[0] + n[0] * w1 / 2, a[1] + n[1] * w1 / 2);
-    ctx.lineTo(c[0] + n[0] * w2 / 2, c[1] + n[1] * w2 / 2);
-    ctx.lineTo(c[0] - n[0] * w2 / 2, c[1] - n[1] * w2 / 2);
-    ctx.lineTo(a[0] - n[0] * w1 / 2, a[1] - n[1] * w1 / 2);
-    ctx.closePath(); ctx.fill();
-    ctx.beginPath(); ctx.arc(a[0], a[1], w1 / 2, 0, Math.PI * 2); ctx.fill();
-    ctx.beginPath(); ctx.arc(c[0], c[1], w2 / 2, 0, Math.PI * 2); ctx.fill();
+    if (n[0] * side[0] + n[1] * side[1] < 0) n = [-n[0], -n[1]];
+    return { a: a, v: v, len: Math.hypot(c[0] - a[0], c[1] - a[1]) || 0.001, nf: n, K: K };
   }
-  function torso(ctx, b, col) {
-    /* גו: אגן צר יותר, בית חזה רחב יותר, צוואר */
-    var mid = [(b.hip[0] * 0.45 + b.sh[0] * 0.55), (b.hip[1] * 0.45 + b.sh[1] * 0.55)];
-    taper(ctx, b.hip, mid, 21, 24, col);
-    taper(ctx, mid, b.sh, 24, 19, col);
-    var tv = unit([b.sh[0] - b.hip[0], b.sh[1] - b.hip[1]]);
-    taper(ctx, b.sh, [b.sh[0] + tv[0] * 10, b.sh[1] + tv[1] * 10], 9, 8, col);
+  function frameOf(a, v, len, nf, K) { return { a: a, v: v, len: len, nf: nf, K: K }; }
+  function at(P, t, w) { return [P.a[0] + P.v[0] * P.len * t + P.nf[0] * w, P.a[1] + P.v[1] * P.len * t + P.nf[1] * w]; }
+  /* קו חלק דרך הנקודות (אמצעי קטעים כנקודות מעבר) */
+  function smoothTo(p, pts) {
+    p.lineTo(pts[0][0], pts[0][1]);
+    for (var i = 1; i < pts.length - 1; i++) p.quadraticCurveTo(pts[i][0], pts[i][1], (pts[i][0] + pts[i + 1][0]) / 2, (pts[i][1] + pts[i + 1][1]) / 2);
+    var z = pts[pts.length - 1]; p.lineTo(z[0], z[1]);
   }
-  function foot(ctx, ank, toe, col) {
-    var v = unit([toe[0] - ank[0], toe[1] - ank[1]]);
-    var heel = [ank[0] - v[0] * 4, ank[1] - v[1] * 4];
-    taper(ctx, heel, toe, 8, 5, col);
+  function capTo(p, to, v, from, round) {
+    if (!round) { p.lineTo(to[0], to[1]); return; }
+    var r = Math.hypot(to[0] - from[0], to[1] - from[1]) / 2 * 1.33;
+    p.bezierCurveTo(from[0] + v[0] * r, from[1] + v[1] * r, to[0] + v[0] * r, to[1] + v[1] * r, to[0], to[1]);
   }
-  function hand(ctx, wr, col) { ctx.fillStyle = col; ctx.beginPath(); ctx.arc(wr[0], wr[1], 4.6, 0, Math.PI * 2); ctx.fill(); }
-  function head(ctx, b, p0, col) {
-    ctx.fillStyle = col; ctx.beginPath(); ctx.arc(b.head[0], b.head[1], L.head, 0, Math.PI * 2); ctx.fill();
-    /* אף קטן לכיוון הפנים — כדי שיהיה ברור לאן הדמות מסתכלת */
-    var tv = unit([b.head[0] - b.sh[0], b.head[1] - b.sh[1]]), f = [-tv[1], tv[0]];
-    var nose = [b.head[0] + f[0] * (L.head + 2.5), b.head[1] + f[1] * (L.head + 2.5)];
-    taper(ctx, [b.head[0] + f[0] * (L.head - 3), b.head[1] + f[1] * (L.head - 3)], nose, 6, 3, col);
+  /* o: t0,t1 — טווח; g — הרחבה (בגדים); capA/capB — קצה מעוגל; fn(t,w,u) — פרופיל אחר */
+  function outline(P, o) {
+    o = o || {};
+    var K = P.K, t0 = o.t0 != null ? o.t0 : K[0][0], t1 = o.t1 != null ? o.t1 : K[K.length - 1][0], g = o.g || 0, N = o.n || 16;
+    var fr = [], bk = [];
+    for (var i = 0; i <= N; i++) {
+      var u = i / N, t = t0 + (t1 - t0) * u, w = profAt(K, t);
+      if (o.fn) w = o.fn(t, w, u);
+      fr.push(at(P, t, w[0] + g)); bk.push(at(P, t, -(w[1] + g)));
+    }
+    bk.reverse();
+    var p = new Path2D(); p.moveTo(fr[0][0], fr[0][1]);
+    smoothTo(p, fr);
+    capTo(p, bk[0], P.v, fr[N], !o.fn && o.capB !== false);
+    smoothTo(p, bk);
+    capTo(p, fr[0], [-P.v[0], -P.v[1]], bk[N], !o.fn && o.capA !== false);
+    p.closePath();
+    return p;
+  }
+  /* צורת שריר: עדשה שצמודה לצד הקדמי (1), האחורי (-1) או במרכז (0) */
+  function lens(P, sd, t0, t1, d) {
+    return outline(P, { t0: t0, t1: t1, n: 14, fn: function (t, w, u) {
+      var e = Math.pow(Math.sin(Math.PI * u), 0.7), tot = w[0] + w[1];
+      if (sd === 1) return [w[0] - 1.2, -(w[0] - 1.2 - tot * d * e)];
+      if (sd === -1) return [-(w[1] - 1.2 - tot * d * e), w[1] - 1.2];
+      var h = tot * d * e / 2, c = (w[0] - w[1]) / 2;
+      return [c + h, h - c];
+    } });
+  }
+  /* קבוצה: קודם כל קווי המתאר ואחר כך המילוי — כך אין תפר בין ירך
+     לשוק או בין זרוע לאמה, ורק הדופן החיצונית מקבלת קו */
+  /* LITE — תמונה ממוזערת בספרייה: בלי קו מתאר ובלי צל. בגודל 150px הם
+     כמעט לא נראים, והם רוב זמן הציור: הקו לבדו הוריד את גלילת הספרייה
+     בטלפון חלש מ-45 ל-24 פריימים (נמדד בנובמבר 2026) */
+  var LITE = false;
+  function group(ctx, items) {
+    ctx.strokeStyle = SK.line; ctx.lineWidth = SK.lw; ctx.lineJoin = 'round';
+    if (!LITE) items.forEach(function (it) { ctx.stroke(it[0]); });
+    items.forEach(function (it) { ctx.fillStyle = it[1]; ctx.fill(it[0]); });
+  }
+  /* צל בצד האחורי של האיבר — נותן נפח */
+  function shade(ctx, P, o, k) {
+    if (LITE) return;
+    o = o || {};
+    ctx.save(); ctx.clip(outline(P, o));
+    ctx.fillStyle = SK.shade;
+    ctx.fill(outline(P, { t0: o.t0, t1: o.t1, g: o.g, fn: function (t, w) { return [-w[1] * (k == null ? 0.3 : k), w[1] + 3]; } }));
+    ctx.restore();
+  }
+  function bendDir(j, a, c, fb) {
+    var m = [(a[0] + c[0]) / 2, (a[1] + c[1]) / 2], v = [j[0] - m[0], j[1] - m[1]];
+    return Math.hypot(v[0], v[1]) < 3 ? fb : unit(v);
+  }
+  function paint(ctx, path, alpha) { ctx.globalAlpha = alpha; ctx.fillStyle = MC; ctx.fill(path); ctx.globalAlpha = 1; }
+
+  /* ---------- מהצד ---------- */
+  function sideLeg(h, k, a, toe, tn) {
+    var kc = bendDir(k, h, a, tn);
+    var fv = unit([toe[0] - a[0], toe[1] - a[1]]);
+    return {
+      th: part(h, k, KT.thigh, kc), sh: part(k, a, KT.shin, kc),
+      shoe: part([a[0] - fv[0] * 6, a[1] - fv[1] * 6], [toe[0] + fv[0] * 2, toe[1] + fv[1] * 2], KT.shoe, [k[0] - a[0], k[1] - a[1]])
+    };
+  }
+  /* המרפק בולט לצד התלת-ראשי; הדו-ראשי, כף היד והאמה — לצד השני */
+  function sideArm(s, e, w, tn) {
+    var ec = bendDir(e, s, w, [-tn[0], -tn[1]]), fr = [-ec[0], -ec[1]];
+    var fa = part(e, w, KT.farm, fr);
+    return { ua: part(s, e, KT.uarm, fr), fa: fa, hd: part([w[0] - fa.v[0], w[1] - fa.v[1]], [w[0] + fa.v[0] * 9, w[1] + fa.v[1] * 9], KT.hand, fr) };
+  }
+  function drawLeg(ctx, L2, skin, shoe) {
+    group(ctx, [[outline(L2.th), skin], [outline(L2.sh), skin]]);
+    shade(ctx, L2.th); shade(ctx, L2.sh);
+    var sp = outline(L2.shoe);
+    group(ctx, [[sp, shoe]]);
+    ctx.save(); ctx.clip(sp); ctx.fillStyle = SK.sole;
+    ctx.fill(outline(L2.shoe, { fn: function (t, w) { return [-(w[1] - 1.9), w[1] + 2]; } }));
+    ctx.restore();
+  }
+  function drawArm(ctx, A, skin, shirt) {
+    group(ctx, [[outline(A.ua), skin], [outline(A.fa), skin], [outline(A.hd), skin]]);
+    shade(ctx, A.ua); shade(ctx, A.fa);
+    group(ctx, [[outline(A.ua, { t0: -0.05, t1: 0.36, g: 1, capB: false }), shirt]]);
+  }
+  function headSide(ctx, H, sh) {
+    var hv = unit([H[0] - sh[0], H[1] - sh[1]]), f = [-hv[1], hv[0]];
+    function q(x, y) { return [H[0] + f[0] * x + hv[0] * y, H[1] + f[1] * x + hv[1] * y]; }
+    var neck = part(q(-2.5, -24), q(-1, -6), KT.neck, f);
+    var sk = q(-1.5, 1.5), skull = new Path2D(); skull.arc(sk[0], sk[1], 14.2, 0, Math.PI * 2);
+    var face = new Path2D(), pts = [q(-3, 9), q(6, 12.5), q(12, 8.5), q(14.3, 3.2), q(13.6, 0.6), q(15.4, -2), q(17, -3.6),
+      q(14.6, -5.2), q(14.8, -7.4), q(13.8, -8.8), q(14.3, -10.8), q(11.5, -13.8), q(4, -12.6), q(-2.5, -6.5), q(-5, 2)];
+    face.moveTo(pts[0][0], pts[0][1]); pts.forEach(function (pt) { face.lineTo(pt[0], pt[1]); }); face.closePath();
+    group(ctx, [[outline(neck), SK.skin], [skull, SK.skin], [face, SK.skin]]);
+    shade(ctx, neck, null, 0.15);
+    /* שיער */
+    ctx.save(); var clip = new Path2D(); clip.arc(sk[0], sk[1], 15.6, 0, Math.PI * 2); ctx.clip(clip);
+    var hr = [q(10.5, 9.5), q(14, 22), q(-32, 22), q(-32, -12), q(-12, -6), q(-7, 2), q(1, 7.5)], hp = new Path2D();
+    hp.moveTo(hr[0][0], hr[0][1]); hr.forEach(function (pt) { hp.lineTo(pt[0], pt[1]); }); hp.closePath();
+    ctx.fillStyle = SK.hair; ctx.fill(hp); ctx.strokeStyle = SK.hairLine; ctx.lineWidth = 1.3; ctx.stroke(clip);
+    ctx.restore();
+    /* אוזן, עין, גבה, פה */
+    var ear = q(-2.5, -1.5), ang = Math.atan2(hv[1], hv[0]);
+    ctx.beginPath(); ctx.ellipse(ear[0], ear[1], 4.6, 3, ang, 0, Math.PI * 2);
+    ctx.fillStyle = '#C08B66'; ctx.fill(); ctx.strokeStyle = SK.line; ctx.lineWidth = 1.1; ctx.stroke();
+    var eye = q(10.2, 1.2); ctx.fillStyle = SK.line; ctx.beginPath(); ctx.arc(eye[0], eye[1], 1.5, 0, Math.PI * 2); ctx.fill();
+    seg(ctx, q(8, 4.4), q(13.2, 4.8), SK.hair, 1.8);
+    seg(ctx, q(12.4, -8), q(14.2, -7.8), '#8E5A40', 1.1);
+  }
+  function seg(ctx, a, c, col, w) { ctx.strokeStyle = col; ctx.lineWidth = w; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(c[0], c[1]); ctx.stroke(); }
+
+  function bodySide(ctx, b, mus) {
+    var tv = unit([b.sh[0] - b.hip[0], b.sh[1] - b.hip[1]]), tn = [-tv[1], tv[0]];
+    var T = frameOf(b.hip, tv, L.torso, tn, KT.torso);
+    var far = sideLeg(b.hip2, b.knee2, b.ank2, b.toe2, tn), near = sideLeg(b.hip, b.knee1, b.ank1, b.toe1, tn);
+    var farA = sideArm(b.sh2, b.elb2, b.wr2, tn), nearA = sideArm(b.sh, b.elb1, b.wr1, tn);
+
+    drawLeg(ctx, far, SK.skinFar, SK.shoeFar);
+    group(ctx, [[outline(far.th, { t0: 0.04, t1: 0.45, g: 1, capA: false, capB: false }), SK.shortsFar]]);
+    drawArm(ctx, farA, SK.skinFar, SK.shirtFar);
+
+    group(ctx, [[outline(T), SK.skin]]); shade(ctx, T, null, 0.2);
+    var shirt = { t0: 0.12, t1: 1, g: 0.9, capA: false, capB: false };
+    group(ctx, [[outline(T, shirt), SK.shirt]]); shade(ctx, T, shirt, 0.15);
+
+    drawLeg(ctx, near, SK.skin, SK.shoe);
+    var shT = { t0: -0.19, t1: 0.18, g: 1.1, capB: false }, shL = { t0: -0.05, t1: 0.45, g: 1, capB: false };
+    group(ctx, [[outline(T, shT), SK.shorts], [outline(near.th, shL), SK.shorts]]);
+    shade(ctx, near.th, shL, 0.2);
+
+    var A = function (i) { return i === 0 ? 0.88 : 0.48; };
+    mus.forEach(function (k, i) {
+      if (k === 'quads') paint(ctx, lens(near.th, 1, 0.12, 0.92, 0.55), A(i));
+      else if (k === 'hams') paint(ctx, lens(near.th, -1, 0.1, 0.9, 0.55), A(i));
+      else if (k === 'glutes') paint(ctx, lens(T, -1, -0.17, 0.24, 0.32), A(i));
+      else if (k === 'calves') paint(ctx, lens(near.sh, -1, 0.06, 0.64, 0.6), A(i));
+      else if (k === 'chest') paint(ctx, lens(T, 1, 0.58, 0.95, 0.36), A(i));
+      else if (k === 'core') paint(ctx, lens(T, 1, 0.04, 0.58, 0.28), A(i));
+      else if (k === 'back') paint(ctx, lens(T, -1, 0.3, 0.98, 0.34), A(i));
+    });
+
+    headSide(ctx, b.head, b.sh);
+    drawArm(ctx, nearA, SK.skin, SK.shirt);
+    mus.forEach(function (k, i) {
+      if (k === 'shoulders') paint(ctx, lens(nearA.ua, 0, -0.02, 0.42, 0.9), A(i));
+      else if (k === 'biceps') paint(ctx, lens(nearA.ua, 1, 0.2, 0.92, 0.55), A(i));
+      else if (k === 'triceps') paint(ctx, lens(nearA.ua, -1, 0.12, 0.92, 0.55), A(i));
+    });
   }
 
-  /* השריר מצויר כפס צבעוני על הצד הנכון של הגפה: ארבע ראשי בצד שאליו
-     הברך מתכופפת קדימה, המסטרינג בצד השני; יד אחורית בצד של המרפק.
-     הצד נגזר מכיפוף המפרק בכל פריים, ולכן נשאר נכון גם כשהגוף שוכב. */
-  var MC = '#E4622F';
-  function unit(v) { var l = Math.hypot(v[0], v[1]); return l < 0.001 ? [0, 0] : [v[0] / l, v[1] / l]; }
-  function drawMuscles(ctx, b, mus) {
-    if (!mus.length) return;
-    var tv = unit([b.sh[0] - b.hip[0], b.sh[1] - b.hip[1]]), tn = [-tv[1], tv[0]];
-    function side(j, a, c, fb) {
-      var m = [(a[0] + c[0]) / 2, (a[1] + c[1]) / 2], v = [j[0] - m[0], j[1] - m[1]];
-      return Math.hypot(v[0], v[1]) < 3 ? fb : unit(v);
+  /* ---------- מלפנים ---------- */
+  function bodyFrontDraw(ctx, b, mus) {
+    var tv = unit([b.sc[0] - b.hc[0], b.sc[1] - b.hc[1]]), n = [-tv[1], tv[0]], nn = [-n[0], -n[1]];
+    var T = frameOf(b.hc, tv, L.torso, n, KT.ftorso);
+    function leg(h, k, a, out) {
+      return { th: part(h, k, KT.fthigh, out), sh: part(k, a, KT.fshin, out),
+               shoe: part([a[0] - out[0] * 4.5, a[1] - out[1] * 4.5], [a[0] + out[0] * 4.5, a[1] + out[1] * 4.5], KT.fshoe, [k[0] - a[0], k[1] - a[1]]) };
     }
-    var kc = side(b.knee1, b.hip, b.ank1, tn), ec = side(b.elb1, b.sh, b.wr1, [-tn[0], -tn[1]]);
-    function neg(v) { return [-v[0], -v[1]]; }
-    function seg(a, c, f0, f1, off, alpha) {
-      var o = 4;
-      ctx.globalAlpha = alpha; ctx.strokeStyle = MC; ctx.lineWidth = 6.5; ctx.lineCap = 'round'; ctx.beginPath();
-      ctx.moveTo(a[0] + (c[0] - a[0]) * f0 + off[0] * o, a[1] + (c[1] - a[1]) * f0 + off[1] * o);
-      ctx.lineTo(a[0] + (c[0] - a[0]) * f1 + off[0] * o, a[1] + (c[1] - a[1]) * f1 + off[1] * o);
-      ctx.stroke(); ctx.globalAlpha = 1;
+    function arm(s, e, w, out) {
+      var fa = part(e, w, KT.farm, out);
+      return { ua: part(s, e, KT.fuarm, out), fa: fa, hd: part([w[0] - fa.v[0], w[1] - fa.v[1]], [w[0] + fa.v[0] * 9, w[1] + fa.v[1] * 9], KT.hand, out) };
     }
-    function dot(p, r, alpha) { ctx.globalAlpha = alpha; ctx.fillStyle = MC; ctx.beginPath(); ctx.arc(p[0], p[1], r, 0, Math.PI * 2); ctx.fill(); ctx.globalAlpha = 1; }
+    var LR = leg(b.hip, b.knee1, b.ank1, n), LL = leg(b.hip2, b.knee2, b.ank2, nn);
+    var AR = arm(b.sh, b.elb1, b.wr1, n), AL = arm(b.sh2, b.elb2, b.wr2, nn);
+
+    drawLeg(ctx, LL, SK.skin, SK.shoe); drawLeg(ctx, LR, SK.skin, SK.shoe);
+    group(ctx, [[outline(T), SK.skin]]);
+    var shirt = { t0: 0.14, t1: 1.0, g: 0.9, capA: false, capB: false };
+    group(ctx, [[outline(T, shirt), SK.shirt]]);
+    /* קו צוואר של החולצה */
+    var nc = at(T, 1.0, 0); ctx.beginPath(); ctx.ellipse(nc[0], nc[1], 7.5, 4.5, Math.atan2(n[1], n[0]), 0, Math.PI);
+    ctx.fillStyle = SK.skin; ctx.fill(); ctx.strokeStyle = SK.line; ctx.lineWidth = 1.2; ctx.stroke();
+    var shT = { t0: -0.2, t1: 0.2, g: 1.1, capB: false }, shL = { t0: -0.02, t1: 0.42, g: 1, capB: false };
+    group(ctx, [[outline(T, shT), SK.shorts], [outline(LR.th, shL), SK.shorts], [outline(LL.th, shL), SK.shorts]]);
+    /* קו אמצע בין שתי הרגליים של המכנסיים */
+    seg(ctx, at(T, 0.06, 0), at(T, -0.17, 0), SK.line, 1.2);
+
+    var A = function (i) { return i === 0 ? 0.88 : 0.48; };
+    function both(fn) { fn(LR, 1); fn(LL, -1); }
+    function ell(c, rx, ry, al) { ctx.globalAlpha = al; ctx.fillStyle = MC; ctx.beginPath(); ctx.ellipse(c[0], c[1], rx, ry, Math.atan2(n[1], n[0]), 0, Math.PI * 2); ctx.fill(); ctx.globalAlpha = 1; }
     mus.forEach(function (k, i) {
-      var a = i === 0 ? 0.95 : 0.5;
-      if (k === 'quads') seg(b.hip, b.knee1, 0.15, 0.85, kc, a);
-      else if (k === 'hams') seg(b.hip, b.knee1, 0.18, 0.85, neg(kc), a);
-      else if (k === 'glutes') { dot([b.hip[0] - tn[0] * 5, b.hip[1] - tn[1] * 5], 7.5, a); }
-      else if (k === 'calves') seg(b.knee1, b.ank1, 0.12, 0.6, neg(kc), a);
-      else if (k === 'chest') seg(b.hip, b.sh, 0.62, 0.92, tn, a);
-      else if (k === 'core') seg(b.hip, b.sh, 0.12, 0.58, tn, a);
-      else if (k === 'back') seg(b.hip, b.sh, 0.3, 0.92, neg(tn), a);
-      else if (k === 'shoulders') dot(b.sh, 7.5, a);
-      else if (k === 'biceps') seg(b.sh, b.elb1, 0.18, 0.85, neg(ec), a);
-      else if (k === 'triceps') seg(b.sh, b.elb1, 0.18, 0.85, ec, a);
+      var al = A(i);
+      if (k === 'quads') both(function (Lg) { paint(ctx, lens(Lg.th, 0, 0.14, 0.9, 0.62), al); });
+      else if (k === 'hams') both(function (Lg) { paint(ctx, lens(Lg.th, -1, 0.15, 0.85, 0.4), al * 0.7); });
+      else if (k === 'calves') both(function (Lg) { paint(ctx, lens(Lg.sh, 1, 0.08, 0.56, 0.35), al); paint(ctx, lens(Lg.sh, -1, 0.08, 0.56, 0.35), al); });
+      else if (k === 'glutes') { paint(ctx, lens(T, 1, -0.16, 0.2, 0.22), al); paint(ctx, lens(T, -1, -0.16, 0.2, 0.22), al); }
+      else if (k === 'chest') { ell(at(T, 0.8, 9.5), 8.5, 6.2, al); ell(at(T, 0.8, -9.5), 8.5, 6.2, al); }
+      else if (k === 'core') ell(at(T, 0.36, 0), 6.5, 16, al);
+      else if (k === 'back') { paint(ctx, lens(T, 1, 0.45, 0.92, 0.22), al); paint(ctx, lens(T, -1, 0.45, 0.92, 0.22), al); }
     });
+
+    var neck = part(at(T, 1.0, 0), b.head, [[0, 6.5, 6.5], [0.45, 5.6, 5.6], [1, 5.6, 5.6]], n);
+    headFront(ctx, b.head, tv, n, neck);
+    drawArm(ctx, AL, SK.skin, SK.shirt); drawArm(ctx, AR, SK.skin, SK.shirt);
+    mus.forEach(function (k, i) {
+      var al = A(i);
+      [AR, AL].forEach(function (Ar) {
+        if (k === 'shoulders') paint(ctx, lens(Ar.ua, 0, -0.02, 0.42, 0.9), al);
+        else if (k === 'biceps') paint(ctx, lens(Ar.ua, 0, 0.24, 0.9, 0.5), al);
+        else if (k === 'triceps') paint(ctx, lens(Ar.ua, 1, 0.15, 0.9, 0.45), al);
+      });
+    });
+  }
+  function headFront(ctx, H, hv, n, neck) {
+    function q(x, y) { return [H[0] + n[0] * x + hv[0] * y, H[1] + n[1] * x + hv[1] * y]; }
+    var ang = Math.atan2(n[1], n[0]);
+    [-1, 1].forEach(function (sd) { var e = q(12.6 * sd, -1); ctx.beginPath(); ctx.ellipse(e[0], e[1], 2.8, 4.4, ang, 0, Math.PI * 2);
+      ctx.fillStyle = '#C08B66'; ctx.fill(); ctx.strokeStyle = SK.line; ctx.lineWidth = 1.1; ctx.stroke(); });
+    var hd = new Path2D(), pts = [];
+    for (var i = 0; i < 28; i++) {
+      var a = i / 28 * Math.PI * 2, x = Math.cos(a) * 12.6, y = Math.sin(a) * 15;
+      if (y < 0) x *= 1 - 0.28 * Math.pow(-y / 15, 2);   /* לסת צרה מהמצח */
+      pts.push(q(x, y + 0.5));
+    }
+    hd.moveTo(pts[0][0], pts[0][1]); pts.forEach(function (p) { hd.lineTo(p[0], p[1]); }); hd.closePath();
+    group(ctx, [[outline(neck), SK.skin], [hd, SK.skin]]);
+    shade(ctx, neck, null, 0.6);
+    ctx.save(); ctx.clip(hd);
+    var hr = [q(-20, 0), q(-12.2, 1), q(-10, 8), q(0, 10.2), q(10, 8), q(12.2, 1), q(20, 0), q(20, 30), q(-20, 30)], hp = new Path2D();
+    hp.moveTo(hr[0][0], hr[0][1]); hr.forEach(function (p) { hp.lineTo(p[0], p[1]); }); hp.closePath();
+    ctx.fillStyle = SK.hair; ctx.fill(hp); ctx.restore();
+    [-1, 1].forEach(function (sd) {
+      var e = q(4.8 * sd, 0.5); ctx.fillStyle = SK.line; ctx.beginPath(); ctx.arc(e[0], e[1], 1.4, 0, Math.PI * 2); ctx.fill();
+      seg(ctx, q(2.6 * sd, 3.6), q(7.4 * sd, 4), SK.hair, 1.6);
+    });
+    seg(ctx, q(0, -1.5), q(0.9, -5.2), '#B07A58', 1.2);
+    seg(ctx, q(-3, -8.8), q(3, -8.8), '#8E5A40', 1.2);
   }
 
   /* ---------- לולאה אחת לכל הקנבסים ---------- */
   var LIVE = [], RAF = 0, T0 = performance.now();
+  /* הדמות המאוירת כבדה פי ~9 מדמות המקלות (נמדד בנובמבר 2026: 2.7ms
+     לדמות בטלפון חלש). בספרייה רואים כמה בבת אחת — אז כשיותר משתיים
+     גלויות מציירים 30 פעם בשנייה ולא 60. בלולאה של הדמיה ההבדל לא נראה,
+     והגלילה נשארת חלקה. חלון של תרגיל אחד נשאר ב-60. */
+  var LAST = 0;
   function tick(now) {
     LIVE = LIVE.filter(function (x) { return x.cv.isConnected; });
-    LIVE.forEach(function (x) { if (x.vis) draw(x.cv, x.s, ((now - T0) / x.s.dur) % 1); });
     RAF = LIVE.length ? requestAnimationFrame(tick) : 0;
+    var vis = LIVE.filter(function (x) { return x.vis; });
+    if (vis.length > 2 && now - LAST < 30) return;
+    LAST = now;
+    vis.forEach(function (x) { draw(x.cv, x.s, ((now - T0) / x.s.dur) % 1, false, x.lite); });
   }
   var IO = typeof IntersectionObserver !== 'undefined' ? new IntersectionObserver(function (ents) {
     ents.forEach(function (en) { LIVE.forEach(function (x) { if (x.cv === en.target) x.vis = en.isIntersecting; }); });
@@ -1478,10 +1675,11 @@
     var s = build(c); if (!s) return false;
     var dpr = Math.min(2, window.devicePixelRatio || 1), cssW = cv.clientWidth || +cv.getAttribute('width') || 300, cssH = cv.clientHeight || +cv.getAttribute('height') || cssW;
     cv.width = Math.round(cssW * dpr); cv.height = Math.round(cssH * dpr);
-    var item = { cv: cv, s: s, vis: !IO };
+    /* בתוך רשת הספרייה — ציור קל (LITE); חלון של תרגיל אחד — מלא */
+    var item = { cv: cv, s: s, vis: !IO, lite: !!(cv.closest && cv.closest('[data-animgrid]')) };
     LIVE = LIVE.filter(function (x) { return x.cv !== cv; }); LIVE.push(item);
     if (IO) IO.observe(cv);
-    draw(cv, s, 0.25);
+    draw(cv, s, 0.25, false, item.lite);
     if (!RAF) RAF = requestAnimationFrame(tick);
     return true;
   }
