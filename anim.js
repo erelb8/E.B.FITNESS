@@ -22,7 +22,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['anim'] = 'v259';
+  (window.EB_MOD = window.EB_MOD || {})['anim'] = 'v260';
 
   var L = { shin: 62, thigh: 64, torso: 78, uarm: 46, farm: 42, neck: 9, head: 15, foot: 17 };
   var ARM = L.uarm + L.farm;
@@ -1251,7 +1251,7 @@
   }
 
   function draw(cv, s, t, fill, lite) {
-    LITE = !!lite;
+    LITE = !!lite; useFig(s.fig || FIG_DEF);
     var ctx = cv.getContext('2d'), W = cv.width, H = cv.height;
     var bb = s.bb, sc = Math.min(W / (bb.x1 - bb.x0), H / (bb.y1 - bb.y0)) * 0.92;
     if (!fill) sc = Math.min(sc, (H / 330));   // דמות לא מתנפחת בתבניות קטנות (fill — בסרטון, למלא את המסגרת)
@@ -1406,6 +1406,45 @@
              [0.95, 22, 22], [1.02, 19, 19], [1.1, 8, 8]],
     fshoe:  [[0, 3.4, 4.4], [0.5, 4.8, 4.6], [1, 3.4, 4.4]]
   };
+  /* ---------- שתי דמויות: גבר ואישה ----------
+     הגבר לפי אראל: גוף V (כתפיים רחבות, מותן צר), זרועות מלאות, שיער
+     מתולתל, זקן מלא עם שפם, גופייה שחורה ומכנסיים קצרים כהים. האישה:
+     שחומה, כתפיים צרות יותר, מותן צר ואגן רחב, גפיים דקות, קוקו ארוך
+     חום, טופ ספורט שחור עם בטן חשופה וטייץ חום. רק הצבעים, הפרופילים,
+     הבגדים והשיער שונים — התנועה (IK) זהה. */
+  var SK0 = SK, KT0 = KT;
+  var FIGS = {
+    m: { sk: Object.assign({}, SK0, { skin: '#C78B62', skinFar: '#8D5E40', shirt: '#26262A', shirtFar: '#17171A',
+                                      shorts: '#3B3B42', shortsFar: '#26262B', hair: '#1B120C', hairLine: '#3A2617' }),
+         kt: Object.assign({}, KT0, {
+           uarm: [[0, 8.4, 8.4], [0.15, 8.2, 8.6], [0.42, 7.8, 7.1], [0.72, 5.9, 5.6], [1, 4.6, 4.6]],
+           farm: [[0, 5.1, 5.1], [0.2, 6, 5.5], [0.5, 4.8, 4.3], [1, 3, 3]],
+           torso: [[-0.19, 2.5, 5], [-0.12, 7, 12.5], [-0.05, 9.5, 15.5], [0, 10.5, 16.5], [0.12, 11, 14], [0.3, 11.5, 10],
+                   [0.45, 11.5, 11.5], [0.62, 14.5, 14], [0.76, 17.5, 15], [0.9, 14.5, 13.5], [1, 10, 10], [1.06, 6.5, 5.5]],
+           ftorso: [[-0.18, 16, 16], [0, 17.5, 17.5], [0.15, 15.5, 15.5], [0.38, 13.5, 13.5], [0.6, 16.5, 16.5], [0.8, 21, 21],
+                    [0.95, 24.5, 24.5], [1.02, 20.5, 20.5], [1.1, 8, 8]],
+           fuarm: [[0, 8.2, 6.8], [0.3, 8, 6.8], [0.7, 6, 5.5], [1, 4.6, 4.6]] }),
+         top: [0.12, 1], legs: 'shorts', hair: 'curly', beard: true },
+    f: { sk: Object.assign({}, SK0, { skin: '#A86F48', skinFar: '#73472D', shirt: '#1C1C21', shirtFar: '#121215',
+                                      shorts: '#5E3B27', shortsFar: '#3F271A', hair: '#3B2416', hairLine: '#61402A', shoe: '#F3EDE6' }),
+         kt: Object.assign({}, KT0, {
+           thigh: [[0, 9, 9], [0.3, 9.2, 8.2], [0.65, 7.1, 6.7], [0.92, 5.3, 5.1], [1, 5, 5]],
+           shin:  [[0, 5, 4.9], [0.15, 4.3, 6], [0.3, 4, 6.4], [0.55, 3.5, 4.6], [0.85, 2.9, 3], [1, 2.8, 2.8]],
+           uarm:  [[0, 6.4, 6.4], [0.15, 6, 6.3], [0.42, 5.5, 5.3], [0.72, 4.5, 4.3], [1, 3.7, 3.7]],
+           farm:  [[0, 3.9, 3.9], [0.2, 4.4, 4.1], [0.5, 3.7, 3.4], [1, 2.5, 2.5]],
+           hand:  [[0, 2.6, 2.6], [0.35, 3.8, 3.1], [0.75, 3.4, 2.9], [1, 2.3, 2.2]],
+           torso: [[-0.19, 2.5, 5.5], [-0.12, 7, 13.5], [-0.05, 9.5, 17.5], [0, 10.5, 18], [0.12, 10.5, 14.5], [0.3, 9.8, 9.3],
+                   [0.45, 10.2, 10.2], [0.62, 12.5, 11.5], [0.74, 16.5, 12], [0.84, 15, 12], [0.92, 12, 11.5], [1, 9.2, 9.2], [1.06, 6, 5]],
+           neck:  [[0, 4.8, 5.4], [0.35, 4.1, 4.6], [0.7, 4.1, 4.4], [1, 4.1, 4.4]],
+           fthigh: [[0, 10.2, 8.5], [0.3, 9.6, 8], [0.7, 7.2, 6.6], [1, 5.5, 5.3]],
+           fshin:  [[0, 5.4, 5.4], [0.25, 6.4, 5.9], [0.6, 4.4, 4.1], [1, 3, 3]],
+           fuarm:  [[0, 6.4, 5.4], [0.3, 6.2, 5.4], [0.7, 4.8, 4.4], [1, 3.8, 3.8]],
+           ftorso: [[-0.18, 17.5, 17.5], [0, 19.5, 19.5], [0.15, 16, 16], [0.38, 12.3, 12.3], [0.6, 14, 14], [0.8, 16.5, 16.5],
+                    [0.95, 18.5, 18.5], [1.02, 16, 16], [1.1, 7, 7]] }),
+         top: [0.6, 1], legs: 'leggings', hair: 'pony', beard: false }
+  };
+  var FIG = FIGS.m, FIG_DEF = 'm';
+  function useFig(g) { FIG = FIGS[g] || FIGS.m; SK = FIG.sk; KT = FIG.kt; }
   function unit(v) { var l = Math.hypot(v[0], v[1]); return l < 0.001 ? [0, 0] : [v[0] / l, v[1] / l]; }
   function ease(x) { return (1 - Math.cos(Math.PI * x)) / 2; }
   function profAt(K, t) {
@@ -1517,13 +1556,22 @@
   function drawArm(ctx, A, skin, shirt) {
     group(ctx, [[outline(A.ua), skin], [outline(A.fa), skin], [outline(A.hd), skin]]);
     shade(ctx, A.ua); shade(ctx, A.fa);
-    group(ctx, [[outline(A.ua, { t0: -0.05, t1: 0.36, g: 1, capB: false }), shirt]]);
   }
   function headSide(ctx, H, sh) {
     var hv = unit([H[0] - sh[0], H[1] - sh[1]]), f = [-hv[1], hv[0]];
     function q(x, y) { return [H[0] + f[0] * x + hv[0] * y, H[1] + f[1] * x + hv[1] * y]; }
     var neck = part(q(-2.5, -24), q(-1, -6), KT.neck, f);
     var sk = q(-1.5, 1.5), skull = new Path2D(); skull.arc(sk[0], sk[1], 14.2, 0, Math.PI * 2);
+    if (FIG.hair === 'pony') {
+      /* קוקו: יוצא מאחורי הראש ונופל אחורה ולמטה, מאחורי הצוואר */
+      var pt = new Path2D(), a0 = q(-11, 9), c1 = q(-30, 12), e1 = q(-27, -10), c2 = q(-31, -26), e2 = q(-21, -30),
+          c3 = q(-22, -14), e3 = q(-17, -2), c4 = q(-16, 4), e4 = q(-12, 2);
+      pt.moveTo(a0[0], a0[1]); pt.quadraticCurveTo(c1[0], c1[1], e1[0], e1[1]); pt.quadraticCurveTo(c2[0], c2[1], e2[0], e2[1]);
+      pt.quadraticCurveTo(c3[0], c3[1], e3[0], e3[1]); pt.quadraticCurveTo(c4[0], c4[1], e4[0], e4[1]); pt.closePath();
+      group(ctx, [[pt, SK.hair]]);
+      ctx.strokeStyle = SK.hairLine; ctx.lineWidth = 1; ctx.beginPath(); var h1 = q(-20, 2), h2 = q(-24, -16);
+      ctx.moveTo(h1[0], h1[1]); ctx.quadraticCurveTo(q(-25, -6)[0], q(-25, -6)[1], h2[0], h2[1]); ctx.stroke();
+    }
     var face = new Path2D(), pts = [q(-3, 9), q(6, 12.5), q(12, 8.5), q(14.3, 3.2), q(13.6, 0.6), q(15.4, -2), q(17, -3.6),
       q(14.6, -5.2), q(14.8, -7.4), q(13.8, -8.8), q(14.3, -10.8), q(11.5, -13.8), q(4, -12.6), q(-2.5, -6.5), q(-5, 2)];
     face.moveTo(pts[0][0], pts[0][1]); pts.forEach(function (pt) { face.lineTo(pt[0], pt[1]); }); face.closePath();
@@ -1535,14 +1583,30 @@
     hp.moveTo(hr[0][0], hr[0][1]); hr.forEach(function (pt) { hp.lineTo(pt[0], pt[1]); }); hp.closePath();
     ctx.fillStyle = SK.hair; ctx.fill(hp); ctx.strokeStyle = SK.hairLine; ctx.lineWidth = 1.3; ctx.stroke(clip);
     ctx.restore();
+    if (FIG.hair === 'curly') {
+      /* תלתלים: עיגולים קטנים לאורך קו השיער — קו מתאר רק מבחוץ */
+      var cl = [];
+      for (var th = 35; th <= 205; th += 17) { var r = th * Math.PI / 180; cl.push(circle(q(-1.5 + 14.6 * Math.cos(r), 1.5 + 14.6 * Math.sin(r)), 3.6)); }
+      group(ctx, cl.map(function (c) { return [c, SK.hair]; }));
+    }
+    if (FIG.hair === 'pony') { var tie = q(-11.5, 6.5); ctx.fillStyle = '#E4622F'; ctx.beginPath(); ctx.arc(tie[0], tie[1], 2.2, 0, Math.PI * 2); ctx.fill(); }
+    if (FIG.beard) {
+      /* זקן מלא לאורך הלסת והסנטר, ושפם */
+      var bd = [q(-2.6, -2.5), q(2.5, -1.8), q(9, -4.2), q(13.4, -6.4), q(15.2, -8.4), q(14.8, -11.4), q(11.8, -14.6), q(4, -13.6), q(-2.9, -7.2)], bp = new Path2D();
+      bp.moveTo(bd[0][0], bd[0][1]); bd.forEach(function (pt) { bp.lineTo(pt[0], pt[1]); }); bp.closePath();
+      ctx.fillStyle = SK.hair; ctx.globalAlpha = 0.93; ctx.fill(bp); ctx.globalAlpha = 1;
+      seg(ctx, q(11.6, -5.5), q(15.6, -6), SK.hair, 2.6);
+    }
     /* אוזן, עין, גבה, פה */
     var ear = q(-2.5, -1.5), ang = Math.atan2(hv[1], hv[0]);
     ctx.beginPath(); ctx.ellipse(ear[0], ear[1], 4.6, 3, ang, 0, Math.PI * 2);
     ctx.fillStyle = '#C08B66'; ctx.fill(); ctx.strokeStyle = SK.line; ctx.lineWidth = 1.1; ctx.stroke();
     var eye = q(10.2, 1.2); ctx.fillStyle = SK.line; ctx.beginPath(); ctx.arc(eye[0], eye[1], 1.5, 0, Math.PI * 2); ctx.fill();
     seg(ctx, q(8, 4.4), q(13.2, 4.8), SK.hair, 1.8);
-    seg(ctx, q(12.4, -8), q(14.2, -7.8), '#8E5A40', 1.1);
+    seg(ctx, q(12.4, -8), q(14.2, -7.8), FIG.beard ? '#5A3322' : '#A8463E', FIG.beard ? 1.1 : 1.5);
+    if (FIG.hair === 'pony') seg(ctx, q(10, 2.2), q(12.6, 2.9), SK.line, 0.9);   /* ריסים */
   }
+  function circle(c, r) { var p = new Path2D(); p.arc(c[0], c[1], r, 0, Math.PI * 2); return p; }
   function seg(ctx, a, c, col, w) { ctx.strokeStyle = col; ctx.lineWidth = w; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(c[0], c[1]); ctx.stroke(); }
 
   function bodySide(ctx, b, mus) {
@@ -1551,18 +1615,21 @@
     var far = sideLeg(b.hip2, b.knee2, b.ank2, b.toe2, tn), near = sideLeg(b.hip, b.knee1, b.ank1, b.toe1, tn);
     var farA = sideArm(b.sh2, b.elb2, b.wr2, tn), nearA = sideArm(b.sh, b.elb1, b.wr1, tn);
 
+    var leg = FIG.legs === 'leggings';
     drawLeg(ctx, far, SK.skinFar, SK.shoeFar);
-    group(ctx, [[outline(far.th, { t0: 0.04, t1: 0.45, g: 1, capA: false, capB: false }), SK.shortsFar]]);
+    group(ctx, [[outline(far.th, { t0: 0.04, t1: leg ? 1.04 : 0.45, g: leg ? 0.4 : 1, capA: false, capB: leg }), SK.shortsFar]]
+      .concat(leg ? [[outline(far.sh, { t0: -0.04, t1: 0.9, g: 0.4, capA: false, capB: false }), SK.shortsFar]] : []));
     drawArm(ctx, farA, SK.skinFar, SK.shirtFar);
 
     group(ctx, [[outline(T), SK.skin]]); shade(ctx, T, null, 0.2);
-    var shirt = { t0: 0.12, t1: 1, g: 0.9, capA: false, capB: false };
+    var shirt = { t0: FIG.top[0], t1: FIG.top[1], g: 0.9, capA: false, capB: false };
     group(ctx, [[outline(T, shirt), SK.shirt]]); shade(ctx, T, shirt, 0.15);
 
     drawLeg(ctx, near, SK.skin, SK.shoe);
-    var shT = { t0: -0.19, t1: 0.18, g: 1.1, capB: false }, shL = { t0: -0.05, t1: 0.45, g: 1, capB: false };
-    group(ctx, [[outline(T, shT), SK.shorts], [outline(near.th, shL), SK.shorts]]);
-    shade(ctx, near.th, shL, 0.2);
+    var shT = { t0: -0.19, t1: leg ? 0.14 : 0.18, g: leg ? 0.6 : 1.1, capB: false },
+        shL = { t0: -0.05, t1: leg ? 1.04 : 0.45, g: leg ? 0.4 : 1, capB: leg }, shS = { t0: -0.04, t1: 0.9, g: 0.4, capA: false, capB: false };
+    group(ctx, [[outline(T, shT), SK.shorts], [outline(near.th, shL), SK.shorts]].concat(leg ? [[outline(near.sh, shS), SK.shorts]] : []));
+    shade(ctx, near.th, shL, 0.2); if (leg) shade(ctx, near.sh, shS, 0.2);
 
     var A = function (i) { return i === 0 ? 0.88 : 0.48; };
     mus.forEach(function (k, i) {
@@ -1601,13 +1668,16 @@
 
     drawLeg(ctx, LL, SK.skin, SK.shoe); drawLeg(ctx, LR, SK.skin, SK.shoe);
     group(ctx, [[outline(T), SK.skin]]);
-    var shirt = { t0: 0.14, t1: 1.0, g: 0.9, capA: false, capB: false };
+    var leg = FIG.legs === 'leggings';
+    var shirt = { t0: FIG.top[0] + 0.02, t1: 1.0, g: 0.9, capA: false, capB: false };
     group(ctx, [[outline(T, shirt), SK.shirt]]);
-    /* קו צוואר של החולצה */
-    var nc = at(T, 1.0, 0); ctx.beginPath(); ctx.ellipse(nc[0], nc[1], 7.5, 4.5, Math.atan2(n[1], n[0]), 0, Math.PI);
+    /* קו צוואר: גופייה — מחשוף עגול; טופ ספורט — רחב ונמוך */
+    var nc = at(T, 1.0, 0), fem = FIG.hair === 'pony'; ctx.beginPath(); ctx.ellipse(nc[0], nc[1], fem ? 11 : 8.5, fem ? 7.5 : 5.5, Math.atan2(n[1], n[0]), 0, Math.PI);
     ctx.fillStyle = SK.skin; ctx.fill(); ctx.strokeStyle = SK.line; ctx.lineWidth = 1.2; ctx.stroke();
-    var shT = { t0: -0.2, t1: 0.2, g: 1.1, capB: false }, shL = { t0: -0.02, t1: 0.42, g: 1, capB: false };
-    group(ctx, [[outline(T, shT), SK.shorts], [outline(LR.th, shL), SK.shorts], [outline(LL.th, shL), SK.shorts]]);
+    var shT = { t0: -0.2, t1: leg ? 0.15 : 0.2, g: leg ? 0.6 : 1.1, capB: false },
+        shL = { t0: -0.02, t1: leg ? 1.04 : 0.42, g: leg ? 0.4 : 1, capB: leg }, shS = { t0: -0.04, t1: 0.9, g: 0.4, capA: false, capB: false };
+    group(ctx, [[outline(T, shT), SK.shorts], [outline(LR.th, shL), SK.shorts], [outline(LL.th, shL), SK.shorts]]
+      .concat(leg ? [[outline(LR.sh, shS), SK.shorts], [outline(LL.sh, shS), SK.shorts]] : []));
     /* קו אמצע בין שתי הרגליים של המכנסיים */
     seg(ctx, at(T, 0.06, 0), at(T, -0.17, 0), SK.line, 1.2);
 
@@ -1652,15 +1722,30 @@
     group(ctx, [[outline(neck), SK.skin], [hd, SK.skin]]);
     shade(ctx, neck, null, 0.6);
     ctx.save(); ctx.clip(hd);
-    var hr = [q(-20, 0), q(-12.2, 1), q(-10, 8), q(0, 10.2), q(10, 8), q(12.2, 1), q(20, 0), q(20, 30), q(-20, 30)], hp = new Path2D();
+    var hr = FIG.hair === 'pony'
+      ? [q(-20, -14), q(-12.4, -9), q(-11.4, 3), q(-4, 8.6), q(4, 8.6), q(11.4, 3), q(12.4, -9), q(20, -14), q(20, 30), q(-20, 30)]
+      : [q(-20, 0), q(-12.2, 1), q(-10, 8), q(0, 10.2), q(10, 8), q(12.2, 1), q(20, 0), q(20, 30), q(-20, 30)], hp = new Path2D();
     hp.moveTo(hr[0][0], hr[0][1]); hr.forEach(function (p) { hp.lineTo(p[0], p[1]); }); hp.closePath();
-    ctx.fillStyle = SK.hair; ctx.fill(hp); ctx.restore();
+    ctx.fillStyle = SK.hair; ctx.fill(hp);
+    if (FIG.beard) {
+      var bd = [q(-12.6, -1), q(-12.8, -6), q(-8.5, -13), q(0, -15.8), q(8.5, -13), q(12.8, -6), q(12.6, -1), q(9, -5), q(4, -6.3), q(-4, -6.3), q(-9, -5)], bp = new Path2D();
+      bp.moveTo(bd[0][0], bd[0][1]); bd.forEach(function (p) { bp.lineTo(p[0], p[1]); }); bp.closePath();
+      ctx.globalAlpha = 0.93; ctx.fill(bp); ctx.globalAlpha = 1;
+    }
+    ctx.restore();
+    if (FIG.hair === 'curly') {
+      var cl = [];
+      for (var th = 15; th <= 165; th += 15) { var r = th * Math.PI / 180; cl.push(circle(q(Math.cos(r) * 12.4, Math.sin(r) * 14.2 + 1.5), 3.7)); }
+      group(ctx, cl.map(function (c) { return [c, SK.hair]; }));
+    }
+    if (FIG.hair === 'pony') { var top = q(0, 14.6); group(ctx, [[circle(top, 4.2), SK.hair]]); }
     [-1, 1].forEach(function (sd) {
       var e = q(4.8 * sd, 0.5); ctx.fillStyle = SK.line; ctx.beginPath(); ctx.arc(e[0], e[1], 1.4, 0, Math.PI * 2); ctx.fill();
       seg(ctx, q(2.6 * sd, 3.6), q(7.4 * sd, 4), SK.hair, 1.6);
     });
     seg(ctx, q(0, -1.5), q(0.9, -5.2), '#B07A58', 1.2);
-    seg(ctx, q(-3, -8.8), q(3, -8.8), '#8E5A40', 1.2);
+    if (FIG.beard) { seg(ctx, q(-4.6, -6.6), q(4.6, -6.6), SK.hair, 2.8); seg(ctx, q(-2.6, -9.2), q(2.6, -9.2), '#5A3322', 1.2); }
+    else seg(ctx, q(-2.8, -8.8), q(2.8, -8.8), '#A8463E', 1.6);
   }
 
   /* ---------- לולאה אחת לכל הקנבסים ---------- */
@@ -1796,8 +1881,23 @@
     if (X) ['full', 'cardio', 'mob', 'flex', 'box', 'power', 'surf'].forEach(function (k) { if (X.MUSCLES[k]) h += chip(k, X.MUSCLES[k]); });
     return h;
   }
+  /* בחירת דמות בספרייה — גבר או אישה. הקנבסים מצוירים מחדש בכל פריים
+     עם הדמות הנוכחית, אז מספיק לשנות ברירת מחדל */
+  function figBtns() {
+    return [['m', '🧔 גבר'], ['f', '👩 אישה']].map(function (x) {
+      var on = FIG_DEF === x[0];
+      return '<button onclick="EBAnim.libFig(\'' + x[0] + '\')" style="font:inherit;font-size:13px;padding:6px 14px;border-radius:20px;cursor:pointer;'
+        + 'border:1px solid ' + (on ? 'var(--or,#C49A6C)' : 'var(--line,#47372A)') + ';background:' + (on ? 'var(--or,#C49A6C)' : 'transparent') + ';color:' + (on ? '#221A12' : 'inherit') + '">' + x[1] + '</button>';
+    }).join('');
+  }
+  function libFig(g) {
+    if (FIGS[g]) FIG_DEF = g;
+    document.querySelectorAll('[data-animfig]').forEach(function (b) { b.innerHTML = figBtns(); });
+    document.querySelectorAll('canvas[data-anim]').forEach(function (cv) { var it = LIVE.filter(function (x) { return x.cv === cv; })[0]; if (it) draw(cv, it.s, 0.25, false, it.lite); });
+  }
   function libInner() {
-    return '<input id="anim_q" placeholder="חיפוש לפי שם תרגיל או תנועה" value="' + esc(LQ) + '" oninput="EBAnim.search(this.value)" '
+    return '<div data-animfig style="display:flex;gap:8px;margin-bottom:10px">' + figBtns() + '</div>'
+      + '<input id="anim_q" placeholder="חיפוש לפי שם תרגיל או תנועה" value="' + esc(LQ) + '" oninput="EBAnim.search(this.value)" '
       + 'style="width:100%;box-sizing:border-box;margin-bottom:10px;padding:11px 12px;border-radius:10px;border:1px solid var(--line,#47372A);'
       + 'background:var(--ink,#1C150F);color:inherit;font:inherit;font-size:14px">'
       + '<div data-animchips style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px">' + chips() + '</div>'
@@ -2060,6 +2160,6 @@
 
   window.EBAnim = { classify: classify, mount: mount, mountAll: mountAll, has: has, label: label,
                     open: open, close: close, view: libView, search: search, muscle: muscle, more: more,
-                    openLibrary: openLibrary, closeLibrary: closeLibrary, muscles: muscles, MUSCLES: MUS_HE, clipDelete: clipDelete, clipsPublish: clipsPublish, clipsUnpublish: clipsUnpublish, clipsLoad: clipsLoad, clipsSave: clipsSave, clips: clips, blocked: blocked, clipsPurge: clipsPurge, clipsAdd: clipsAdd,
+                    openLibrary: openLibrary, closeLibrary: closeLibrary, muscles: muscles, MUSCLES: MUS_HE, clipDelete: clipDelete, clipsPublish: clipsPublish, clipsUnpublish: clipsUnpublish, clipsLoad: clipsLoad, clipsSave: clipsSave, clips: clips, blocked: blocked, clipsPurge: clipsPurge, clipsAdd: clipsAdd, libFig: libFig, figure: function (g) { if (FIGS[g]) FIG_DEF = g; return FIG_DEF; },
                     PATTERNS: P, _frame: frame, _build: build, _draw: draw };
 })();

@@ -18,7 +18,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['video'] = 'v259';
+  (window.EB_MOD = window.EB_MOD || {})['video'] = 'v260';
 
   var BUCKET = 'videos';
   var MAX    = 50 * 1024 * 1024;
@@ -201,6 +201,7 @@
     var e = t && t.program && t.program.days[di] && t.program.days[di].exercises[ei];
     if (!e || !key(e.name)) { toast('קודם כותבים שם לתרגיל'); return; }
     CUR = { tid: tid, name: key(e.name) };
+    if (window.EBAnim && EBAnim.figure) EBAnim.figure(t.gender === 'נקבה' ? 'f' : 'm');   // ההדמיה בדמות של המתאמן/ת
     openModal('<div class="mh"><h3>🎥 ' + esc(CUR.name) + '</h3><button class="iconbtn" onclick="closeModal()">✕</button></div>'
       + '<div class="mb" id="vidBody">' + body() + '</div>'
       + '<div class="mf"><button class="btn" onclick="closeModal()">סגירה</button></div>');

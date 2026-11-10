@@ -19,7 +19,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['reorder'] = 'v259';
+  (window.EB_MOD = window.EB_MOD || {})['reorder'] = 'v260';
 
   var HOLD = 400;      // כמה זמן להחזיק כדי להרים
   var SLOP = 8;        // תזוזה שמעליה זו גלילה ולא הרמה

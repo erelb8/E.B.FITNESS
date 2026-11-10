@@ -146,6 +146,13 @@ const pub = src.slice(src.indexOf('var PUBLISH = {'), src.indexOf('};', src.inde
 t('אף מקור חסום לא ב-PUBLISH', ['IMG_0553', 'IMG_1079', 'IMG_1081', 'IMG_5651', 'IMG_5652', 'IMG_1865-a', 'IMG_1865-b', 'A97-b', 'IMG_5093'].filter(k => pub.indexOf("'" + k + "'") > -1), []);
 t('דף המתאמן מסנן', /EBAnim\.blocked\(data\[k\]\)/.test(fs.readFileSync(__dirname + '/../t.html', 'utf8')), true);
 
+console.log('=== גבר ואישה ===');
+t('אפשר לבחור דמות אישה', A.figure('f'), 'f');
+t('ערך לא מוכר לא משנה', A.figure('x'), 'f');
+t('חזרה לגבר', A.figure('m'), 'm');
+t('האפליקציה שולחת את המין בתוך התוכנית', /fig: t\.gender === 'נקבה' \? 'f' : 'm'/.test(fs.readFileSync(__dirname + '/../sync.js', 'utf8')), true);
+t('דף המתאמן בוחר דמות לפי התוכנית', /EBAnim\.figure\(DATA && DATA\.program && DATA\.program\.fig === 'f'/.test(fs.readFileSync(__dirname + '/../t.html', 'utf8')), true);
+
 console.log('=== מרפק וברך לא קופצים בין פריימים ===');
 /* עד אוקטובר 2026 צד הכיפוף התחלף בבת אחת באמצע התנועה, והמרפק או
    הברך "קפצו" לצד השני בפריים אחד — בכמאה תבניות. 400 פריימים לסיבוב:

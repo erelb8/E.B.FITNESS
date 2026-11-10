@@ -15,7 +15,7 @@
   'use strict';
 
   // חותמת גרסה — index.html משווה אליה כדי לזהות קובץ ישן במטמון
-  (window.EB_MOD = window.EB_MOD || {})['sync'] = 'v259';
+  (window.EB_MOD = window.EB_MOD || {})['sync'] = 'v260';
 
   const CFG      = window.EBFIT_CONFIG || { URL: '', ANON: '' };
   const SNAP_KEY = 'ebfit_sync_v1';
@@ -119,7 +119,9 @@
       trainer_id: user.id,
       name: t.name || '',
       goal: t.goal || null,
-      program: t.program || { days: [] },
+      /* fig — איזו דמות דף המתאמן מצייר בהדמיות (גבר/אישה). בתוך התוכנית
+         ולא בעמודה משלה: trainee_program כבר מחזיר אותה, בלי SQL חדש */
+      program: Object.assign({}, t.program || { days: [] }, { fig: t.gender === 'נקבה' ? 'f' : 'm' }),
       files: t.files || [],
       meals: t.meals || [],
       status: t.status || 'active',
