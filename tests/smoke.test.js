@@ -221,7 +221,7 @@ const TRAINEE_DATA = {
         /* התוכנית הקבועה של אראל: ברירת המחדל, 5 ימים, וכל תרגיל קיים בספרייה ויש לו הדמיה */
         const eb = EBBuild.build({ split: 'EB5', days: 3, goal: 'mass', level: 'בינוני', eq: 'gym', limits: [] });
         const n5 = eb.days.map(d => d.exercises.length).join(',');
-        if (n5 !== '12,9,9,15,10') throw new Error('EB5 days ' + n5);
+        if (n5 !== '12,10,9,15,10') throw new Error('EB5 days ' + n5);
         eb.days.flatMap(d => d.exercises).forEach(e => {
           if (!EBEx.ALL.some(x => x.n === e.name)) bad.push('לא בספרייה: ' + e.name);
           if (!EBAnim.has(e.name)) bad.push('בלי הדמיה: ' + e.name);

@@ -22,7 +22,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['anim'] = 'v262';
+  (window.EB_MOD = window.EB_MOD || {})['anim'] = 'v263';
 
   var L = { shin: 62, thigh: 64, torso: 78, uarm: 46, farm: 42, neck: 9, head: 15, foot: 17 };
   var ARM = L.uarm + L.farm;
@@ -1383,10 +1383,10 @@
      הנכונה של האיבר — במקום פס על קו העצם. */
   var MC = '#E4622F';
   var SK = {
-    skin: '#D9A47E', skinFar: '#9C6B4E', line: '#1A110B',
+    skin: '#D9A47E', skinFar: '#9C6B4E', line: '#2B1A10',
     shirt: '#EFE6D8', shirtFar: '#A99C8C', shorts: '#6E4D34', shortsFar: '#4A3324',
     shoe: '#EDE3D6', shoeFar: '#9A8B7C', sole: '#3A2C21', hair: '#2E1E14', hairLine: '#6A4A35',
-    shade: 'rgba(70,32,12,.24)', lw: 1.9
+    shade: 'rgba(70,32,12,.24)', lw: 1.5
   };
   var KT = {
     thigh: [[0, 9.5, 9.5], [0.3, 9.8, 8.8], [0.65, 7.8, 7.3], [0.92, 6, 5.8], [1, 5.7, 5.7]],
@@ -1519,19 +1519,30 @@
     items.forEach(function (it) { ctx.fillStyle = it[1]; ctx.fill(it[0]); });
   }
   /* צל בצד האחורי של האיבר — נותן נפח */
+  /* נפח: אור על הדופן הקדמית וצל רך על האחורית, לרוחב האיבר — כמו
+     גליל מואר. קודם היה כאן פס כהה אחד בצד האחורי, שנראה כמו מדבקה */
   function shade(ctx, P, o, k) {
     if (LITE) return;
     o = o || {};
-    ctx.save(); ctx.clip(outline(P, o));
-    ctx.fillStyle = SK.shade;
-    ctx.fill(outline(P, { t0: o.t0, t1: o.t1, g: o.g, fn: function (t, w) { return [-w[1] * (k == null ? 0.3 : k), w[1] + 3]; } }));
+    var wm = profAt(P.K, 0.4), a = at(P, 0.4, wm[0] + 1), c = at(P, 0.4, -(wm[1] + 1));
+    var g = ctx.createLinearGradient(a[0], a[1], c[0], c[1]), d = k == null ? 0.3 : k;
+    g.addColorStop(0, 'rgba(255,236,214,' + (0.26 * d / 0.3).toFixed(3) + ')');
+    g.addColorStop(0.3, 'rgba(255,236,214,0)');
+    g.addColorStop(0.62, 'rgba(40,16,6,0.04)');
+    g.addColorStop(1, 'rgba(40,16,6,' + Math.min(0.42, 0.34 * d / 0.3).toFixed(3) + ')');
+    ctx.save(); ctx.clip(outline(P, o)); ctx.fillStyle = g;
+    var m = at(P, 0.5, 0), R = P.len + 40; ctx.fillRect(m[0] - R, m[1] - R, R * 2, R * 2);
     ctx.restore();
   }
   function bendDir(j, a, c, fb) {
     var m = [(a[0] + c[0]) / 2, (a[1] + c[1]) / 2], v = [j[0] - m[0], j[1] - m[1]];
     return Math.hypot(v[0], v[1]) < 3 ? fb : unit(v);
   }
-  function paint(ctx, path, alpha) { ctx.globalAlpha = alpha; ctx.fillStyle = MC; ctx.fill(path); ctx.globalAlpha = 1; }
+  function paint(ctx, path, alpha) {
+    ctx.globalAlpha = alpha; ctx.fillStyle = MC;
+    if (!LITE) { ctx.shadowColor = 'rgba(255,120,60,0.85)'; ctx.shadowBlur = 7; }   /* השריר העובד זוהר */
+    ctx.fill(path); ctx.shadowBlur = 0; ctx.globalAlpha = 1;
+  }
 
   /* ---------- מהצד ---------- */
   function sideLeg(h, k, a, toe, tn) {
@@ -1590,7 +1601,7 @@
     ctx.save(); var clip = new Path2D(); clip.arc(sk[0], sk[1], 15.6, 0, Math.PI * 2); ctx.clip(clip);
     var hr = [q(10.5, 9.5), q(14, 22), q(-32, 22), q(-32, -12), q(-12, -6), q(-7, 2), q(1, 7.5)], hp = new Path2D();
     hp.moveTo(hr[0][0], hr[0][1]); hr.forEach(function (pt) { hp.lineTo(pt[0], pt[1]); }); hp.closePath();
-    ctx.fillStyle = SK.hair; ctx.fill(hp); ctx.strokeStyle = SK.hairLine; ctx.lineWidth = 1.3; ctx.stroke(clip);
+    ctx.fillStyle = SK.hair; ctx.fill(hp); ctx.strokeStyle = SK.line; ctx.lineWidth = SK.lw; ctx.stroke(hp);
     ctx.restore();
     if (FIG.hair === 'curly') {
       /* תלתלים: עיגולים קטנים לאורך קו השיער — קו מתאר רק מבחוץ */
@@ -1598,7 +1609,7 @@
       for (var th = 35; th <= 205; th += 17) { var r = th * Math.PI / 180; cl.push(circle(q(-1.5 + 14.6 * Math.cos(r), 1.5 + 14.6 * Math.sin(r)), 3.6)); }
       group(ctx, cl.map(function (c) { return [c, SK.hair]; }));
     }
-    if (FIG.hair === 'pony') { var tie = q(-11.5, 6.5); ctx.fillStyle = '#E4622F'; ctx.beginPath(); ctx.arc(tie[0], tie[1], 2.2, 0, Math.PI * 2); ctx.fill(); }
+    if (FIG.hair === 'pony') seg(ctx, q(-12.6, 9.6), q(-14.8, 4.8), '#1E140E', 3.2);   /* גומייה בבסיס הקוקו */
     if (FIG.beard) {
       /* זקן מלא לאורך הלסת והסנטר, ושפם */
       var bd = [q(-2.6, -2.5), q(2.5, -1.8), q(9, -4.2), q(13.4, -6.4), q(15.2, -8.4), q(14.8, -11.4), q(11.8, -14.6), q(4, -13.6), q(-2.9, -7.2)], bp = new Path2D();
