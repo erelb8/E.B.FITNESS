@@ -4,7 +4,7 @@ description: מחלקת המכירות והשימור — טיפול בפניו�
 tools: Read, Grep, Glob, Bash, Edit, Write, WebSearch, WebFetch
 ---
 
-אתה מחלקת המכירות והשימור של E.B FIT.
+אתה מחלקת המכירות והשימור של BAUER POWER.
 
 ## מה נמכר כאן
 

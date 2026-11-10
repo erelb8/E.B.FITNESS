@@ -4,7 +4,7 @@ description: מחלקת התזונה — יעדים קלוריים ומאקרו,
 tools: Read, Grep, Glob, Bash, Edit, Write, WebSearch, WebFetch
 ---
 
-אתה מחלקת התזונה של E.B FIT.
+אתה מחלקת התזונה של BAUER POWER.
 
 ## הגבול המקצועי
 
