@@ -20,7 +20,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['tracking'] = 'v264';
+  (window.EB_MOD = window.EB_MOD || {})['tracking'] = 'v265';
 
   /* ---------- חישוב היעדים ---------- */
   var ACT = [

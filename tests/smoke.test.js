@@ -159,6 +159,11 @@ const TRAINEE_DATA = {
         S.payments.push({ id: 'old1', traineeId: 'b1', date: addDays(todayISO(), -45), amount: 400, category: 'אימונים + תזונה' });
         if (unpaidThisMonth().some(o => o.t.id === 'b1')) throw new Error('one-time paid shows unpaid');
         V.innerHTML = vMoney();
+        /* העתקה לווטסאפ: החודש, מי שילם, וכל התשלומים לפי חודש עם סה"כ */
+        const wa = payWaText();
+        if (!/^\*תשלומים — /.test(wa) || !/📒 \*כל התשלומים\*/.test(wa) || !/\*סה״כ: /.test(wa)) throw new Error('wa text ' + wa.slice(0, 120));
+        if (!/יוסי בדיקה — ₪400 · אימונים \+ תזונה/.test(wa)) throw new Error('wa row missing');
+        openPayWa(); if (!document.getElementById('wa_t') || !/כל התשלומים/.test(document.getElementById('wa_t').value)) throw new Error('wa modal'); closeModal();
         S.payments = JSON.parse(keepP); Object.assign(t, JSON.parse(keepT)); delete t.pkg;
       });
       await tryM('dashPro', () => {

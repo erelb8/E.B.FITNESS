@@ -6,7 +6,7 @@
 <title>BAUER POWER — ניהול מתאמנים</title>
 
 <!-- ===== PWA — הופך את האתר לאפליקציה במסך הבית ===== -->
-<link rel="manifest" href="manifest.json?v=v264">
+<link rel="manifest" href="manifest.json?v=v265">
 <meta name="theme-color" content="#1C140E">
 <meta name="description" content="מערכת לניהול מתאמנים, תוכניות אימון, יומן ותשלומים">
 
@@ -15,9 +15,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="BAUER POWER">
-<link rel="apple-touch-icon" href="icons/icon-180.png?v=v264">
-<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=v264">
-<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=v264">
+<link rel="apple-touch-icon" href="icons/icon-180.png?v=v265">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=v265">
+<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=v265">
 <meta name="format-detection" content="telephone=no">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -467,11 +467,11 @@ tbody tr:hover{background:var(--panel)}
   .rep-sub{flex-basis:100%;margin-inline-start:106px}
 }
 </style>
-<link rel="stylesheet" href="ui-fx.css?v=v264">
+<link rel="stylesheet" href="ui-fx.css?v=v265">
 </head>
 <body>
 <header class="top">
-  <div class="brand"><img class="brand-logo" src="icons/logo-96.png?v=v264" alt="" width="30" height="30"><span class="brand-word" dir="ltr">BAUER<span class="dot"></span>POWER</span> <small id="brandSub">ניהול מתאמנים</small></div>
+  <div class="brand"><img class="brand-logo" src="icons/logo-96.png?v=v265" alt="" width="30" height="30"><span class="brand-word" dir="ltr">BAUER<span class="dot"></span>POWER</span> <small id="brandSub">ניהול מתאמנים</small></div>
   <div class="spacer"></div>
   <button class="syncpill s-off" id="syncPill" onclick="go('settings')" title="מצב סנכרון">מקומי בלבד</button>
   <span class="now" id="topDate"></span>
@@ -489,8 +489,8 @@ tbody tr:hover{background:var(--panel)}
 <div id="toast"></div>
 
 <!-- ספריית Supabase מקומית (לא מ-CDN) כדי שהאפליקציה תעבוד גם בלי רשת -->
-<script src="vendor/supabase.js?v=v264"></script>
-<script src="config.js?v=v264"></script>
+<script src="vendor/supabase.js?v=v265"></script>
+<script src="config.js?v=v265"></script>
 
 <script>
 /* =======================================================================
@@ -525,7 +525,7 @@ function age(b){ if(!b) return null; const d=new Date(b), t=new Date(); let a=t.
 
 /* ---------------- אחסון ---------------- */
 const KEY='ebfit_v1';
-const EB_VERSION='v264';   // חייב להתאים ל-VERSION ב-sw.js
+const EB_VERSION='v265';   // חייב להתאים ל-VERSION ב-sw.js
 window.EB_APP_VER=EB_VERSION;   // נשלח בכל שורה — השרת דוחה גרסאות ישנות (sync.js)
 let mem=null, canStore=true;
 function load(){
@@ -3414,13 +3414,56 @@ function payMonthCard(){
    +'</div>';
 }
 
+/* כל התשלומים כטקסט מסודר להעתקה ולווטסאפ (נובמבר 2026, לבקשת אראל).
+   למעלה — החודש שמוצג בכרטיס "מי שילם": מי שילם ומי עוד לא. אחריו כל
+   התשלומים לפי חודש, מהחדש לישן, עם סכום לכל חודש וסה"כ. *כוכביות*
+   הן הדגשה בווטסאפ. */
+function payWaText(){
+  const mon=PAYM||todayISO().slice(0,7), [y,m]=mon.split('-').map(Number);
+  const L=['*תשלומים — '+(S.settings.business||'E.B FIT')+'*',''];
+  const act=S.trainees.filter(t=>t.status==='active');
+  const rows=act.map(t=>{ const p=pkgOf(t), got=pkgPaid(t,mon);
+    return {t,p,got,due:!p||p.monthly||!got||(got.date||'').slice(0,7)===mon}; }).filter(r=>r.due)
+    .sort((a,b)=>a.t.name.localeCompare(b.t.name,'he'));
+  if(rows.length){
+    const paid=rows.filter(r=>r.got), open=rows.filter(r=>!r.got);
+    const inMon=S.payments.filter(x=>(x.date||'').slice(0,7)===mon).reduce((a,x)=>a+Number(x.amount||0),0);
+    L.push('*'+HE_MON_FULL[m-1]+' '+y+'* · שילמו '+paid.length+' מתוך '+rows.length+' · נגבה '+moneyTxt(inMon));
+    if(paid.length){ L.push('','✅ *שילמו*'); paid.forEach(r=>L.push('• '+r.t.name+' — '+moneyTxt(r.got.amount)+' · '+fmtDate(r.got.date)+(r.got.method?' · '+r.got.method:''))); }
+    if(open.length){ L.push('','⏳ *עוד לא שילמו*'); open.forEach(r=>L.push('• '+r.t.name+(r.p?' — צפוי '+moneyTxt(r.p.price):''))); }
+    const debt=act.filter(t=>Number(t.balanceDue)>0);
+    if(debt.length){ L.push('','❗ *חובות פתוחים*'); debt.forEach(t=>L.push('• '+t.name+' — '+moneyTxt(t.balanceDue))); }
+    L.push('','──────────','');
+  }
+  const all=S.payments.filter(p=>Number(p.amount)>0).sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  if(!all.length){ L.push('לא נרשמו תשלומים.'); return L.join('\n'); }
+  L.push('📒 *כל התשלומים*');
+  const byM={}; all.forEach(p=>{ const k=(p.date||'').slice(0,7); (byM[k]=byM[k]||[]).push(p); });
+  Object.keys(byM).forEach(k=>{
+    const ps=byM[k], sum=ps.reduce((a,p)=>a+Number(p.amount||0),0), [yy,mm]=k.split('-').map(Number);
+    L.push('','*'+(mm?HE_MON_FULL[mm-1]+' '+yy:'בלי תאריך')+'* — '+moneyTxt(sum)+' ('+ps.length+')');
+    ps.forEach(p=>{ const t=tById(p.traineeId), d=p.date?Number(p.date.slice(8,10))+'.'+Number(p.date.slice(5,7)):'—';
+      L.push('• '+d+' '+(t?t.name:'מתאמן שנמחק')+' — '+moneyTxt(p.amount)+[payCat(p),p.method].filter(Boolean).map(x=>' · '+x).join('')); });
+  });
+  const total=all.reduce((a,p)=>a+Number(p.amount||0),0);
+  L.push('','*סה״כ: '+moneyTxt(total)+'* · '+all.length+' תשלומים');
+  return L.join('\n');
+}
+function openPayWa(){
+  openModal('<div class="mh"><h3>תשלומים לווטסאפ</h3><button class="iconbtn" onclick="closeModal()">✕</button></div><div class="mb">'
+   +'<div class="muted" style="font-size:12.5px;margin-bottom:8px">החודש שמוצג בכרטיס "מי שילם", ואחריו כל התשלומים לפי חודש. אפשר לערוך לפני ההעתקה.</div>'
+   +'<textarea class="f" id="wa_t" style="min-height:320px;line-height:1.6">'+esc(payWaText())+'</textarea></div>'
+   +'<div class="mf"><button class="btn" onclick="navigator.clipboard&&navigator.clipboard.writeText(gv(\'wa_t\')).then(()=>toast(\'הועתק\'))">העתקה</button>'
+   +'<button class="btn ghost" onclick="sendWa(\'\')">פתיחה בווטסאפ</button>'
+   +'<button class="btn ghost" onclick="closeModal()">סגירה</button></div>', true);
+}
 function vMoney(){
   const mon=todayISO().slice(0,7);
   const all=S.payments.slice().sort((a,b)=>b.date.localeCompare(a.date));
   const thisM=all.filter(p=>(p.date||'').slice(0,7)===mon).reduce((a,p)=>a+Number(p.amount||0),0);
   const total=all.reduce((a,p)=>a+Number(p.amount||0),0);
   const due=activeTrainees().reduce((a,t)=>a+Number(t.balanceDue||0),0);
-  let h=head('תשלומים','מעקב הכנסות וחובות פתוחים','<button class="btn" onclick="openPay()">+ תשלום</button>');
+  let h=head('תשלומים','מעקב הכנסות וחובות פתוחים','<button class="btn ghost" onclick="openPayWa()">📋 לווטסאפ</button><button class="btn" onclick="openPay()">+ תשלום</button>');
   h+='<div class="grid g4">'+stat('הכנסות החודש',money(thisM),'')+stat('סה״כ הכנסות',money(total),all.length+' תשלומים')
    +stat('חובות פתוחים',money(due),'')+stat('ממוצע לתשלום',money(all.length?Math.round(total/all.length):0),'')+'</div>';
   h+=payMonthCard();
@@ -4156,41 +4199,41 @@ if (location.protocol === 'file:') {
 }
 </script>
 
-<script src="health.js?v=v264"></script>
-<script src="privacy.js?v=v264"></script>
-<script src="backup.js?v=v264"></script>
-<script src="reorder.js?v=v264"></script>
-<script src="access.js?v=v264"></script>
-<script src="analysis.js?v=v264"></script>
-<script src="reports.js?v=v264"></script>
-<script src="business.js?v=v264"></script>
-<script src="intake.js?v=v264"></script>
-<script src="files.js?v=v264"></script>
-<script src="builder.js?v=v264"></script>
-<script src="import-program.js?v=v264"></script>
-<script src="tracking.js?v=v264"></script>
-<script src="metrics.js?v=v264"></script>
-<script src="targets.js?v=v264"></script>
-<script src="meal-library.js?v=v264"></script>
+<script src="health.js?v=v265"></script>
+<script src="privacy.js?v=v265"></script>
+<script src="backup.js?v=v265"></script>
+<script src="reorder.js?v=v265"></script>
+<script src="access.js?v=v265"></script>
+<script src="analysis.js?v=v265"></script>
+<script src="reports.js?v=v265"></script>
+<script src="business.js?v=v265"></script>
+<script src="intake.js?v=v265"></script>
+<script src="files.js?v=v265"></script>
+<script src="builder.js?v=v265"></script>
+<script src="import-program.js?v=v265"></script>
+<script src="tracking.js?v=v265"></script>
+<script src="metrics.js?v=v265"></script>
+<script src="targets.js?v=v265"></script>
+<script src="meal-library.js?v=v265"></script>
 <!-- חלקים של המאמן בלבד (תאילנדי, פירות). לא נטען ב-t.html בכוונה. -->
-<script src="meal-extra.js?v=v264"></script>
-<script src="progress-chart.js?v=v264"></script>
-<script src="notes.js?v=v264"></script>
-<script src="notes-ui.js?v=v264"></script>
-<script src="guides.js?v=v264"></script>
-<script src="library-ui.js?v=v264"></script>
-<script src="menu-auto.js?v=v264"></script>
-<script src="period-card.js?v=v264"></script>
-<script src="ui-fx.js?v=v264"></script>
-<script src="export-plan.js?v=v264"></script>
-<script src="cardio.js?v=v264"></script>
-<script src="cardio-ui.js?v=v264"></script>
-<script src="exercise-library.js?v=v264"></script>
-<script src="exercise-ui.js?v=v264"></script>
-<script src="video.js?v=v264"></script>
-<script src="anim.js?v=v264"></script>
-<script src="meals.js?v=v264"></script>
-<script src="sync.js?v=v264"></script>
+<script src="meal-extra.js?v=v265"></script>
+<script src="progress-chart.js?v=v265"></script>
+<script src="notes.js?v=v265"></script>
+<script src="notes-ui.js?v=v265"></script>
+<script src="guides.js?v=v265"></script>
+<script src="library-ui.js?v=v265"></script>
+<script src="menu-auto.js?v=v265"></script>
+<script src="period-card.js?v=v265"></script>
+<script src="ui-fx.js?v=v265"></script>
+<script src="export-plan.js?v=v265"></script>
+<script src="cardio.js?v=v265"></script>
+<script src="cardio-ui.js?v=v265"></script>
+<script src="exercise-library.js?v=v265"></script>
+<script src="exercise-ui.js?v=v265"></script>
+<script src="video.js?v=v265"></script>
+<script src="anim.js?v=v265"></script>
+<script src="meals.js?v=v265"></script>
+<script src="sync.js?v=v265"></script>
 <script>
 /* =================== חיבור הסנכרון לאפליקציה =================== */
 
