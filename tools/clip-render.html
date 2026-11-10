@@ -1,0 +1,29 @@
+<!doctype html>
+<!-- עמוד שכבות לסרטוני המאמן (tools/make-clip.js): כותרת, חלון הדמיה, כיתובית -->
+<html lang="he" dir="rtl"><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; background: transparent; font-family: Heebo, sans-serif; }
+  .box { display: inline-block; background: rgba(34,26,18,.93); border-radius: 16px; color: #F2E9DD; }
+  #title { padding: 18px 28px 20px; max-width: 760px; }
+  #t1 { font-weight: 800; font-size: 46px; line-height: 1.15; }
+  #t2 { color: #E4622F; font-weight: 700; font-size: 26px; margin-top: 6px; }
+  #t3 { font-weight: 600; font-size: 26px; margin-top: 12px; direction: ltr; text-align: right; }
+  #t4 { color: #C49A6C; font-size: 21px; margin-top: 2px; direction: ltr; text-align: right; }
+  #panel { width: 440px; padding: 14px 14px 12px; box-sizing: border-box; border: 1px solid #47372A; }
+  #ph { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
+  #ph b { font-size: 22px; } #ph span { font-size: 13px; color: #9A8A7C; direction: ltr; }
+  canvas { width: 412px; height: 330px; display: block; border-radius: 10px; background: #1C150F; }
+  #mus { color: #E4622F; font-size: 18px; font-weight: 700; margin-top: 10px; }
+  #musEn { color: #9A8A7C; font-size: 15px; direction: ltr; text-align: right; }
+  .cue { padding: 14px 30px; max-width: 900px; font-size: 38px; font-weight: 700; border-right: 6px solid #E4622F; border-radius: 14px; }
+</style></head>
+<body>
+  <div id="title" class="box"><div id="t1"></div><div id="t2"></div><div id="t3"></div><div id="t4"></div></div>
+  <br><br>
+  <div id="panel" class="box"><div id="ph"><b>הדמיה</b><span>E.B FIT</span></div>
+    <canvas id="cv" width="824" height="660"></canvas><div id="mus"></div><div id="musEn"></div></div>
+  <br><br>
+  <div id="cue" class="box cue"></div>
+<script src="../exercise-library.js"></script><script src="../anim.js"></script>
+</body></html>
