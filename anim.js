@@ -1264,8 +1264,12 @@
     function line(a, c2, col, w, alpha) { ctx.globalAlpha = alpha == null ? 1 : alpha; ctx.strokeStyle = col; ctx.lineWidth = w;
       ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(c2[0], c2[1]); ctx.stroke(); ctx.globalAlpha = 1; }
     function rect(r, col) { ctx.fillStyle = col; ctx.fillRect(r[0], r[1], r[2], r[3]); }
-    function plate(c, r) { r = r || 22; circ(c, r, C.eq, true); ctx.strokeStyle = C.eqDark; ctx.lineWidth = 2.5;
-      ctx.beginPath(); ctx.arc(c[0], c[1], r - 4, 0, Math.PI * 2); ctx.stroke(); circ(c, 4.5, C.gear, true); }
+    /* ציוד כמו בחדר כושר: צלחות גומי שחורות עם שפה ותוף מתכת. קודם
+       הצלחות היו בצבע עץ בהיר ונראו כמו צעצוע */
+    function plate(c, r) { r = r || 22; circ(c, r, '#2A2A2F', true); ctx.strokeStyle = '#4A4A52'; ctx.lineWidth = 2.5;
+      ctx.beginPath(); ctx.arc(c[0], c[1], r - 3.5, 0, Math.PI * 2); ctx.stroke();
+      ctx.strokeStyle = '#3A3A41'; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.arc(c[0], c[1], r * 0.55, 0, Math.PI * 2); ctx.stroke();
+      circ(c, 5, '#B9B9C0', true); circ(c, 2.2, '#6E6E76', true); }
     function circ(p, r, col, fill) { ctx.beginPath(); ctx.arc(p[0], p[1], r, 0, Math.PI * 2);
       if (fill) { ctx.fillStyle = col; ctx.fill(); } else { ctx.strokeStyle = col; ctx.lineWidth = 4; ctx.stroke(); } }
 
@@ -1323,7 +1327,8 @@
     var h = s.hold, w = b.wr1, w2 = b.wr2;
     if (h === 'plate') { line([w[0] - 4, w[1]], [w2[0] + 4, w2[1]], C.eqDark, 4); plate(w); }
     else if (h === 'back') { plate(add(b.sh, dir(s.res[0].torso - 90), 8)); }
-    else if (h === 'hand') { line([w[0] - 10, w[1]], [w[0] + 10, w[1]], C.eqDark, 4); rect([w[0] - 15, w[1] - 7, 7, 14], C.eq); rect([w[0] + 8, w[1] - 7, 7, 14], C.eq); }
+    else if (h === 'hand') { line([w[0] - 10, w[1]], [w[0] + 10, w[1]], '#A9A9B0', 3.2);
+      [[w[0] - 16, w[1] - 8], [w[0] + 8, w[1] - 8]].forEach(function (r) { rect([r[0], r[1], 8, 16], '#2A2A2F'); rect([r[0] + 1, r[1] + 1, 2, 14], '#4A4A52'); }); }
     else if (h === 'kb') { circ([w[0], w[1] + 14], 12, C.eq, true); line([w[0] - 6, w[1]], [w[0] + 6, w[1]], C.eq, 4); }
     else if (h === 'ball') circ([w[0] + 4, w[1] - 4], 16, C.eq, true);
     else if (h === 'cable' || h === 'anklecable') { var from = h === 'anklecable' ? b.ank2 : w; line(from, s.cable, C.eq, 2.5); circ(s.cable, 7, C.gear, true); }
@@ -1352,7 +1357,8 @@
   function drawFront(ctx, b, s, C) { bodyFrontDraw(ctx, b, s.mus || []); }
   function frontHolds(ctx, b, s, t, line, rect, circ, plate) {
     var h = s.hold, w = b.wr1, w2 = b.wr2;
-    function db(q) { rect([q[0] - 3, q[1] - 12, 6, 24], C.eqDark); rect([q[0] - 7, q[1] - 15, 14, 7], C.eq); rect([q[0] - 7, q[1] + 8, 14, 7], C.eq); }
+    function db(q) { rect([q[0] - 2.5, q[1] - 12, 5, 24], '#A9A9B0'); rect([q[0] - 8, q[1] - 16, 16, 8], '#2A2A2F'); rect([q[0] - 8, q[1] + 8, 16, 8], '#2A2A2F');
+      rect([q[0] - 7, q[1] - 15, 14, 2], '#4A4A52'); rect([q[0] - 7, q[1] + 9, 14, 2], '#4A4A52'); }
     if (h === 'hand') { db(w); db(w2); }
     else if (h === 'hand1') db(w);
     else if (h === 'sidecable' || h === 'sideband') { if (h === 'sideband') ctx.setLineDash([6, 5]);
@@ -1601,7 +1607,7 @@
     ctx.save(); var clip = new Path2D(); clip.arc(sk[0], sk[1], 15.6, 0, Math.PI * 2); ctx.clip(clip);
     var hr = [q(10.5, 9.5), q(14, 22), q(-32, 22), q(-32, -12), q(-12, -6), q(-7, 2), q(1, 7.5)], hp = new Path2D();
     hp.moveTo(hr[0][0], hr[0][1]); hr.forEach(function (pt) { hp.lineTo(pt[0], pt[1]); }); hp.closePath();
-    ctx.fillStyle = SK.hair; ctx.fill(hp); ctx.strokeStyle = SK.line; ctx.lineWidth = SK.lw; ctx.stroke(hp);
+    ctx.fillStyle = SK.hair; ctx.fill(hp); if (FIG.hair !== 'curly') { ctx.strokeStyle = SK.line; ctx.lineWidth = SK.lw; ctx.stroke(hp); }
     ctx.restore();
     if (FIG.hair === 'curly') {
       /* תלתלים: עיגולים קטנים לאורך קו השיער — קו מתאר רק מבחוץ */
