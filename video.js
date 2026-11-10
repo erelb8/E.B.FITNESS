@@ -18,7 +18,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['video'] = 'v258';
+  (window.EB_MOD = window.EB_MOD || {})['video'] = 'v259';
 
   var BUCKET = 'videos';
   var MAX    = 50 * 1024 * 1024;
@@ -259,7 +259,7 @@
 
   window.EBVideo = {
     open: open, btn: btn, card: card, resolve: resolve, key: key,
-    setGeneral: setGeneral, setOwn: setOwn, clearGeneral: clearGeneral, clearOwn: clearOwn,
+    setGeneral: setGeneral, setOwn: setOwn, clearGeneral: clearGeneral, clearOwn: clearOwn, upload: upload,
     cur: function () { return CUR && CUR.name; }
   };
 })();

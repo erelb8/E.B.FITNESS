@@ -20,7 +20,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['mealExtra'] = 'v258';
+  (window.EB_MOD = window.EB_MOD || {})['mealExtra'] = 'v259';
   if (!window.EBLib) return;
   var EBLib = window.EBLib;
 

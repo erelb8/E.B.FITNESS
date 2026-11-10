@@ -22,7 +22,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['anim'] = 'v258';
+  (window.EB_MOD = window.EB_MOD || {})['anim'] = 'v259';
 
   var L = { shin: 62, thigh: 64, torso: 78, uarm: 46, farm: 42, neck: 9, head: 15, foot: 17 };
   var ARM = L.uarm + L.farm;
@@ -1901,7 +1901,10 @@
     'IMG_5096': ['כפיפת מרפקים במוט EZ', 'כפיפות מרפק במוט EZ'],
     '91A01D94-b': ['פיסטול סקוואט'],
     'IMG_3448-a': ['פתיחת ירך בכריעה על ברך'],
-    'IMG_3449-a': ['תולעת מדידה']
+    'IMG_3449-a': ['תולעת מדידה'],
+    'clip-36-pushup-front': ['שכיבות סמיכה'],
+    'clip-37-cuban-press': ['סיבוב קובני עם משקולות', 'סיבוב קובני ביד אחת'],
+    'clip-38-dead-hang': ['תלייה על מתח']
   };
   /* סרטונים שאסור שיגיעו למתאמנים: אנשים אחרים בפריים (מתאמנים ברקע,
      מישהו על ההליכון, יד בפינה). הכלל של אראל — רק הוא בפריים, גם לא
@@ -1951,9 +1954,35 @@
     setTimeout(function () { clipsPurge(); clipsLoad(); }, 0);
     return '<div data-animclips>' + clipsInner() + '</div>';
   }
+  /* הוספה לטיוטות מהאפליקציה עצמה — בלי סקריפט ובלי תוסף כרום. המקור
+     (src) הוא שם הקובץ בלי הסיומת, וכך גם המפתח ב-PUBLISH. קובץ באותו
+     שם מחליף את הקודם. נכנס כטיוטה בלבד — למתאמנים רק אחרי "פרסם הכול". */
+  function addBtn() {
+    return '<label style="font:inherit;font-size:12.5px;padding:6px 12px;border-radius:8px;cursor:pointer;border:1px solid var(--line,#47372A);color:inherit">'
+      + '➕ הוספה לטיוטות<input type="file" accept="video/*" multiple hidden onchange="EBAnim.clipsAdd(this)"></label>';
+  }
+  async function clipsAdd(inp) {
+    var files = Array.prototype.slice.call(inp.files || []); inp.value = '';
+    if (!files.length || !window.EBVideo || !EBVideo.upload) return;
+    var list = clips().slice(), n = 0;
+    for (var i = 0; i < files.length; i++) {
+      var f = files[i], src = f.name.replace(/\.[^.]+$/, '');
+      var v = await EBVideo.upload(f, 'clips'); if (!v) continue;
+      var ex = (PUBLISH[src] || [])[0] || src;
+      var old = list.filter(function (c) { return c.src === src; });
+      list = list.filter(function (c) { return c.src !== src; });
+      list.push({ url: v.url, path: v.path, size: v.size, at: v.at, exercise: ex, name: ex, src: src });
+      n++;
+      old.forEach(function (c) { try { if (c.path) EBSync.client().storage.from('videos').remove([c.path]); } catch (e) {} });
+    }
+    if (!n) return;
+    try { await clipsSave(list); } catch (e) { alert('הסרטונים עלו אבל הרשימה לא נשמרה — בדקו את החיבור ונסו שוב.'); return; }
+    if (typeof toast === 'function') toast(n === 1 ? 'הסרטון נוסף לטיוטות' : n + ' סרטונים נוספו לטיוטות');
+    var box = document.querySelector('[data-animclips]'); if (box) box.innerHTML = clipsInner();
+  }
   function clipsInner() {
     var list = clips();
-    if (!list.length) return '';
+    if (!list.length) return '<div class="card" style="margin-bottom:12px;display:flex;align-items:center;gap:8px"><h3 style="flex:1;font-size:16px;margin:0">🎬 הסרטונים שלי · טיוטה</h3>' + addBtn() + '</div>';
     var mb = list.reduce(function (a, c) { return a + (c.size || 0); }, 0) / 1048576;
     var h = '<div class="card" style="margin-bottom:12px"><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px">'
       + '<h3 style="flex:1;font-size:16px;margin:0">🎬 הסרטונים שלי · טיוטה</h3>'
@@ -1962,7 +1991,7 @@
           + '<button onclick="EBAnim.clipsUnpublish()" style="font:inherit;font-size:12px;padding:5px 10px;border-radius:8px;cursor:pointer;background:transparent;border:1px solid var(--line,#47372A);color:var(--mut,#9A8A7C)">הסתרה מהמתאמנים</button>'
         : '<span style="font-size:12px;padding:3px 10px;border-radius:20px;border:1px solid var(--line,#47372A);color:var(--mut,#9A8A7C)">🔒 לא גלוי למתאמנים</span>')
       + '<button onclick="EBAnim.clipsPublish()" style="font:inherit;font-size:12.5px;font-weight:700;padding:6px 12px;border-radius:8px;cursor:pointer;background:#E4622F;border:0;color:#fff">📢 פרסם הכול למתאמנים</button>'
-      + '<span style="font-size:12px;color:var(--mut,#9A8A7C)">' + list.length + ' סרטונים · ' + mb.toFixed(1) + 'MB</span></div>'
+      + addBtn() + '<span style="font-size:12px;color:var(--mut,#9A8A7C)">' + list.length + ' סרטונים · ' + mb.toFixed(1) + 'MB</span></div>'
       + '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px">';
     list.forEach(function (c, i) {
       h += '<div style="background:var(--ink,#1C150F);border:1px solid var(--line,#47372A);border-radius:12px;padding:8px">'
@@ -2031,6 +2060,6 @@
 
   window.EBAnim = { classify: classify, mount: mount, mountAll: mountAll, has: has, label: label,
                     open: open, close: close, view: libView, search: search, muscle: muscle, more: more,
-                    openLibrary: openLibrary, closeLibrary: closeLibrary, muscles: muscles, MUSCLES: MUS_HE, clipDelete: clipDelete, clipsPublish: clipsPublish, clipsUnpublish: clipsUnpublish, clipsLoad: clipsLoad, clipsSave: clipsSave, clips: clips, blocked: blocked, clipsPurge: clipsPurge,
+                    openLibrary: openLibrary, closeLibrary: closeLibrary, muscles: muscles, MUSCLES: MUS_HE, clipDelete: clipDelete, clipsPublish: clipsPublish, clipsUnpublish: clipsUnpublish, clipsLoad: clipsLoad, clipsSave: clipsSave, clips: clips, blocked: blocked, clipsPurge: clipsPurge, clipsAdd: clipsAdd,
                     PATTERNS: P, _frame: frame, _build: build, _draw: draw };
 })();
