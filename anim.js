@@ -22,7 +22,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['anim'] = 'v260';
+  (window.EB_MOD = window.EB_MOD || {})['anim'] = 'v261';
 
   var L = { shin: 62, thigh: 64, torso: 78, uarm: 46, farm: 42, neck: 9, head: 15, foot: 17 };
   var ARM = L.uarm + L.farm;
@@ -1407,6 +1407,9 @@
     fshoe:  [[0, 3.4, 4.4], [0.5, 4.8, 4.6], [1, 3.4, 4.4]]
   };
   /* ---------- שתי דמויות: גבר ואישה ----------
+     האישה (נובמבר 2026) לפי מאמנת שביקשה: שיער ארוך חום-בהיר עם קצוות
+     בהירים, אסוף בקוקו באימון, משקפיים דקים, שיזוף בהיר, גוף רזה ומעוצב,
+     סט אימון שחור. דמות מאוירת כללית — בלי פנים מזוהות.
      הגבר לפי אראל: גוף V (כתפיים רחבות, מותן צר), זרועות מלאות, שיער
      מתולתל, זקן מלא עם שפם, גופייה שחורה ומכנסיים קצרים כהים. האישה:
      שחומה, כתפיים צרות יותר, מותן צר ואגן רחב, גפיים דקות, קוקו ארוך
@@ -1425,8 +1428,9 @@
                     [0.95, 24.5, 24.5], [1.02, 20.5, 20.5], [1.1, 8, 8]],
            fuarm: [[0, 8.2, 6.8], [0.3, 8, 6.8], [0.7, 6, 5.5], [1, 4.6, 4.6]] }),
          top: [0.12, 1], legs: 'shorts', hair: 'curly', beard: true },
-    f: { sk: Object.assign({}, SK0, { skin: '#A86F48', skinFar: '#73472D', shirt: '#1C1C21', shirtFar: '#121215',
-                                      shorts: '#5E3B27', shortsFar: '#3F271A', hair: '#3B2416', hairLine: '#61402A', shoe: '#F3EDE6' }),
+    f: { sk: Object.assign({}, SK0, { skin: '#C99169', skinFar: '#916447', shirt: '#17171B', shirtFar: '#0F0F12',
+                                      shorts: '#202026', shortsFar: '#15151A', hair: '#6E4A30', hairLine: '#B08559', shoe: '#F3EDE6',
+                                      glasses: '#2A1E16' }),
          kt: Object.assign({}, KT0, {
            thigh: [[0, 9, 9], [0.3, 9.2, 8.2], [0.65, 7.1, 6.7], [0.92, 5.3, 5.1], [1, 5, 5]],
            shin:  [[0, 5, 4.9], [0.15, 4.3, 6], [0.3, 4, 6.4], [0.55, 3.5, 4.6], [0.85, 2.9, 3], [1, 2.8, 2.8]],
@@ -1441,7 +1445,7 @@
            fuarm:  [[0, 6.4, 5.4], [0.3, 6.2, 5.4], [0.7, 4.8, 4.4], [1, 3.8, 3.8]],
            ftorso: [[-0.18, 17.5, 17.5], [0, 19.5, 19.5], [0.15, 16, 16], [0.38, 12.3, 12.3], [0.6, 14, 14], [0.8, 16.5, 16.5],
                     [0.95, 18.5, 18.5], [1.02, 16, 16], [1.1, 7, 7]] }),
-         top: [0.6, 1], legs: 'leggings', hair: 'pony', beard: false }
+         top: [0.6, 1], legs: 'leggings', hair: 'pony', beard: false, glasses: true }
   };
   var FIG = FIGS.m, FIG_DEF = 'm';
   function useFig(g) { FIG = FIGS[g] || FIGS.m; SK = FIG.sk; KT = FIG.kt; }
@@ -1569,8 +1573,11 @@
       pt.moveTo(a0[0], a0[1]); pt.quadraticCurveTo(c1[0], c1[1], e1[0], e1[1]); pt.quadraticCurveTo(c2[0], c2[1], e2[0], e2[1]);
       pt.quadraticCurveTo(c3[0], c3[1], e3[0], e3[1]); pt.quadraticCurveTo(c4[0], c4[1], e4[0], e4[1]); pt.closePath();
       group(ctx, [[pt, SK.hair]]);
-      ctx.strokeStyle = SK.hairLine; ctx.lineWidth = 1; ctx.beginPath(); var h1 = q(-20, 2), h2 = q(-24, -16);
+      ctx.strokeStyle = SK.hairLine; ctx.lineWidth = 1.6; ctx.beginPath(); var h1 = q(-20, 2), h2 = q(-24, -16);
       ctx.moveTo(h1[0], h1[1]); ctx.quadraticCurveTo(q(-25, -6)[0], q(-25, -6)[1], h2[0], h2[1]); ctx.stroke();
+      /* קצוות בהירים */
+      ctx.save(); ctx.clip(pt); ctx.fillStyle = SK.hairLine; ctx.globalAlpha = 0.75;
+      var lo = q(-24, -20); ctx.beginPath(); ctx.ellipse(lo[0], lo[1], 7, 9, 0, 0, Math.PI * 2); ctx.fill(); ctx.restore();
     }
     var face = new Path2D(), pts = [q(-3, 9), q(6, 12.5), q(12, 8.5), q(14.3, 3.2), q(13.6, 0.6), q(15.4, -2), q(17, -3.6),
       q(14.6, -5.2), q(14.8, -7.4), q(13.8, -8.8), q(14.3, -10.8), q(11.5, -13.8), q(4, -12.6), q(-2.5, -6.5), q(-5, 2)];
@@ -1605,6 +1612,12 @@
     seg(ctx, q(8, 4.4), q(13.2, 4.8), SK.hair, 1.8);
     seg(ctx, q(12.4, -8), q(14.2, -7.8), FIG.beard ? '#5A3322' : '#A8463E', FIG.beard ? 1.1 : 1.5);
     if (FIG.hair === 'pony') seg(ctx, q(10, 2.2), q(12.6, 2.9), SK.line, 0.9);   /* ריסים */
+    if (FIG.glasses) {
+      /* משקפיים דקים: עדשה מול העין וזרוע עד האוזן */
+      var lc = q(11.4, 1.2); ctx.strokeStyle = SK.glasses; ctx.lineWidth = 1.2;
+      ctx.beginPath(); ctx.ellipse(lc[0], lc[1], 3.6, 3.1, ang, 0, Math.PI * 2); ctx.stroke();
+      seg(ctx, q(7.8, 1.8), q(-1.5, 0.5), SK.glasses, 1.1);
+    }
   }
   function circle(c, r) { var p = new Path2D(); p.arc(c[0], c[1], r, 0, Math.PI * 2); return p; }
   function seg(ctx, a, c, col, w) { ctx.strokeStyle = col; ctx.lineWidth = w; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(c[0], c[1]); ctx.stroke(); }
@@ -1744,6 +1757,11 @@
       seg(ctx, q(2.6 * sd, 3.6), q(7.4 * sd, 4), SK.hair, 1.6);
     });
     seg(ctx, q(0, -1.5), q(0.9, -5.2), '#B07A58', 1.2);
+    if (FIG.glasses) {
+      ctx.strokeStyle = SK.glasses; ctx.lineWidth = 1.2;
+      [-1, 1].forEach(function (sd) { var c = q(4.9 * sd, 0.5); ctx.beginPath(); ctx.ellipse(c[0], c[1], 3.7, 3.2, ang, 0, Math.PI * 2); ctx.stroke(); });
+      seg(ctx, q(-1.3, 1), q(1.3, 1), SK.glasses, 1.1);
+    }
     if (FIG.beard) { seg(ctx, q(-4.6, -6.6), q(4.6, -6.6), SK.hair, 2.8); seg(ctx, q(-2.6, -9.2), q(2.6, -9.2), '#5A3322', 1.2); }
     else seg(ctx, q(-2.8, -8.8), q(2.8, -8.8), '#A8463E', 1.6);
   }
