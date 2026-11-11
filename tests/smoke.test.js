@@ -202,6 +202,8 @@ const TRAINEE_DATA = {
           closeModal();
         }
         delete t.diet;
+        /* בחירת הדיאטה יושבת ב"הגדרות התוכנית" — פס שנפתח בלחיצה (נובמבר 2026) */
+        PROG_SET_OPEN.a1 = true;
         VIEW = 'trainee'; ARG = 'a1'; SUBTAB = 'nutri'; V.innerHTML = vTrainee('a1');
         if (!/קיטו עתיר חלבון/.test(V.textContent)) throw new Error('no diet picker');
       });
