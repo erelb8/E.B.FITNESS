@@ -6,7 +6,7 @@
 <title>BAUER POWER — ניהול מתאמנים</title>
 
 <!-- ===== PWA — הופך את האתר לאפליקציה במסך הבית ===== -->
-<link rel="manifest" href="manifest.json?v=v268">
+<link rel="manifest" href="manifest.json?v=v269">
 <meta name="theme-color" content="#1C140E">
 <meta name="description" content="מערכת לניהול מתאמנים, תוכניות אימון, יומן ותשלומים">
 
@@ -15,9 +15,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="BAUER POWER">
-<link rel="apple-touch-icon" href="icons/icon-180.png?v=v268">
-<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=v268">
-<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=v268">
+<link rel="apple-touch-icon" href="icons/icon-180.png?v=v269">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=v269">
+<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=v269">
 <meta name="format-detection" content="telephone=no">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -483,11 +483,11 @@ tbody tr:hover{background:var(--panel)}
   .rep-sub{flex-basis:100%;margin-inline-start:106px}
 }
 </style>
-<link rel="stylesheet" href="ui-fx.css?v=v268">
+<link rel="stylesheet" href="ui-fx.css?v=v269">
 </head>
 <body>
 <header class="top">
-  <div class="brand"><img class="brand-logo" src="icons/logo-96.png?v=v268" alt="" width="30" height="30"><span class="brand-word" dir="ltr">BAUER<span class="dot"></span>POWER</span> <small id="brandSub">ניהול מתאמנים</small></div>
+  <div class="brand"><img class="brand-logo" src="icons/logo-96.png?v=v269" alt="" width="30" height="30"><span class="brand-word" dir="ltr">BAUER<span class="dot"></span>POWER</span> <small id="brandSub">ניהול מתאמנים</small></div>
   <div class="spacer"></div>
   <button class="syncpill s-off" id="syncPill" onclick="go('settings')" title="מצב סנכרון">מקומי בלבד</button>
   <span class="now" id="topDate"></span>
@@ -505,8 +505,8 @@ tbody tr:hover{background:var(--panel)}
 <div id="toast"></div>
 
 <!-- ספריית Supabase מקומית (לא מ-CDN) כדי שהאפליקציה תעבוד גם בלי רשת -->
-<script src="vendor/supabase.js?v=v268"></script>
-<script src="config.js?v=v268"></script>
+<script src="vendor/supabase.js?v=v269"></script>
+<script src="config.js?v=v269"></script>
 
 <script>
 /* =======================================================================
@@ -541,7 +541,7 @@ function age(b){ if(!b) return null; const d=new Date(b), t=new Date(); let a=t.
 
 /* ---------------- אחסון ---------------- */
 const KEY='ebfit_v1';
-const EB_VERSION='v268';   // חייב להתאים ל-VERSION ב-sw.js
+const EB_VERSION='v269';   // חייב להתאים ל-VERSION ב-sw.js
 window.EB_APP_VER=EB_VERSION;   // נשלח בכל שורה — השרת דוחה גרסאות ישנות (sync.js)
 let mem=null, canStore=true;
 function load(){
@@ -1807,14 +1807,20 @@ function vTrainees(){
   if(Q) list=list.filter(t=>(t.name+' '+(t.phone||'')+' '+(t.goal||'')+' '+(t.tags||[]).join(' ')).includes(Q));
   list.sort((a,b)=>a.name.localeCompare(b.name,'he'));
 
+  /* פעולות לכל המתאמנים יחד (ושינויים גורפים בתוכניות) — בתפריט אחד.
+     שש מהן עמדו בראש המסך ודחפו את רשימת המתאמנים מחוץ למסך בטלפון,
+     ו"השלמה ל-9 תרגילים לכולם" הייתה במרחק לחיצה אחת בטעות */
   let h=head('מתאמנים','ניהול תיקים אישיים ותוכניות אימון',
-    '<button class="btn ghost" onclick="bulkLogins()">הפעלת כניסה לכולם</button>'
-   +'<button class="btn ghost" onclick="EBExUI.fillAll(9)">השלמה ל-9 תרגילים לכולם</button>'
-   +'<button class="btn ghost" onclick="EBImport.fromAttached(9)">📄 ייבוא מהקבצים המצורפים</button>'
-   +'<button class="btn ghost" onclick="EBExUI.applyGoalAll()">🎯 התאמה למטרה לכולם</button>'
-   +'<label class="btn ghost" style="cursor:pointer">ייבוא מתאמן<input type="file" accept="application/json,.json" hidden onchange="importTrainee(event)"></label>'
-   +'<button class="btn ghost" onclick="EBIntake.open()">קליטה משאלון</button>'
+    '<button class="btn ghost" onclick="BULK_OPEN=!BULK_OPEN;render()">פעולות '+(BULK_OPEN?'▴':'▾')+'</button>'
    +'<button class="btn" onclick="editTrainee()">+ מתאמן חדש</button>');
+  if(BULK_OPEN) h+='<div class="card" style="margin-bottom:14px;padding:12px"><div class="row" style="flex-wrap:wrap;gap:8px">'
+   +'<button class="btn sm ghost" onclick="EBIntake.open()">קליטה משאלון</button>'
+   +'<label class="btn sm ghost" style="cursor:pointer">ייבוא מתאמן<input type="file" accept="application/json,.json" hidden onchange="importTrainee(event)"></label>'
+   +'<button class="btn sm ghost" onclick="EBImport.fromAttached(9)">📄 ייבוא מהקבצים המצורפים</button>'
+   +'<button class="btn sm ghost" onclick="bulkLogins()">הפעלת כניסה לכולם</button>'
+   +'<button class="btn sm ghost" onclick="EBExUI.fillAll(9)">השלמה ל-9 תרגילים לכולם</button>'
+   +'<button class="btn sm ghost" onclick="EBExUI.applyGoalAll()">🎯 התאמה למטרה לכולם</button>'
+   +'</div></div>';
   h+='<div class="row" style="margin-bottom:16px">'
    +'<div class="search"><span>⌕</span><input placeholder="חיפוש לפי שם, טלפון או מטרה" value="'+esc(Q)+'" oninput="Q=this.value;render();this.focus()"></div>'
    +filtBtn('all','הכול')+filtBtn('active','פעילים')+filtBtn('archived','ארכיון')+'</div>';
@@ -2420,7 +2426,8 @@ var REPORT_PERIOD = 'week';
 function setReportPeriod(k){ REPORT_PERIOD = k; render(); }
 
 var DAY_OPEN = {};
-var PROG_SET_OPEN = {};   // הגדרות התוכנית (תזונה, יעדים, חימום...) — פתוח/סגור לכל מתאמן
+var PROG_SET_OPEN = {};
+var BULK_OPEN = false;    // תפריט "פעולות" במסך המתאמנים   // הגדרות התוכנית (תזונה, יעדים, חימום...) — פתוח/סגור לכל מתאמן
 function toggleDay(tid, di, ev){
   if(ev && ev.target && ev.target.closest('input,button')) return;
   const k = tid+':'+di;
@@ -4243,41 +4250,41 @@ if (location.protocol === 'file:') {
 }
 </script>
 
-<script src="health.js?v=v268"></script>
-<script src="privacy.js?v=v268"></script>
-<script src="backup.js?v=v268"></script>
-<script src="reorder.js?v=v268"></script>
-<script src="access.js?v=v268"></script>
-<script src="analysis.js?v=v268"></script>
-<script src="reports.js?v=v268"></script>
-<script src="business.js?v=v268"></script>
-<script src="intake.js?v=v268"></script>
-<script src="files.js?v=v268"></script>
-<script src="builder.js?v=v268"></script>
-<script src="import-program.js?v=v268"></script>
-<script src="tracking.js?v=v268"></script>
-<script src="metrics.js?v=v268"></script>
-<script src="targets.js?v=v268"></script>
-<script src="meal-library.js?v=v268"></script>
+<script src="health.js?v=v269"></script>
+<script src="privacy.js?v=v269"></script>
+<script src="backup.js?v=v269"></script>
+<script src="reorder.js?v=v269"></script>
+<script src="access.js?v=v269"></script>
+<script src="analysis.js?v=v269"></script>
+<script src="reports.js?v=v269"></script>
+<script src="business.js?v=v269"></script>
+<script src="intake.js?v=v269"></script>
+<script src="files.js?v=v269"></script>
+<script src="builder.js?v=v269"></script>
+<script src="import-program.js?v=v269"></script>
+<script src="tracking.js?v=v269"></script>
+<script src="metrics.js?v=v269"></script>
+<script src="targets.js?v=v269"></script>
+<script src="meal-library.js?v=v269"></script>
 <!-- חלקים של המאמן בלבד (תאילנדי, פירות). לא נטען ב-t.html בכוונה. -->
-<script src="meal-extra.js?v=v268"></script>
-<script src="progress-chart.js?v=v268"></script>
-<script src="notes.js?v=v268"></script>
-<script src="notes-ui.js?v=v268"></script>
-<script src="guides.js?v=v268"></script>
-<script src="library-ui.js?v=v268"></script>
-<script src="menu-auto.js?v=v268"></script>
-<script src="period-card.js?v=v268"></script>
-<script src="ui-fx.js?v=v268"></script>
-<script src="export-plan.js?v=v268"></script>
-<script src="cardio.js?v=v268"></script>
-<script src="cardio-ui.js?v=v268"></script>
-<script src="exercise-library.js?v=v268"></script>
-<script src="exercise-ui.js?v=v268"></script>
-<script src="video.js?v=v268"></script>
-<script src="anim.js?v=v268"></script>
-<script src="meals.js?v=v268"></script>
-<script src="sync.js?v=v268"></script>
+<script src="meal-extra.js?v=v269"></script>
+<script src="progress-chart.js?v=v269"></script>
+<script src="notes.js?v=v269"></script>
+<script src="notes-ui.js?v=v269"></script>
+<script src="guides.js?v=v269"></script>
+<script src="library-ui.js?v=v269"></script>
+<script src="menu-auto.js?v=v269"></script>
+<script src="period-card.js?v=v269"></script>
+<script src="ui-fx.js?v=v269"></script>
+<script src="export-plan.js?v=v269"></script>
+<script src="cardio.js?v=v269"></script>
+<script src="cardio-ui.js?v=v269"></script>
+<script src="exercise-library.js?v=v269"></script>
+<script src="exercise-ui.js?v=v269"></script>
+<script src="video.js?v=v269"></script>
+<script src="anim.js?v=v269"></script>
+<script src="meals.js?v=v269"></script>
+<script src="sync.js?v=v269"></script>
 <script>
 /* =================== חיבור הסנכרון לאפליקציה =================== */
 
