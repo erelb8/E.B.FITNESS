@@ -6,7 +6,7 @@
 <title>BAUER POWER — ניהול מתאמנים</title>
 
 <!-- ===== PWA — הופך את האתר לאפליקציה במסך הבית ===== -->
-<link rel="manifest" href="manifest.json?v=v270">
+<link rel="manifest" href="manifest.json?v=v271">
 <meta name="theme-color" content="#1C140E">
 <meta name="description" content="מערכת לניהול מתאמנים, תוכניות אימון, יומן ותשלומים">
 
@@ -15,9 +15,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="BAUER POWER">
-<link rel="apple-touch-icon" href="icons/icon-180.png?v=v270">
-<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=v270">
-<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=v270">
+<link rel="apple-touch-icon" href="icons/icon-180.png?v=v271">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=v271">
+<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=v271">
 <meta name="format-detection" content="telephone=no">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -463,6 +463,18 @@ tbody tr:hover{background:var(--panel)}
   .tstats > .stat .lbl{font-size:11.5px}
   .tstats > .stat .sub{font-size:10.5px}
 }
+/* אריחי לוח הבקרה בטלפון */
+.dtiles{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:2px 0 12px}
+.dtile{display:flex;flex-direction:column;align-items:flex-start;gap:4px;min-height:86px;padding:12px;border-radius:14px;
+  background:var(--card);border:1px solid var(--line);color:var(--tx);font:inherit;text-align:right;cursor:pointer;position:relative}
+.dtile .dt-ic{font-size:20px;line-height:1}
+.dtile .dt-t{font-family:Heebo;font-weight:700;font-size:13.5px;line-height:1.3}
+.dtile .dt-b{position:absolute;top:10px;left:10px;font-family:Heebo;font-weight:800;font-size:12px;padding:2px 8px;border-radius:20px;
+  background:rgba(221,191,142,.14);color:var(--or)}
+.dtile.warn .dt-b{background:rgba(217,96,90,.16);color:var(--bad)}
+.dtile.on{border-color:var(--or);box-shadow:0 0 0 1px var(--or) inset}
+.dpanel{scroll-margin-top:70px;margin-bottom:14px}
+.dpanel > .card:first-of-type,.dpanel .card{margin-top:0}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 @media print{.top,.rail,.mobnav,.noprint{display:none!important}body{background:#fff;color:#000}}
 /* ── דוח אוטומטי ── */
@@ -483,11 +495,11 @@ tbody tr:hover{background:var(--panel)}
   .rep-sub{flex-basis:100%;margin-inline-start:106px}
 }
 </style>
-<link rel="stylesheet" href="ui-fx.css?v=v270">
+<link rel="stylesheet" href="ui-fx.css?v=v271">
 </head>
 <body>
 <header class="top">
-  <div class="brand"><img class="brand-logo" src="icons/logo-96.png?v=v270" alt="" width="30" height="30"><span class="brand-word" dir="ltr">BAUER<span class="dot"></span>POWER</span> <small id="brandSub">ניהול מתאמנים</small></div>
+  <div class="brand"><img class="brand-logo" src="icons/logo-96.png?v=v271" alt="" width="30" height="30"><span class="brand-word" dir="ltr">BAUER<span class="dot"></span>POWER</span> <small id="brandSub">ניהול מתאמנים</small></div>
   <div class="spacer"></div>
   <button class="syncpill s-off" id="syncPill" onclick="go('settings')" title="מצב סנכרון">מקומי בלבד</button>
   <span class="now" id="topDate"></span>
@@ -505,8 +517,8 @@ tbody tr:hover{background:var(--panel)}
 <div id="toast"></div>
 
 <!-- ספריית Supabase מקומית (לא מ-CDN) כדי שהאפליקציה תעבוד גם בלי רשת -->
-<script src="vendor/supabase.js?v=v270"></script>
-<script src="config.js?v=v270"></script>
+<script src="vendor/supabase.js?v=v271"></script>
+<script src="config.js?v=v271"></script>
 
 <script>
 /* =======================================================================
@@ -541,7 +553,7 @@ function age(b){ if(!b) return null; const d=new Date(b), t=new Date(); let a=t.
 
 /* ---------------- אחסון ---------------- */
 const KEY='ebfit_v1';
-const EB_VERSION='v270';   // חייב להתאים ל-VERSION ב-sw.js
+const EB_VERSION='v271';   // חייב להתאים ל-VERSION ב-sw.js
 window.EB_APP_VER=EB_VERSION;   // נשלח בכל שורה — השרת דוחה גרסאות ישנות (sync.js)
 let mem=null, canStore=true;
 function load(){
@@ -1648,6 +1660,11 @@ function vDash(){
      הכרטיס נבנה למטה ומוכנס כאן, לפני המספרים. */
   const ALERTS_AT='<!--alerts-->';
   h+=ALERTS_AT;
+  /* בטלפון: כל חלק הוא אריח (כותרת ומספר), ולחיצה פותחת רק אותו.
+     אראל: "למה הכל באפליקציה בטלפון ארוך... תעשה בועה שאני לוחץ ונפתח
+     כל עמודה בנפרד" (נובמבר 2026). במחשב — כמו קודם, הכול פרוס. */
+  const PHONE=dashPhone();
+  const H0=h; h='';
   h+='<div class="grid g4">'
    + kpi('פעילים השבוע', activeWk, 'מתוך '+act.length, ICO.users, se.act, deltaChip(se.act[0],se.act[1],'משבוע שעבר'))
    + kpi('אימונים השבוע', wkDone, '', ICO.check, se.wo, deltaChip(se.wo[0],se.wo[1],'משבוע שעבר'))
@@ -1655,14 +1672,14 @@ function vDash(){
    + kpi('הכנסות החודש', money(income), meK.expect?'מתוך '+moneyTxt(meK.expect)+' צפוי':pays.length+' תשלומים', ICO.wallet, se.inc,
          se.inc[1]?'<span class="kpi-delta flat">חודש שעבר '+moneyTxt(se.inc[1])+'</span>':'')
    + '</div>';
-  h += dashPulse(se);
-
-  h += genderFixCard();
-  h += dashCheckins();
-  h += dashUnpaid();
-  h += dashNoPlan();
-
-  h+='<div class="dash-top">'+dashFeed()+dashWeek()+'</div>';
+  const kpis=h; h=H0;
+  const pulse=dashPulse(se), gfix=genderFixCard(), ck=dashCheckins(), unp=dashUnpaid();
+  const np = PHONE ? (()=>{ const o=DASH.npOpen; DASH.npOpen=true; const r=dashNoPlan(); DASH.npOpen=o; return r; })() : dashNoPlan();
+  const feed=dashFeed(), week=dashWeek();
+  if(!PHONE){
+    h+=kpis+pulse+gfix+ck+unp+np;
+    h+='<div class="dash-top">'+feed+week+'</div>';
+  }
 
   let alerts='';
   /* קודם כל הגוף. מתאמן שכתב על כאב, או שכל האימונים האחרונים שלו
@@ -1735,12 +1752,41 @@ function vDash(){
   h=h.replace(ALERTS_AT, alertCard+todayCard);
 
   /* גרף שבועי */
-  h+='<div class="card" style="margin-top:14px"><div class="row" style="margin-bottom:16px"><h3 style="flex:1;font-size:16px">אימונים שבוצעו — 8 שבועות אחרונים</h3>'
+  const chart='<div class="card" style="margin-top:14px"><div class="row" style="margin-bottom:16px"><h3 style="flex:1;font-size:16px">אימונים שבוצעו — 8 שבועות אחרונים</h3>'
     +'<span class="muted" style="font-size:12px">דיווחים בדף ואימונים ביומן</span></div>'+weekBars()+'</div>';
+  const calc=S.features.calc?calcCard():'';
+  if(!PHONE) return h+chart+calc;
 
-  if(S.features.calc) h+=calcCard();
+  const npN=S.trainees.filter(x=>x.status==='active' && !planOf(x)).length, unpN=unp?unpaidThisMonth().length:0;
+  const tiles=[
+    {k:'stats', ic:'📊', t:'המספרים', b:activeWk+'/'+act.length+' פעילים', html:kpis+pulse},
+    {k:'feed',  ic:'📝', t:'מה המתאמנים עשו', b:dashEvents().length||'', html:feed},
+    {k:'week',  ic:'🗓', t:'פעילים השבוע', b:activeWk, html:week},
+    unp  && {k:'unpaid', ic:'₪', t:'לא שילמו החודש', b:unpN, warn:true, html:unp},
+    ck   && {k:'ck',  ic:'💬', t:'צ׳ק-אין חודשי', b:'', html:ck},
+    np   && {k:'np',  ic:'⏳', t:'חסרה תקופת מעקב', b:npN, warn:true, html:np},
+    gfix && {k:'gen', ic:'⚧', t:'חסר מין בכרטיס', b:'', warn:true, html:gfix},
+    {k:'chart', ic:'📈', t:'8 שבועות אחרונים', b:'', html:chart},
+    calc && {k:'calc', ic:'🧮', t:'מחשבון', b:'', html:calc}
+  ].filter(Boolean);
+  if(DASH.tile && !tiles.some(x=>x.k===DASH.tile)) DASH.tile='';
+  h+='<div class="dtiles">'+tiles.map(x=>'<button class="dtile'+(DASH.tile===x.k?' on':'')+(x.warn?' warn':'')+'" onclick="dashTile(\''+x.k+'\')">'
+      +'<span class="dt-ic">'+x.ic+'</span><span class="dt-t">'+x.t+'</span>'
+      +(x.b!==''&&x.b!=null?'<span class="dt-b">'+x.b+'</span>':'')+'</button>').join('')+'</div>';
+  const cur=tiles.find(x=>x.k===DASH.tile);
+  if(cur) h+='<div class="dpanel" id="dpanel"><div class="row" style="margin-bottom:8px"><b style="flex:1;font-family:Heebo;font-size:15px">'+cur.ic+' '+cur.t+'</b>'
+      +'<button class="iconbtn" onclick="dashTile(\''+cur.k+'\')" aria-label="סגירה">✕</button></div>'+cur.html+'</div>';
   return h;
 }
+/* טלפון — לפי רוחב המסך, כמו ה-CSS (600px) */
+function dashPhone(){ try{ return !!(window.matchMedia && matchMedia('(max-width:600px)').matches); }catch(e){ return false; } }
+function dashTile(k){
+  DASH.tile = DASH.tile===k ? '' : k;
+  render();
+  if(DASH.tile) setTimeout(()=>{ const p=document.getElementById('dpanel'); if(p) p.scrollIntoView({behavior:'smooth',block:'start'}); },30);
+}
+/* מעבר בין טלפון למחשב (סיבוב מסך, חלון שהוקטן) — לצייר מחדש */
+try{ matchMedia('(max-width:600px)').addEventListener('change',()=>{ if(VIEW==='dash') render(); }); }catch(e){}
 function head(t,sub,actions){
   return '<div class="page-head"><div><h1>'+t+'</h1><p>'+sub+'</p></div><div class="spacer"></div><div class="row noprint">'+(actions||'')+'</div></div>';
 }
@@ -4250,41 +4296,41 @@ if (location.protocol === 'file:') {
 }
 </script>
 
-<script src="health.js?v=v270"></script>
-<script src="privacy.js?v=v270"></script>
-<script src="backup.js?v=v270"></script>
-<script src="reorder.js?v=v270"></script>
-<script src="access.js?v=v270"></script>
-<script src="analysis.js?v=v270"></script>
-<script src="reports.js?v=v270"></script>
-<script src="business.js?v=v270"></script>
-<script src="intake.js?v=v270"></script>
-<script src="files.js?v=v270"></script>
-<script src="builder.js?v=v270"></script>
-<script src="import-program.js?v=v270"></script>
-<script src="tracking.js?v=v270"></script>
-<script src="metrics.js?v=v270"></script>
-<script src="targets.js?v=v270"></script>
-<script src="meal-library.js?v=v270"></script>
+<script src="health.js?v=v271"></script>
+<script src="privacy.js?v=v271"></script>
+<script src="backup.js?v=v271"></script>
+<script src="reorder.js?v=v271"></script>
+<script src="access.js?v=v271"></script>
+<script src="analysis.js?v=v271"></script>
+<script src="reports.js?v=v271"></script>
+<script src="business.js?v=v271"></script>
+<script src="intake.js?v=v271"></script>
+<script src="files.js?v=v271"></script>
+<script src="builder.js?v=v271"></script>
+<script src="import-program.js?v=v271"></script>
+<script src="tracking.js?v=v271"></script>
+<script src="metrics.js?v=v271"></script>
+<script src="targets.js?v=v271"></script>
+<script src="meal-library.js?v=v271"></script>
 <!-- חלקים של המאמן בלבד (תאילנדי, פירות). לא נטען ב-t.html בכוונה. -->
-<script src="meal-extra.js?v=v270"></script>
-<script src="progress-chart.js?v=v270"></script>
-<script src="notes.js?v=v270"></script>
-<script src="notes-ui.js?v=v270"></script>
-<script src="guides.js?v=v270"></script>
-<script src="library-ui.js?v=v270"></script>
-<script src="menu-auto.js?v=v270"></script>
-<script src="period-card.js?v=v270"></script>
-<script src="ui-fx.js?v=v270"></script>
-<script src="export-plan.js?v=v270"></script>
-<script src="cardio.js?v=v270"></script>
-<script src="cardio-ui.js?v=v270"></script>
-<script src="exercise-library.js?v=v270"></script>
-<script src="exercise-ui.js?v=v270"></script>
-<script src="video.js?v=v270"></script>
-<script src="anim.js?v=v270"></script>
-<script src="meals.js?v=v270"></script>
-<script src="sync.js?v=v270"></script>
+<script src="meal-extra.js?v=v271"></script>
+<script src="progress-chart.js?v=v271"></script>
+<script src="notes.js?v=v271"></script>
+<script src="notes-ui.js?v=v271"></script>
+<script src="guides.js?v=v271"></script>
+<script src="library-ui.js?v=v271"></script>
+<script src="menu-auto.js?v=v271"></script>
+<script src="period-card.js?v=v271"></script>
+<script src="ui-fx.js?v=v271"></script>
+<script src="export-plan.js?v=v271"></script>
+<script src="cardio.js?v=v271"></script>
+<script src="cardio-ui.js?v=v271"></script>
+<script src="exercise-library.js?v=v271"></script>
+<script src="exercise-ui.js?v=v271"></script>
+<script src="video.js?v=v271"></script>
+<script src="anim.js?v=v271"></script>
+<script src="meals.js?v=v271"></script>
+<script src="sync.js?v=v271"></script>
 <script>
 /* =================== חיבור הסנכרון לאפליקציה =================== */
 
