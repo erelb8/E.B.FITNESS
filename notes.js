@@ -15,7 +15,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['notes'] = 'v271';
+  (window.EB_MOD = window.EB_MOD || {})['notes'] = 'v272';
 
   /* ---------- רשימות מוכנות לפי נושא ----------
      כתובות כמו שמאמן כותב למתאמן: מה לעשות, ולמה זה משנה.

@@ -76,6 +76,8 @@ async function visit(b, when) {
     /* כמו sync.js: habitsLog: (r.session_state || {}).habits */
     S.trainees = [{ id: 'e', name: 'דני בדיקה', status: 'active', program: { days: [] }, meals: [], habitsLog: habits }];
     S.payments = []; DASH.logs = []; DASH.at = Date.now() + 1e9;
+    /* בטלפון לוח הבקרה הוא אריחים — פותחים את "מה המתאמנים עשו", כמו לחיצה */
+    DASH.tile = 'feed';
     const V = document.getElementById('view'); VIEW = 'dash'; V.innerHTML = vDash();
     const f = V.querySelector('.dash-feed'); return f ? f.innerText : '';
   }, STATE_SRV.habits);

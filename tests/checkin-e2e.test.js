@@ -75,6 +75,8 @@ async function visit(b) {
     S.trainees = [{ id: 'e', name: 'דני בדיקה', status: 'active', program: { days: [] }, meals: [], checkins: ckList },
                   { id: 'f', name: 'רון אחר', status: 'active', program: { days: [] }, meals: [] }];
     S.payments = []; DASH.logs = []; DASH.at = Date.now() + 1e9;
+    /* בטלפון לוח הבקרה הוא אריחים — פותחים את האריח של הצ׳ק-אין, כמו לחיצה */
+    DASH.tile = 'ck';
     const V = document.getElementById('view'); VIEW = 'dash'; V.innerHTML = vDash();
     const card = [].find.call(V.querySelectorAll('.card'), x => /צ׳ק-אין חודשי/.test(x.textContent));
     VIEW = 'trainee'; ARG = 'e'; SUBTAB = 'program';
