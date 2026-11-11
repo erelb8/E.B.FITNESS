@@ -13,8 +13,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="התוכנית שלי">
 <meta name="robots" content="noindex,nofollow">
-<link rel="apple-touch-icon" href="icons/icon-180.png?v=v266">
-<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=v266">
+<link rel="apple-touch-icon" href="icons/icon-180.png?v=v267">
+<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=v267">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -374,12 +374,12 @@ button{cursor:pointer}
 .hstat.dim b{color:var(--dim)}
 @media(max-width:400px){.hstat b{font-size:23px}.hstat span{font-size:10px}}
 </style>
-<link rel="stylesheet" href="ui-fx.css?v=v266">
+<link rel="stylesheet" href="ui-fx.css?v=v267">
 </head>
 <body>
 
 <header class="top">
-  <div class="brand"><img class="brand-logo" src="icons/logo-96.png?v=v266" alt="" width="34" height="34"><span>BAUER<span class="dot"></span>POWER</span></div>
+  <div class="brand"><img class="brand-logo" src="icons/logo-96.png?v=v267" alt="" width="34" height="34"><span>BAUER<span class="dot"></span>POWER</span></div>
   <h1 id="hTitle">טוען…</h1>
   <div class="sub" id="hSub"></div>
   <span class="savechip" id="saveChip" aria-live="polite"></span>
@@ -391,20 +391,20 @@ button{cursor:pointer}
 
 <div id="toast"></div>
 
-<script src="vendor/supabase.js?v=v266"></script>
-<script src="config.js?v=v266"></script>
-<script src="meal-library.js?v=v266"></script>
-<script src="exercise-library.js?v=v266"></script>
-<script src="anim.js?v=v266"></script>
-<script src="progress.js?v=v266"></script>
-<script src="habits.js?v=v266"></script>
-<script src="coach-bot.js?v=v266"></script>
-<script src="progress-chart.js?v=v266"></script>
-<script src="workout-log.js?v=v266"></script>
-<script src="targets.js?v=v266"></script>
-<script src="health.js?v=v266"></script>
-<script src="privacy.js?v=v266"></script>
-<script src="guides.js?v=v266"></script>
+<script src="vendor/supabase.js?v=v267"></script>
+<script src="config.js?v=v267"></script>
+<script src="meal-library.js?v=v267"></script>
+<script src="exercise-library.js?v=v267"></script>
+<script src="anim.js?v=v267"></script>
+<script src="progress.js?v=v267"></script>
+<script src="habits.js?v=v267"></script>
+<script src="coach-bot.js?v=v267"></script>
+<script src="progress-chart.js?v=v267"></script>
+<script src="workout-log.js?v=v267"></script>
+<script src="targets.js?v=v267"></script>
+<script src="health.js?v=v267"></script>
+<script src="privacy.js?v=v267"></script>
+<script src="guides.js?v=v267"></script>
 <script>
 (function () {
   'use strict';
@@ -922,8 +922,11 @@ button{cursor:pointer}
   }
 
   async function myRemove(libId) {
+    const isThis = x => x.custom ? x.name === libId : x.libId === libId;
+    const pos = MY_MEALS.findIndex(isThis);
+    const gone = pos >= 0 ? MY_MEALS[pos] : null;
     const wasCustom = MY_MEALS.some(x => x.custom && x.name === libId);
-    MY_MEALS = MY_MEALS.filter(x => x.custom ? x.name !== libId : x.libId !== libId);
+    MY_MEALS = MY_MEALS.filter(x => !isThis(x));
     if (wasCustom) { writeMy(); syncCustom(); paint(); return; }
     writeMy(); refreshLib(libId);
     try {
@@ -931,7 +934,17 @@ button{cursor:pointer}
         { p_token: TOKEN, p_lib_id: libId });
       if (error) throw error;
       mergeMy(data);
-    } catch (e) {}
+    } catch (e) {
+      /* השרת לא מחק, אז הארוחה עדיין שם. מחזירים רק אותה, בלי לגעת במה
+         שנמחק מאז, ומודיעים. אחרת המתאמן רואה אותה נמחקת, ובפתיחה הבאה
+         היא חוזרת בלי הסבר. */
+      if (gone) {
+        const at = Math.min(pos, MY_MEALS.length);
+        MY_MEALS = MY_MEALS.slice(0, at).concat([gone], MY_MEALS.slice(at));
+      }
+      writeMy(); refreshLib(libId); paint(); repaintFood();
+      toast('לא הצלחנו להסיר. נסה שוב כשתהיה רשת');
+    }
   }
 
   function todayStr() {
@@ -4314,6 +4327,6 @@ button{cursor:pointer}
   });
 })();
 </script>
-<script src="ui-fx.js?v=v266"></script>
+<script src="ui-fx.js?v=v267"></script>
 </body>
 </html>

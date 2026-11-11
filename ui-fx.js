@@ -14,7 +14,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['fx'] = 'v266';
+  (window.EB_MOD = window.EB_MOD || {})['fx'] = 'v267';
 
   var REDUCED = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
   var root = document.getElementById('view') || document.getElementById('wrap');

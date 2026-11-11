@@ -22,7 +22,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['backup'] = 'v266';
+  (window.EB_MOD = window.EB_MOD || {})['backup'] = 'v267';
 
   var LAST_KEY = 'ebfit_backup_at';
   var TABLES = ['trainees', 'sessions', 'measures', 'payments'];
@@ -75,34 +75,53 @@
 
          שגיאה כאן עולה למעלה בכוונה: מי שקרא הוא זה שיודע אם להציג
          אותה למאמן (גיבוי ידני) או לבלוע אותה (אוטומטי). */
-      for (var i = 0; i < TABLES.length; i++) {
-        var t = TABLES[i], rows = [], from = 0, page = 1000;
+      /* שליפה בעמודים של 1000. מי שקורא לה מחליט מה לעשות בשגיאה.
+         סדר קבוע (order) חשוב כשהמתאמנים כותבים בזמן הגיבוי: בלי סדר,
+         שורה שנכנסת באמצע יכולה להזיז את העמודים ולדלג על שורה. */
+      async function pageAll(t, order) {
+        var rows = [], from = 0, page = 1000;
         for (;;) {
-          var r = await sb.from(t).select('*').range(from, from + page - 1);
+          var q = sb.from(t).select('*');
+          if (order) for (var k = 0; k < order.length; k++) q = q.order(order[k]);
+          var r = await q.range(from, from + page - 1);
           if (r.error) throw new Error(t + ': ' + r.error.message);
           rows = rows.concat(r.data || []);
           if (!r.data || r.data.length < page) break;
           from += page;
         }
+        return rows;
+      }
+
+      for (var i = 0; i < TABLES.length; i++) {
+        var t = TABLES[i];
+        var rows = await pageAll(t);
         out.טבלאות[t] = rows;
         counts.push(t + ' ' + rows.length);
         if (onStep) onStep(t);
       }
 
-      /* דיווחי המתאמנים — הטבלה שלא נמצאת ב-S ולכן חסרה בייצוא המקומי */
+      /* מה שנכשל כאן לא עוצר את הגיבוי, אבל נרשם בקובץ (חסר) ומוצג למאמן.
+         גיבוי שנראה שלם וחסר דיווחים הוא בדיוק הסיכון. */
+      out.חסר = [];
+
+      /* דיווחי המתאמנים — הטבלה שלא נמצאת ב-S ולכן חסרה בייצוא המקומי.
+         שולפים בעמודים: limit לבד נחתך בשרת ל-1000 שורות, בשקט. */
       try {
-        var lg = await sb.from('workout_logs').select('*').limit(20000);
-        if (!lg.error) {
-          out.טבלאות.workout_logs = lg.data || [];
-          counts.push('דיווחים ' + (lg.data || []).length);
-        }
-      } catch (e) {}
+        var logs = await pageAll('workout_logs', ['created_at', 'id']);
+        out.טבלאות.workout_logs = logs;
+        counts.push('דיווחים ' + logs.length);
+      } catch (e) {
+        out.חסר.push('דיווחים (' + ((e && e.message) || 'שגיאה') + ')');
+      }
 
       /* העדפות המאמן */
       try {
         var pf = await sb.from('trainer_prefs').select('*');
-        if (!pf.error) out.טבלאות.trainer_prefs = pf.data || [];
-      } catch (e) {}
+        if (pf.error) throw new Error('trainer_prefs: ' + pf.error.message);
+        out.טבלאות.trainer_prefs = pf.data || [];
+      } catch (e) {
+        out.חסר.push('העדפות (' + ((e && e.message) || 'שגיאה') + ')');
+      }
 
       /* רשימת הקבצים — לא התוכן. הקבצים עצמם נשמרים בנפרד, כי
          הטמעתם בבסיס 64 הייתה מנפחת את הקובץ פי עשרה. */
@@ -134,9 +153,13 @@
     try {
       var out = await collect(function (t) { if (btn) btn.textContent = 'מגבה… ' + t; });
       var counts = out._counts || []; delete out._counts;
+      var missing = out.חסר || [];
       save(out, 'ebfit-גיבוי-' + stamp() + '.json');
-      try { localStorage.setItem(LAST_KEY, new Date().toISOString()); } catch (e) {}
-      toast('הגיבוי ירד — ' + counts.join(' · '));
+      /* גיבוי חלקי נשמר לקובץ, אבל לא נרשם כ"גובה": הכרטיס ימשיך להזכיר */
+      if (!missing.length) { try { localStorage.setItem(LAST_KEY, new Date().toISOString()); } catch (e) {} }
+      toast(missing.length
+        ? 'הגיבוי ירד חלקי. לא נשמר: ' + missing.join(' · ')
+        : 'הגיבוי ירד — ' + counts.join(' · '));
       if (typeof render === 'function') render();
     } catch (e) {
       toast('הגיבוי נכשל: ' + ((e && e.message) || 'שגיאה'));
@@ -250,6 +273,13 @@
       /* גיבוי ריק אינו גיבוי. שמירתו הייתה דוחקת עותק תקין מהתור
          של שבעת האחרונים — כלומר הורסת בדיוק את מה שבאנו לשמור. */
       if (!((out.טבלאות || {}).trainees || []).length) return;
+
+      /* גיבוי חלקי לא נכתב אוטומטית: הוא היה דוחק עותק מלא מהתור.
+         הגיבוי הידני מציג למאמן מה חסר. */
+      if ((out.חסר || []).length) {
+        if (window.console) console.warn('[EBBackup] גיבוי אוטומטי דולג, חסר:', out.חסר);
+        return;
+      }
 
       if (needFolder) {
         try { await writeFolder(dir, out); }
@@ -651,7 +681,7 @@
       + '</div>';
   }
 
-  window.EBBackup = { run: run, card: card, lastAt: lastAt, daysSince: daysSince,
+  window.EBBackup = { run: run, collect: collect, card: card, lastAt: lastAt, daysSince: daysSince,
                       auto: auto, refreshAuto: refreshAuto, list: listSnaps,
                       download: download, restore: restore,
                       pickFolder: pickFolder, allowFolder: allowFolder, forgetFolder: forgetFolder,
