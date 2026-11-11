@@ -18,7 +18,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['wlog'] = 'v269';
+  (window.EB_MOD = window.EB_MOD || {})['wlog'] = 'v270';
 
   function esc(s) {
     return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {

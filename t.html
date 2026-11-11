@@ -13,8 +13,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="התוכנית שלי">
 <meta name="robots" content="noindex,nofollow">
-<link rel="apple-touch-icon" href="icons/icon-180.png?v=v269">
-<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=v269">
+<link rel="apple-touch-icon" href="icons/icon-180.png?v=v270">
+<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=v270">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -344,7 +344,9 @@ button{cursor:pointer}
 .ex .roles{color:var(--cop);font-size:12px;margin-top:3px}
 .sets-guide{margin:10px 12px 4px;padding:10px 12px;border-radius:11px;border:1px solid var(--or);
   background:var(--or-soft)}
-.sets-guide .sg-h{font-family:'Heebo';font-weight:800;font-size:13px;color:var(--or);margin-bottom:6px}
+.sets-guide .sg-h{font-family:'Heebo';font-weight:800;font-size:13px;color:var(--or);cursor:pointer;list-style:none}
+.sets-guide .sg-h::-webkit-details-marker{display:none}
+.sets-guide[open] .sg-h{margin-bottom:6px}
 .sets-guide .sg-r{display:flex;gap:8px;font-size:12.5px;line-height:1.6;padding:2px 0}
 .sets-guide .sg-r b{flex:none;min-width:50px;color:var(--tx)}
 .sets-guide .sg-r span{color:var(--mut)}
@@ -374,12 +376,12 @@ button{cursor:pointer}
 .hstat.dim b{color:var(--dim)}
 @media(max-width:400px){.hstat b{font-size:23px}.hstat span{font-size:10px}}
 </style>
-<link rel="stylesheet" href="ui-fx.css?v=v269">
+<link rel="stylesheet" href="ui-fx.css?v=v270">
 </head>
 <body>
 
 <header class="top">
-  <div class="brand"><img class="brand-logo" src="icons/logo-96.png?v=v269" alt="" width="34" height="34"><span>BAUER<span class="dot"></span>POWER</span></div>
+  <div class="brand"><img class="brand-logo" src="icons/logo-96.png?v=v270" alt="" width="34" height="34"><span>BAUER<span class="dot"></span>POWER</span></div>
   <h1 id="hTitle">טוען…</h1>
   <div class="sub" id="hSub"></div>
   <span class="savechip" id="saveChip" aria-live="polite"></span>
@@ -391,20 +393,20 @@ button{cursor:pointer}
 
 <div id="toast"></div>
 
-<script src="vendor/supabase.js?v=v269"></script>
-<script src="config.js?v=v269"></script>
-<script src="meal-library.js?v=v269"></script>
-<script src="exercise-library.js?v=v269"></script>
-<script src="anim.js?v=v269"></script>
-<script src="progress.js?v=v269"></script>
-<script src="habits.js?v=v269"></script>
-<script src="coach-bot.js?v=v269"></script>
-<script src="progress-chart.js?v=v269"></script>
-<script src="workout-log.js?v=v269"></script>
-<script src="targets.js?v=v269"></script>
-<script src="health.js?v=v269"></script>
-<script src="privacy.js?v=v269"></script>
-<script src="guides.js?v=v269"></script>
+<script src="vendor/supabase.js?v=v270"></script>
+<script src="config.js?v=v270"></script>
+<script src="meal-library.js?v=v270"></script>
+<script src="exercise-library.js?v=v270"></script>
+<script src="anim.js?v=v270"></script>
+<script src="progress.js?v=v270"></script>
+<script src="habits.js?v=v270"></script>
+<script src="coach-bot.js?v=v270"></script>
+<script src="progress-chart.js?v=v270"></script>
+<script src="workout-log.js?v=v270"></script>
+<script src="targets.js?v=v270"></script>
+<script src="health.js?v=v270"></script>
+<script src="privacy.js?v=v270"></script>
+<script src="guides.js?v=v270"></script>
 <script>
 (function () {
   'use strict';
@@ -1849,7 +1851,11 @@ button{cursor:pointer}
     /* כפתורי הספריות למעלה, לא בתחתית. בסוף חלון ארוך הם נעלמו
        מתחת לסרגל של ספארי באייפון, ומתאמנות דיווחו שהספרייה "לא
        נפתחת" — היא נפתחה, רק שאי אפשר היה להגיע לכפתור. */
-    if(key==='workout') return editBar()+exButton()+planBlock(days)+exBlockSafe();
+    /* קודם האימון עצמו. שלושה כפתורים גדולים (עריכה, ספריית תרגילים,
+       ספריית הדמיות) עמדו מעליו, ובטלפון התרגיל הראשון היה מתחת למסך.
+       במצב עריכה הסרגל נשאר למעלה — שם עובדים איתו */
+    if(key==='workout') return EDIT_W ? editBar()+exButton()+planBlock(days)+exBlockSafe()
+                                      : planBlock(days)+editBar()+exButton()+exBlockSafe();
     if(key==='food') return libButton()+makerButton()+nutritionDisclaimer()+targetsBlock()+nutritionPlan();
     if(key==='body') return botBody()+bodyMetricsBlock()+healthAlert()+healthFolder()+filesBlock(files);
     if(key==='habits') return habitsScreen();
@@ -2691,9 +2697,11 @@ button{cursor:pointer}
   function setsGuide(day) {
     if (typeof EBWLog === 'undefined' || !EBWLog.setRoles) return '';
     if (!((day || {}).exercises || []).some(e => isReal(e) && EBWLog.setRoles(e, day))) return '';
-    return '<div class="sets-guide"><div class="sg-h">לפני שמתחילים · איך עובדים עם הסטים</div>'
+    /* שורה אחת שנפתחת בלחיצה — ההסבר המלא (שלוש שורות) הופיע בכל יום,
+       בכל פתיחה, לפני התרגיל הראשון */
+    return '<details class="sets-guide"><summary class="sg-h">ℹ איך עובדים עם הסטים</summary>'
       + EBWLog.SETS_GUIDE.map(r => '<div class="sg-r"><b>' + esc(r[0]) + '</b><span>' + esc(r[1]) + '</span></div>').join('')
-      + '</div>';
+      + '</details>';
   }
 
   /* מה מוצג כתרגיל — ראה EBWLog.isReal. השורות נשארות בנתונים ובאינדקס
@@ -4314,6 +4322,6 @@ button{cursor:pointer}
   });
 })();
 </script>
-<script src="ui-fx.js?v=v269"></script>
+<script src="ui-fx.js?v=v270"></script>
 </body>
 </html>

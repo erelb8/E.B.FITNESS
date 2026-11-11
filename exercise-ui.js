@@ -8,7 +8,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['exUi'] = 'v269';
+  (window.EB_MOD = window.EB_MOD || {})['exUi'] = 'v270';
 
   var Q = '', MUS = 'all', EQ = 'all', PLACE = 'all', FOR = null, DAY = 0, TARGET = null;
 
