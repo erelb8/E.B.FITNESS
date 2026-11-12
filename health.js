@@ -25,7 +25,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['health'] = 'v276';
+  (window.EB_MOD = window.EB_MOD || {})['health'] = 'v277';
 
   /* ---------- שבע שאלות הסינון ---------- */
   /* כל אחת מהן, אם נענתה ב'כן', מחייבת אישור רופא לפני תחילת אימון. */
@@ -373,7 +373,9 @@
         + '</div></div>';
     }
 
-    h += '<div class="card"><table class="tbl"><thead><tr>'
+    /* הטבלה נגללת לרוחב בתוך הכרטיס, כמו במסך גישת המתאמנים. בלי זה, בטלפון צר (320px)
+       היא הרחיבה את כל העמוד והתפריט התחתון זז מהמקום. */
+    h += '<div class="card" style="padding-inline:0"><div style="overflow-x:auto;padding-inline:14px"><table class="tbl"><thead><tr>'
       + '<th>מתאמן</th><th>סטטוס</th><th>הצהרה</th><th>הסיבה</th><th></th>'
       + '</tr></thead><tbody>';
 
@@ -387,7 +389,7 @@
         + '</tr>';
     });
 
-    h += '</tbody></table></div>'
+    h += '</tbody></table></div></div>'
       + '<div class="muted" style="font-size:11.5px;margin-top:10px;line-height:1.6">'
       + 'שבע שאלות הסינון מבוססות על PAR-Q+, התקן המקובל לסינון לפני פעילות גופנית. '
       + 'הסיווג שמרני בכוונה: היעדר מידע מסומן "חסר מידע" ולא "תקין", ובספק ההפניה היא לרופא. '

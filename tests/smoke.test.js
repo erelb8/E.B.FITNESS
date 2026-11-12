@@ -175,6 +175,34 @@ const TRAINEE_DATA = {
         if (se.wo.length !== 8 || se.inc.length !== 6) throw new Error('series');
         for (const k of ['renew', 'ended', 'risk', 'ck']) { dashList(k); if (!document.querySelector('.mh')) throw new Error('list ' + k); closeModal(); }
       });
+      /* מראה הלוח (נובמבר 2026): אייקוני קו בלבד — בלי אימוג'י; שתי עמודות במחשב;
+         כאב ראשון ב"דורש טיפול"; ובטלפון כרטיס פתיחה ואריחים בלי אריח שנשאר לבד בשורה */
+      await tryM('dashLook', () => {
+        const EMOJI = /[\u{1F000}-\u{1FAFF}☀-⛿✎⌛⏳]/u;
+        VIEW = 'dash'; DASH.tile = ''; V.innerHTML = vDash();
+        if (EMOJI.test(V.innerHTML)) throw new Error('emoji in desktop dashboard: ' + V.innerHTML.match(EMOJI)[0]);
+        if (/NaN|undefined/.test(V.innerHTML)) throw new Error('NaN/undefined in dashboard html');
+        if (V.querySelectorAll('.dgrid > .dcol').length !== 2) throw new Error('two columns');
+        const first = V.querySelector('.dash-alerts .al-row');
+        if (!first || !first.classList.contains('bad') || !/כואבת לי הכתף/.test(first.textContent)) throw new Error('pain alert is not first');
+        if (!V.querySelector('.dcol .dash-feed .ev-kind svg') || !V.querySelector('.wb-plot .wb.cur')) throw new Error('feed/chart missing');
+        if (!/השלימה אימון/.test(V.querySelector('.dash-feed').textContent)) throw new Error('feed wording not by gender');
+        if (document.querySelectorAll('#rail .nav i svg').length < 10) throw new Error('nav icons are not svg');
+        const keep = window.dashPhone; window.dashPhone = () => true;
+        try {
+          DASH.tile = ''; V.innerHTML = vDash();
+          if (EMOJI.test(V.innerHTML)) throw new Error('emoji in phone dashboard: ' + V.innerHTML.match(EMOJI)[0]);
+          if (/NaN|undefined/.test(V.innerHTML)) throw new Error('NaN/undefined in phone dashboard html');
+          if (!V.querySelector('.dhero .theme-sw svg') || V.querySelectorAll('.dhero .dh-acts .btn').length !== 2) throw new Error('hero');
+          const tiles = V.querySelectorAll('.dtiles > .dtile'), small = V.querySelectorAll('.dtiles > .dtile:not(.wide)');
+          if (tiles.length < 4 || !tiles[0].classList.contains('wide')) throw new Error('tiles ' + tiles.length);
+          if (small.length % 2 && !small[small.length - 1].classList.contains('span')) throw new Error('odd tile left alone');
+          if (V.querySelector('.dpanel')) throw new Error('panel open by default');
+          DASH.tile = 'week'; V.innerHTML = vDash();
+          if (!V.querySelector('.dpanel .wk-row') || !V.querySelector('.dtile.on')) throw new Error('week tile did not open');
+          DASH.tile = '';
+        } finally { window.dashPhone = keep; }
+      });
       await tryM('unpaidCard', () => {
         VIEW = 'dash'; V.innerHTML = vDash();
         const card = [].find.call(V.querySelectorAll('.card'), c => /לא שילמו ב/.test(c.textContent));
