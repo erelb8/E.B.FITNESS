@@ -6,7 +6,7 @@
 <title>BAUER POWER — ניהול מתאמנים</title>
 
 <!-- ===== PWA — הופך את האתר לאפליקציה במסך הבית ===== -->
-<link rel="manifest" href="manifest.json?v=v272">
+<link rel="manifest" href="manifest.json?v=v273">
 <meta name="theme-color" content="#1C140E">
 <meta name="description" content="מערכת לניהול מתאמנים, תוכניות אימון, יומן ותשלומים">
 
@@ -15,9 +15,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="BAUER POWER">
-<link rel="apple-touch-icon" href="icons/icon-180.png?v=v272">
-<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=v272">
-<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=v272">
+<link rel="apple-touch-icon" href="icons/icon-180.png?v=v273">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=v273">
+<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=v273">
 <meta name="format-detection" content="telephone=no">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -472,13 +472,23 @@ tbody tr:hover{background:var(--panel)}
 }
 /* אריחי לוח הבקרה בטלפון */
 .dtiles{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:2px 0 12px}
-.dtile{display:flex;flex-direction:column;align-items:flex-start;gap:4px;min-height:86px;padding:12px;border-radius:14px;
-  background:var(--card);border:1px solid var(--line);color:var(--tx);font:inherit;text-align:right;cursor:pointer;position:relative}
-.dtile .dt-ic{font-size:20px;line-height:1}
-.dtile .dt-t{font-family:Heebo;font-weight:700;font-size:13.5px;line-height:1.3}
-.dtile .dt-b{position:absolute;top:10px;left:10px;font-family:Heebo;font-weight:800;font-size:12px;padding:2px 8px;border-radius:20px;
-  background:rgba(221,191,142,.14);color:var(--or)}
-.dtile.warn .dt-b{background:rgba(217,96,90,.16);color:var(--bad)}
+.dtile{display:grid;grid-template-columns:auto 1fr;grid-template-areas:"ic n" "t t" "s s";align-items:center;gap:6px 10px;
+  min-height:104px;padding:13px;border-radius:16px;text-align:right;cursor:pointer;color:var(--tx);font:inherit;
+  background:linear-gradient(155deg,var(--card) 55%,var(--or-soft));border:1px solid var(--line);
+  transition:transform .12s,border-color .2s;-webkit-tap-highlight-color:transparent}
+.dtile:active{transform:scale(.96)}
+.dtile.wide{grid-column:1/-1;min-height:92px;grid-template-columns:auto 1fr;grid-template-areas:"ic n" "t s"}
+.dtile .dt-ic{grid-area:ic;width:38px;height:38px;border-radius:12px;display:grid;place-items:center;font-size:19px;
+  background:var(--or-soft);border:1px solid var(--line)}
+.dtile .dt-n{grid-area:n;justify-self:end;font-family:Heebo;font-weight:900;font-size:26px;line-height:1;font-variant-numeric:tabular-nums;
+  background:linear-gradient(180deg,#F3DDB3,#C49A6C 62%,#A9784A);-webkit-background-clip:text;background-clip:text;color:transparent}
+.dtile .dt-n.dt-go{font-size:28px;color:var(--dim);background:none;-webkit-text-fill-color:currentColor}
+.dtile .dt-t{grid-area:t;font-family:Heebo;font-weight:700;font-size:13.5px;line-height:1.25}
+.dtile .dt-s{grid-area:s;font-size:11.5px;color:var(--dim)}
+.dtile.wide .dt-s{justify-self:end}
+.dtile.warn{border-color:rgba(217,96,90,.45);background:linear-gradient(155deg,var(--card) 55%,rgba(217,96,90,.12))}
+.dtile.warn .dt-n{background:none;color:var(--bad);-webkit-text-fill-color:currentColor}
+.dtile.warn .dt-ic{background:rgba(217,96,90,.12)}
 .dtile.on{border-color:var(--or);box-shadow:0 0 0 1px var(--or) inset}
 .dpanel{scroll-margin-top:70px;margin-bottom:14px}
 .dpanel > .card:first-of-type,.dpanel .card{margin-top:0}
@@ -502,17 +512,32 @@ tbody tr:hover{background:var(--panel)}
   .rep-sub{flex-basis:100%;margin-inline-start:106px}
 }
 </style>
-<link rel="stylesheet" href="ui-fx.css?v=v272">
+<link rel="stylesheet" href="ui-fx.css?v=v273">
+<link rel="stylesheet" href="theme-light.css?v=v273">
+<script>
+/* מצב בהיר/כהה — לפני הציור הראשון, כדי שלא יהבהב מסך כהה. הבחירה
+   במכשיר בלבד (העדפה אישית, לא נתון) */
+(function(){ try{ if(localStorage.getItem('eb_theme')==='light') document.documentElement.setAttribute('data-theme','light'); }catch(e){} })();
+function toggleTheme(){
+  const light = document.documentElement.getAttribute('data-theme')!=='light';
+  if(light) document.documentElement.setAttribute('data-theme','light'); else document.documentElement.removeAttribute('data-theme');
+  try{ localStorage.setItem('eb_theme', light?'light':'dark'); }catch(e){}
+  const m=document.querySelector('meta[name="theme-color"]'); if(m) m.setAttribute('content', light?'#F6F0E7':'#1C140E');
+  const b=document.getElementById('themeBtn'); if(b) b.textContent = light?'🌙':'☀';
+}
+</script>
 </head>
 <body>
 <header class="top">
-  <div class="brand"><img class="brand-logo" src="icons/logo-96.png?v=v272" alt="" width="30" height="30"><span class="brand-word" dir="ltr">BAUER<span class="dot"></span>POWER</span> <small id="brandSub">ניהול מתאמנים</small></div>
+  <div class="brand"><img class="brand-logo" src="icons/logo-96.png?v=v273" alt="" width="30" height="30"><span class="brand-word" dir="ltr">BAUER<span class="dot"></span>POWER</span> <small id="brandSub">ניהול מתאמנים</small></div>
   <div class="spacer"></div>
   <button class="syncpill s-off" id="syncPill" onclick="go('settings')" title="מצב סנכרון">מקומי בלבד</button>
   <span class="now" id="topDate"></span>
   <button class="btn ghost" id="adminLogout" style="display:none;padding:5px 10px;font-size:12px" onclick="doSignOut()">התנתקות</button>
+  <button class="iconbtn" id="themeBtn" title="מצב בהיר / כהה" onclick="toggleTheme()">☀</button>
   <button class="iconbtn" title="גיבוי ושחזור" onclick="go('settings')">⚙</button>
 </header>
+<script>try{ if(document.documentElement.getAttribute('data-theme')==='light'){ document.getElementById('themeBtn').textContent='🌙'; document.querySelector('meta[name="theme-color"]').setAttribute('content','#F6F0E7'); } }catch(e){}</script>
 
 <div class="layout">
   <aside class="rail" id="rail"></aside>
@@ -524,8 +549,8 @@ tbody tr:hover{background:var(--panel)}
 <div id="toast"></div>
 
 <!-- ספריית Supabase מקומית (לא מ-CDN) כדי שהאפליקציה תעבוד גם בלי רשת -->
-<script src="vendor/supabase.js?v=v272"></script>
-<script src="config.js?v=v272"></script>
+<script src="vendor/supabase.js?v=v273"></script>
+<script src="config.js?v=v273"></script>
 
 <script>
 /* =======================================================================
@@ -560,7 +585,7 @@ function age(b){ if(!b) return null; const d=new Date(b), t=new Date(); let a=t.
 
 /* ---------------- אחסון ---------------- */
 const KEY='ebfit_v1';
-const EB_VERSION='v272';   // חייב להתאים ל-VERSION ב-sw.js
+const EB_VERSION='v273';   // חייב להתאים ל-VERSION ב-sw.js
 window.EB_APP_VER=EB_VERSION;   // נשלח בכל שורה — השרת דוחה גרסאות ישנות (sync.js)
 let mem=null, canStore=true;
 function load(){
@@ -1766,9 +1791,9 @@ function vDash(){
 
   const npN=S.trainees.filter(x=>x.status==='active' && !planOf(x)).length, unpN=unp?unpaidThisMonth().length:0;
   const tiles=[
-    {k:'stats', ic:'📊', t:'המספרים', b:activeWk+'/'+act.length+' פעילים', html:kpis+pulse},
-    {k:'feed',  ic:'📝', t:'מה המתאמנים עשו', b:dashEvents().length||'', html:feed},
-    {k:'week',  ic:'🗓', t:'פעילים השבוע', b:activeWk, html:week},
+    {k:'stats', ic:'📊', t:'הכנסות ומספרים', b:money(income), sub:wkDone+' אימונים השבוע', html:kpis+pulse, wide:true},
+    {k:'feed',  ic:'📝', t:'מה המתאמנים עשו', b:dashEvents().length||'', sub:'14 ימים', html:feed},
+    {k:'week',  ic:'🔥', t:'פעילים השבוע', b:activeWk+'/'+act.length, html:week},
     unp  && {k:'unpaid', ic:'₪', t:'לא שילמו החודש', b:unpN, warn:true, html:unp},
     ck   && {k:'ck',  ic:'💬', t:'צ׳ק-אין חודשי', b:'', html:ck},
     np   && {k:'np',  ic:'⏳', t:'חסרה תקופת מעקב', b:npN, warn:true, html:np},
@@ -1777,9 +1802,12 @@ function vDash(){
     calc && {k:'calc', ic:'🧮', t:'מחשבון', b:'', html:calc}
   ].filter(Boolean);
   if(DASH.tile && !tiles.some(x=>x.k===DASH.tile)) DASH.tile='';
-  h+='<div class="dtiles">'+tiles.map(x=>'<button class="dtile'+(DASH.tile===x.k?' on':'')+(x.warn?' warn':'')+'" onclick="dashTile(\''+x.k+'\')">'
-      +'<span class="dt-ic">'+x.ic+'</span><span class="dt-t">'+x.t+'</span>'
-      +(x.b!==''&&x.b!=null?'<span class="dt-b">'+x.b+'</span>':'')+'</button>').join('')+'</div>';
+  /* אריח: אייקון בעיגול, מספר גדול, כותרת. "הכנסות ומספרים" רחב — הוא
+     הראשון שמסתכלים עליו */
+  h+='<div class="dtiles">'+tiles.map(x=>'<button class="dtile'+(DASH.tile===x.k?' on':'')+(x.warn&&x.b?' warn':'')+(x.wide?' wide':'')+'" onclick="dashTile(\''+x.k+'\')">'
+      +'<span class="dt-ic">'+x.ic+'</span>'
+      +(x.b!==''&&x.b!=null?'<span class="dt-n">'+x.b+'</span>':'<span class="dt-n dt-go">›</span>')
+      +'<span class="dt-t">'+x.t+'</span>'+(x.sub?'<span class="dt-s">'+esc(x.sub)+'</span>':'')+'</button>').join('')+'</div>';
   const cur=tiles.find(x=>x.k===DASH.tile);
   if(cur) h+='<div class="dpanel" id="dpanel"><div class="row" style="margin-bottom:8px"><b style="flex:1;font-family:Heebo;font-size:15px">'+cur.ic+' '+cur.t+'</b>'
       +'<button class="iconbtn" onclick="dashTile(\''+cur.k+'\')" aria-label="סגירה">✕</button></div>'+cur.html+'</div>';
@@ -4305,41 +4333,41 @@ if (location.protocol === 'file:') {
 }
 </script>
 
-<script src="health.js?v=v272"></script>
-<script src="privacy.js?v=v272"></script>
-<script src="backup.js?v=v272"></script>
-<script src="reorder.js?v=v272"></script>
-<script src="access.js?v=v272"></script>
-<script src="analysis.js?v=v272"></script>
-<script src="reports.js?v=v272"></script>
-<script src="business.js?v=v272"></script>
-<script src="intake.js?v=v272"></script>
-<script src="files.js?v=v272"></script>
-<script src="builder.js?v=v272"></script>
-<script src="import-program.js?v=v272"></script>
-<script src="tracking.js?v=v272"></script>
-<script src="metrics.js?v=v272"></script>
-<script src="targets.js?v=v272"></script>
-<script src="meal-library.js?v=v272"></script>
+<script src="health.js?v=v273"></script>
+<script src="privacy.js?v=v273"></script>
+<script src="backup.js?v=v273"></script>
+<script src="reorder.js?v=v273"></script>
+<script src="access.js?v=v273"></script>
+<script src="analysis.js?v=v273"></script>
+<script src="reports.js?v=v273"></script>
+<script src="business.js?v=v273"></script>
+<script src="intake.js?v=v273"></script>
+<script src="files.js?v=v273"></script>
+<script src="builder.js?v=v273"></script>
+<script src="import-program.js?v=v273"></script>
+<script src="tracking.js?v=v273"></script>
+<script src="metrics.js?v=v273"></script>
+<script src="targets.js?v=v273"></script>
+<script src="meal-library.js?v=v273"></script>
 <!-- חלקים של המאמן בלבד (תאילנדי, פירות). לא נטען ב-t.html בכוונה. -->
-<script src="meal-extra.js?v=v272"></script>
-<script src="progress-chart.js?v=v272"></script>
-<script src="notes.js?v=v272"></script>
-<script src="notes-ui.js?v=v272"></script>
-<script src="guides.js?v=v272"></script>
-<script src="library-ui.js?v=v272"></script>
-<script src="menu-auto.js?v=v272"></script>
-<script src="period-card.js?v=v272"></script>
-<script src="ui-fx.js?v=v272"></script>
-<script src="export-plan.js?v=v272"></script>
-<script src="cardio.js?v=v272"></script>
-<script src="cardio-ui.js?v=v272"></script>
-<script src="exercise-library.js?v=v272"></script>
-<script src="exercise-ui.js?v=v272"></script>
-<script src="video.js?v=v272"></script>
-<script src="anim.js?v=v272"></script>
-<script src="meals.js?v=v272"></script>
-<script src="sync.js?v=v272"></script>
+<script src="meal-extra.js?v=v273"></script>
+<script src="progress-chart.js?v=v273"></script>
+<script src="notes.js?v=v273"></script>
+<script src="notes-ui.js?v=v273"></script>
+<script src="guides.js?v=v273"></script>
+<script src="library-ui.js?v=v273"></script>
+<script src="menu-auto.js?v=v273"></script>
+<script src="period-card.js?v=v273"></script>
+<script src="ui-fx.js?v=v273"></script>
+<script src="export-plan.js?v=v273"></script>
+<script src="cardio.js?v=v273"></script>
+<script src="cardio-ui.js?v=v273"></script>
+<script src="exercise-library.js?v=v273"></script>
+<script src="exercise-ui.js?v=v273"></script>
+<script src="video.js?v=v273"></script>
+<script src="anim.js?v=v273"></script>
+<script src="meals.js?v=v273"></script>
+<script src="sync.js?v=v273"></script>
 <script>
 /* =================== חיבור הסנכרון לאפליקציה =================== */
 

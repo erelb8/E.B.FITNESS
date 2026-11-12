@@ -1,0 +1,70 @@
+/* =====================================================================
+   BAUER POWER — מצב בהיר: לבן וחום בהיר
+   ---------------------------------------------------------------------
+   אראל ביקש (נובמבר 2026) "מצב בהיר בצבע לבן וחום בהיר". פעיל רק כש-
+   <html data-theme="light">; הכפתור ☀/🌙 בכותרת מחליף, והבחירה נשמרת
+   במכשיר. כמעט כל הצבעים באפליקציה עוברים דרך המשתנים ב-:root, ולכן
+   רוב העבודה היא כאן בהגדרה מחדש שלהם. אחריהם — המקומות המעטים שהצבע
+   כתוב בהם ישירות (כותרת, סרגל תחתון, גרדיאנט הזהב של המספרים).
+   הפלטה נשארת אותה פלטה: חום בהיר לפעולה, צהוב כהה במינון קטן. בלי
+   ירוק-זית. החום כהה מעט מהמצב הכהה — על לבן C49A6C חיוור מדי לטקסט.
+   ===================================================================== */
+html[data-theme="light"]{
+  --ink:#F6F0E7; --panel:#FBF7F1; --card:#FFFFFF; --line:#E6D8C5; --line2:#D5C2A8;
+  --tx:#2A1C11; --mut:#5E4A39; --dim:#8E7864;
+  --or:#A8764A; --or-soft:rgba(168,118,74,.12); --amber:#9A7612;
+  --cop:#9A7612; --cop-soft:rgba(154,118,18,.12);
+  --ok:#8C6A3C; --warn:#9A7612; --bad:#BF433D;
+  --shadow:0 12px 30px rgba(94,64,36,.16);
+  color-scheme:light;
+}
+html[data-theme="light"] body{
+  background-image:
+    radial-gradient(1100px 560px at 88% -12%, rgba(196,154,108,.16), transparent 62%),
+    radial-gradient(900px 520px at 6% 104%, rgba(184,144,31,.08), transparent 60%);
+}
+html[data-theme="light"] body::before{
+  background-image:
+    linear-gradient(rgba(168,118,74,.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(168,118,74,.06) 1px, transparent 1px);
+}
+/* כותרת וסרגל תחתון */
+html[data-theme="light"] .top{background:rgba(255,252,247,.9);border-bottom-color:var(--line)}
+html[data-theme="light"] .mobnav{background:rgba(255,252,247,.96)}
+/* כרטיסים: צל חום רך במקום שחור */
+html[data-theme="light"] .card{box-shadow:0 1px 0 rgba(255,255,255,.9) inset, 0 4px 14px rgba(94,64,36,.08)}
+html[data-theme="light"] .card:not(.hero):not(.category-tile){
+  background-image:linear-gradient(90deg, transparent 8%, rgba(168,118,74,.45) 50%, transparent 92%);
+  background-size:100% 1px; background-repeat:no-repeat;
+}
+/* מספרים: גרדיאנט חום כהה — הזהב הבהיר לא נקרא על לבן */
+html[data-theme="light"] .stat .val,
+html[data-theme="light"] .overview-card strong,
+html[data-theme="light"] .hstat:not(.dim) b{
+  background:linear-gradient(180deg, #B98A58 0%, #8E5F35 70%, #6E4524 100%);
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+}
+/* כפתור ראשי: חום בהיר עם טקסט לבן */
+html[data-theme="light"] .btn:not(.ghost):not(.danger){
+  background:linear-gradient(180deg, #C9A06F 0%, #B0804F 60%, #976A3E 100%); color:#FFFFFF;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.35), 0 6px 16px rgba(168,118,74,.22);
+}
+html[data-theme="light"] .btn.ghost{background:#FFFFFF;border-color:var(--line2)}
+html[data-theme="light"] .daycard.on .daynum,
+html[data-theme="light"] .sw.on::after{color:#FFFFFF}
+/* שדות קלט */
+html[data-theme="light"] .f, html[data-theme="light"] input, html[data-theme="light"] select,
+html[data-theme="light"] textarea{background-color:#FFFDF9}
+/* חלון קופץ ורקע מאחוריו */
+html[data-theme="light"] .mask{background:rgba(60,40,22,.35)}
+/* הודעות מצב */
+html[data-theme="light"] .auth-error{color:#8E2C27}
+html[data-theme="light"] .auth-error strong{color:#6E1E1A}
+html[data-theme="light"] .auth-notice{color:var(--mut)}
+html[data-theme="light"] .auth-notice strong{color:var(--tx)}
+html[data-theme="light"] .ev-note{background:rgba(168,118,74,.08)}
+/* אריחי לוח הבקרה */
+html[data-theme="light"] .dtile{box-shadow:0 3px 12px rgba(94,64,36,.08)}
+html[data-theme="light"] .dtile .dt-n:not(.dt-go){background:linear-gradient(180deg,#B98A58,#8E5F35 70%,#6E4524);-webkit-background-clip:text;background-clip:text}
+html[data-theme="light"] .dtile.warn .dt-n{background:none}
+/* קנבס ההדמיות נשאר כהה בכוונה — הדמויות צוירו על רקע כהה */
