@@ -71,7 +71,7 @@ as $$
 $$;
 
 revoke all on function public.check_admin_password(text, text) from public, anon, authenticated;
-grant execute on function public.check_admin_password(text, text) to anon, authenticated;
+-- not granted to anon/authenticated: the app never calls it, and open it is a password-guessing oracle (closed 12.11.2026)
 
 -- Bootstrap the owner account as the only admin.
 insert into public.admins (user_id, email, display_name, active)

@@ -234,5 +234,10 @@ create or replace view public.consent_log as
     from public.trainees
    where not deleted;
 
+-- security_invoker + revoke: without them anyone holding the public key
+-- could read every trainee's name through this view (closed 12.11.2026)
+alter view public.consent_log set (security_invoker = true);
+revoke all on public.consent_log from anon, authenticated;
+
 comment on view public.consent_log is
   'מי מסר הסכמה לעיבוד מידע רפואי, מתי, ולאיזו גרסת נוסח. לצורכי הוכחת עמידה בחוק.';

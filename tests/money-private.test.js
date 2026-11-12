@@ -21,5 +21,10 @@ for (const f of ['pkg', 'pricePerSession', 'balanceDue', 'pkgTotal', 'pkgUsed', 
 const idx = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
 t('המחיר לא נכתב לתוך program', !/program\.(price|pkg)/.test(idx));
 
+/* מפתח Claude נשאר רק במכשיר: כל כתיבה של settings לשרת עוברת דרך עותק בלי apiKey.
+   עד 12.11.2026 בדיקת החיבור (probe) שלחה את S.settings כמו שהוא. */
+t('בדיקת החיבור לא שולחת את S.settings כמו שהוא', !/settings:\s*window\.S\.settings\s*\}/.test(src));
+t('בדיקת החיבור מוחקת את apiKey', /delete probeSet\.apiKey/.test(src));
+
 console.log('\n' + (fail ? 'נכשלו: ' + fail : 'הכל עבר') + '  |  עברו: ' + pass);
 process.exit(fail ? 1 : 0);

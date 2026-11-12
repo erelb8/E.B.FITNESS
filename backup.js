@@ -22,7 +22,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['backup'] = 'v275';
+  (window.EB_MOD = window.EB_MOD || {})['backup'] = 'v276';
 
   var LAST_KEY = 'ebfit_backup_at';
   var TABLES = ['trainees', 'sessions', 'measures', 'payments'];

@@ -15,7 +15,7 @@
   'use strict';
 
   // חותמת גרסה — index.html משווה אליה כדי לזהות קובץ ישן במטמון
-  (window.EB_MOD = window.EB_MOD || {})['sync'] = 'v275';
+  (window.EB_MOD = window.EB_MOD || {})['sync'] = 'v276';
 
   const CFG      = window.EBFIT_CONFIG || { URL: '', ANON: '' };
   const SNAP_KEY = 'ebfit_sync_v1';
@@ -1104,7 +1104,10 @@
 
     // 5. כתיבה
     try {
-      const probe = { trainer_id: user.id, data: (window.S && window.S.settings) ? { settings: window.S.settings } : {} };
+      /* בלי מפתח Claude — הוא נשאר רק במכשיר, כמו בכל שאר הסנכרון */
+      const probeSet = (window.S && window.S.settings) ? Object.assign({}, window.S.settings) : null;
+      if (probeSet) delete probeSet.apiKey;
+      const probe = { trainer_id: user.id, data: probeSet ? { settings: probeSet } : {} };
       const r = await sb.from('trainer_prefs').upsert(probe, { onConflict: 'trainer_id' });
       if (r.error) throw r.error;
       add(true, 'כתיבה לשרת', 'הצליחה. הסנכרון אמור לעבוד.');
