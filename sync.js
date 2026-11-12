@@ -15,7 +15,7 @@
   'use strict';
 
   // חותמת גרסה — index.html משווה אליה כדי לזהות קובץ ישן במטמון
-  (window.EB_MOD = window.EB_MOD || {})['sync'] = 'v273';
+  (window.EB_MOD = window.EB_MOD || {})['sync'] = 'v274';
 
   const CFG      = window.EBFIT_CONFIG || { URL: '', ANON: '' };
   const SNAP_KEY = 'ebfit_sync_v1';
