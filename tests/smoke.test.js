@@ -76,7 +76,7 @@ const TRAINEE_DATA = {
     await fakeServer(page);
     await page.goto(BASE + '/index.html');
     // לא זמן קבוע — ממתינים שהאפליקציה באמת עלתה (במחשב עמוס זה לוקח יותר)
-    await page.waitForFunction(() => typeof vDash === 'function' && window.EBExUI && window.EBLibUI && window.EBMeals, null, { timeout: 30000 });
+    await page.waitForFunction(() => typeof vDash === 'function' && window.EBExUI && window.EBLibUI && window.EBMeals && window.EBTeam, null, { timeout: 30000 });
     const r = await page.evaluate(async (P) => {
       const wait = ms => new Promise(x => setTimeout(x, ms));
       const out = { views: {}, tabs: [], modals: {} };
@@ -96,7 +96,7 @@ const TRAINEE_DATA = {
       DASH.at = Date.now() + 1e9;
       const V = document.getElementById('view');
       const views = { dash: vDash, trainees: vTrainees, schedule: vSchedule, money: vMoney, settings: vSettings,
-                      progress: vProgress, lab: vLab };
+                      progress: vProgress, lab: vLab, team: () => EBTeam.view() };
       for (const k in views) { try { VIEW = k; V.innerHTML = views[k](); out.views[k] = V.innerText.length > 20; }
                                catch (e) { out.views[k] = 'ERR ' + e.message; } }
       for (const tb of ['details', 'program', 'measures', 'history', 'pay', 'meals', 'nutri', 'health', 'metrics', 'report', 'track', 'cardio']) {
@@ -104,6 +104,13 @@ const TRAINEE_DATA = {
         catch (e) { out.tabs.push(tb + ': ' + e.message); }
       }
       const tryM = async (n, f) => { try { await f(); out.modals[n] = 'ok'; } catch (e) { out.modals[n] = 'ERR ' + e.message; } try { closeModal(); } catch (e) {} };
+      /* הצוות שלי: כל שולחן נפתח, שאלה מהירה נענית בלי רשת, חלונות נפתחים,
+         ושליחה חופשית בלי מפתח לא עושה כלום (אין זיוף ל-api.anthropic.com) */
+      await tryM('teamDesks', async () => { VIEW = 'team'; for (const w of EBTeam.WORKERS) { EBTeam.open(w.id); if (!V.innerText.includes(w.t + ' — מה מחכה לך')) throw new Error('שולחן ' + w.id); } });
+      await tryM('teamQuick', async () => { VIEW = 'team'; EBTeam.open('finance'); EBTeam.quick('ytd'); if (!document.querySelector('#tmChat .msg.bot')) throw new Error('אין תשובה'); EBTeam.draft('שאלה'); EBTeam.send(); if (document.querySelectorAll('#tmChat .msg').length !== 2) throw new Error('נשלח בלי מפתח'); EBTeam.clear(); });
+      await tryM('teamSettings', async () => { EBTeam.settings(); if (!document.getElementById('tb_type')) throw new Error('אין טופס'); });
+      await tryM('teamReport', async () => { VIEW = 'team'; EBTeam.open('finance'); EBTeam.act('finance', 'fin_setup'); if (!document.getElementById('tb_type')) throw new Error('הפעולה לא פתחה את פרטי העסק'); });
+      VIEW = 'dash';
       await tryM('editTrainee', () => editTrainee('a1'));
       await tryM('openPay', () => openPay('a1'));
       await tryM('editPay', () => openPay(null, 'p'));
