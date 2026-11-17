@@ -42,8 +42,8 @@ begin
     execute format($f$
       create policy trainer_all on public.%I
         for all to anon, authenticated
-        using (trainer_id = public.admin_request_id())
-        with check (trainer_id = public.admin_request_id())
+        using (trainer_id = (select public.admin_request_id()))
+        with check (trainer_id = (select public.admin_request_id()))
     $f$, t);
   end loop;
 end $$;
@@ -52,8 +52,8 @@ end $$;
 drop policy if exists prefs_own on public.trainer_prefs;
 create policy prefs_own on public.trainer_prefs
   for all to anon, authenticated
-  using (trainer_id = public.admin_request_id())
-  with check (trainer_id = public.admin_request_id());
+  using (trainer_id = (select public.admin_request_id()))
+  with check (trainer_id = (select public.admin_request_id()));
 
 -- יומני האימון: המתאמן כותב דרך פונקציה, המאמן קורא בלבד
 drop policy if exists trainer_read_logs on public.workout_logs;
@@ -62,7 +62,7 @@ create policy trainer_read_logs on public.workout_logs
   using (exists (
     select 1 from public.trainees tr
     where tr.id = workout_logs.trainee_id
-      and tr.trainer_id = public.admin_request_id()
+      and tr.trainer_id = (select public.admin_request_id())
   ));
 
 

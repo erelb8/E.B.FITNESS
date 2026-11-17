@@ -22,7 +22,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['backup'] = 'v278';
+  (window.EB_MOD = window.EB_MOD || {})['backup'] = 'v279';
 
   var LAST_KEY = 'ebfit_backup_at';
   var TABLES = ['trainees', 'sessions', 'measures', 'payments'];
@@ -89,14 +89,36 @@
         if (onStep) onStep(t);
       }
 
-      /* דיווחי המתאמנים — הטבלה שלא נמצאת ב-S ולכן חסרה בייצוא המקומי */
-      try {
-        var lg = await sb.from('workout_logs').select('*').limit(20000);
-        if (!lg.error) {
-          out.טבלאות.workout_logs = lg.data || [];
-          counts.push('דיווחים ' + (lg.data || []).length);
+      /* דיווחי המתאמנים — הטבלה שלא נמצאת ב-S ולכן חסרה בייצוא המקומי.
+
+         עד 17.11.2026 שגיאה כאן נבלעה, והגיבוי ירד בלי דיווחים ובלי מילה:
+         בדיקת ההרשאה בשרת (bcrypt) רצה פעם לכל שורה, 122 דיווחים חרגו
+         ממגבלת 3 השניות, והשרת החזיר 500. התיקון בשרת ב-fix-rls-speed.sql;
+         כאן — קודם עמוד גדול, ואם נכשל עמודים קטנים (כל אחד נכנס במגבלה),
+         ומה שעדיין חסר נרשם ב-out.חסר ומוצג למאמן. */
+      async function logPages(size) {
+        var all = [], from = 0;
+        for (;;) {
+          var r = await sb.from('workout_logs').select('*')
+            .order('created_at', { ascending: true }).order('id', { ascending: true })
+            .range(from, from + size - 1);
+          if (r.error) throw new Error(r.error.message || 'שגיאה');
+          all = all.concat(r.data || []);
+          if (!r.data || r.data.length < size) return all;
+          from += size;
+          if (onStep) onStep('דיווחים ' + all.length);
         }
-      } catch (e) {}
+      }
+      out.חסר = [];
+      try {
+        var logs;
+        try { logs = await logPages(1000); }
+        catch (e1) { logs = await logPages(15); }
+        out.טבלאות.workout_logs = logs;
+        counts.push('דיווחים ' + logs.length);
+      } catch (e) {
+        out.חסר.push('דיווחי המתאמנים (' + ((e && e.message) || 'שגיאה') + ')');
+      }
 
       /* העדפות המאמן */
       try {
@@ -133,16 +155,57 @@
     if (btn) { btn.disabled = true; btn.textContent = 'מגבה…'; }
     try {
       var out = await collect(function (t) { if (btn) btn.textContent = 'מגבה… ' + t; });
-      var counts = out._counts || []; delete out._counts;
-      save(out, 'ebfit-גיבוי-' + stamp() + '.json');
+      delete out._counts;
+      var missing = out.חסר || [];
+      if (!missing.length) delete out.חסר;
+      var name = 'ebfit-גיבוי-' + stamp() + '.json';
+      save(out, name);
       try { localStorage.setItem(LAST_KEY, new Date().toISOString()); } catch (e) {}
-      toast('הגיבוי ירד — ' + counts.join(' · '));
       if (typeof render === 'function') render();
+      /* חלון ולא toast: הודעה של שתי שניות פוספסה, ובעיני המאמן הגיבוי
+         "לא עשה כלום" — בזמן שהקובץ ירד שלוש פעמים לתיקיית ההורדות. */
+      done(name, out, missing);
     } catch (e) {
-      toast('הגיבוי נכשל: ' + ((e && e.message) || 'שגיאה'));
+      failed((e && e.message) || 'שגיאה');
     } finally {
+      btn = document.getElementById('bk_run');
       if (btn) { btn.disabled = false; btn.textContent = 'גיבוי מלא עכשיו'; }
     }
+  }
+
+  function E(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function box(title, body) {
+    if (typeof openModal !== 'function') { toast(title); return; }
+    openModal('<div class="mh"><h3>' + E(title) + '</h3><button class="iconbtn" onclick="closeModal()" aria-label="סגירה">✕</button></div>'
+      + '<div class="mb">' + body
+      + '<div class="row" style="margin-top:16px"><button class="btn" onclick="closeModal()">סגירה</button></div></div>');
+  }
+  function done(name, out, missing) {
+    var T = out.טבלאות || {}, n = function (k) { return (T[k] || []).length; };
+    var rows = [['מתאמנים', n('trainees')], ['תשלומים', n('payments')], ['מדידות', n('measures')],
+                ['דיווחי אימון', T.workout_logs ? n('workout_logs') : '—'], ['אימונים ביומן', n('sessions')]];
+    box(missing.length ? 'הגיבוי ירד — חסר בו חלק' : 'הגיבוי ירד ✓',
+      '<p style="margin:0 0 10px;line-height:1.6">הקובץ נשמר בתיקיית <b>ההורדות</b> במחשב:</p>'
+      + '<div style="direction:ltr;text-align:left;font-family:monospace;font-size:12.5px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;margin-bottom:12px;word-break:break-all">' + E(name).replace('גיבוי', '<bdi>גיבוי</bdi>') + '</div>'
+      + rows.map(function (r) {
+          return '<div class="line-item" style="padding:5px 0"><span style="flex:1">' + r[0] + '</span><b>' + r[1] + '</b></div>';
+        }).join('')
+      + (missing.length
+          ? '<div style="margin-top:12px;padding:10px 12px;border-radius:10px;border:1px solid #C0392B66;background:#C0392B14;line-height:1.6">'
+            + '<b style="color:#C0392B">לא נכנס לגיבוי:</b> ' + missing.map(E).join(' · ')
+            + '<br><span class="muted" style="font-size:12px">השאר שמור בקובץ. כדאי לנסות שוב בעוד דקה.</span></div>'
+          : '')
+      + '<p class="muted" style="font-size:12px;margin:12px 0 0;line-height:1.6">כדאי להעתיק את הקובץ גם לכונן חיצוני או לענן.</p>');
+  }
+  function failed(msg) {
+    box('הגיבוי לא ירד',
+      '<p style="margin:0 0 8px;line-height:1.6">השרת לא החזיר את הנתונים, ולכן לא נשמר קובץ.</p>'
+      + '<div class="muted" style="font-size:12.5px;direction:ltr;text-align:left">' + E(msg) + '</div>'
+      + '<p class="muted" style="font-size:12px;margin:12px 0 0">כדאי לבדוק חיבור לאינטרנט ולנסות שוב.</p>');
   }
 
   /* =====================================================================
