@@ -593,6 +593,32 @@ const TRAINEE_DATA = {
     t('מנוחה בלי יחידה כפולה', !/שנ׳שנ|שנ'שנ/.test(spec));
     t('מנוחה מקבלת יחידה', /מנוחה 90 שנ׳/.test(spec));
     t('אין undefined או NaN', !/undefined|NaN/.test(spec));
+    /* כרטיס הפתיחה: כפתור "להתחיל את האימון" פותח את האימון ביום שבתור */
+    const go = await page.evaluate(async () => {
+      document.querySelector('#categoryModal')?.remove();
+      const b = document.querySelector('.th-hero [data-go-day]'); if (!b) return 'no button';
+      const want = +b.dataset.goDay; b.click(); await new Promise(x => setTimeout(x, 400));
+      const m = document.querySelector('#categoryModal'); if (!m) return 'no modal';
+      const day = m.querySelector('.dayc.on'); const r = day && +day.dataset.d === want ? true : 'day ' + (day && day.dataset.d) + ' != ' + want;
+      m.querySelector('[data-category-close]').click(); await new Promise(x => setTimeout(x, 200)); return r;
+    });
+    t('"להתחיל את האימון" פותח את היום שבתור', go === true, String(go));
+    /* צבעים ודמות: שלוש ערכות, ובחירת גבר/אישה עוברת להדמיות ונשמרת */
+    const pers = await page.evaluate(async () => {
+      const wait = ms => new Promise(x => setTimeout(x, ms));
+      document.querySelector('.top .theme-sw').click(); await wait(200);
+      const w = document.getElementById('thmSheet'); if (!w) return 'no sheet';
+      if (w.querySelectorAll('.thm-opt').length !== 3) return 'opts';
+      if (w.querySelectorAll('[data-thmfig]').length !== 2) return 'figs';
+      w.querySelector('[data-thm="mono"]').click(); await wait(50);
+      if (document.documentElement.getAttribute('data-theme') !== 'mono') return 'mono';
+      const other = EBTheme.figure.get() === 'f' ? 'm' : 'f';
+      document.querySelector('#thmSheet [data-thmfig="' + other + '"]').click(); await wait(50);
+      if (EBAnim.figure() !== other || EBTheme.figure.get() !== other) return 'fig ' + EBAnim.figure();
+      document.querySelector('#thmSheet [data-thm="dark"]').click(); document.querySelector('#thmSheet [data-thm-close]').click(); await wait(50);
+      return document.getElementById('thmSheet') ? 'open' : true;
+    });
+    t('צבעים ודמות בדף המתאמן', pers === true, String(pers));
     t('אין שגיאות בדף המתאמן', !errs.length, errs.slice(0, 3).join(' | '));
     await ctx.close();
   }

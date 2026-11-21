@@ -1,0 +1,111 @@
+/* =====================================================================
+   BAUER POWER — ערכות צבע: חום מט (ברירת המחדל) ושחור-לבן
+   ---------------------------------------------------------------------
+   נטען אחרון, אחרי ui-fx.css ו-theme-light.css, בשני הדפים.
+
+   חום מט (נובמבר 2026, "הכהה חום בהיר יותר, צבע מט"): הרקע עלה מ-1C140E
+   כמעט-שחור לחום קפה, והברק ירד — אין גרדיאנט זהב במספרים, אין ברק
+   בכפתור, אין רשת ברקע ואין קו אור בכרטיס. משטחים שטוחים בגוונים קרובים,
+   וההבדל ביניהם הוא מה שנותן עומק.
+
+   שחור ולבן: רקע שחור, טקסט לבן, והפעולה לבנה עם טקסט שחור. אדום נשאר
+   רק לכאב ולמחיקה — שם הצבע הוא המידע.
+
+   הגוונים השקופים באפליקציה כתובים כ-rgba(var(--or-rgb),x), ולכן כל
+   ערכה מגדירה גם --or-rgb ו---cop-rgb, ואת --hdr/--nav לכותרת ולסרגל.
+   בלי ירוק-זית.
+   ===================================================================== */
+
+/* ---------- חום מט ---------- */
+html:not([data-theme]){
+  --ink:#2C2119; --panel:#35291F; --card:#3E3026; --line:#56453A; --line2:#6C5848;
+  --tx:#F7F1E9; --mut:#E0D4C5; --dim:#B3A18C;
+  --or:#D6B188; --or-rgb:214,177,136; --or-soft:rgba(214,177,136,.15); --amber:#CDA640;
+  --cop:#CDA640; --cop-rgb:205,166,64; --cop-soft:rgba(205,166,64,.14);
+  --ok:#E6CDA3; --warn:#CDA640; --bad:#E0716B;
+  --gold:#EBD6AF; --glow:rgba(214,177,136,.16); --warm:#4A3A2E; --warm-2:#5A4839; --ring:rgba(205,166,64,.14);
+  --hdr:rgba(44,33,25,.94); --nav:rgba(48,37,28,.97);
+  --shadow:0 10px 26px rgba(20,12,6,.32);
+}
+/* ---------- שחור ולבן ---------- */
+html[data-theme="mono"]{
+  --ink:#0B0B0B; --panel:#131313; --card:#1A1A1A; --line:#2E2E2E; --line2:#454545;
+  --tx:#FFFFFF; --mut:#D2D2D2; --dim:#9A9A9A;
+  --or:#FFFFFF; --or-rgb:255,255,255; --or-soft:rgba(255,255,255,.10); --amber:#E6E6E6;
+  --cop:#E6E6E6; --cop-rgb:230,230,230; --cop-soft:rgba(255,255,255,.08);
+  --ok:#FFFFFF; --warn:#D9D9D9; --bad:#F0625C;
+  --gold:#FFFFFF; --glow:rgba(255,255,255,.10); --warm:#262626; --warm-2:#333333; --ring:rgba(255,255,255,.10);
+  --hdr:rgba(11,11,11,.94); --nav:rgba(16,16,16,.97);
+  --shadow:0 10px 26px rgba(0,0,0,.5);
+  color-scheme:dark;
+}
+html[data-theme="light"]{ --or-rgb:168,118,74; --cop-rgb:154,118,18; --hdr:rgba(255,252,247,.9); --nav:rgba(255,252,247,.96) }
+
+/* ---------- מט: משותף לחום ולשחור-לבן ---------- */
+html:not([data-theme="light"]) body{background-image:none}
+html:not([data-theme="light"]) body::before{display:none}
+html:not([data-theme="light"]) .card:not(.hero):not(.category-tile){background-image:none}
+html:not([data-theme="light"]) .card{box-shadow:0 1px 2px rgba(0,0,0,.16)}
+html:not([data-theme="light"]) .stat .val,
+html:not([data-theme="light"]) .overview-card strong,
+html:not([data-theme="light"]) .hstat:not(.dim) b,
+html:not([data-theme="light"]) .dtile .dt-n:not(.dt-go){background:none;-webkit-background-clip:border-box;background-clip:border-box;color:var(--gold)}
+html:not([data-theme="light"]) .dtile.warn .dt-n{color:var(--warn)}
+html:not([data-theme="light"]) .btn:not(.ghost):not(.danger){background:var(--or);color:#1E160F;box-shadow:none}
+html[data-theme="mono"] .btn:not(.ghost):not(.danger){color:#000}
+html:not([data-theme="light"]) .btn:not(.ghost):not(.danger)::after{display:none}
+html:not([data-theme="light"]) .stat .ic{box-shadow:none}
+html:not([data-theme="light"]) .category-icon{filter:none}
+html:not([data-theme="light"]) .category-tile{box-shadow:none}
+html:not([data-theme="light"]) .modal{box-shadow:0 20px 50px rgba(0,0,0,.45)}
+html:not([data-theme="light"]) .dhero{background:var(--card);box-shadow:none}
+html:not([data-theme="light"]) .dtile{box-shadow:none}
+html:not([data-theme="light"]) .fx-bar::after{display:none}
+html:not([data-theme="light"]) .fx-coach .top::after{opacity:.3}
+
+/* ---------- שחור ולבן: מה שכתוב בחום ישירות ---------- */
+html[data-theme="mono"] .brand .dot{background:#FFFFFF}
+html[data-theme="mono"] .mobnav button.on i{background:rgba(255,255,255,.14)}
+html[data-theme="mono"] .daycard.on .daynum,
+html[data-theme="mono"] .sw.on::after{color:#000}
+html[data-theme="mono"] .auth-notice{color:var(--mut)}
+html[data-theme="mono"] .auth-notice strong{color:#FFFFFF}
+html[data-theme="mono"] .category-modal{background:rgba(0,0,0,.8)}
+html[data-theme="mono"] ::selection{background:#FFFFFF;color:#000}
+
+/* ---------- כפתור "צבעים" ---------- */
+.theme-sw .ico{width:16px;height:16px}
+
+/* ---------- חלון ההתאמה האישית ---------- */
+.thm-mask{position:fixed;inset:0;z-index:10050;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;justify-content:center;
+  padding:12px 12px calc(12px + env(safe-area-inset-bottom));animation:thm-fade .18s ease-out}
+.thm-sheet{width:min(460px,100%);background:var(--ink);color:var(--tx);border:1px solid var(--line2);border-radius:22px;
+  padding:16px 16px 18px;box-shadow:0 24px 60px rgba(0,0,0,.45);animation:thm-up .22s cubic-bezier(.2,.8,.2,1);font-family:'Heebo',system-ui,sans-serif;direction:rtl}
+@media(min-width:700px){ .thm-mask{align-items:center} }
+.thm-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.thm-h b{font-size:18px;font-weight:800}
+.thm-x{width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:var(--card);color:var(--tx);font-size:20px;line-height:1;cursor:pointer}
+.thm-lbl{font-size:12.5px;color:var(--dim);font-weight:600;margin:12px 2px 8px}
+.thm-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+.thm-opt{appearance:none;border:1.5px solid var(--line);background:var(--card);border-radius:16px;padding:7px 7px 9px;cursor:pointer;
+  display:flex;flex-direction:column;gap:7px;color:var(--tx);font:inherit;transition:border-color .15s, transform .15s}
+.thm-opt:active{transform:scale(.97)}
+.thm-opt.on{border-color:var(--or);box-shadow:0 0 0 2px rgba(var(--or-rgb),.25)}
+.thm-prev{display:block;height:74px;border-radius:11px;padding:9px;border:1px solid rgba(128,128,128,.25)}
+.thm-pc{display:flex;flex-direction:column;gap:5px;height:100%;border-radius:8px;padding:8px}
+.thm-pc i{display:block;height:5px;border-radius:3px;width:85%}
+.thm-pc b{display:block;margin-top:auto;height:11px;border-radius:6px;width:55%}
+.thm-nm{display:flex;align-items:center;justify-content:center;gap:4px;font-size:13px;font-weight:700}
+.thm-nm .ico{width:14px;height:14px;color:var(--or)}
+.thm-figs{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.thm-fig{appearance:none;position:relative;border:1.5px solid var(--line);background:var(--card);border-radius:16px;padding:14px 8px 12px;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;gap:6px;color:var(--tx);font:inherit;font-size:14px;font-weight:700}
+.thm-fig i{display:grid;place-items:center;width:52px;height:52px;border-radius:50%;background:var(--or-soft);color:var(--or)}
+.thm-fig i .ico{width:30px;height:30px}
+.thm-cv{display:block;width:96px;height:96px;border-radius:14px;background:var(--or-soft)}
+.thm-fig.on{border-color:var(--or);box-shadow:0 0 0 2px rgba(var(--or-rgb),.25)}
+.thm-fig em{position:absolute;top:8px;inset-inline-end:8px;display:grid;place-items:center;width:22px;height:22px;border-radius:50%;background:var(--or);color:var(--ink);font-style:normal}
+.thm-fig em .ico{width:14px;height:14px}
+@keyframes thm-up{from{transform:translateY(24px);opacity:0}to{transform:none;opacity:1}}
+@keyframes thm-fade{from{opacity:0}to{opacity:1}}
+@media (prefers-reduced-motion: reduce){ .thm-mask,.thm-sheet{animation:none} }

@@ -112,9 +112,18 @@ const look = () => {
     if (await p.locator('.dash-alerts .al-more').count()) { await p.locator('.dash-alerts .al-more').tap(); a1 = await p.evaluate(vis); await p.locator('.dash-alerts .al-more').tap(); a2 = await p.evaluate(vis); }
     t('"עוד התראות" פותח וסוגר', a0 === 2 && a1 > a0 && a2 === a0, a0 + '→' + a1 + '→' + a2);
     const th = () => document.documentElement.getAttribute('data-theme') || 'dark';
-    const t0 = await p.evaluate(th); await p.locator('.dhero .theme-sw').tap(); const t1 = await p.evaluate(th);
-    await p.locator('#themeBtn').tap(); const t2 = await p.evaluate(th);
-    t('כפתור הצבע מחליף — בכרטיס הפתיחה ובכותרת', t0 !== t1 && t2 === t0 && await p.evaluate(() => !!document.querySelector('.dhero .theme-sw svg') && !!document.querySelector('#themeBtn svg')), t0 + '→' + t1 + '→' + t2);
+    /* שלוש ערכות (נובמבר 2026): הכפתור פותח חלון עם שלוש דוגמאות, ובחירה מחליפה מיד */
+    const t0 = await p.evaluate(th); await p.locator('.dhero .theme-sw').tap(); await p.waitForTimeout(150);
+    const opts = await p.locator('#thmSheet .thm-opt').count();
+    const sheetFits = await p.evaluate(() => { const r = document.querySelector('#thmSheet .thm-sheet').getBoundingClientRect(); return r.left >= 0 && r.right <= innerWidth + 1 && r.bottom <= innerHeight + 1; });
+    await p.locator('#thmSheet [data-thm="mono"]').tap(); const t1 = await p.evaluate(th);
+    await p.locator('#thmSheet [data-thm="light"]').tap(); const t1b = await p.evaluate(th);
+    await p.locator('#thmSheet [data-thm-close]').tap();
+    await p.locator('#themeBtn').tap(); await p.waitForTimeout(150); await p.locator('#thmSheet [data-thm="dark"]').tap(); const t2 = await p.evaluate(th);
+    await p.mouse.click(5, 5); const closed = await p.evaluate(() => !document.getElementById('thmSheet'));
+    const kept = await p.evaluate(() => localStorage.getItem('eb_theme'));
+    t('כפתור הצבעים — שלוש ערכות, בכרטיס הפתיחה ובכותרת', opts === 3 && sheetFits && t1 === 'mono' && t1b === 'light' && t2 === 'dark' && closed && kept === 'dark'
+      && await p.evaluate(() => !!document.querySelector('.dhero .theme-sw svg') && !!document.querySelector('#themeBtn svg')), [opts, sheetFits, t0, t1, t1b, t2, closed, kept].join(' '));
     await p.locator('.dhero .dh-acts .btn').first().tap(); await p.waitForTimeout(250);
     const form = await p.evaluate(() => { const m = document.getElementById('mask'); const open = getComputedStyle(m).display !== 'none'; const fits = document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1; closeModal(); return open && fits; });
     t('"מתאמן חדש" נפתח ונכנס במסך', form);

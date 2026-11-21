@@ -18,8 +18,8 @@
 body::before{
   content:''; position:fixed; inset:0; z-index:-1; pointer-events:none;
   background-image:
-    linear-gradient(rgba(196,154,108,.045) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(196,154,108,.045) 1px, transparent 1px);
+    linear-gradient(rgba(var(--or-rgb,196,154,108),.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(var(--or-rgb,196,154,108),.045) 1px, transparent 1px);
   background-size:44px 44px;
   -webkit-mask-image:radial-gradient(ellipse 90% 55% at 50% 0%, #000 25%, transparent 78%);
           mask-image:radial-gradient(ellipse 90% 55% at 50% 0%, #000 25%, transparent 78%);
@@ -31,7 +31,7 @@ body::before{
    שלהם: background-image כאן היה דורס אותו. */
 .card:not(.hero):not(.category-tile){
   background-image:
-    linear-gradient(90deg, transparent 8%, rgba(196,154,108,.55) 50%, transparent 92%),
+    linear-gradient(90deg, transparent 8%, rgba(var(--or-rgb,196,154,108),.55) 50%, transparent 92%),
     linear-gradient(180deg, rgba(255,255,255,.035), rgba(255,255,255,0) 42%);
   background-size:100% 1px, 100% 100%;
   background-repeat:no-repeat;
@@ -44,8 +44,8 @@ body::before{
 @media (hover:hover){
   .card.stat, .category-tile{ transition:border-color .2s, transform .2s, box-shadow .2s; }
   .card.stat:hover, .category-tile:hover{
-    border-color:rgba(196,154,108,.45);
-    box-shadow:inset 0 1px 0 rgba(255,255,255,.06), 0 14px 34px rgba(0,0,0,.32), 0 0 0 1px rgba(196,154,108,.10);
+    border-color:rgba(var(--or-rgb,196,154,108),.45);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.06), 0 14px 34px rgba(0,0,0,.32), 0 0 0 1px rgba(var(--or-rgb,196,154,108),.10);
     transform:translateY(-2px);
   }
 }
@@ -60,13 +60,13 @@ body::before{
   -webkit-background-clip:text; background-clip:text; color:transparent;
   font-variant-numeric:tabular-nums;
 }
-.stat .ic{box-shadow:0 0 18px rgba(196,154,108,.22)}
+.stat .ic{box-shadow:0 0 18px rgba(var(--or-rgb,196,154,108),.22)}
 
 /* ---------- כפתור ראשי: גרדיאנט, עומק וברק במעבר ---------- */
 .btn:not(.ghost):not(.danger){
   position:relative; overflow:hidden;
   background:linear-gradient(180deg, #D6B087 0%, #C49A6C 55%, #B3875A 100%);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.28), 0 6px 18px rgba(196,154,108,.22);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.28), 0 6px 18px rgba(var(--or-rgb,196,154,108),.22);
   transition:transform .12s, box-shadow .2s, filter .2s;
 }
 .btn:not(.ghost):not(.danger)::after{
@@ -75,7 +75,7 @@ body::before{
   transform:skewX(-18deg); pointer-events:none;
 }
 @media (hover:hover){
-  .btn:not(.ghost):not(.danger):hover{ box-shadow:inset 0 1px 0 rgba(255,255,255,.3), 0 8px 24px rgba(196,154,108,.32); }
+  .btn:not(.ghost):not(.danger):hover{ box-shadow:inset 0 1px 0 rgba(255,255,255,.3), 0 8px 24px rgba(var(--or-rgb,196,154,108),.32); }
   .btn:not(.ghost):not(.danger):hover::after{ animation:fx-sheen .75s ease; }
 }
 .btn:active{ transform:scale(.97); }
@@ -94,18 +94,18 @@ body::before{
 }
 
 /* ---------- חלון קופץ: קצה מואר ---------- */
-.modal{ box-shadow:0 24px 60px rgba(0,0,0,.55), 0 0 0 1px rgba(196,154,108,.14), inset 0 1px 0 rgba(255,255,255,.05); }
+.modal{ box-shadow:0 24px 60px rgba(0,0,0,.55), 0 0 0 1px rgba(var(--or-rgb,196,154,108),.14), inset 0 1px 0 rgba(255,255,255,.05); }
 
 /* ---------- תגיות ---------- */
-.pill{ background:rgba(196,154,108,.06); }
+.pill{ background:rgba(var(--or-rgb,196,154,108),.06); }
 
 /* ---------- אריחי הקטגוריות בדף המתאמן ---------- */
 .category-tile{
   transition:transform .2s, border-color .2s, box-shadow .2s;
-  box-shadow:inset 0 1px 0 rgba(196,154,108,.22), 0 4px 12px rgba(0,0,0,.2);
+  box-shadow:inset 0 1px 0 rgba(var(--or-rgb,196,154,108),.22), 0 4px 12px rgba(0,0,0,.2);
 }
 .category-tile:active{ transform:scale(.98); }
-.category-icon{ filter:drop-shadow(0 0 10px rgba(196,154,108,.18)); }
+.category-icon{ filter:drop-shadow(0 0 10px rgba(var(--or-rgb,196,154,108),.18)); }
 
 /* ---------- מעבר בין מסכים ---------- */
 .fx-in > *{ animation:fx-rise .32s cubic-bezier(.2,.7,.2,1) both; }

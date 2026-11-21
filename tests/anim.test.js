@@ -152,7 +152,9 @@ t('אפשר לבחור דמות אישה', A.figure('f'), 'f');
 t('ערך לא מוכר לא משנה', A.figure('x'), 'f');
 t('חזרה לגבר', A.figure('m'), 'm');
 t('האפליקציה שולחת את המין בתוך התוכנית', /fig: t\.gender === 'נקבה' \? 'f' : 'm'/.test(fs.readFileSync(__dirname + '/../sync.js', 'utf8')), true);
-t('דף המתאמן בוחר דמות לפי התוכנית', /EBAnim\.figure\(DATA && DATA\.program && DATA\.program\.fig === 'f'/.test(fs.readFileSync(__dirname + '/../t.html', 'utf8')), true);
+{ const T = fs.readFileSync(__dirname + '/../t.html', 'utf8');
+  /* ברירת המחדל מהתוכנית של המאמן; מה שהמתאמן/ת בחרו במכשיר גובר (נובמבר 2026) */
+  t('דף המתאמן בוחר דמות לפי התוכנית', /DATA\.program\.fig === 'f'/.test(T) && /EBAnim\.figure\(figOf\(\)\)/.test(T), true); }
 
 console.log('=== מרפק וברך לא קופצים בין פריימים ===');
 /* עד אוקטובר 2026 צד הכיפוף התחלף בבת אחת באמצע התנועה, והמרפק או

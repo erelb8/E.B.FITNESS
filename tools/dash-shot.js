@@ -6,7 +6,7 @@
 
    מצב = אות למסך + אות לצבע (+ e ללוח ריק):
      p טלפון 390 · t טאבלט 820 · d מחשב 1366 · w מסך רחב 1920
-     d כהה · l בהיר          דוגמאות: pd, pl, dd, dl, td, wd, pde, dde
+     d חום מט · l חום ולבן · m שחור ולבן   דוגמאות: pd, pl, pm, dd, dl, dm, td, wd, pde
    לכל מצב נשמרים <מצב>_1.png (המסך הראשון) ו-<מצב>_full.png (כל העמוד),
    ובטלפון גם <מצב>_tile_<אריח>.png לכל אריח שנפתח.
 
@@ -105,12 +105,12 @@ const seed = (P, EMPTY) => {
   let b; try { b = await chromium.launch(); } catch (e) { b = await chromium.launch({ channel: 'chrome' }); }
   const errs = [];
   for (const v of WHICH) {
-    const phone = v[0] === 'p', light = v[1] === 'l', empty = v[2] === 'e';
+    const phone = v[0] === 'p', light = v[1] === 'l' ? 'light' : v[1] === 'm' ? 'mono' : '', empty = v[2] === 'e';
     const ctx = await b.newContext({ serviceWorkers: 'block', viewport: phone ? { width: 390, height: 844 } : v[0] === 't' ? { width: 820, height: 1100 } : v[0] === 'w' ? { width: 1920, height: 1000 } : { width: 1366, height: 860 }, deviceScaleFactor: phone ? 2 : 1, isMobile: phone, hasTouch: phone });
     const p = await ctx.newPage(); p.on('pageerror', e => errs.push(v + ': ' + e.message));
     p.on('console', m => { if (m.type() === 'error') errs.push(v + ' console: ' + m.text().slice(0, 160)); });
     await p.route(/supabase\.co/, route => route.fulfill({ status: 200, contentType: 'application/json', body: '[]' }));
-    if (light) await p.addInitScript(() => { try { localStorage.setItem('eb_theme', 'light'); } catch (e) {} });
+    if (light) await p.addInitScript(t => { try { localStorage.setItem('eb_theme', t); } catch (e) {} }, light);
     await p.goto(BASE + '/index.html');
     await p.waitForFunction(() => typeof vDash === 'function' && window.EBExUI, null, { timeout: 30000 });
     await p.evaluate(`(${seed.toString()})(${JSON.stringify(PROGRAM)}, ${empty})`);

@@ -86,7 +86,7 @@ t('{} בשרת ואין במכשיר — מזמין למילוי', /למילוי
 console.log('=== תשובה נבחרת מסומנת ===');
 const d = render({ answers: { q1: 'yes', q2: 'no' } }, true);
 t('כן מסומן באדום',  /#D9605A/.test(d), true);
-t('לא מסומן בחום בהיר', /rgba\(196,154,108,\.18\)/.test(d), true);
+t('לא מסומן בצבע הפעולה של הערכה', /rgba\(var\(--or-rgb\),\.18\)/.test(d), true);
 
 console.log('\n' + (fail ? '### נכשלו: ' + fail : 'הכל עבר') + '  |  עברו: ' + pass);
 process.exit(fail ? 1 : 0);

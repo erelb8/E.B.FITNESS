@@ -13,8 +13,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="התוכנית שלי">
 <meta name="robots" content="noindex,nofollow">
-<link rel="apple-touch-icon" href="icons/icon-180.png?v=v279">
-<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=v279">
+<link rel="apple-touch-icon" href="icons/icon-180.png?v=v280">
+<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=v280">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -25,7 +25,8 @@
   --ink:#1C140E; --card:#30231A; --line:#47372A; --line2:#5E4A38;
   --tx:#F7F2EA; --mut:#D6CBBB; --dim:#978774;
   --or:#C49A6C; --or-soft:rgba(196,154,108,.15);
-  --cop:#B8901F; --gold:#E6D3A8; --glow:rgba(196,154,108,.18);
+  --or-rgb:196,154,108; --cop-rgb:184,144,31; --hdr:rgba(12,12,14,.9); --nav:rgba(18,18,21,.97);
+  --cop:#B8901F; --gold:#E6D3A8; --glow:rgba(var(--or-rgb),.18);
   --ok:#DDBF8E; --r:10px;
 }
 *{box-sizing:border-box}
@@ -35,8 +36,8 @@ body{
   font-family:'Heebo',system-ui,sans-serif; font-size:15px; line-height:1.5;
   -webkit-font-smoothing:antialiased;
   background-image:
-    radial-gradient(900px 500px at 92% -8%, rgba(196,154,108,.16), transparent 62%),
-    radial-gradient(760px 480px at 0% 42%, rgba(184,144,31,.08), transparent 64%),
+    radial-gradient(900px 500px at 92% -8%, rgba(var(--or-rgb),.16), transparent 62%),
+    radial-gradient(760px 480px at 0% 42%, rgba(var(--cop-rgb),.08), transparent 64%),
     linear-gradient(155deg, rgba(255,255,255,.025), transparent 32%);
   background-attachment:fixed;
   padding-bottom:calc(96px + env(safe-area-inset-bottom));
@@ -46,7 +47,7 @@ button,input{font-family:inherit;font-size:inherit;color:inherit}
 button{cursor:pointer}
 
 .top{
-  position:sticky;top:0;z-index:20;background:rgba(12,12,14,.9);backdrop-filter:blur(14px);
+  position:sticky;top:0;z-index:20;background:var(--hdr);backdrop-filter:blur(14px);
   border-bottom:1px solid var(--line);
   padding:calc(12px + env(safe-area-inset-top)) 16px 12px;
 }
@@ -63,7 +64,7 @@ button{cursor:pointer}
   transition:opacity .4s,color .2s,border-color .2s;opacity:0;pointer-events:none;white-space:nowrap}
 .savechip.on{opacity:1}
 .savechip.ok{color:var(--ok);border-color:rgba(221,191,142,.4)}
-.savechip.warn{color:var(--amber);border-color:rgba(184,144,31,.5)}
+.savechip.warn{color:var(--amber);border-color:rgba(var(--cop-rgb),.5)}
 .top:after{content:'';display:block;position:absolute;right:0;left:0;bottom:-1px;height:1px;background:linear-gradient(90deg,transparent,var(--or),transparent);opacity:.45}
 
 .wrap{padding:16px 14px 0;max-width:640px;margin:0 auto}
@@ -100,7 +101,7 @@ button{cursor:pointer}
 .daynum{
   width:30px;height:30px;flex:none;border-radius:50%;display:grid;place-items:center;
   font-family:'Heebo';font-weight:800;font-size:13px;
-  background:var(--or-soft);color:var(--or);border:1px solid rgba(196,154,108,.32);
+  background:var(--or-soft);color:var(--or);border:1px solid rgba(var(--or-rgb),.32);
 }
 .dayc.on .daynum{background:var(--or);color:#1C140E;border-color:var(--or)}
 .dayc.full .daynum{background:var(--ok);color:#0D1503;border-color:var(--ok)}
@@ -152,7 +153,7 @@ button{cursor:pointer}
 
 .bar{
   position:fixed;bottom:0;right:0;left:0;z-index:30;
-  background:rgba(18,18,21,.97);backdrop-filter:blur(14px);border-top:1px solid var(--line);
+  background:var(--nav);backdrop-filter:blur(14px);border-top:1px solid var(--line);
   padding:11px 14px calc(11px + env(safe-area-inset-bottom));
   display:flex;align-items:center;gap:12px
 }
@@ -170,7 +171,7 @@ button{cursor:pointer}
 .login-shell .login-intro{color:var(--mut);font-size:14px;margin:8px 0 20px}
 .login-shell label{display:block;color:var(--mut);font-size:13px;margin-top:12px}
 .login-shell input{margin-top:6px}
-.login-shell .login-mark{width:58px;height:58px;border-radius:18px;display:grid;place-items:center;background:var(--or-soft);border:1px solid rgba(196,154,108,.35);color:var(--or);font-size:25px;margin-bottom:16px}
+.login-shell .login-mark{width:58px;height:58px;border-radius:18px;display:grid;place-items:center;background:var(--or-soft);border:1px solid rgba(var(--or-rgb),.35);color:var(--or);font-size:25px;margin-bottom:16px}
 
 .mt{color:var(--mut)}
 .mt b{color:var(--tx);font-family:'Heebo'}
@@ -183,7 +184,7 @@ button{cursor:pointer}
 .feel button.on{border-color:var(--or);color:var(--or);background:var(--or-soft)}
 #toast{
   position:fixed;bottom:calc(86px + env(safe-area-inset-bottom));right:50%;transform:translate(50%,14px);
-  background:#25252E;border:1px solid var(--line2);padding:11px 18px;border-radius:11px;
+  background:var(--card);border:1px solid var(--line2);padding:11px 18px;border-radius:11px;
   opacity:0;pointer-events:none;transition:.25s;z-index:60;font-size:14px;max-width:90vw;text-align:center
 }
 #toast.on{opacity:1;transform:translate(50%,0)}
@@ -237,7 +238,7 @@ button{cursor:pointer}
 :root{
   --warm:#3E2E20;            /* חום עמוק לקווים ולמסגרות */
   --warm-2:#4A3726;
-  --ring:rgba(184,144,31,.16);
+  --ring:rgba(var(--cop-rgb),.16);
 }
 
 /* הרקע נשאר שקט. הטבעות שהיו כאן הן מה שנתן לדף מראה של תבנית
@@ -257,7 +258,7 @@ button{cursor:pointer}
 .category-icon{position:relative}
 
 /* מספר היום: טבעת כפולה במקום עיגול שטוח */
-.daynum{box-shadow:0 0 0 3px rgba(184,144,31,.12), 0 0 0 4px rgba(184,144,31,.07)}
+.daynum{box-shadow:0 0 0 3px rgba(var(--cop-rgb),.12), 0 0 0 4px rgba(var(--cop-rgb),.07)}
 
 /* קו מנחה לשימוש חוזר */
 .rule{height:1px;border:0;margin:14px 0;
@@ -265,19 +266,19 @@ button{cursor:pointer}
 
 /* ═══════════ המאמן החכם ═══════════ */
 .bot-card{
-  border-color:rgba(184,144,31,.42);
+  border-color:rgba(var(--cop-rgb),.42);
   background:
-    radial-gradient(120px 120px at 96% -14%, rgba(184,144,31,.13), transparent 70%),
+    radial-gradient(120px 120px at 96% -14%, rgba(var(--cop-rgb),.13), transparent 70%),
     linear-gradient(168deg,rgba(74,55,38,.6),var(--card) 52%);
 }
 .bot-dot{
   width:9px;height:9px;border-radius:50%;background:var(--cop);flex:none;
-  box-shadow:0 0 0 3px rgba(184,144,31,.18), 0 0 0 6px rgba(184,144,31,.08);
+  box-shadow:0 0 0 3px rgba(var(--cop-rgb),.18), 0 0 0 6px rgba(var(--cop-rgb),.08);
   animation:botPulse 2.6s ease-in-out infinite;
 }
 @keyframes botPulse{
-  0%,100%{box-shadow:0 0 0 3px rgba(184,144,31,.18), 0 0 0 6px rgba(184,144,31,.08)}
-  50%    {box-shadow:0 0 0 4px rgba(184,144,31,.26), 0 0 0 9px rgba(184,144,31,.03)}
+  0%,100%{box-shadow:0 0 0 3px rgba(var(--cop-rgb),.18), 0 0 0 6px rgba(var(--cop-rgb),.08)}
+  50%    {box-shadow:0 0 0 4px rgba(var(--cop-rgb),.26), 0 0 0 9px rgba(var(--cop-rgb),.03)}
 }
 @media (prefers-reduced-motion:reduce){ .bot-dot{animation:none} }
 .bot-msg{padding:8px 11px;margin-top:8px;border-radius:0 9px 9px 0;background:rgba(0,0,0,.16)}
@@ -293,7 +294,7 @@ button{cursor:pointer}
 .bot-msg:first-of-type{margin-top:0}
 
 /* פתק ההערה של המתאמן עצמו */
-.tnote-mine{border-color:rgba(184,144,31,.4);background:rgba(184,144,31,.07)}
+.tnote-mine{border-color:rgba(var(--cop-rgb),.4);background:rgba(var(--cop-rgb),.07)}
 
 /* ═══════════ גרפים ═══════════ */
 .ch{width:100%;height:auto;display:block;margin-top:6px;overflow:visible}
@@ -304,7 +305,7 @@ button{cursor:pointer}
 
 /* ═══════════ המסע ═══════════ */
 .jr-card{
-  border-color:rgba(184,144,31,.4);
+  border-color:rgba(var(--cop-rgb),.4);
   background:
     radial-gradient(150px 150px at 94% -18%, rgba(231,184,115,.13), transparent 72%),
     linear-gradient(168deg,rgba(74,55,38,.55),var(--card) 54%);
@@ -318,7 +319,7 @@ button{cursor:pointer}
    מסך שעובדים בו תוך כדי מאמץ: מספר אחד גדול למעלה,
    שדות גדולים, וכל השאר שקט. */
 .wl-top{
-  position:relative;overflow:hidden;border-color:rgba(184,144,31,.4);
+  position:relative;overflow:hidden;border-color:rgba(var(--cop-rgb),.4);
   background:radial-gradient(150px 150px at 92% -20%,rgba(231,184,115,.14),transparent 72%),
              linear-gradient(168deg,rgba(74,55,38,.55),var(--card) 54%);
   padding:18px 16px;margin-bottom:14px;border-radius:var(--r);border:1px solid var(--line2);
@@ -375,30 +376,55 @@ button{cursor:pointer}
 .hstat span{display:block;color:var(--mut);font-size:10.5px;margin-top:5px;line-height:1.35}
 .hstat.dim b{color:var(--dim)}
 @media(max-width:400px){.hstat b{font-size:23px}.hstat span{font-size:10px}}
+
+/* ---------- כרטיס הפתיחה החדש (נובמבר 2026) ----------
+   טבעת השבוע, האימון הבא וכפתור גדול אחד. שטוח (מט): הצבע הוא שכבה
+   אחת, ובלי ברק — אראל ביקש "צבע מט". */
+.th-hero{padding:18px 16px 14px;border-radius:24px;border:1px solid var(--line2)}
+.th-hi{font-size:13.5px;font-weight:600;color:var(--mut);margin-bottom:14px}
+.th-hi span{color:var(--dim);font-weight:400}
+.th-main{display:flex;align-items:center;gap:16px}
+.th-ring{position:relative;flex:none;width:96px;height:96px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.th-ring svg{position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg)}
+.th-ring circle{fill:none;stroke-width:8}
+.th-rbg{stroke:var(--line)}
+.th-rfg{stroke:var(--or);stroke-linecap:round;transition:stroke-dasharray .8s cubic-bezier(.2,.7,.2,1)}
+.th-ring b{position:relative;display:block;direction:ltr;font-family:'Frank Ruhl Libre',Georgia,serif;font-weight:900;font-size:30px;line-height:1;color:var(--tx)}
+.th-ring b small{font-size:15px;color:var(--dim);font-weight:700}
+.th-ring > span{position:relative;display:block;font-size:10.5px;color:var(--dim);margin-top:3px}
+.th-next{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.th-k{font-size:11px;letter-spacing:.08em;color:var(--or);font-weight:700}
+.th-next strong{font-family:'Frank Ruhl Libre',Georgia,serif;font-size:22px;line-height:1.2;font-weight:700}
+.th-s{font-size:12.5px;color:var(--mut)}
+.th-go{display:flex;align-items:center;justify-content:space-between;width:100%;margin-top:16px;padding:15px 18px;border:0;border-radius:16px;
+  background:var(--or);color:#1E160F;font:inherit;font-size:17px;font-weight:800;letter-spacing:.01em;cursor:pointer;transition:transform .12s}
+.th-go:active{transform:scale(.98)}
+.th-go svg{width:22px;height:22px}
+html[data-theme="mono"] .th-go{color:#000}
+html[data-theme="light"] .th-go{color:#FFFFFF;background:#A8764A}
+.th-stats{grid-template-columns:repeat(3,1fr)!important;margin-top:14px!important;padding-top:13px;border-top:1px solid var(--line)}
+.th-stats .hstat{text-align:center}
+.th-stats .hstat b{font-size:21px}
+/* אריחים: שתי עמודות, אייקון בתוך ריבוע רך וסימן מים גדול בפינה */
+.category-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important}
+@media(min-width:620px){ .category-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important} }
+.th-tile{text-align:right!important;padding:14px!important;min-height:112px!important;border-radius:18px!important;display:flex;flex-direction:column;align-items:flex-start}
+.th-tile .category-icon{width:44px!important;height:44px!important;padding:10px;margin:0 0 12px!important;border-radius:13px;background:var(--or-soft);font-size:0}
+.th-tile strong{font-size:16px!important;font-weight:800}
+.th-tile > span:not(.category-icon):not(.th-wm){font-size:11.5px!important;margin-top:1px}
+.th-wm{position:absolute!important;left:-14px;bottom:-16px;width:92px;height:92px;color:var(--or);opacity:.07;pointer-events:none;margin:0!important}
+.th-wm svg{width:100%;height:100%;display:block}
 </style>
-<link rel="stylesheet" href="ui-fx.css?v=v279">
-<link rel="stylesheet" href="theme-light.css?v=v279">
-<script>
-/* מצב בהיר/כהה גם למתאמנים — נטען לפני הציור, נשמר במכשיר של המתאמן */
-(function(){ try{ if(localStorage.getItem('eb_theme')==='light'){ document.documentElement.setAttribute('data-theme','light'); var m=document.querySelector('meta[name="theme-color"]'); if(m) m.setAttribute('content','#F6F0E7'); } }catch(e){} })();
-function toggleTheme(){
-  var light=document.documentElement.getAttribute('data-theme')!=='light';
-  if(light) document.documentElement.setAttribute('data-theme','light'); else document.documentElement.removeAttribute('data-theme');
-  try{ localStorage.setItem('eb_theme', light?'light':'dark'); }catch(e){}
-  var m=document.querySelector('meta[name="theme-color"]'); if(m) m.setAttribute('content', light?'#F6F0E7':'#1C140E');
-  document.querySelectorAll('.theme-sw').forEach(function(x){ x.outerHTML=themeSw(x.classList.contains('top')); });
-}
-function themeSw(top){
-  var light=document.documentElement.getAttribute('data-theme')==='light';
-  return '<button class="theme-sw'+(top?' top':'')+'" onclick="toggleTheme()" aria-label="'+(light?'מצב כהה':'מצב בהיר')+'"><b>'+(light?'🌙':'☀')+'</b>'
-    +(top?'':(light?'מצב כהה':'מצב בהיר'))+'</button>';
-}
-</script>
+<link rel="stylesheet" href="ui-fx.css?v=v280">
+<link rel="stylesheet" href="theme-light.css?v=v280">
+<link rel="stylesheet" href="theme.css?v=v280">
+<!-- ערכת הצבע — לפני הציור, נשמרת במכשיר של המתאמן -->
+<script src="theme.js?v=v280"></script>
 </head>
 <body>
 
 <header class="top">
-  <div class="brand"><img class="brand-logo" src="icons/logo-96.png?v=v279" alt="" width="34" height="34"><span>BAUER<span class="dot"></span>POWER</span></div>
+  <div class="brand"><img class="brand-logo" src="icons/logo-96.png?v=v280" alt="" width="34" height="34"><span>BAUER<span class="dot"></span>POWER</span></div>
   <h1 id="hTitle">טוען…</h1>
   <div class="sub" id="hSub"></div>
   <span class="savechip" id="saveChip" aria-live="polite"></span>
@@ -412,20 +438,20 @@ function themeSw(top){
 
 <div id="toast"></div>
 
-<script src="vendor/supabase.js?v=v279"></script>
-<script src="config.js?v=v279"></script>
-<script src="meal-library.js?v=v279"></script>
-<script src="exercise-library.js?v=v279"></script>
-<script src="anim.js?v=v279"></script>
-<script src="progress.js?v=v279"></script>
-<script src="habits.js?v=v279"></script>
-<script src="coach-bot.js?v=v279"></script>
-<script src="progress-chart.js?v=v279"></script>
-<script src="workout-log.js?v=v279"></script>
-<script src="targets.js?v=v279"></script>
-<script src="health.js?v=v279"></script>
-<script src="privacy.js?v=v279"></script>
-<script src="guides.js?v=v279"></script>
+<script src="vendor/supabase.js?v=v280"></script>
+<script src="config.js?v=v280"></script>
+<script src="meal-library.js?v=v280"></script>
+<script src="exercise-library.js?v=v280"></script>
+<script src="anim.js?v=v280"></script>
+<script src="progress.js?v=v280"></script>
+<script src="habits.js?v=v280"></script>
+<script src="coach-bot.js?v=v280"></script>
+<script src="progress-chart.js?v=v280"></script>
+<script src="workout-log.js?v=v280"></script>
+<script src="targets.js?v=v280"></script>
+<script src="health.js?v=v280"></script>
+<script src="privacy.js?v=v280"></script>
+<script src="guides.js?v=v280"></script>
 <script>
 (function () {
   'use strict';
@@ -438,6 +464,24 @@ function themeSw(top){
     .replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
 
   let DATA = null, DAY = 0, STATE = {}, FEEL = null, sb = null;
+  /* הדמות בהדמיות: המאמן קובע ברירת מחדל בתוכנית (fig), והמתאמן/ת יכולים
+     לבחור אחרת בחלון "התאמה אישית" (נובמבר 2026). הבחירה במכשיר בלבד,
+     לפי הקישור — מאמן שפותח את הקישור של מתאמן במחשב שלו לא משנה לו כלום. */
+  function figKey() { return 'eb_fig_' + (TOKEN || 'x').slice(0, 12); }
+  function figOf() {
+    let f = null; try { f = localStorage.getItem(figKey()); } catch (e) {}
+    if (f === 'm' || f === 'f') return f;
+    return DATA && DATA.program && DATA.program.fig === 'f' ? 'f' : 'm';
+  }
+  if (window.EBTheme) EBTheme.figure = {
+    get: figOf,
+    remember: function (g) { try { localStorage.setItem(figKey(), g); } catch (e) {} },
+    set: function (g) {
+      EBTheme.figure.remember(g);
+      if (window.EBAnim && EBAnim.libFig) EBAnim.libFig(g); else if (window.EBAnim && EBAnim.figure) EBAnim.figure(g);
+      toast(g === 'f' ? 'ההדמיות יוצגו עם דמות אישה' : 'ההדמיות יוצגו עם דמות גבר');
+    }
+  };
   /* הערה למאמן בסיום אימון, לפי יום. עד ספטמבר 2026 שני כפתורי הסיום שלחו
      p_note: null, ולמתאמן לא הייתה שום דרך לכתוב למאמן על אימון —
      כולל "הברך כאבה", שלוח הבקרה של המאמן יודע להתריע עליו. */
@@ -1837,8 +1881,8 @@ function themeSw(top){
 
   /* ---------- תצוגה ---------- */
   function paint() {
-    /* מתאמנת רואה את דמות האישה בכל ההדמיות (fig מגיע בתוך התוכנית) */
-    if (window.EBAnim && EBAnim.figure) EBAnim.figure(DATA && DATA.program && DATA.program.fig === 'f' ? 'f' : 'm');
+    /* מתאמנת רואה את דמות האישה בכל ההדמיות (fig בתוכנית, או מה שבחרו במכשיר) */
+    if (window.EBAnim && EBAnim.figure) EBAnim.figure(figOf());
     $('#hTitle').textContent = DATA.name || 'התוכנית שלי';
     $('#hSub').textContent = [goalText(DATA.goal), DATA.trainer_name && 'מאמן: ' + DATA.trainer_name]
       .filter(Boolean).join(' · ');
@@ -2035,6 +2079,8 @@ function themeSw(top){
     if (!e.target.closest) return;
     const go = e.target.closest('[data-nudge-go]');
     if (go) { DAY = +go.dataset.nudgeGo; openCategory('workout'); return; }
+    const gd = e.target.closest('[data-go-day]');
+    if (gd) { DAY = +gd.dataset.goDay; openCategory('workout'); return; }
     if (e.target.closest('[data-nudge-hide]')) {
       try { localStorage.setItem(nudgeKey(), EBHabits.todayISO()); } catch (er) {}
       paint();
@@ -2316,10 +2362,33 @@ function themeSw(top){
     const sinceTxt = lastWhen === null ? '—' : lastWhen === 0 ? 'היום' : lastWhen === 1 ? 'אתמול' : lastWhen;
     const sinceLbl = (lastWhen === null || lastWhen <= 1) ? 'האימון האחרון' : 'ימים מאז אימון';
 
-    /* השם והמטרה כבר בכותרת שמעל. פעמיים ברצף זה נראה כמו תקלה. */
-    return '<section class="hero">'
-      + '<div class="hero-stats">'
-      + stat(weekDone, planned ? 'מתוך ' + planned + ' השבוע' : 'אימונים השבוע', !weekDone)
+    /* כרטיס הפתיחה (נובמבר 2026, "תשנה לסגנון מטורף"): טבעת של השבוע,
+       האימון הבא בתור וכפתור אחד גדול שפותח אותו — הדבר הראשון שמתאמן
+       רוצה כשהוא נכנס בחדר כושר. השם כבר בכותרת שמעל, אז כאן רק ברכה. */
+    let nextI = -1;
+    try { nextI = EBWLog.suggestDay(DATA.program, logs); } catch (e) { nextI = -1; }
+    if (nextI < 0 || !days[nextI] || !realOf(days[nextI]).length) nextI = days.findIndex(d => realOf(d).length);
+    const hr = new Date().getHours();
+    const hello = hr < 5 ? 'לילה טוב' : hr < 12 ? 'בוקר טוב' : hr < 17 ? 'צהריים טובים' : hr < 21 ? 'ערב טוב' : 'לילה טוב';
+    const wdays = ['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'];
+    const goal = planned || 3, pct = Math.min(1, weekDone / goal), C = 2 * Math.PI * 42;
+    const ring = '<div class="th-ring" role="img" aria-label="' + weekDone + ' אימונים השבוע מתוך ' + goal + '">'
+      + '<svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="42" class="th-rbg"/>'
+      + '<circle cx="50" cy="50" r="42" class="th-rfg" stroke-dasharray="' + (C * pct).toFixed(1) + ' ' + C.toFixed(1) + '"/></svg>'
+      + '<b>' + weekDone + '<small>/' + goal + '</small></b><span>השבוע</span></div>';
+    const nd = nextI > -1 ? days[nextI] : null;
+    const nName = nd ? String(nd.name || ('יום ' + (nextI + 1))) : '';
+    const nCount = nd ? realOf(nd).length : 0;
+    const next = nd
+      ? '<div class="th-next"><span class="th-k">האימון הבא שלך</span><strong>' + esc(nName) + '</strong>'
+        + '<span class="th-s">' + nCount + ' תרגילים' + (sinceTxt === 'היום' ? ' · כבר התאמנת היום' : '') + '</span></div>'
+      : '<div class="th-next"><span class="th-k">התוכנית</span><strong>המאמן עוד בונה לך תוכנית</strong></div>';
+    return '<section class="hero th-hero">'
+      + '<div class="th-hi">' + hello + (first ? ', ' + esc(first) : '') + ' <span>· יום ' + wdays[new Date().getDay()] + '</span></div>'
+      + '<div class="th-main">' + ring + next + '</div>'
+      + (nd ? '<button class="th-go" data-go-day="' + nextI + '"><span>להתחיל את האימון</span>'
+        + '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>' : '')
+      + '<div class="hero-stats th-stats">'
       + stat(sinceTxt, sinceLbl, lastWhen !== null && lastWhen > 3)
       + stat(logs.length, 'אימונים בסך הכול', !logs.length)
       + stat(lastVol ? lastVol.toLocaleString('en-US') : '—', 'ק״ג באימון', !lastVol)
@@ -2568,7 +2637,8 @@ function themeSw(top){
   }
 
   function categoryBlock() {
-    return '<div class="section-head"><h3>המרחב שלך</h3>' + themeSw() + '</div>'
+    return '<div class="section-head"><h3>המרחב שלך</h3><button class="theme-sw" data-thm-sw onclick="EBTheme.open()">'
+      + '<i><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18c1.2 0 1.8-.8 1.8-1.7 0-1.1-.9-1.5-.9-2.6 0-1 .8-1.7 1.8-1.7h2.1A4.2 4.2 0 0 0 21 10.8C21 6.5 17 3 12 3z"/><circle cx="7.6" cy="11.5" r="1.1"/><circle cx="10.4" cy="7.4" r="1.1"/><circle cx="15.2" cy="7.6" r="1.1"/></svg></i>צבעים ודמות</button></div>'
       + '<div class="category-grid">'
       + categoryTile('log','יומן','מה שעשית בפועל')
       + categoryTile('workout','אימון','התוכנית והביצוע')
@@ -2621,7 +2691,8 @@ function themeSw(top){
         }).join('');
   }
   function categoryTile(key, title, sub) {
-    return '<button class="category-tile" data-category="'+key+'"><span class="category-icon">'+categoryIcon(key)+'</span><strong>'+title+'</strong><span>'+sub+'</span></button>';
+    return '<button class="category-tile th-tile" data-category="'+key+'"><span class="th-wm" aria-hidden="true">'+categoryIcon(key)+'</span>'
+      +'<span class="category-icon">'+categoryIcon(key)+'</span><strong>'+title+'</strong><span>'+sub+'</span></button>';
   }
   function bodyBmi() {
     const h=Number(DATA.height), w=Number(DATA.weight);
@@ -3087,7 +3158,7 @@ function themeSw(top){
     HEALTH = HEALTH || hLoad();
     if (HEALTH && HEALTH.signedAt) return '';
     return '<button onclick="EBT.hJump()" style="width:100%;margin-bottom:12px;cursor:pointer;'
-      + 'background:rgba(184,144,31,.10);border:1px solid rgba(184,144,31,.45);border-radius:12px;'
+      + 'background:rgba(var(--cop-rgb),.10);border:1px solid rgba(var(--cop-rgb),.45);border-radius:12px;'
       + 'padding:10px 13px;font-family:inherit;font-size:13px;color:var(--cop);font-weight:600;'
       + 'text-align:right">חסרה הצהרת בריאות — דקה אחת, ואפשר להתחיל</button>';
   }
@@ -3293,9 +3364,9 @@ function themeSw(top){
   }
 
   function hBtn(k, val, label, on) {
-    var bg = on ? (val === 'yes' ? 'rgba(217,96,90,.18)' : 'rgba(196,154,108,.18)') : 'var(--ink)';
+    var bg = on ? (val === 'yes' ? 'rgba(217,96,90,.18)' : 'rgba(var(--or-rgb),.18)') : 'var(--ink)';
     var fg = on ? (val === 'yes' ? '#D9605A' : 'var(--or)') : 'var(--mut)';
-    var bd = on ? (val === 'yes' ? '#D9605A66' : 'rgba(196,154,108,.5)') : 'var(--line)';
+    var bd = on ? (val === 'yes' ? '#D9605A66' : 'rgba(var(--or-rgb),.5)') : 'var(--line)';
     return '<button onclick="EBT.hPick(\'' + k + '\',\'' + val + '\')" '
       + 'style="flex:1;padding:9px;border-radius:10px;cursor:pointer;font-family:inherit;font-size:13.5px;'
       + 'font-weight:' + (on ? '800' : '400') + ';background:' + bg + ';color:' + fg + ';border:1px solid ' + bd + '">'
@@ -3541,7 +3612,7 @@ function themeSw(top){
      וגם לעדכן אותי, אחרת אבנה לו שוב את אותו תפריט. */
   function nutritionDisclaimer() {
     return '<div class="card" style="margin-bottom:12px;border-color:var(--line2);'
-      + 'background:rgba(184,144,31,.06)">'
+      + 'background:rgba(var(--cop-rgb),.06)">'
       + '<div style="font-family:Heebo;font-weight:700;font-size:13.5px;color:var(--cop);'
       + 'margin-bottom:6px">המלצה, לא הוראה רפואית</div>'
       + '<div style="font-size:12.5px;line-height:1.75;color:var(--tx)">'
@@ -3627,7 +3698,7 @@ function themeSw(top){
           + '<div style="font-family:Heebo;font-weight:700;font-size:15px;line-height:1.3">'
           + esc(m.name)
           + (m.mine ? '<span style="font-size:10.5px;font-weight:700;color:var(--or);'
-              + 'background:rgba(196,154,108,.15);border-radius:20px;padding:2px 7px;margin-right:6px">שלי</span>' : '')
+              + 'background:rgba(var(--or-rgb),.15);border-radius:20px;padding:2px 7px;margin-right:6px">שלי</span>' : '')
           + '</div>'
           + (m.desc ? '<div style="color:var(--mut);font-size:13px;margin-top:4px;line-height:1.5;'
               + 'white-space:pre-wrap">' + esc(m.desc) + '</div>' : '')
@@ -4341,6 +4412,6 @@ function themeSw(top){
   });
 })();
 </script>
-<script src="ui-fx.js?v=v279"></script>
+<script src="ui-fx.js?v=v280"></script>
 </body>
 </html>

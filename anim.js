@@ -22,7 +22,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['anim'] = 'v279';
+  (window.EB_MOD = window.EB_MOD || {})['anim'] = 'v280';
 
   var L = { shin: 62, thigh: 64, torso: 78, uarm: 46, farm: 42, neck: 9, head: 15, foot: 17 };
   var ARM = L.uarm + L.farm;
@@ -1815,6 +1815,8 @@
     opt = opt || {};
     var c = opt.cls || classify(name, opt.m, opt.e); if (!c) return false;
     var s = build(c); if (!s) return false;
+    /* דמות קבועה לקנבס הזה (חלון ההתאמה האישית מציג גבר ואישה זה ליד זה) */
+    if (opt.fig && FIGS[opt.fig]) s = Object.assign({}, s, { fig: opt.fig });
     var dpr = Math.min(2, window.devicePixelRatio || 1), cssW = cv.clientWidth || +cv.getAttribute('width') || 300, cssH = cv.clientHeight || +cv.getAttribute('height') || cssW;
     cv.width = Math.round(cssW * dpr); cv.height = Math.round(cssH * dpr);
     /* בתוך רשת הספרייה — ציור קל (LITE); חלון של תרגיל אחד — מלא */
@@ -1936,6 +1938,8 @@
   }
   function libFig(g) {
     if (FIGS[g]) FIG_DEF = g;
+    /* בדף המתאמן הבחירה בספרייה נזכרת גם לפעם הבאה (EBTheme.figure ב-t.html) */
+    if (FIGS[g] && window.EBTheme && EBTheme.figure && EBTheme.figure.remember) EBTheme.figure.remember(g);
     document.querySelectorAll('[data-animfig]').forEach(function (b) { b.innerHTML = figBtns(); });
     document.querySelectorAll('canvas[data-anim]').forEach(function (cv) { var it = LIVE.filter(function (x) { return x.cv === cv; })[0]; if (it) draw(cv, it.s, 0.25, false, it.lite); });
   }
