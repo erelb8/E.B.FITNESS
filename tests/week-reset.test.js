@@ -20,7 +20,7 @@ const D = { name: 'דני בדיקה', goal: 'כוח', health: { signedAt: '2026
 const KEY = 'ebfit_t_state_tok-week';
 
 /* מתאמן אחד: מצב שמור במכשיר, טיוטה בשרת, ושעון */
-async function run(b, { local, server, when, then }) {
+async function run(b, { local, server, when, then, oldServer }) {
   const c = await b.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, serviceWorkers: 'block' });
   const p = await c.newPage(); const errs = []; p.on('pageerror', e => errs.push(e.message));
   await p.clock.install({ time: new Date(when) });
@@ -32,6 +32,8 @@ async function run(b, { local, server, when, then }) {
     if (fn === 'trainee_program') body = JSON.stringify([D]);
     if (fn === 'trainee_extras') body = JSON.stringify([{ logs: [], weighins: [], session_state: Object.assign({ terms: { at: '2026-10-01T10:00:00.000Z', version: '3' } }, server || {}) }]);
     if (fn === 'trainee_save_state') { saves.push(a.p_state); body = 'true'; }
+    if (fn === 'trainee_log' && oldServer && 'p_date' in a) { logs.push(Object.assign({ rejected: true }, a));
+      return rt.fulfill({ status: 404, contentType: 'application/json', body: JSON.stringify({ code: 'PGRST202', message: 'Could not find the function public.trainee_log(p_date, ...) in the schema cache' }) }); }
     if (fn === 'trainee_log') { logs.push(a); body = '"00000000-0000-0000-0000-000000000001"'; }
     rt.fulfill({ status: 200, contentType: 'application/json', body });
   });
@@ -77,9 +79,32 @@ const look = p => p.evaluate(k => {
   t('הודעה למתאמן עם שני הימים', r.banner && /יום A/.test(r.text) && /יום B/.test(r.text) && /2 תרגילים/.test(r.text), r.text);
   const lA = r.logs.find(l => l.p_day_index === 0), lB = r.logs.find(l => l.p_day_index === 1);
   t('"לשלוח למאמן" שולח את שני הימים', r.logs.length === 2 && lA && lB, JSON.stringify(r.logs));
-  t('עם המשקל שסומן ועם הערה שזה מהשבוע שעבר', lA && lA.p_entries[0].done === true && lA.p_entries[0].weight === '80' && /מהשבוע שעבר/.test(lA.p_note), JSON.stringify(lA));
+  t('עם המשקל שסומן ועם הערה שזה נשלח באיחור', lA && lA.p_entries[0].done === true && lA.p_entries[0].weight === '80' && /באיחור/.test(lA.p_note), JSON.stringify(lA));
+  t('בלי יום סימון — נרשם בשבת של אותו שבוע', lA && lA.p_date === '2026-11-21' && lB.p_date === '2026-11-21', lA && lA.p_date);
   t('אחרי השליחה ההודעה נעלמת', !r.after.banner && !r.after.s.leftover, JSON.stringify(r.after.s));
   t('אין שגיאות', !r.errs.length, r.errs.join(' | '));
+
+  console.log('=== התאריך האמיתי ===');
+  r = await run(b, { local: { wk: '2026-11-15', '0:0': { done: true, weight: '80', at: '2026-11-17' }, '0:1': { done: true, at: '2026-11-19' }, '1:0': { done: true, at: '2026-11-20' } },
+    when: '2026-11-22T09:00:00', then: async (p, io) => { await p.click('[data-left-send]'); await p.waitForTimeout(900); return { logs: io.logs }; } });
+  const dA = (r.logs.find(l => l.p_day_index === 0) || {}).p_date, dB = (r.logs.find(l => l.p_day_index === 1) || {}).p_date;
+  t('נרשם ביום האחרון שבו סומן', dA === '2026-11-19' && dB === '2026-11-20', dA + ' ' + dB);
+  r = await run(b, { local: { wk: '2026-11-22' }, when: '2026-11-24T20:00:00', then: async (p, io) => {
+    await p.evaluate(() => { const s = JSON.parse(localStorage.getItem('ebfit_t_state_tok-week')); s['0:0'] = { done: true, weight: '70', at: '2026-11-23' }; localStorage.setItem('ebfit_t_state_tok-week', JSON.stringify(s)); });
+    await p.reload(); await p.waitForSelector('.category-tile'); await p.waitForTimeout(1000);
+    await p.click('[data-category="workout"]'); await p.waitForTimeout(400);
+    await p.click('.dayc.on [data-fin="0"]'); await p.waitForTimeout(900);
+    const a = { logs: io.logs.slice() };
+    await p.click('[data-category="workout"]').catch(() => {}); await p.waitForTimeout(300);
+    await p.click('#categoryModal .dayc.on [data-chk="0"]').catch(() => {}); await p.waitForTimeout(200);
+    await p.click('#categoryModal .dayc.on [data-fin="0"]').catch(() => {}); await p.waitForTimeout(900);
+    a.logs2 = io.logs.slice(a.logs.length); return a; } });
+  t('"סיימתי" על אימון של אתמול — נרשם באתמול', r.logs.length === 1 && r.logs[0].p_date === '2026-11-23', JSON.stringify(r.logs.map(l => l.p_date)));
+  t('אימון של היום — בלי תאריך (השרת רושם היום)', r.logs2.length === 1 && !('p_date' in r.logs2[0]), JSON.stringify(r.logs2.map(l => l.p_date)));
+
+  r = await run(b, { oldServer: true, local: { wk: '2026-11-15', '0:0': { done: true, at: '2026-11-17' } },
+    when: '2026-11-22T09:00:00', then: async (p, io) => { await p.click('[data-left-send]'); await p.waitForTimeout(1200); return { logs: io.logs, banner: !!(await p.$('[data-left-send]')) }; } });
+  t('שרת שעוד לא עודכן — נשלח שוב בלי תאריך, פעם אחת', r.logs.length === 2 && r.logs[0].rejected && !('p_date' in r.logs[1]) && !r.banner, JSON.stringify(r.logs.map(l => [l.rejected, l.p_date])));
 
   console.log('=== "לא צריך" ===');
   r = await run(b, { local: Object.assign({ wk: '2026-11-15' }, MARKS), when: '2026-11-22T09:00:00', then: async (p, io) => {
