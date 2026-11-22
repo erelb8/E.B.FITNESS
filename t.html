@@ -13,8 +13,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="התוכנית שלי">
 <meta name="robots" content="noindex,nofollow">
-<link rel="apple-touch-icon" href="icons/icon-180.png?v=v281">
-<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=v281">
+<link rel="apple-touch-icon" href="icons/icon-180.png?v=v282">
+<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=v282">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -405,6 +405,41 @@ html[data-theme="light"] .th-go{color:#FFFFFF;background:#A8764A}
 .th-stats{grid-template-columns:repeat(3,1fr)!important;margin-top:14px!important;padding-top:13px;border-top:1px solid var(--line)}
 .th-stats .hstat{text-align:center}
 .th-stats .hstat b{font-size:21px}
+/* ---------- נוחות באימון (נובמבר 2026) ---------- */
+.ex-acts{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:6px}
+.ex-acts > button{margin-top:0!important}
+.rest-btn{display:inline-flex;align-items:center;gap:5px;background:none;border:1px solid var(--line2);border-radius:20px;padding:3px 11px;
+  font:inherit;font-size:12.5px;color:var(--mut);cursor:pointer}
+.rest-btn svg{width:14px;height:14px}
+.rest-btn:active{transform:scale(.96)}
+.ex-last{font-size:12.5px;color:var(--mut);margin-top:4px}
+.ex-last b{color:var(--tx);font-weight:700}
+.chk{width:46px!important;height:46px!important;flex:none}
+.ex.done{border-color:rgba(var(--or-rgb),.45)}
+.ex.done .nm{color:var(--mut)}
+.rest-pill{position:fixed;z-index:120;left:50%;transform:translateX(-50%);bottom:calc(78px + env(safe-area-inset-bottom));
+  display:flex;align-items:center;gap:10px;padding:8px 10px 8px 14px;border-radius:40px;background:var(--card);border:1px solid var(--or);
+  box-shadow:0 12px 30px rgba(0,0,0,.4);color:var(--tx);width:max-content;max-width:calc(100vw - 24px);animation:rp-in .2s ease-out}
+.rest-pill svg{width:38px;height:38px;flex:none;transform:rotate(-90deg)}
+.rest-pill circle{fill:none;stroke-width:3.5}
+.rest-pill .rp-bg{stroke:var(--line)}
+.rest-pill .rp-fg{stroke:var(--or);stroke-linecap:round}
+.rp-t{display:flex;flex-direction:column;min-width:0;line-height:1.15}
+.rp-t b{font-size:20px;font-weight:800;font-variant-numeric:tabular-nums;direction:ltr;text-align:right}
+.rp-t span{font-size:11px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px}
+.rest-pill button{flex:none;border:1px solid var(--line2);background:var(--ink);color:var(--tx);border-radius:20px;padding:7px 12px;font:inherit;font-size:13px;font-weight:700;cursor:pointer}
+@keyframes rp-in{from{opacity:0;transform:translate(-50%,10px)}to{opacity:1;transform:translateX(-50%)}}
+.bar{cursor:pointer}
+/* שאלון מקופל לשורה אחת */
+.th-row{display:flex;align-items:center;gap:10px;padding:12px 14px!important}
+.th-row b{display:block;font-size:14.5px;font-weight:800}
+.th-row span{display:block;font-size:12px;color:var(--mut);margin-top:1px}
+.th-later{flex:none;background:none;border:0;color:var(--dim);font:inherit;font-size:12px;cursor:pointer;padding:6px 2px}
+/* כותרת קצרה יותר — יותר מקום לתוכן במסך הטלפון */
+.top{padding-bottom:10px!important}
+.top h1{font-size:20px!important;margin-top:2px!important}
+.top .sub{font-size:12.5px!important}
+.brand-logo{width:30px!important;height:30px!important}
 /* אריחים: שתי עמודות, אייקון בתוך ריבוע רך וסימן מים גדול בפינה */
 .category-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important}
 @media(min-width:620px){ .category-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important} }
@@ -415,16 +450,16 @@ html[data-theme="light"] .th-go{color:#FFFFFF;background:#A8764A}
 .th-wm{position:absolute!important;left:-14px;bottom:-16px;width:92px;height:92px;color:var(--or);opacity:.07;pointer-events:none;margin:0!important}
 .th-wm svg{width:100%;height:100%;display:block}
 </style>
-<link rel="stylesheet" href="ui-fx.css?v=v281">
-<link rel="stylesheet" href="theme-light.css?v=v281">
-<link rel="stylesheet" href="theme.css?v=v281">
+<link rel="stylesheet" href="ui-fx.css?v=v282">
+<link rel="stylesheet" href="theme-light.css?v=v282">
+<link rel="stylesheet" href="theme.css?v=v282">
 <!-- ערכת הצבע — לפני הציור, נשמרת במכשיר של המתאמן -->
-<script src="theme.js?v=v281"></script>
+<script src="theme.js?v=v282"></script>
 </head>
 <body>
 
 <header class="top">
-  <div class="brand"><img class="brand-logo" src="icons/logo-96.png?v=v281" alt="" width="34" height="34"><span>BAUER<span class="dot"></span>POWER</span></div>
+  <div class="brand"><img class="brand-logo" src="icons/logo-96.png?v=v282" alt="" width="34" height="34"><span>BAUER<span class="dot"></span>POWER</span></div>
   <h1 id="hTitle">טוען…</h1>
   <div class="sub" id="hSub"></div>
   <span class="savechip" id="saveChip" aria-live="polite"></span>
@@ -438,20 +473,20 @@ html[data-theme="light"] .th-go{color:#FFFFFF;background:#A8764A}
 
 <div id="toast"></div>
 
-<script src="vendor/supabase.js?v=v281"></script>
-<script src="config.js?v=v281"></script>
-<script src="meal-library.js?v=v281"></script>
-<script src="exercise-library.js?v=v281"></script>
-<script src="anim.js?v=v281"></script>
-<script src="progress.js?v=v281"></script>
-<script src="habits.js?v=v281"></script>
-<script src="coach-bot.js?v=v281"></script>
-<script src="progress-chart.js?v=v281"></script>
-<script src="workout-log.js?v=v281"></script>
-<script src="targets.js?v=v281"></script>
-<script src="health.js?v=v281"></script>
-<script src="privacy.js?v=v281"></script>
-<script src="guides.js?v=v281"></script>
+<script src="vendor/supabase.js?v=v282"></script>
+<script src="config.js?v=v282"></script>
+<script src="meal-library.js?v=v282"></script>
+<script src="exercise-library.js?v=v282"></script>
+<script src="anim.js?v=v282"></script>
+<script src="progress.js?v=v282"></script>
+<script src="habits.js?v=v282"></script>
+<script src="coach-bot.js?v=v282"></script>
+<script src="progress-chart.js?v=v282"></script>
+<script src="workout-log.js?v=v282"></script>
+<script src="targets.js?v=v282"></script>
+<script src="health.js?v=v282"></script>
+<script src="privacy.js?v=v282"></script>
+<script src="guides.js?v=v282"></script>
 <script>
 (function () {
   'use strict';
@@ -1895,12 +1930,15 @@ html[data-theme="light"] .th-go{color:#FFFFFF;background:#A8764A}
         openerBlock(days)
       + leftoverBlock(days)
       + nudgeBlock(days)
+      /* האריחים מיד אחרי כרטיס הפתיחה (נובמבר 2026, "שיהיה יותר נוח"):
+         עד אז הם ישבו מתחת לשאלונים ולסיכומים, ומתאמן שרצה את התזונה
+         גלל מסך וחצי כדי להגיע אליה */
+      + categoryBlock()
       + dailyBlock()
       + checkinBlock()
       + monthlyBlock(days)
       + weeklyBlock(days)
       + journeyBlockSafe()
-      + categoryBlock()
       + footerBlock()
     );
     bar();
@@ -2018,14 +2056,27 @@ html[data-theme="light"] .th-go{color:#FFFFFF;background:#A8764A}
     if (DATA && rollWeek()) paint();   // שבוע חדש בזמן שהדף היה פתוח
     const labels={log:['יומן האימונים','מה שעשית בפועל'],workout:['אימון','התוכנית והביצוע'],food:['תזונה','התפריט והיעדים שלך'],body:['גוף','מדדים, בריאות וקבצים'],follow:['מעקב','ההתקדמות שלך'],habits:['הרגלים','מה שקורה כל יום'],guides:['מדריכים','איך משתמשים באפליקציה']};
     const item=labels[key]||labels.workout;
-    closeCategory();
+    closeCategory(true);
     OPEN_CATEGORY = key;
+    /* כפתור "חזור" של הטלפון סוגר את החלון ולא יוצא מהאפליקציה */
+    try { if (!(history.state && history.state.ebWin)) history.pushState({ ebWin: 1 }, ''); } catch (e) {}
     const modal=document.createElement('div'); modal.className='category-modal'; modal.id='categoryModal';
     modal.innerHTML='<div class="category-dialog" role="dialog" aria-modal="true"><div class="category-dialog-head"><div style="flex:1"><h2>'+item[0]+'</h2><p>'+item[1]+'</p></div><button class="category-close" data-category-close aria-label="סגירה">×</button></div><div class="category-dialog-body">'+categoryContent(key)+'</div></div>';
     document.body.appendChild(modal); document.body.style.overflow='hidden';
   }
   /* סגירה באמצע עריכה משמיטה את השינויים שלא נשמרו — כמו ביטול */
-  function closeCategory(){
+  let POP_SKIP = false;
+  window.addEventListener('popstate', () => {
+    if (POP_SKIP) { POP_SKIP = false; return; }
+    if (document.getElementById('thmSheet') && window.EBTheme) { EBTheme.close(); if (OPEN_CATEGORY) try { history.pushState({ ebWin: 1 }, ''); } catch (e) {} return; }
+    if (OPEN_CATEGORY) closeCategory(true);
+  });
+  function closeCategory(keepHistory){
+    const wasOpen = !!OPEN_CATEGORY;
+    /* נסגר בכפתור (לא ב"חזור") — מורידים גם את הרשומה שנוספה בפתיחה */
+    if (wasOpen && keepHistory !== true) {
+      try { if (history.state && history.state.ebWin) { POP_SKIP = true; history.back(); } } catch (e) {}
+    }
     /* סגירה באמצע עריכה שומרת — עד ספטמבר 2026 היא מחקה את כל השינויים */
     if (EDIT_W) {
       const box = document.getElementById('tn_box');
@@ -2104,7 +2155,7 @@ html[data-theme="light"] .th-go{color:#FFFFFF;background:#A8764A}
     ['food',   'כמה הצלחת להיצמד לתפריט?'],
     ['mot',    'כמה מוטיבציה יש עכשיו?']
   ];
-  let CK = {};
+  let CK = {}, CK_OPEN = false;
   const ckKey = () => 'ebfit_ck_' + String(TOKEN || '').slice(0, 12);
   const ckMonth = () => isoLocal(new Date()).slice(0, 7);
   function ckDone() { return (STATE.checkins || []).some(c => c && c.month === ckMonth()); }
@@ -2118,6 +2169,14 @@ html[data-theme="light"] .th-go{color:#FFFFFF;background:#A8764A}
           + 'background:' + (CK[k] === v ? 'var(--or)' : 'transparent') + ';color:' + (CK[k] === v ? 'var(--ink)' : 'var(--tx)') + '">' + v + '</button>').join('')
         + '</div>';
       const ready = CK_Q.every(q => CK[q[0]]) && (CK.pain === true || CK.pain === false);
+      /* שורה אחת עד שבוחרים למלא — חמש שאלות פתוחות תפסו מסך שלם
+         מעל כל השאר, כל יום עד שמילאו */
+      if (!CK_OPEN && !Object.keys(CK).length) {
+        return '<div class="card th-row" style="margin-bottom:12px">'
+          + '<div style="flex:1;min-width:0"><b>צ׳ק-אין חודשי</b><span>חצי דקה · ככה אני יודע מה לשנות בתוכנית</span></div>'
+          + '<button class="btn" data-ck-open style="flex:none;padding:9px 16px;font-size:14px">למלא</button>'
+          + '<button data-ck-later class="th-later">אחר כך</button></div>';
+      }
       return '<div class="card" style="margin-bottom:14px;border-color:var(--or)">'
         + '<div style="display:flex;align-items:baseline;margin-bottom:2px">'
         + '<div style="flex:1;font-family:Heebo;font-weight:700;font-size:15px">צ׳ק-אין חודשי</div>'
@@ -2153,6 +2212,7 @@ html[data-theme="light"] .th-go{color:#FFFFFF;background:#A8764A}
   }
   document.addEventListener('click', function (e) {
     if (!e.target.closest) return;
+    if (e.target.closest('[data-ck-open]')) { CK_OPEN = true; paint(); return; }
     const b = e.target.closest('[data-ck]');
     if (b) { const p = b.dataset.ck.split(':'); CK[p[0]] = +p[1]; paint(); return; }
     const pn = e.target.closest('[data-ck-pain]');
@@ -2168,7 +2228,7 @@ html[data-theme="light"] .th-go{color:#FFFFFF;background:#A8764A}
                   note: String(CK.note || '').trim().slice(0, 500) };
       STATE.checkins = (STATE.checkins || []).filter(x => x && x.month !== c.month).concat([c]).slice(-12);
       writeState(); queueStateSync();
-      CK = {};
+      CK = {}; CK_OPEN = false;
       toast('נשלח. תודה!');
       paint();
     }
@@ -2377,7 +2437,7 @@ html[data-theme="light"] .th-go{color:#FFFFFF;background:#A8764A}
     const goal = planned || 3, pct = Math.min(1, weekDone / goal), C = 2 * Math.PI * 42;
     const ring = '<div class="th-ring" role="img" aria-label="' + weekDone + ' אימונים השבוע מתוך ' + goal + '">'
       + '<svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="42" class="th-rbg"/>'
-      + '<circle cx="50" cy="50" r="42" class="th-rfg" stroke-dasharray="' + (C * pct).toFixed(1) + ' ' + C.toFixed(1) + '"/></svg>'
+      + (pct > 0 ? '<circle cx="50" cy="50" r="42" class="th-rfg" stroke-dasharray="' + (C * pct).toFixed(1) + ' ' + C.toFixed(1) + '"/>' : '') + '</svg>'
       + '<b>' + weekDone + '<small>/' + goal + '</small></b><span>השבוע</span></div>';
     const nd = nextI > -1 ? days[nextI] : null;
     const nName = nd ? String(nd.name || ('יום ' + (nextI + 1))) : '';
@@ -3874,12 +3934,73 @@ html[data-theme="light"] .th-go{color:#FFFFFF;background:#A8764A}
       + (meta ? '<div class="meta">' + esc(meta) + '</div>' : '')
       + (roles ? '<div class="roles">' + esc(EBWLog.rolesLine(roles)) + '</div>' : '')
       + (e.note ? '<div class="note">' + esc(e.note) + '</div>' : '')
-      + vidBtn(e)
+      + lastLine(e)
+      + '<div class="ex-acts">' + vidBtn(e) + restBtn(e) + '</div>'
       + '</div></div>'
       + '<div class="logs">'
       + '<input data-f="weight" data-i="' + i + '" data-d="' + d + '" inputmode="decimal" placeholder="משקל" value="' + esc(st.weight != null ? st.weight : (e.weight || '')) + '">'
       + '<input data-f="reps" data-i="' + i + '" data-d="' + d + '" inputmode="numeric" placeholder="חזרות" value="' + esc(st.reps != null ? st.reps : '') + '">'
       + '</div></div>';
+  }
+
+
+  /* ---------- באימון: פעם קודמת, טיימר מנוחה, מעבר לתרגיל הבא ----------
+     נובמבר 2026, "שיהיה יותר נוח". המתאמן עומד בחדר כושר עם הטלפון ביד:
+     - מה הרים בפעם הקודמת — היה רק ביומן, לא כאן, אז ניחשו (ובדרך כלל נמוך)
+     - טיימר מנוחה בלחיצה אחת אחרי סט, עם רטט בסוף, גם כשהחלון סגור
+     - אחרי וי המסך עובר לתרגיל הבא, בלי לגלול ידנית */
+  function lastLine(e) {
+    try {
+      if (!window.EBWLog || !EBWLog.lastTimeOf) return '';
+      const l = EBWLog.lastTimeOf(EXTRAS.logs, e.name);
+      if (!l || !(l.weight || l.reps)) return '';
+      return '<div class="ex-last">בפעם הקודמת <b>' + (l.weight ? EBWLog.r1(l.weight) + ' ק״ג' : '') + (l.weight && l.reps ? ' × ' : '') + (l.reps ? l.reps : '') + '</b></div>';
+    } catch (er) { return ''; }
+  }
+  function restSec(e) {
+    const s = String((e && e.rest) || '').trim(), n = parseFloat(s.replace(',', '.'));
+    if (!(n > 0)) return 90;                                  // בלי מנוחה בתוכנית — דקה וחצי
+    return Math.min(600, Math.round(/דק|min|'/i.test(s) || n <= 5 ? n * 60 : n));
+  }
+  const mmss = x => Math.floor(x / 60) + ':' + String(x % 60).padStart(2, '0');
+  function restBtn(e) {
+    const sec = restSec(e);
+    return '<button class="rest-btn" data-rest="' + sec + '" data-rest-n="' + esc(e.name || '') + '">'
+      + '<svg viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 1.5M9.5 2.5h5"/></g></svg>'
+      + 'מנוחה ' + mmss(sec) + '</button>';
+  }
+  let REST = null;
+  function startRest(sec, name) {
+    if (!(sec > 0)) return;
+    if (REST && REST.t) clearTimeout(REST.t);
+    REST = { end: Date.now() + sec * 1000, total: sec, name: name };
+    tickRest();
+  }
+  function stopRest() { if (REST && REST.t) clearTimeout(REST.t); REST = null; tickRest(); }
+  function tickRest() {
+    let el = document.getElementById('restPill');
+    if (!REST) { if (el) el.remove(); return; }
+    const left = Math.max(0, Math.ceil((REST.end - Date.now()) / 1000));
+    if (!left) {
+      REST = null; if (el) el.remove();
+      try { if (navigator.vibrate) navigator.vibrate([250, 120, 250]); } catch (er) {}
+      toast('המנוחה נגמרה — לסט הבא');
+      return;
+    }
+    if (!el) { el = document.createElement('div'); el.id = 'restPill'; el.className = 'rest-pill'; el.setAttribute('role', 'timer'); document.body.appendChild(el); }
+    const p = left / REST.total, C = 2 * Math.PI * 15;
+    el.innerHTML = '<svg viewBox="0 0 36 36" aria-hidden="true"><circle cx="18" cy="18" r="15" class="rp-bg"/><circle cx="18" cy="18" r="15" class="rp-fg" stroke-dasharray="' + (C * p).toFixed(1) + ' ' + C.toFixed(1) + '"/></svg>'
+      + '<div class="rp-t"><b>' + mmss(left) + '</b><span>' + (REST.name ? esc(REST.name) : 'מנוחה') + '</span></div>'
+      + '<button data-rest="add" dir="ltr">+30</button><button data-rest="stop">דילוג</button>';
+    REST.t = setTimeout(tickRest, 250);
+  }
+  function nextEx(cur) {
+    try {
+      let n = cur && cur.nextElementSibling;
+      while (n && !(n.classList && n.classList.contains('ex') && !n.classList.contains('done'))) n = n.nextElementSibling;
+      if (!n) n = cur.closest('.dayb') && cur.closest('.dayb').querySelector('[data-fin]');
+      if (n) setTimeout(() => n.scrollIntoView({ behavior: 'smooth', block: 'center' }), 180);
+    } catch (er) {}
   }
 
   /* הסרגל מסכם את כל השבוע. כפתור השליחה עבר לתוך היום עצמו — עם כל
@@ -3896,6 +4017,8 @@ html[data-theme="light"] .th-go{color:#FFFFFF;background:#A8764A}
     if (!tot) { if (b) b.remove(); return; }
     if (!b) { b = document.createElement('div'); b.className = 'bar'; document.body.appendChild(b); }
     const pct = Math.round(done / tot * 100);
+    /* הסרגל הוא גם כפתור: נגיעה פותחת את האימון */
+    b.setAttribute('data-category', 'workout'); b.setAttribute('role', 'button'); b.setAttribute('aria-label', 'פתיחת האימון');
     b.innerHTML =
       '<div class="prog"><div class="bar-title">ההתקדמות שלך</div><div class="bar-copy"><b>' + done + '</b> מתוך <b>' + tot + '</b> תרגילים השבוע</div></div>'
       + '<div style="flex:none;width:74px;height:5px;border-radius:20px;background:var(--card);overflow:hidden">'
@@ -3936,6 +4059,15 @@ html[data-theme="light"] .th-go{color:#FFFFFF;background:#A8764A}
       writeState(); queueStateSync();
       dayMeta(+d);
       bar();
+      if (STATE[k].done) nextEx(chk.closest('.ex'));
+      return;
+    }
+    const rb = e.target.closest('[data-rest]');
+    if (rb) {
+      const v = rb.dataset.rest;
+      if (v === 'stop') stopRest();
+      else if (v === 'add') { if (REST) { REST.end += 30000; REST.total += 30; tickRest(); } }
+      else startRest(+v, rb.dataset.restN || '');
       return;
     }
 
@@ -4525,6 +4657,6 @@ html[data-theme="light"] .th-go{color:#FFFFFF;background:#A8764A}
   });
 })();
 </script>
-<script src="ui-fx.js?v=v281"></script>
+<script src="ui-fx.js?v=v282"></script>
 </body>
 </html>

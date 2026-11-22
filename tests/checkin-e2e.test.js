@@ -40,7 +40,9 @@ async function visit(b) {
   console.log('=== המתאמן עונה ===');
   {
     const { c, p, errs } = await visit(b);
-    t('השאלון מופיע ב-2 לחודש', !!(await p.$('[data-ck-send]')));
+    /* מנובמבר 2026 מקופל לשורה אחת עם "למלא" */
+    t('השאלון מופיע ב-2 לחודש', !!(await p.$('[data-ck-open]')));
+    await p.click('[data-ck-open]'); await p.waitForTimeout(200);
     t('"שליחה" נעול לפני שעונים', await p.$eval('[data-ck-send]', x => x.disabled));
     for (const [k, v] of [['sleep', 2], ['energy', 4], ['food', 3], ['mot', 5]]) { await p.click('[data-ck="' + k + ':' + v + '"]'); await p.waitForTimeout(80); }
     await p.click('[data-ck-pain="true"]'); await p.waitForTimeout(150);
@@ -48,7 +50,7 @@ async function visit(b) {
     await p.fill('[data-ck-text="note"]', 'אפשר פחות ימים בשבוע?');
     t('"שליחה" נפתח אחרי שעונים', !(await p.$eval('[data-ck-send]', x => x.disabled)));
     await p.click('[data-ck-send]'); await p.waitForTimeout(1500);
-    t('השאלון נעלם אחרי שליחה', !(await p.$('[data-ck-send]')));
+    t('השאלון נעלם אחרי שליחה', !(await p.$('[data-ck-send]')) && !(await p.$('[data-ck-open]')));
     const ck = (STATE_SRV.checkins || [])[0];
     t('התשובות הגיעו לשרת', ck && ck.month === '2026-11' && ck.sleep === 2 && ck.mot === 5 && ck.pain === true, JSON.stringify(STATE_SRV.checkins));
     t('הטקסטים הגיעו לשרת', ck && /כתף ימין/.test(ck.painNote) && /פחות ימים/.test(ck.note), JSON.stringify(ck));
@@ -58,7 +60,7 @@ async function visit(b) {
   }
   {
     const { c, p } = await visit(b);   // מכשיר אחר — מגיע מהשרת
-    t('במכשיר אחר לא נשאל שוב באותו חודש', !(await p.$('[data-ck-send]')));
+    t('במכשיר אחר לא נשאל שוב באותו חודש', !(await p.$('[data-ck-send]')) && !(await p.$('[data-ck-open]')));
     await c.close();
   }
 
