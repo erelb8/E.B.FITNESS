@@ -13,8 +13,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="התוכנית שלי">
 <meta name="robots" content="noindex,nofollow">
-<link rel="apple-touch-icon" href="icons/icon-180.png?v=v280">
-<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=v280">
+<link rel="apple-touch-icon" href="icons/icon-180.png?v=v281">
+<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=v281">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -59,7 +59,7 @@ button{cursor:pointer}
 .top h1{font-size:22px;margin-top:3px}
 .top .sub{color:var(--mut);font-size:13px;margin-top:2px}
 /* חיווי שמירה — המתאמן יודע שאפשר לסגור את האפליקציה */
-.savechip{position:absolute;left:16px;top:calc(14px + env(safe-area-inset-top));font-size:11.5px;
+.savechip{position:absolute;left:60px;top:calc(14px + env(safe-area-inset-top));font-size:11.5px;
   padding:4px 10px;border-radius:20px;border:1px solid var(--line2);color:var(--mut);background:rgba(0,0,0,.25);
   transition:opacity .4s,color .2s,border-color .2s;opacity:0;pointer-events:none;white-space:nowrap}
 .savechip.on{opacity:1}
@@ -415,16 +415,16 @@ html[data-theme="light"] .th-go{color:#FFFFFF;background:#A8764A}
 .th-wm{position:absolute!important;left:-14px;bottom:-16px;width:92px;height:92px;color:var(--or);opacity:.07;pointer-events:none;margin:0!important}
 .th-wm svg{width:100%;height:100%;display:block}
 </style>
-<link rel="stylesheet" href="ui-fx.css?v=v280">
-<link rel="stylesheet" href="theme-light.css?v=v280">
-<link rel="stylesheet" href="theme.css?v=v280">
+<link rel="stylesheet" href="ui-fx.css?v=v281">
+<link rel="stylesheet" href="theme-light.css?v=v281">
+<link rel="stylesheet" href="theme.css?v=v281">
 <!-- ערכת הצבע — לפני הציור, נשמרת במכשיר של המתאמן -->
-<script src="theme.js?v=v280"></script>
+<script src="theme.js?v=v281"></script>
 </head>
 <body>
 
 <header class="top">
-  <div class="brand"><img class="brand-logo" src="icons/logo-96.png?v=v280" alt="" width="34" height="34"><span>BAUER<span class="dot"></span>POWER</span></div>
+  <div class="brand"><img class="brand-logo" src="icons/logo-96.png?v=v281" alt="" width="34" height="34"><span>BAUER<span class="dot"></span>POWER</span></div>
   <h1 id="hTitle">טוען…</h1>
   <div class="sub" id="hSub"></div>
   <span class="savechip" id="saveChip" aria-live="polite"></span>
@@ -438,20 +438,20 @@ html[data-theme="light"] .th-go{color:#FFFFFF;background:#A8764A}
 
 <div id="toast"></div>
 
-<script src="vendor/supabase.js?v=v280"></script>
-<script src="config.js?v=v280"></script>
-<script src="meal-library.js?v=v280"></script>
-<script src="exercise-library.js?v=v280"></script>
-<script src="anim.js?v=v280"></script>
-<script src="progress.js?v=v280"></script>
-<script src="habits.js?v=v280"></script>
-<script src="coach-bot.js?v=v280"></script>
-<script src="progress-chart.js?v=v280"></script>
-<script src="workout-log.js?v=v280"></script>
-<script src="targets.js?v=v280"></script>
-<script src="health.js?v=v280"></script>
-<script src="privacy.js?v=v280"></script>
-<script src="guides.js?v=v280"></script>
+<script src="vendor/supabase.js?v=v281"></script>
+<script src="config.js?v=v281"></script>
+<script src="meal-library.js?v=v281"></script>
+<script src="exercise-library.js?v=v281"></script>
+<script src="anim.js?v=v281"></script>
+<script src="progress.js?v=v281"></script>
+<script src="habits.js?v=v281"></script>
+<script src="coach-bot.js?v=v281"></script>
+<script src="progress-chart.js?v=v281"></script>
+<script src="workout-log.js?v=v281"></script>
+<script src="targets.js?v=v281"></script>
+<script src="health.js?v=v281"></script>
+<script src="privacy.js?v=v281"></script>
+<script src="guides.js?v=v281"></script>
 <script>
 (function () {
   'use strict';
@@ -540,7 +540,7 @@ html[data-theme="light"] .th-go{color:#FFFFFF;background:#A8764A}
 
     CACHE = 'ebfit_t_' + TOKEN.slice(0, 12);
     if (window.EBProg) { EBProg.load(TOKEN); EBProg.attach(sb, TOKEN); }
-    STATE = readState(); hydrateHabits();
+    STATE = readState(); rollWeek(); hydrateHabits();
     MY_MEALS = readMy();
     BUILD = readBuild();
     MY_EX = readEx();
@@ -719,7 +719,7 @@ html[data-theme="light"] .th-go{color:#FFFFFF;background:#A8764A}
       TOKEN = d.token;
       CACHE = 'ebfit_t_' + TOKEN.slice(0, 12);
     if (window.EBProg) { EBProg.load(TOKEN); EBProg.attach(sb, TOKEN); }
-    STATE = readState(); hydrateHabits();
+    STATE = readState(); rollWeek(); hydrateHabits();
     MY_MEALS = readMy();
     BUILD = readBuild();
     MY_EX = readEx();
@@ -1881,6 +1881,7 @@ html[data-theme="light"] .th-go{color:#FFFFFF;background:#A8764A}
 
   /* ---------- תצוגה ---------- */
   function paint() {
+    rollWeek();   // דף שנשאר פתוח מעבר למוצאי שבת
     /* מתאמנת רואה את דמות האישה בכל ההדמיות (fig בתוכנית, או מה שבחרו במכשיר) */
     if (window.EBAnim && EBAnim.figure) EBAnim.figure(figOf());
     $('#hTitle').textContent = DATA.name || 'התוכנית שלי';
@@ -1892,6 +1893,7 @@ html[data-theme="light"] .th-go{color:#FFFFFF;background:#A8764A}
 
     screen(
         openerBlock(days)
+      + leftoverBlock(days)
       + nudgeBlock(days)
       + dailyBlock()
       + checkinBlock()
@@ -2013,6 +2015,7 @@ html[data-theme="light"] .th-go{color:#FFFFFF;background:#A8764A}
   }
   let OPEN_CATEGORY = null;
   function openCategory(key) {
+    if (DATA && rollWeek()) paint();   // שבוע חדש בזמן שהדף היה פתוח
     const labels={log:['יומן האימונים','מה שעשית בפועל'],workout:['אימון','התוכנית והביצוע'],food:['תזונה','התפריט והיעדים שלך'],body:['גוף','מדדים, בריאות וקבצים'],follow:['מעקב','ההתקדמות שלך'],habits:['הרגלים','מה שקורה כל יום'],guides:['מדריכים','איך משתמשים באפליקציה']};
     const item=labels[key]||labels.workout;
     closeCategory();
@@ -3928,6 +3931,9 @@ html[data-theme="light"] .th-go{color:#FFFFFF;background:#A8764A}
       STATE[k] = STATE[k] || {};
       STATE[k].done = !STATE[k].done;
       chk.closest('.ex').classList.toggle('done', STATE[k].done);
+      /* עד נובמבר 2026 הסימון לא נשמר: הוא חי רק בזיכרון, ומתאמן שסימן וי
+         בלי להקליד משקל וסגר את האפליקציה — פתח אותה שוב בלי הסימונים */
+      writeState(); queueStateSync();
       dayMeta(+d);
       bar();
       return;
@@ -4077,6 +4083,111 @@ html[data-theme="light"] .th-go{color:#FFFFFF;background:#A8764A}
 
      ההשהיה היא כדי שלא תישלח קריאה על כל תו. */
   function stateKey() { return 'ebfit_t_state_' + String(TOKEN || '').slice(0, 12); }
+  /* ---------- איפוס שבועי (נובמבר 2026) ----------
+     אראל: "שיתאפס כל שבוע". עד אז הסימונים (וי, משקל, חזרות) נמחקו רק
+     ביום שנשלח ב"סיימתי", ויום שלא נשלח נשאר מסומן לנצח — והסרגל
+     "תרגילים השבוע" ספר אותו גם שבועות אחר כך.
+
+     בראשון הראשון שהדף נפתח בשבוע חדש: כל סימוני האימון מתאפסים.
+     מה שסומן ולא נשלח לא נעלם — הוא עובר ל-STATE.leftover, והמתאמן
+     רואה הודעה עם כפתור לשלוח אותו למאמן (leftoverBlock). לא נשלח
+     אוטומטית: trainee_log רושם את תאריך היום בשרת, ואימון של שבוע שעבר
+     היה נראה אצל המאמן כאימון של היום.
+
+     STATE.wk = יום ראשון של השבוע שאליו שייכים הסימונים. מכשיר שעוד לא
+     הכיר את זה מקבל את השבוע הנוכחי, בלי למחוק — אין דרך לדעת אם
+     הסימונים שלו מהשבוע הזה. */
+  function weekStart(d) {
+    const x = new Date(d || Date.now()); x.setHours(0, 0, 0, 0); x.setDate(x.getDate() - x.getDay());
+    return isoLocal(x);
+  }
+  function hasWork(st) {
+    return !!(st && (st.done || String(st.weight == null ? '' : st.weight).trim() || String(st.reps == null ? '' : st.reps).trim()));
+  }
+  function rollWeek() {
+    if (!STATE || typeof STATE !== 'object') return false;
+    const wk = weekStart();
+    if (!STATE.wk) { STATE.wk = wk; writeState(); return false; }
+    if (STATE.wk >= wk) return false;
+    const left = {};
+    Object.keys(STATE).forEach(k => {
+      if (!/^\d+:\d+$/.test(k)) return;
+      if (hasWork(STATE[k])) left[k] = STATE[k];
+      delete STATE[k];
+    });
+    /* הודעה רק על השבוע האחרון שעבר. סימונים מלפני שבועיים ומעלה —
+       כבר לא רלוונטיים לשלוח */
+    const prev = weekStart(Date.now() - 7 * 86400000);
+    if (Object.keys(left).length && STATE.wk >= prev) STATE.leftover = { wk: STATE.wk, s: left };
+    else delete STATE.leftover;
+    STATE.wk = wk;
+    writeState();
+    queueStateSync();
+    return true;
+  }
+  /* הימים מהשבוע שעבר שסומנו בהם תרגילים ולא נשלחו */
+  function leftoverDays(days) {
+    const L = STATE.leftover;
+    if (!L || !L.s || L.wk < weekStart(Date.now() - 7 * 86400000)) return [];
+    const by = {};
+    Object.keys(L.s).forEach(k => {
+      const d = +k.split(':')[0], j = +k.split(':')[1], ex = ((days[d] || {}).exercises || [])[j];
+      if (!ex || !isReal(ex)) return;
+      (by[d] = by[d] || []).push(j);
+    });
+    return Object.keys(by).map(d => ({ d: +d, ex: by[d] })).filter(x => days[x.d]);
+  }
+  function leftoverBlock(days) {
+    try {
+      const L = leftoverDays(days);
+      if (!L.length) return '';
+      const names = L.map(x => esc(String(days[x.d].name || ('יום ' + (x.d + 1))))).join(', ');
+      const n = L.reduce((a, x) => a + x.ex.length, 0);
+      return '<div class="card" style="margin-bottom:14px;border-color:var(--line2)">'
+        + '<div style="font-weight:800;font-size:15px;margin-bottom:4px">שבוע חדש — התוכנית התאפסה</div>'
+        + '<div class="mt" style="font-size:13px;line-height:1.6;margin-bottom:12px">בשבוע שעבר סימנת ' + n + ' תרגילים ב' + names
+        + ' ולא שלחת. לשלוח אותם למאמן?</div>'
+        + '<div style="display:flex;gap:8px"><button class="btn" data-left-send style="flex:1;padding:11px">לשלוח למאמן</button>'
+        + '<button class="btn ghost" data-left-hide style="flex:none;padding:11px 16px">לא צריך</button></div></div>';
+    } catch (e) { return ''; }
+  }
+  async function sendLeftover(btn) {
+    const days = (DATA.program && DATA.program.days) || [], L = leftoverDays(days), S0 = (STATE.leftover || {}).s || {};
+    if (!L.length || !sb) return;
+    if (btn) { btn.disabled = true; btn.textContent = 'שולח…'; }
+    let ok = 0;
+    for (const x of L) {
+      const day = days[x.d];
+      const entries = (day.exercises || []).map((e, j) => {
+        if (!isReal(e)) return null;
+        const st = S0[x.d + ':' + j] || {};
+        return { ex: e.name || '', done: !!st.done, weight: st.weight || '', reps: st.reps || '' };
+      }).filter(Boolean);
+      try {
+        const { error } = await sb.rpc('trainee_log', { p_token: TOKEN, p_day_index: x.d,
+          p_day_name: day.name || ('יום ' + (x.d + 1)), p_entries: entries, p_feel: null,
+          p_note: 'מהשבוע שעבר — נשלח באיחור, אחרי האיפוס השבועי' });
+        if (error) throw error;
+        ok++;
+        Object.keys(S0).forEach(k => { if (k.indexOf(x.d + ':') === 0) delete S0[k]; });
+      } catch (e) {}
+    }
+    if (!Object.keys(S0).length) delete STATE.leftover;
+    writeState(); queueStateSync();
+    toast(ok === L.length ? 'נשלח למאמן' : 'לא הכול נשלח — נסה שוב כשתהיה רשת');
+    if (ok) loadExtras();
+    paint();
+  }
+  /* חזרה לאפליקציה אחרי שבת (הטלפון היה נעול, הדף נשאר פתוח ברקע) */
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && DATA && rollWeek()) paint();
+  });
+  document.addEventListener('click', function (e) {
+    if (!e.target.closest) return;
+    const b = e.target.closest('[data-left-send]');
+    if (b) { sendLeftover(b); return; }
+    if (e.target.closest('[data-left-hide]')) { delete STATE.leftover; writeState(); queueStateSync(); paint(); }
+  });
   function readState() {
     try { return JSON.parse(localStorage.getItem(stateKey())) || {}; } catch (e) { return {}; }
   }
@@ -4240,7 +4351,9 @@ html[data-theme="light"] .th-go{color:#FFFFFF;background:#A8764A}
         const gate = document.getElementById('termsGate');
         if (gate && termsOK()) gate.remove();
       }
-      if (hasDraft(srv) && !hasDraft(STATE)) {
+      /* טיוטה משבוע שעבר לא חוזרת מהשרת — היא כבר אופסה (rollWeek).
+         בלוב בלי wk נכתב בגרסה ישנה, לפני האיפוס השבועי, ולכן מתקבל */
+      if (hasDraft(srv) && !hasDraft(STATE) && (!srv.wk || srv.wk === STATE.wk)) {
         Object.keys(srv).forEach(k => { if (/^\d+:\d+$/.test(k)) STATE[k] = srv[k]; });
         writeState();
       }
@@ -4412,6 +4525,6 @@ html[data-theme="light"] .th-go{color:#FFFFFF;background:#A8764A}
   });
 })();
 </script>
-<script src="ui-fx.js?v=v280"></script>
+<script src="ui-fx.js?v=v281"></script>
 </body>
 </html>
