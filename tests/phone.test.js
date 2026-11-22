@@ -63,7 +63,7 @@ const look = () => {
     await p.evaluate(seed); await p.waitForTimeout(400);
 
     /* כל המסכים, וכל לשונית בתיק מתאמן */
-    const screens = ['dash', 'trainees', 'schedule', 'money', 'lab', 'progress', 'access', 'health', 'biz', 'guides', 'settings', 'anims'];
+    const screens = ['dash', 'trainees', 'schedule', 'money', 'lab', 'progress', 'access', 'health', 'biz', 'guides', 'settings', 'anims', 'team'];
     const badW = [], badNav = [];
     for (const v of screens) {
       await p.evaluate(v => { go(v); }, v); await p.waitForTimeout(250);

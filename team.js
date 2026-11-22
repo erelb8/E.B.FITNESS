@@ -36,7 +36,7 @@
     { id: 'ops',      t: 'מנהל תפעול',     s: 'נתונים נקיים ומערכת בריאה',     ic: '⚙' }
   ];
   var SEV = { pain: 0, wait: 1, info: 2 };
-  var BIZ_DEFAULT = { type: '', ceiling: 122833, payDay: 10, maxTrainees: '', insuranceUntil: '', certUntil: '', declMonths: 24 };
+  var BIZ_DEFAULT = { type: '', ceiling: 122833, payDay: 10, maxTrainees: '', insuranceUntil: '', certUntil: '', declMonths: 24, cashLimit: 6000 };
 
   /* ---------- עזרים טהורים ---------- */
   function num(v) { var n = Number(v); return isFinite(n) ? n : 0; }
@@ -298,6 +298,28 @@
     if (bare.length) f.push(mk('finance', 'fin_fields', 'info', 'תשלומים בלי אמצעי תשלום או קטגוריה',
       nP(bare.length) + ' מ-90 הימים האחרונים. רואה החשבון יבקש את הפרטים האלה.', [], { k: 'go', v: 'money', label: 'למסך התשלומים' }, true));
 
+    /* מזומן: תשלום בודד מעל המגבלה בחוק לצמצום השימוש במזומן. הסכום הוא
+       הגדרה, כי המגבלה משתנה ולא אומתה כאן מול מקור רשמי. */
+    var cashLim = num(B.cashLimit) || 6000;
+    var bigCash = pays.filter(function (p) { return /מזומן/.test(p.method || '') && num(p.amount) >= cashLim && daysBetween(p.date, today) <= 365; });
+    if (bigCash.length) f.push(mk('finance', 'fin_cash', 'pain', 'תשלום במזומן מעל המגבלה',
+      nP(bigCash.length) + ' במזומן של ' + money(cashLim) + ' ומעלה בשנה האחרונה. לבדוק עם רואה החשבון: יש מגבלה בחוק על תשלום גדול במזומן.',
+      bigCash.map(function (p) { return p.traineeId; }).filter(function (v, i, a) { return v && a.indexOf(v) === i; }), null, true));
+
+    var offPrice = act.filter(function (t) {
+      var p = pkgOf(t); if (!p || !p.monthly || !num(p.price)) return false;
+      var last = pays.filter(function (x) { return x.traineeId === t.id; }).sort(function (a, b) { return a.date < b.date ? 1 : -1; })[0];
+      return last && daysBetween(last.date, today) <= 45 && Math.abs(num(last.amount) - num(p.price)) >= 1;
+    });
+    if (offPrice.length) f.push(mk('finance', 'fin_price', 'info', 'הסכום ששולם לא תואם את מחיר החבילה',
+      namesOf(offPrice) + '. או שהמחיר בכרטיס לא מעודכן, או שחסר תשלום.', offPrice, { k: 'go', v: 'money', label: 'למסך התשלומים' }, true));
+
+    var pm = prevMon(mon), ppm = prevMon(mon, 2);
+    var sumM = function (m) { return pays.filter(function (p) { return monOf(p.date) === m; }).reduce(function (a, p) { return a + num(p.amount); }, 0); };
+    var a1 = sumM(pm), a2 = sumM(ppm);
+    if (a2 > 0 && a1 < a2 * 0.85) f.push(mk('finance', 'fin_trend', 'wait', 'החודש שעבר הכניס פחות מהקודם',
+      monName(pm) + ': ' + money(a1) + ', מול ' + money(a2) + ' ב' + monName(ppm) + ' (ירידה של ' + Math.round((1 - a1 / a2) * 100) + '%). לבדוק מי הפסיק לשלם.', [], { k: 'go', v: 'money', label: 'למסך התשלומים' }, true));
+
     if (day <= 7) f.push(mk('finance', 'fin_close', 'info', 'סגירת החודש שעבר',
       'לוודא שיצאה קבלה על כל תשלום של ' + monName(prevMon(mon)) + ' ולשלוח את הדוח לרואה החשבון.', [], { k: 'report', label: 'דוח לרואה החשבון' }));
     if (today.slice(5) >= '11-15') f.push(mk('finance', 'fin_yearend', 'info', 'סוף שנת המס מתקרב',
@@ -351,6 +373,10 @@
     var open = (st.trainees || []).filter(function (t) { return t.status === 'archived' && t._tokenActive; });
     if (open.length) f.push(mk('legal', 'legal_access', 'wait', 'גישה פתוחה למי שכבר לא מתאמן',
       namesOf(open) + ' בארכיון, והקישור האישי שלהם עדיין פעיל.', open, { k: 'go', v: 'access', label: 'לגישת מתאמנים' }));
+
+    var former = (st.trainees || []).filter(function (t) { return t.status === 'archived' && String(t.phone || '').replace(/\D/g, '').length >= 9; });
+    if (former.length) f.push(mk('legal', 'legal_marketing', 'info', 'הודעת שיווק למי שכבר לא מתאמן',
+      nT(former.length) + ' בארכיון עם טלפון. מבצע או הצעה בווטסאפ דורשים הסכמה מראש לקבל הודעות שיווק; לוודא לפני שליחה גורפת.', [], null, true));
 
     function docCheck(key, id, name) {
       var until = B[key];
@@ -432,6 +458,34 @@
     if (off.length) f.push(mk('coaching', 'co_trend', 'wait', 'המשקל זז נגד המטרה',
       namesOf(off) + '. בחיטוב המשקל עלה, או במסה הוא ירד, לאורך שבועיים ומעלה.', off, null, true));
 
+    var lowP = act.filter(function (t) {
+      if (goalDir(t) !== 'cut') return false;
+      var p = num(t.program && t.program.targets && t.program.targets.protein), w = weightsOf(t, st);
+      return p > 0 && w.length && p / w[w.length - 1].w < 1.6;
+    });
+    if (lowP.length) f.push(mk('coaching', 'co_protein', 'wait', 'יעד חלבון נמוך בחיטוב',
+      namesOf(lowP) + '. פחות מ-1.6 גרם לק״ג. בחיטוב זה מה ששומר על השריר.', lowP, null, true));
+
+    var conflict = act.filter(function (t) {
+      var e = String(t.macroGoal || ''); if (!e || e === 'keep') return false;
+      var s = String(t.goal || '');
+      if (/מסה|מסת שריר/.test(s) && /חיטוב|ירידה/.test(s)) return false;
+      var txt = /מסה|מסת שריר|היפרטרופ|לעלות/.test(s) ? 'mass' : /חיטוב|ירידה|לרזות|שומן|להחטיב/.test(s) ? 'cut' : '';
+      return txt && txt !== e;
+    });
+    if (conflict.length) f.push(mk('coaching', 'co_conflict', 'wait', 'יעד הקלוריות סותר את המטרה הכתובה',
+      namesOf(conflict) + '. בכרטיס נבחר כיוון קלורי אחד, והמטרה אומרת את ההפך.', conflict, null, true));
+
+    var heavy = act.filter(function (t) {
+      if (t.level !== 'מתחיל') return false;
+      return daysOfProg(t).some(function (d) { return (d.exercises || []).some(function (e) {
+        var r = parseInt(String((e && e.reps) || ''), 10);
+        return e && /דדליפט|סקוואט|לחיצת חזה במוט|לחיצה מעל הראש/.test(e.name || '') && r > 0 && r <= 5;
+      }); });
+    });
+    if (heavy.length) f.push(mk('coaching', 'co_heavy', 'wait', 'מתחילים עם סטים כבדים',
+      namesOf(heavy) + '. תרגיל מורכב ב-5 חזרות ומטה למי שמסומן מתחיל. עדיף 8-12 עד שהטכניקה יציבה.', heavy, null, true));
+
     var tired = act.filter(function (t) {
       var a = (t.intake && t.intake.answers) || {};
       return (num(a.sleepHours) > 0 && num(a.sleepHours) < 6) || num(a.stress) >= 8;
@@ -499,6 +553,39 @@
     });
     if (bday.length) f.push(mk('growth', 'gr_bday', 'info', 'ימי הולדת השבוע', namesOf(bday) + '.', bday,
       { k: 'msg', label: 'הודעה מוכנה', tpl: 'מזל טוב {name}! שתהיה שנה חזקה ובריאה. BAUER POWER' }, true));
+
+    var never = act.filter(function (t) {
+      return (t._token || t._username) && t.joined && daysBetween(t.joined, today) > 5
+        && !t.termsAccepted && !signed(t) && !(t.weighins || []).length && !lastAct(t, st, env);
+    });
+    if (never.length) f.push(mk('growth', 'gr_never', 'wait', 'לא פתחו את הקישור האישי',
+      namesOf(never) + '. אין שום סימן שנכנסו לדף שלהם.', never,
+      { k: 'msg', label: 'הודעה מוכנה', tpl: 'היי {name}, הדף האישי שלך עם התוכנית מוכן. נכנסים דרך הקישור ששלחתי, בלי להתקין כלום. אם הוא לא נפתח לך, תגיד לי ואשלח שוב.' }));
+
+    if (env.logs) {
+      var back = (st.trainees || []).filter(function (t) {
+        if (t.status !== 'archived') return false;
+        var la = lastAct(t, st, env), d = la ? daysBetween(la, today) : null;
+        return d !== null && d >= 60 && d <= 120;
+      });
+      if (back.length) f.push(mk('growth', 'gr_winback', 'info', 'עזבו לפני חודשיים-שלושה',
+        namesOf(back) + '. הודעה אישית (לא מבצע) על איך הם מרגישים.', back,
+        { k: 'msg', label: 'הודעה מוכנה', tpl: 'היי {name}, חשבתי עליך. איך הולך עם האימונים? אם בא לך לחזור, יש לי מקום החודש.' }, true));
+
+      var wkLogs = env.logs.filter(function (l) { return daysBetween(l.date, today) <= 7; }).length;
+      var wkW = (st.trainees || []).reduce(function (a, t) { return a + (t.weighins || []).filter(function (w) { return daysBetween(w.date, today) <= 7; }).length; }, 0);
+      var dow = new Date(today + 'T00:00').getDay();
+      if (dow <= 2 && wkLogs) f.push(mk('growth', 'gr_content', 'info', 'רעיון לפוסט השבוע',
+        'בשבוע האחרון המתאמנים שלך עשו ' + wkLogs + ' אימונים ו-' + wkW + ' שקילות. פוסט קצר עם המספר הזה (בלי שמות) מראה עסק חי.', [], null, true));
+    }
+
+    var prices = act.map(function (t) { return t.pkg && t.pkg.k === 'coach' ? num(t.pkg.price) : 0; }).filter(Boolean).sort(function (a, b) { return a - b; });
+    if (prices.length >= 4) {
+      var med = prices[Math.floor(prices.length / 2)];
+      var cheap = act.filter(function (t) { return t.pkg && t.pkg.k === 'coach' && num(t.pkg.price) > 0 && num(t.pkg.price) < med * 0.8; });
+      if (cheap.length) f.push(mk('growth', 'gr_price', 'info', 'משלמים הרבה פחות מהשאר',
+        namesOf(cheap) + '. מתחת ל-80% מהמחיר החציוני (' + money0(med) + '). אולי הזמן לעדכן בחידוש.', cheap, null, true));
+    }
 
     var max = num(B.maxTrainees);
     if (max > 0 && act.length >= max * 0.9) f.push(mk('growth', 'gr_capacity', 'wait', 'קרוב לתפוסה מלאה',
@@ -575,6 +662,11 @@
       return d.length > 7 || dupName || hollow;
     });
     if (messy.length) f.push(mk('ops', 'ops_prog', 'wait', 'תוכניות שצריך לסדר', namesOf(messy) + '. יום ריק, שני ימים באותו שם, או יותר משבעה ימים.', messy, null, true));
+
+    var ids = {}; (st.trainees || []).forEach(function (t) { ids[t.id] = 1; });
+    var orph = 0; ['payments', 'sessions', 'measures'].forEach(function (k) { (st[k] || []).forEach(function (x) { if (x && x.traineeId && !ids[x.traineeId]) orph++; }); });
+    if (orph) f.push(mk('ops', 'ops_orphan', 'info', 'רישומים של מתאמן שכבר לא קיים',
+      orph + ' תשלומים, פגישות או מדידות שמשויכים לכרטיס שנמחק. לא נספרים בשום מקום.', [], null, true));
 
     if (env.hasKey === false) f.push(mk('ops', 'ops_key', 'info', 'הצ׳אט עם הצוות כבוי',
       'בלי מפתח Claude הבדיקות עובדות כרגיל, אבל אי אפשר לשאול שאלות חופשיות.', [], { k: 'go', v: 'settings', label: 'להגדרות' }));
@@ -855,6 +947,25 @@
     return '<div class="msg ' + (m.r === 'me' ? 'me' : 'bot') + '">' + E(unmask(m.t, st, map)) + '</div>';
   }
 
+  /* כרטיס ישיבת הבוקר ללוח הבקרה. בלוח האדום שמור לכאב בגוף, ולכן כל
+     השאר כאן צהוב. */
+  function briefCard() {
+    css();
+    var A = current(), top = A.brief.slice(0, 3);
+    var h = '<div class="card tm-brief"><div class="row dch"><h3>ישיבת בוקר</h3>'
+      + '<button class="btn sm ghost" onclick="go(\'team\')">לכל הצוות</button></div>';
+    if (!top.length) return h + '<p class="muted" style="font-size:13px;margin:6px 0 0">אין היום שום דבר דחוף אצל הצוות.</p></div>';
+    h += top.map(function (x) {
+      var body = (x.id === 'co_pain' || x.id === 'co_red') ? 'pain' : 'wait';
+      return '<div class="tm-f"><span class="tm-dot ' + body + '"></span><div class="tm-b"><b>' + E(x.title)
+        + ' <span class="muted" style="font-weight:400;font-size:12px">· ' + E(workerOf(x.w).t) + '</span></b>'
+        + (x.n ? '<p>' + E(nT(x.n)) + '</p>' : '') + '</div></div>';
+    }).join('');
+    if (A.brief.length > 3) h += '<div class="tm-note">ועוד ' + (A.brief.length - 3) + ' אצל הצוות.</div>';
+    return h + '</div>';
+  }
+  function briefCount() { try { return current().brief.length; } catch (e) { return 0; } }
+
   function view() {
     css();
     var st = W.S || {}, A = current(), w = workerOf(UI.w), list = A.by[w.id] || [], d = store();
@@ -1038,6 +1149,7 @@
       + inp('ביטוח אחריות מקצועית בתוקף עד', 'tb_ins', 'date', B.insuranceUntil)
       + inp('תעודת מאמן בתוקף עד', 'tb_cert', 'date', B.certUntil, 'אם אין תאריך תפוגה, להשאיר ריק.')
       + inp('חידוש הצהרת בריאות כל (חודשים)', 'tb_decl', 'number', B.declMonths)
+      + inp('מגבלת תשלום במזומן (₪)', 'tb_cash', 'number', B.cashLimit, 'לוודא את הסכום מול רואה החשבון.')
       + '</div></div><div class="mf"><button class="btn ghost" onclick="closeModal()">סגירה</button></div>');
     if (typeof autoModal === 'function') autoModal(saveSettings);
   }
@@ -1048,13 +1160,13 @@
     S_.settings.biz = Object.assign({}, S_.settings.biz, {
       type: g('tb_type'), ceiling: num(g('tb_ceiling')) || BIZ_DEFAULT.ceiling, payDay: Math.min(28, Math.max(1, num(g('tb_payday')) || 10)),
       maxTrainees: g('tb_max') ? num(g('tb_max')) : '', insuranceUntil: g('tb_ins') || '', certUntil: g('tb_cert') || '',
-      declMonths: num(g('tb_decl')) || 24
+      declMonths: num(g('tb_decl')) || 24, cashLimit: num(g('tb_cash')) || BIZ_DEFAULT.cashLimit
     });
     UI.memo = null;
     if (typeof save === 'function') save();
   }
 
-  var API = { WORKERS: WORKERS, QUICK: QUICK, analyze: analyze, ask: ask, report: report, context: context, mask: mask, unmask: unmask,
+  var API = { briefCard: briefCard, briefCount: briefCount, WORKERS: WORKERS, QUICK: QUICK, analyze: analyze, ask: ask, report: report, context: context, mask: mask, unmask: unmask,
     hasTerm: hasTerm, medGroups: medGroups, riskyFor: riskyFor,
     view: view, afterRender: afterRender, count: count, open: open, draft: draft, send: send, quick: quick, clear: clear,
     act: act, done: done, settings: settings, wa: wa, copy: copy, reset: reset };

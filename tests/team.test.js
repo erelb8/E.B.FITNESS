@@ -138,6 +138,32 @@ t('כמה הכנסתי', /10,200/.test(T.ask('finance', 'ytd', state(), env())),
 t('דוח לרואה חשבון', /סה״כ 2026: ₪10,200 \(4 תשלומים\)/.test(T.report(state(), env())), true);
 t('אין ממצא — תשובה ברורה', T.ask('growth', 'renew', state(), env()), 'בדקתי, ואין כרגע אף אחד כזה.');
 
+/* בדיקות שנוספו בסבב השני */
+{
+  const S4 = state();
+  S4.payments.push({ id: 'p5', traineeId: 'c', date: '2026-10-01', amount: 7000, method: 'מזומן', category: 'x' });
+  S4.payments.push({ id: 'p6', traineeId: 'a', date: '2026-11-05', amount: 350, method: 'ביט', category: 'x' });
+  S4.trainees[0].program.targets.protein = 70;                       // 70/62 < 1.6 בחיטוב
+  S4.trainees[2].level = 'מתחיל'; S4.trainees[2].program.days[0].exercises.push({ name: 'סקוואט גבי', reps: '5' });
+  S4.trainees[2].macroGoal = 'cut';                                   // מטרה "מסה", קלוריות לחיטוב
+  S4.trainees[1]._token = 't'; S4.trainees[1].joined = '2026-11-01';
+  S4.trainees[3].phone = '0503333333';
+  S4.measures = [{ id: 'm', traineeId: 'zz', date: '2026-10-01', weight: 70 }];
+  const B4 = T.analyze(S4, env());
+  t('מזומן מעל המגבלה', get(B4, 'fin_cash').ids.join(), 'c');
+  t('סכום שלא תואם חבילה', get(B4, 'fin_price').ids.join(), 'a');
+  t('ירידה בהכנסה', has(B4, 'fin_trend'), false);
+  t('חלבון נמוך', get(B4, 'co_protein').ids.join(), 'a');
+  t('יעד סותר מטרה', get(B4, 'co_conflict').ids.join(), 'c');
+  t('מתחיל כבד', get(B4, 'co_heavy').ids.join(), 'c');
+  t('לא פתח קישור', get(B4, 'gr_never').ids.join(), 'b');
+  t('שיווק לארכיון', has(B4, 'legal_marketing'), true);
+  t('רישום יתום', has(B4, 'ops_orphan'), true);
+  const S5 = state(); S5.payments.push({ id: 'q', traineeId: 'a', date: '2026-09-02', amount: 3000, method: 'ביט', category: 'x' });
+  t('ירידה בהכנסה מאוקטובר', has(T.analyze(S5, env()), 'fin_trend'), true);
+  t('פוסט שבועי ביום שני', has(T.analyze(state(), env({ today: '2026-11-16', logs: [{ trainee_id: 'a', date: '2026-11-15' }] })), 'gr_content'), true);
+}
+
 /* קוד המקור: בונה ההקשר לא נוגע בטקסט חופשי */
 const src = fs.readFileSync(__dirname + '/../team.js', 'utf8');
 const ctxSrc = src.slice(src.indexOf('function context('), src.indexOf('var RULES'));

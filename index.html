@@ -377,7 +377,7 @@ tbody tr:hover{background:var(--panel)}
 .dsec{min-width:0}
 .dash .dsec > .card,.dash .dpanel .card,.dash-ph > .card{margin:0!important}
 .dash > .card{margin-top:16px!important}
-.ds-al{order:1}.ds-today{order:2}.ds-feed{order:3}.ds-week{order:4}.ds-pulse{order:5}
+.ds-al{order:1}.ds-today{order:2}.ds-feed{order:3}.ds-week{order:4}.ds-pulse{order:5}.ds-team{order:5}
 .ds-unp{order:6}.ds-ck{order:7}.ds-np{order:8}.ds-gen{order:9}.ds-chart{order:10}
 @media(min-width:1180px){
   .dgrid{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);align-items:start}
@@ -2072,6 +2072,8 @@ function vDash(){
   const chart='<div class="card dash-chart"><div class="row dch"><h3>אימונים שבוצעו</h3>'
     +'<span class="dch-meta">8 שבועות · ממוצע '+avg+' בשבוע</span></div>'+weekBars(wd)+'</div>';
   const calc=S.features.calc?calcCard():'';
+  /* ישיבת הבוקר של "הצוות שלי": שלושת הדחופים, והכפתור למסך המלא */
+  const teamCard=window.EBTeam?EBTeam.briefCard():'', teamN=window.EBTeam?EBTeam.briefCount():0;
   const sumTxt = nAl ? (nAl===1?'דבר אחד מחכה לך היום':nAl+' דברים מחכים לך היום') : 'הכול מסודר — אין משהו שמחכה לך';
   const acts='<button class="btn" onclick="editTrainee()">'+ICO.plus+'מתאמן חדש</button><button class="btn ghost" onclick="editSession()">'+ICO.plus+'אימון</button>';
 
@@ -2086,7 +2088,7 @@ function vDash(){
       +head(hello+', '+firstName, dayTxt+' · '+fmtFull(t)+'<span class="dh-sum'+(nAl?' warn':'')+'">'+sumTxt+'</span>', themeSw()+acts)
       +kpis
       +'<div class="dgrid"><div class="dcol">'+sec('al',alertCard)+sec('feed',feed)+sec('unp',unp)+sec('chart',chart)+'</div>'
-      +'<div class="dcol">'+sec('today',todayCard)+sec('pulse',pulse)+sec('week',week)+sec('ck',ck)+sec('np',np)+sec('gen',gfix)+'</div></div>'
+      +'<div class="dcol">'+sec('today',todayCard)+sec('pulse',pulse)+sec('week',week)+sec('team',teamCard)+sec('ck',ck)+sec('np',np)+sec('gen',gfix)+'</div></div>'
       +calc+'</div>';
   }
 
@@ -2120,6 +2122,7 @@ function vDash(){
     {k:'feed',  ic:'list', t:'מה המתאמנים עשו', b:evs.length?evToday+'<small class="w">היום</small>':'', html:feed, x:avs(recent)},
     unp  && {k:'unpaid', ic:'wallet', t:'לא שילמו החודש', pt:'לא שילמו ב'+HE_MON_FULL[new Date().getMonth()], b:unpList.length, warn:true, html:unp, x:avs(unpList)},
     ck   && {k:'ck',  ic:'chat', t:'צ׳ק-אין חודשי', b:frac(ckDone,ckAct.length), warn:ckBad>0, html:ck, x:bar(ckAct.length?ckDone/ckAct.length:0)},
+    teamCard && {k:'team', ic:'star', t:'ישיבת בוקר', b:teamN||'', warn:teamN>0, html:teamCard},
     np   && {k:'np',  ic:'hourglass', t:'חסרה תקופת מעקב', b:npList.length, warn:true, html:np, x:avs(npList)},
     gfix && {k:'gen', ic:'user', t:'חסר מין בכרטיס', b:needGender().length, warn:true, html:gfix, x:avs(needGender())},
     {k:'chart', ic:'bars', t:'אימונים השבוע', pt:'אימונים שבוצעו', b:wd[wd.length-1].n, html:chart, x:mini(wd.map(b=>b.n).reverse())},
