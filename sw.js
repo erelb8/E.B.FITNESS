@@ -193,8 +193,14 @@ self.addEventListener('notificationclick', e => {
   const url = new URL((e.notification.data && e.notification.data.url) || 't.html', self.registration.scope).href;
   e.waitUntil((async () => {
     const all = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
-    const open = all.find(c => c.url.split('#')[0] === url.split('#')[0]);
-    if (open) { try { await open.focus(); } catch (er) {} return; }
+    const bare = u => u.split('#')[0].split('?')[0];
+    const open = all.find(c => bare(c.url) === bare(url));
+    /* דף פתוח: עוברים אליו ואומרים לו לאיזה מסך ללכת (אימון / שקילה / צ׳ק-אין) */
+    if (open) {
+      try { await open.focus(); } catch (er) {}
+      try { open.postMessage({ go: (e.notification.data && e.notification.data.kind) || '' }); } catch (er) {}
+      return;
+    }
     await self.clients.openWindow(url);
   })());
 });

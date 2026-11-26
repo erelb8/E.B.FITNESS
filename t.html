@@ -630,6 +630,35 @@ html[data-theme="light"] .th-week .on i{color:#FFFFFF}
      ההרשמה וההעדפות. הכול נשמר בשרת לפי המכשיר, ובמכשיר ב-eb_push_*.
      באייפון התראות עובדות רק כשהאפליקציה מותקנת במסך הבית (iOS 16.4+). */
   const PUSH = { key: undefined, busy: false, msg: '' };
+  /* נגיעה בהתראה מביאה ישר למסך הנכון: אימון → האימון הבא פתוח,
+     שקילה → "גוף", צ׳ק-אין → השאלון פתוח. הדף נפתח עם ?go=, ודף שכבר
+     פתוח מקבל הודעה מה-service worker */
+  let GO_PENDING = null;
+  try { const g = new URLSearchParams(location.search).get('go'); if (g) { GO_PENDING = g; history.replaceState(history.state, '', location.pathname + location.hash); } } catch (e) {}
+  try { if (navigator.serviceWorker) navigator.serviceWorker.addEventListener('message', ev => { if (ev.data && ev.data.go && DATA) goTo(ev.data.go); }); } catch (e) {}
+  function goTo(kind) {
+    try {
+      if (kind === 'workout') { try { DAY = EBWLog.suggestDay(DATA.program, EXTRAS.logs); } catch (e) {} openCategory('workout'); }
+      else if (kind === 'weigh') openCategory('body');
+      else if (kind === 'checkin') { if (OPEN_CATEGORY) closeCategory(); CK_OPEN = true; paint();
+        const c = document.querySelector('[data-ck-send]'); if (c) c.closest('.card').scrollIntoView({ block: 'center' }); }
+    } catch (e) {}
+  }
+  /* הצעה במסך הבית: נגיעה אחת מפעילה תזכורות, בלי לחפש בהגדרות */
+  function remindKey() { return 'eb_push_ask_' + (TOKEN || 'x').slice(0, 12); }
+  function remindCard() {
+    try {
+      if (!TOKEN || !SRV_LOADED || !pushSupported() || Notification.permission === 'denied' || pushPrefs().on) return '';
+      if (PUSH.key === undefined) { pushLoadKey(); return ''; }
+      if (!PUSH.key) return '';
+      let until = ''; try { until = localStorage.getItem(remindKey()) || ''; } catch (e) {}
+      if (until > isoLocal(new Date())) return '';
+      return '<div class="card th-row" data-remind-card style="margin-bottom:12px">'
+        + '<div style="flex:1;min-width:0"><b>תזכורת לאימון</b><span>התראה בטלפון אחרי 3 ימים בלי אימון</span></div>'
+        + '<button class="btn" data-rem="on" style="flex:none;padding:9px 16px;font-size:14px">להפעיל</button>'
+        + '<button data-remind-later class="th-later">לא עכשיו</button></div>';
+    } catch (e) { return ''; }
+  }
   function pushKeyLS() { return 'eb_push_' + (TOKEN || 'x').slice(0, 12); }
   function pushPrefs() {
     let p = null; try { p = JSON.parse(localStorage.getItem(pushKeyLS()) || 'null'); } catch (e) {}
@@ -645,6 +674,8 @@ html[data-theme="light"] .th-week .on i{color:#FFFFFF}
     PUSH.key = null;
     try { const r = await sb.rpc('push_public_key'); if (!r.error && typeof r.data === 'string' && r.data.length > 40) PUSH.key = r.data; } catch (e) {}
     if (window.EBTheme && EBTheme.refresh) EBTheme.refresh();
+    /* חלון פתוח — מציירים את מסך הבית כשהוא נסגר, לא מתחתיו */
+    if (PUSH.key && DATA) { if (!OPEN_CATEGORY && !document.getElementById('thmSheet')) paint(); else PUSH.repaint = true; }
   }
   function remindersBlock() {
     if (!TOKEN || !DATA) return '';
@@ -695,6 +726,7 @@ html[data-theme="light"] .th-week .on i{color:#FFFFFF}
       PUSH.msg = (e && e.message === 'perm') ? 'לא ניתן אישור להתראות, אז התזכורות לא הופעלו.' : 'לא הצלחנו להפעיל — נסה שוב כשתהיה רשת.';
     }
     PUSH.busy = false; EBTheme.refresh();
+    if (!document.getElementById('thmSheet')) { toast(PUSH.msg); PUSH.msg = ''; if (!OPEN_CATEGORY) paint(); }
   }
   async function pushChange(mut) {
     const P = pushPrefs(); mut(P); pushSave(P); PUSH.msg = ''; EBTheme.refresh();
@@ -705,6 +737,11 @@ html[data-theme="light"] .th-week .on i{color:#FFFFFF}
     } catch (e) { PUSH.msg = 'השינוי נשמר במכשיר, אבל לא הגיע לשרת — נסה שוב כשתהיה רשת.'; EBTheme.refresh(); }
   }
   document.addEventListener('click', function (e) {
+    if (e.target.closest && e.target.closest('[data-remind-later]')) {
+      const d = new Date(); d.setDate(d.getDate() + 14);
+      try { localStorage.setItem(remindKey(), isoLocal(d)); } catch (er) {}
+      paint(); return;
+    }
     const b = e.target.closest && e.target.closest('[data-rem]'); if (!b) return;
     const k = b.dataset.rem;
     if (k === 'on') { if (!PUSH.busy) pushTurnOn(); return; }
@@ -2141,6 +2178,7 @@ html[data-theme="light"] .th-week .on i{color:#FFFFFF}
          עד אז הם ישבו מתחת לשאלונים ולסיכומים, ומתאמן שרצה את התזונה
          גלל מסך וחצי כדי להגיע אליה */
       + categoryBlock()
+      + remindCard()
       + dailyBlock()
       + checkinBlock()
       + monthlyBlock(days)
@@ -2153,6 +2191,7 @@ html[data-theme="light"] .th-week .on i{color:#FFFFFF}
        מתבקש לאשר. שער שנפתח על מסך ריק נראה כמו חסימה. */
     termsGate();
     healthGate();
+    if (GO_PENDING && SRV_LOADED) { const g = GO_PENDING; GO_PENDING = null; setTimeout(() => goTo(g), 60); }
   }
 
   function categoryContent(key) {
@@ -2314,6 +2353,7 @@ html[data-theme="light"] .th-week .on i{color:#FFFFFF}
     const modal=document.getElementById('categoryModal');
     if(modal) modal.remove();
     document.body.style.overflow='';
+    if (PUSH.repaint && keepHistory !== true) { PUSH.repaint = false; setTimeout(() => { if (!OPEN_CATEGORY && DATA) paint(); }, 0); }
   }
 
   /* פתיח: משפט אחד שאומר מה יש כאן. בלעדיו הדף נפתח באמצע עניין

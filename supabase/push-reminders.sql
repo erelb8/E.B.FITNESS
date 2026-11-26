@@ -185,7 +185,7 @@ begin
       v_items := v_items || jsonb_build_object(
         'id', r.id, 'endpoint', r.endpoint, 'p256dh', r.p256dh, 'auth', r.auth,
         'payload', jsonb_build_object('title', v_title, 'body', v_body, 'tag', 'bp-' || v_kind,
-                                      'url', 't.html#' || r.access_token, 'kind', v_kind));
+                                      'url', 't.html?go=' || v_kind || '#' || r.access_token, 'kind', v_kind));
       update public.push_subs
          set last_sent = last_sent || jsonb_build_object(v_kind, case when v_kind = 'checkin' then v_month else v_today::text end)
        where id = r.id;
