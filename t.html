@@ -13,8 +13,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="התוכנית שלי">
 <meta name="robots" content="noindex,nofollow">
-<link rel="apple-touch-icon" href="icons/icon-180.png?v=v287">
-<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=v287">
+<link rel="apple-touch-icon" href="icons/icon-180.png?v=v288">
+<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=v288">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -493,6 +493,14 @@ html[data-theme="light"] .th-go{color:#FFFFFF;background:#A8764A}
 .wl-x{position:absolute;top:10px;left:12px;background:none;border:0;color:var(--dim);font:inherit;font-size:12.5px;cursor:pointer;padding:6px}
 .wl-hist{cursor:pointer}
 html[data-theme="light"] .cal-g button.on{color:#FFFFFF}
+/* יום הולדת */
+.bd-card{display:flex;align-items:center;gap:12px;padding:14px!important;border-color:rgba(var(--cop-rgb),.65)!important;background:rgba(var(--cop-rgb),.1)!important}
+.bd-ic{flex:none;width:46px;height:46px;border-radius:50%;display:grid;place-items:center;background:rgba(var(--cop-rgb),.2);color:var(--gold)}
+.bd-ic svg{width:26px;height:26px}
+.bd-t{flex:1;min-width:0}
+.bd-t b{display:block;font-family:'Frank Ruhl Libre',Georgia,serif;font-size:21px;font-weight:900;line-height:1.2}
+.bd-t span{display:block;font-size:13px;color:var(--mut);margin-top:3px;line-height:1.5}
+.bd-t em{display:block;font-style:normal;font-size:12px;font-weight:700;color:var(--or);margin-top:4px}
 /* משוב מהמאמן */
 .fb-card{border-color:rgba(var(--or-rgb),.6)!important;padding:14px!important}
 .fb-h{display:flex;align-items:center;gap:10px}
@@ -634,16 +642,16 @@ html[data-theme="light"] .th-week .on i{color:#FFFFFF}
 .ex .meta{font-size:13.5px}
 .ex{padding:14px!important;border-radius:16px!important}
 </style>
-<link rel="stylesheet" href="ui-fx.css?v=v287">
-<link rel="stylesheet" href="theme-light.css?v=v287">
-<link rel="stylesheet" href="theme.css?v=v287">
+<link rel="stylesheet" href="ui-fx.css?v=v288">
+<link rel="stylesheet" href="theme-light.css?v=v288">
+<link rel="stylesheet" href="theme.css?v=v288">
 <!-- ערכת הצבע — לפני הציור, נשמרת במכשיר של המתאמן -->
-<script src="theme.js?v=v287"></script>
+<script src="theme.js?v=v288"></script>
 </head>
 <body>
 
 <header class="top">
-  <div class="brand"><img class="brand-logo" src="icons/logo-96.png?v=v287" alt="" width="34" height="34"><span>BAUER<span class="dot"></span>POWER</span></div>
+  <div class="brand"><img class="brand-logo" src="icons/logo-96.png?v=v288" alt="" width="34" height="34"><span>BAUER<span class="dot"></span>POWER</span></div>
   <h1 id="hTitle">טוען…</h1>
   <div class="sub" id="hSub"></div>
   <span class="savechip" id="saveChip" aria-live="polite"></span>
@@ -657,21 +665,21 @@ html[data-theme="light"] .th-week .on i{color:#FFFFFF}
 
 <div id="toast"></div>
 
-<script src="vendor/supabase.js?v=v287"></script>
-<script src="config.js?v=v287"></script>
-<script src="meal-library.js?v=v287"></script>
-<script src="exercise-library.js?v=v287"></script>
-<script src="anim.js?v=v287"></script>
-<script src="progress.js?v=v287"></script>
-<script src="habits.js?v=v287"></script>
-<script src="coach-bot.js?v=v287"></script>
-<script src="progress-chart.js?v=v287"></script>
-<script src="workout-log.js?v=v287"></script>
-<script src="share.js?v=v287"></script>
-<script src="targets.js?v=v287"></script>
-<script src="health.js?v=v287"></script>
-<script src="privacy.js?v=v287"></script>
-<script src="guides.js?v=v287"></script>
+<script src="vendor/supabase.js?v=v288"></script>
+<script src="config.js?v=v288"></script>
+<script src="meal-library.js?v=v288"></script>
+<script src="exercise-library.js?v=v288"></script>
+<script src="anim.js?v=v288"></script>
+<script src="progress.js?v=v288"></script>
+<script src="habits.js?v=v288"></script>
+<script src="coach-bot.js?v=v288"></script>
+<script src="progress-chart.js?v=v288"></script>
+<script src="workout-log.js?v=v288"></script>
+<script src="share.js?v=v288"></script>
+<script src="targets.js?v=v288"></script>
+<script src="health.js?v=v288"></script>
+<script src="privacy.js?v=v288"></script>
+<script src="guides.js?v=v288"></script>
 <script>
 (function () {
   'use strict';
@@ -712,6 +720,10 @@ html[data-theme="light"] .th-week .on i{color:#FFFFFF}
       else if (kind === 'weigh') openCategory('body');
       else if (kind === 'checkin') { if (OPEN_CATEGORY) closeCategory(); CK_OPEN = true; paint();
         const c = document.querySelector('[data-ck-send]'); if (c) c.closest('.card').scrollIntoView({ block: 'center' }); }
+      else if (kind === 'bday') {
+        if (OPEN_CATEGORY) closeCategory();
+        const c = document.querySelector('[data-bday]'); if (c) c.scrollIntoView({ block: 'center' });
+      }
       else if (kind === 'coach') {
         if (OPEN_CATEGORY) closeCategory();
         const c = document.querySelector('[data-fb]');
@@ -2268,7 +2280,8 @@ html[data-theme="light"] .th-week .on i{color:#FFFFFF}
     const files = DATA.files || [];
 
     screen(
-        openerBlock(days)
+        bdayBlock()      /* ביום ההולדת זה הדבר הראשון בדף */
+      + openerBlock(days)
       + coachBlock()
       + outboxBlock()
       + leftoverBlock(days)
@@ -5385,8 +5398,9 @@ html[data-theme="light"] .th-week .on i{color:#FFFFFF}
     try {
       const r = await sb.rpc('trainee_coach', { p_token: TOKEN });
       if (r.error || !r.data || typeof r.data !== 'object') return;
-      const next = { name: r.data.name || '', phone: r.data.phone || '', business: r.data.business || '' };
-      const same = JSON.stringify(next) === JSON.stringify({ name: COACH.name || '', phone: COACH.phone || '', business: COACH.business || '' });
+      /* bday = היום שבו השרת אמר "יום הולדת היום"; מחר התאריך כבר לא תואם, והכרטיס יורד */
+      const next = { name: r.data.name || '', phone: r.data.phone || '', business: r.data.business || '', bday: r.data.birthday === true ? isoLocal(new Date()) : '' };
+      const same = JSON.stringify(next) === JSON.stringify({ name: COACH.name || '', phone: COACH.phone || '', business: COACH.business || '', bday: COACH.bday || '' });
       COACH = next; try { localStorage.setItem(coachKey(), JSON.stringify(COACH)); } catch (e) {}
       const typing = document.activeElement && /INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName);
       if (!same && DATA && !typing && !OPEN_CATEGORY && !document.getElementById('finSheet') && !document.getElementById('thmSheet')) paint();
@@ -5445,6 +5459,34 @@ html[data-theme="light"] .th-week .on i{color:#FFFFFF}
         + (wa ? '<a class="btn ghost" data-fb-wa href="' + esc(wa) + '" target="_blank" rel="noopener">להשיב בווטסאפ</a>' : '') + '</div></div>';
     } catch (e) { return ''; }
   }
+  /* ---------- יום הולדת (נובמבר 2026, "שליחת מזל טוב בימי הולדת") ----------
+     השרת אומר רק "היום יום ההולדת" (trainee_coach.birthday) — תאריך הלידה עצמו
+     לא מגיע לדף. הכרטיס מוצג באותו יום בלבד, עד "תודה". מי שהפעיל תזכורות
+     מקבל גם התראה בבוקר (push_due). */
+  const ICO_CAKE = '<svg viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'
+    + '<path d="M4 20.5h16M5 20.5v-6.2A1.8 1.8 0 0 1 6.8 12.5h10.4A1.8 1.8 0 0 1 19 14.3v6.2"/><path d="M5 16.4c1.2 0 1.2 1 2.3 1s1.2-1 2.4-1 1.1 1 2.3 1 1.2-1 2.3-1 1.2 1 2.4 1 1.1-1 2.3-1"/>'
+    + '<path d="M8.5 12.5v-3M12 12.5v-3M15.5 12.5v-3"/><path d="M8.5 6.8v.2M12 6.8v.2M15.5 6.8v.2"/></g></svg>';
+  function bdayHideKey() { return 'ebfit_bday_' + String(TOKEN || 'x').slice(0, 12); }
+  function bdayBlock() {
+    try {
+      const today = isoLocal(new Date());
+      if (!COACH || !COACH.bday || COACH.bday !== today) return '';
+      let hid = ''; try { hid = localStorage.getItem(bdayHideKey()) || ''; } catch (e) {}
+      if (hid === today) return '';
+      const me = String((DATA && DATA.name) || '').trim().split(/\s+/)[0], who = coachFirst();
+      return '<div class="card bd-card" data-bday style="margin-bottom:12px"><i class="bd-ic">' + ICO_CAKE + '</i>'
+        + '<div class="bd-t"><b>מזל טוב' + (me ? ', ' + esc(me) : '') + '!</b>'
+        + '<span>שתהיה שנה חזקה, בריאה ומלאה בהישגים.</span>'
+        + '<em>' + (who ? esc(who) + ' · ' : '') + esc(COACH.business || 'BAUER POWER') + '</em></div>'
+        + '<button class="th-later" data-bday-ok>תודה</button></div>';
+    } catch (e) { return ''; }
+  }
+  document.addEventListener('click', function (e) {
+    if (!e.target.closest || !e.target.closest('[data-bday-ok]')) return;
+    try { localStorage.setItem(bdayHideKey(), isoLocal(new Date())); } catch (er) {}
+    const c = document.querySelector('[data-bday]'); if (c) c.remove();
+  });
+
   /* תחתית מסך הבית: לכתוב למאמן, ולהמליץ לחבר */
   function contactBlock() {
     try {
@@ -5557,6 +5599,6 @@ html[data-theme="light"] .th-week .on i{color:#FFFFFF}
   });
 })();
 </script>
-<script src="ui-fx.js?v=v287"></script>
+<script src="ui-fx.js?v=v288"></script>
 </body>
 </html>

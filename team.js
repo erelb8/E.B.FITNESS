@@ -25,7 +25,7 @@
   'use strict';
 
   var W = (typeof window !== 'undefined') ? window : {};
-  (W.EB_MOD = W.EB_MOD || {})['team'] = 'v287';
+  (W.EB_MOD = W.EB_MOD || {})['team'] = 'v288';
 
   var DAY = 86400000;
   var WORKERS = [

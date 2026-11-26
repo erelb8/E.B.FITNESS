@@ -11,9 +11,15 @@
 --   coach_log_reply        the coach writes (or clears) a reply to a report
 --   trainee_extras         now also returns id, note, and the coach reply
 --   trainee_feedback_seen  the trainee page marks the replies as read
---   trainee_coach          coach first name + phone, for "write to coach"
---   push_due               also returns a notification per new coach reply
+--   trainee_coach          coach first name + phone, for "write to coach",
+--                          and whether today is the trainee's birthday
+--   push_due               also returns a notification per new coach reply,
+--                          and a birthday greeting once a year
 --   trainee_push_subscribe also keeps the "coach" on/off preference
+--   is_birthday            helper: is today (Israel time) this birth date's day
+--
+-- Birthday greeting (Nov 2026): the trainee page gets only a yes/no for
+-- "today is my birthday" - the birth date itself never leaves the server.
 --
 -- Who can do what:
 --   The coach reaches workout_logs only through the existing SELECT policy
@@ -148,15 +154,33 @@ begin
   return n;
 end $$;
 
+-- Is today, in Israel time, the day of this birth date (YYYY-MM-DD)?
+-- Born on Feb 29: greeted on Feb 28 in a year that is not a leap year.
+create or replace function public.is_birthday(p_birth text)
+returns boolean
+language sql stable set search_path = public as $$
+  select case
+    when coalesce(p_birth, '') !~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}$' then false
+    when substr(p_birth, 6, 5) = to_char(now() at time zone 'Asia/Jerusalem', 'MM-DD') then true
+    when substr(p_birth, 6, 5) = '02-29'
+         and to_char(now() at time zone 'Asia/Jerusalem', 'MM-DD') = '02-28'
+         and extract(day from (date_trunc('year', now() at time zone 'Asia/Jerusalem')
+                               + interval '2 months' - interval '1 day')) = 28 then true
+    else false
+  end;
+$$;
+
 -- First name, business name and phone of the trainee's coach, from the
--- coach's own settings. Digits only for the phone.
+-- coach's own settings. Digits only for the phone. Plus a yes/no:
+-- is today the trainee's birthday.
 create or replace function public.trainee_coach(p_token text)
 returns jsonb
 language sql security definer stable set search_path = public as $$
   select jsonb_build_object(
            'name',     nullif(btrim(coalesce(p.data->'settings'->>'trainer', '')), ''),
            'business', nullif(btrim(coalesce(p.data->'settings'->>'business', '')), ''),
-           'phone',    nullif(regexp_replace(coalesce(p.data->'settings'->>'phone', ''), '[^0-9]', '', 'g'), ''))
+           'phone',    nullif(regexp_replace(coalesce(p.data->'settings'->>'phone', ''), '[^0-9]', '', 'g'), ''),
+           'birthday', public.is_birthday(t.private->>'birth'))
     from public.trainees t
     left join public.trainer_prefs p on p.trainer_id = t.trainer_id
    where t.access_token = p_token and t.access_active
@@ -200,7 +224,8 @@ begin
 end $$;
 
 -- As in push-reminders.sql, plus one item per phone for every coach reply
--- that was not announced yet (last 3 days only).
+-- that was not announced yet (last 3 days only), plus a birthday greeting:
+-- once a year, at the first run from 09:00 Israel time on the day itself.
 create or replace function public.push_due(p_key text)
 returns jsonb language plpgsql security definer set search_path = public as $$
 declare
@@ -269,6 +294,32 @@ begin
     end if;
   end loop;
 
+  -- birthday greeting. Not tied to one exact hour: a missed run, or a phone
+  -- that subscribed later that day, still gets it until the evening.
+  if v_hour between 9 and 20 then
+    for r in
+      select s.id, s.endpoint, s.p256dh, s.auth, t.access_token,
+             split_part(btrim(coalesce(t.name, '')), ' ', 1) as first_name,
+             nullif(split_part(btrim(coalesce(p.data->'settings'->>'trainer', '')), ' ', 1), '') as coach
+        from public.push_subs s
+        join public.trainees t on t.id = s.trainee_id
+        left join public.trainer_prefs p on p.trainer_id = t.trainer_id
+       where t.access_active and not t.deleted and t.status <> 'archived'
+         and public.is_birthday(t.private->>'birth')
+         and coalesce(s.last_sent->>'birthday', '') <> to_char(v_today, 'YYYY')
+    loop
+      v_items := v_items || jsonb_build_object(
+        'id', r.id, 'endpoint', r.endpoint, 'p256dh', r.p256dh, 'auth', r.auth,
+        'payload', jsonb_build_object(
+          'title', 'מזל טוב' || case when r.first_name <> '' then ', ' || r.first_name else '' end || '!',
+          'body', 'שתהיה שנה חזקה, בריאה ומלאה בהישגים' || case when r.coach is not null then ' — ' || r.coach else '.' end,
+          'tag', 'bp-bday', 'url', 't.html?go=bday#' || r.access_token, 'kind', 'bday'));
+      update public.push_subs
+         set last_sent = last_sent || jsonb_build_object('birthday', to_char(v_today, 'YYYY'))
+       where id = r.id;
+    end loop;
+  end if;
+
   -- the coach replied to a workout. The ids are fixed first, so a reply
   -- saved while this runs is not marked as announced without being sent.
   select array_agg(id) into v_ids from public.workout_logs
@@ -300,6 +351,7 @@ begin
 end $$;
 
 -- ---------- grants ----------
+revoke all on function public.is_birthday(text)                                  from public, anon, authenticated;
 revoke all on function public.coach_log_reply(uuid, text)                        from public, anon, authenticated;
 revoke all on function public.trainee_extras(text, integer)                      from public, anon, authenticated;
 revoke all on function public.trainee_feedback_seen(text)                        from public, anon, authenticated;
