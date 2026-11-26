@@ -13,8 +13,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="התוכנית שלי">
 <meta name="robots" content="noindex,nofollow">
-<link rel="apple-touch-icon" href="icons/icon-180.png?v=v285">
-<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=v285">
+<link rel="apple-touch-icon" href="icons/icon-180.png?v=v286">
+<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=v286">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -493,9 +493,29 @@ html[data-theme="light"] .th-go{color:#FFFFFF;background:#A8764A}
 .wl-x{position:absolute;top:10px;left:12px;background:none;border:0;color:var(--dim);font:inherit;font-size:12.5px;cursor:pointer;padding:6px}
 .wl-hist{cursor:pointer}
 html[data-theme="light"] .cal-g button.on{color:#FFFFFF}
+/* מעבר יום: חצים בכל מקום שיש תאריך או מספר יום */
+.datebar{display:flex;align-items:center;gap:8px;padding:9px 10px!important;margin-bottom:12px}
+.datebar > div{flex:1;min-width:0;text-align:center}
+.datebar b{display:block;font-size:14.5px;font-weight:800}
+.datebar span{display:block;font-size:11.5px;color:var(--mut);margin-top:1px;line-height:1.45}
+.datebar > button,.daystep button,.th-sw button,.wprog-t button{flex:none;width:36px;height:36px;border-radius:50%;border:1px solid var(--line2);background:var(--ink);color:var(--tx);
+  font:inherit;font-size:19px;line-height:1;cursor:pointer;display:inline-grid;place-items:center;padding:0;-webkit-tap-highlight-color:transparent}
+.datebar > button:disabled,.daystep button:disabled{opacity:.3}
+.datebar.logdate{border-color:var(--or)!important}
+.daystep{display:inline-flex!important;gap:6px;margin-inline-start:8px}
+.daystep button{width:32px;height:32px;font-size:17px}
+.th-sw{display:flex!important;align-items:center;gap:8px;margin-top:8px}
+.th-sw button{width:32px;height:32px;font-size:17px}
+.th-sw i{font-style:normal;font-size:12px;color:var(--dim)}
+.wprog-t button{width:30px;height:30px;font-size:16px}
+.wprog-t em{font-style:normal;white-space:nowrap}
+.wprog-t span{flex:0 1 auto!important;text-align:center}
+.wprog-t em{margin-inline-start:auto}
+.th-ring{cursor:pointer}
+.th-week button{background:none;border:0;padding:0;font:inherit;color:inherit;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;-webkit-tap-highlight-color:transparent}
+.th-week button:disabled{cursor:default}
 /* השבוע בכרטיס הפתיחה */
 .th-week{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
-.th-week div{display:flex;flex-direction:column;align-items:center;gap:4px}
 .th-week i{width:28px;height:28px;border-radius:50%;border:1.5px solid var(--line2);display:grid;place-items:center;color:var(--ink)}
 .th-week i svg{width:15px;height:15px}
 .th-week span{font-size:11px;color:var(--dim)}
@@ -565,16 +585,16 @@ html[data-theme="light"] .th-week .on i{color:#FFFFFF}
 .ex .meta{font-size:13.5px}
 .ex{padding:14px!important;border-radius:16px!important}
 </style>
-<link rel="stylesheet" href="ui-fx.css?v=v285">
-<link rel="stylesheet" href="theme-light.css?v=v285">
-<link rel="stylesheet" href="theme.css?v=v285">
+<link rel="stylesheet" href="ui-fx.css?v=v286">
+<link rel="stylesheet" href="theme-light.css?v=v286">
+<link rel="stylesheet" href="theme.css?v=v286">
 <!-- ערכת הצבע — לפני הציור, נשמרת במכשיר של המתאמן -->
-<script src="theme.js?v=v285"></script>
+<script src="theme.js?v=v286"></script>
 </head>
 <body>
 
 <header class="top">
-  <div class="brand"><img class="brand-logo" src="icons/logo-96.png?v=v285" alt="" width="34" height="34"><span>BAUER<span class="dot"></span>POWER</span></div>
+  <div class="brand"><img class="brand-logo" src="icons/logo-96.png?v=v286" alt="" width="34" height="34"><span>BAUER<span class="dot"></span>POWER</span></div>
   <h1 id="hTitle">טוען…</h1>
   <div class="sub" id="hSub"></div>
   <span class="savechip" id="saveChip" aria-live="polite"></span>
@@ -588,20 +608,20 @@ html[data-theme="light"] .th-week .on i{color:#FFFFFF}
 
 <div id="toast"></div>
 
-<script src="vendor/supabase.js?v=v285"></script>
-<script src="config.js?v=v285"></script>
-<script src="meal-library.js?v=v285"></script>
-<script src="exercise-library.js?v=v285"></script>
-<script src="anim.js?v=v285"></script>
-<script src="progress.js?v=v285"></script>
-<script src="habits.js?v=v285"></script>
-<script src="coach-bot.js?v=v285"></script>
-<script src="progress-chart.js?v=v285"></script>
-<script src="workout-log.js?v=v285"></script>
-<script src="targets.js?v=v285"></script>
-<script src="health.js?v=v285"></script>
-<script src="privacy.js?v=v285"></script>
-<script src="guides.js?v=v285"></script>
+<script src="vendor/supabase.js?v=v286"></script>
+<script src="config.js?v=v286"></script>
+<script src="meal-library.js?v=v286"></script>
+<script src="exercise-library.js?v=v286"></script>
+<script src="anim.js?v=v286"></script>
+<script src="progress.js?v=v286"></script>
+<script src="habits.js?v=v286"></script>
+<script src="coach-bot.js?v=v286"></script>
+<script src="progress-chart.js?v=v286"></script>
+<script src="workout-log.js?v=v286"></script>
+<script src="targets.js?v=v286"></script>
+<script src="health.js?v=v286"></script>
+<script src="privacy.js?v=v286"></script>
+<script src="guides.js?v=v286"></script>
 <script>
 (function () {
   'use strict';
@@ -2326,7 +2346,10 @@ html[data-theme="light"] .th-week .on i{color:#FFFFFF}
       done += st.done ? n : k;
     });
     if (!tot) { el.innerHTML = ''; return; }
-    el.innerHTML = '<div class="wprog-t"><span>' + esc(String(day.name || 'אימון')) + '</span><b>' + done + '</b> מתוך ' + tot + ' סטים</div>'
+    const many = realDays().length > 1;
+    el.innerHTML = '<div class="wprog-t">' + (many ? '<button data-wday-step="-1" aria-label="היום הקודם בתוכנית">‹</button>' : '')
+      + '<span>' + esc(String(day.name || 'אימון')) + '</span>' + (many ? '<button data-wday-step="1" aria-label="היום הבא בתוכנית">›</button>' : '')
+      + '<em><b>' + done + '</b> מתוך ' + tot + ' סטים</em></div>'
       + '<div class="wprog-b"><i style="width:' + Math.round(done / tot * 100) + '%"></i></div>';
   }
   /* סגירה באמצע עריכה משמיטה את השינויים שלא נשמרו — כמו ביטול */
@@ -2659,11 +2682,12 @@ html[data-theme="light"] .th-week .on i{color:#FFFFFF}
   function weekStrip(logs) {
     const now = new Date(), t0 = new Date(now); t0.setHours(0, 0, 0, 0); t0.setDate(t0.getDate() - t0.getDay());
     const on = {}; (logs || []).forEach(l => { on[String(l.date).slice(0, 10)] = 1; });
-    return '<div class="th-week" aria-hidden="true">' + ['א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ש'].map((ch, k) => {
-      const d = new Date(t0); d.setDate(t0.getDate() + k); const iso = isoLocal(d);
-      return '<div class="' + (on[iso] ? 'on ' : '') + (k === now.getDay() ? 'today ' : '') + (k > now.getDay() ? 'fut' : '') + '"><i>'
+    return '<div class="th-week">' + ['א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ש'].map((ch, k) => {
+      const d = new Date(t0); d.setDate(t0.getDate() + k); const iso = isoLocal(d), fut = k > now.getDay();
+      return '<button type="button" class="' + (on[iso] ? 'on ' : '') + (k === now.getDay() ? 'today ' : '') + (fut ? 'fut' : '') + '"'
+        + (fut ? ' disabled' : ' data-week="' + iso + '"') + ' aria-label="יום ' + WL_DAYNAME[k] + (on[iso] ? ' — התאמנת' : '') + '"><i>'
         + (on[iso] ? '<svg viewBox="0 0 24 24"><path d="M6 12.5l4 4 8-9" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>' : '')
-        + '</i><span>' + ch + '</span></div>';
+        + '</i><span>' + ch + '</span></button>';
     }).join('') + '</div>';
   }
   function openerBlock(days) {
@@ -2708,11 +2732,13 @@ html[data-theme="light"] .th-week .on i{color:#FFFFFF}
     let nextI = -1;
     try { nextI = EBWLog.suggestDay(DATA.program, logs); } catch (e) { nextI = -1; }
     if (nextI < 0 || !days[nextI] || !realOf(days[nextI]).length) nextI = days.findIndex(d => realOf(d).length);
+    const realIdx = days.map((d, i) => realOf(d).length ? i : -1).filter(i => i > -1), sug = nextI;
+    if (HERO_DAY != null && realIdx.indexOf(HERO_DAY) > -1) nextI = HERO_DAY;
     const hr = new Date().getHours();
     const hello = hr < 5 ? 'לילה טוב' : hr < 12 ? 'בוקר טוב' : hr < 17 ? 'צהריים טובים' : hr < 21 ? 'ערב טוב' : 'לילה טוב';
     const wdays = ['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'];
     const goal = planned || 3, pct = Math.min(1, weekDone / goal), C = 2 * Math.PI * 42;
-    const ring = '<div class="th-ring" role="img" aria-label="' + weekDone + ' אימונים השבוע מתוך ' + goal + '">'
+    const ring = '<div class="th-ring" data-category="log" role="button" tabindex="0" aria-label="' + weekDone + ' אימונים השבוע מתוך ' + goal + ' — פתיחת היומן">'
       + '<svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="42" class="th-rbg"/>'
       + (pct > 0 ? '<circle cx="50" cy="50" r="42" class="th-rfg" stroke-dasharray="' + (C * pct).toFixed(1) + ' ' + C.toFixed(1) + '"/>' : '') + '</svg>'
       + '<b>' + weekDone + '<small>/' + goal + '</small></b><span>השבוע</span></div>';
@@ -2720,8 +2746,10 @@ html[data-theme="light"] .th-week .on i{color:#FFFFFF}
     const nName = nd ? String(nd.name || ('יום ' + (nextI + 1))) : '';
     const nCount = nd ? realOf(nd).length : 0;
     const next = nd
-      ? '<div class="th-next"><span class="th-k">האימון הבא שלך</span><strong>' + esc(nName) + '</strong>'
-        + '<span class="th-s">' + nCount + ' תרגילים' + (sinceTxt === 'היום' ? ' · כבר התאמנת היום' : '') + '</span></div>'
+      ? '<div class="th-next"><span class="th-k">' + (nextI === sug ? 'האימון הבא שלך' : 'האימון שבחרת') + '</span><strong>' + esc(nName) + '</strong>'
+        + '<span class="th-s">' + nCount + ' תרגילים' + (sinceTxt === 'היום' ? ' · כבר התאמנת היום' : '') + '</span>'
+        + (realIdx.length > 1 ? '<span class="th-sw"><button data-hero-day="-1" aria-label="היום הקודם בתוכנית">‹</button><i>יום ' + (realIdx.indexOf(nextI) + 1) + ' מתוך ' + realIdx.length
+          + '</i><button data-hero-day="1" aria-label="היום הבא בתוכנית">›</button></span>' : '') + '</div>'
       : '<div class="th-next"><span class="th-k">התוכנית</span><strong>המאמן עוד בונה לך תוכנית</strong></div>';
     return '<section class="hero th-hero">'
       + '<div class="th-hi">' + hello + (first ? ', ' + esc(first) : '') + ' <span>· יום ' + wdays[new Date().getDay()] + '</span></div>'
@@ -3239,7 +3267,8 @@ html[data-theme="light"] .th-week .on i{color:#FFFFFF}
      השרת מקבל תאריך עד 14 יום אחורה (trainee-log-date.sql). */
   let WL_SEL = null, WL_CAL = null, WL_KEEP = null;
   /* LOG_DATE — מסך האימון פתוח כדי לרשום אימון ליום אחר (נבחר בלוח השנה) */
-  let LOG_DATE = null, LOG_NEXT = null;
+  let LOG_DATE = null, LOG_NEXT = null, HERO_DAY = null;
+  function realDays() { return ((DATA.program && DATA.program.days) || []).map((d, i) => realOf(d).length ? i : -1).filter(i => i > -1); }
   const WL_BACK = 14;
   const WL_MONTH = ['ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי', 'יוני', 'יולי', 'אוגוסט', 'ספטמבר', 'אוקטובר', 'נובמבר', 'דצמבר'];
   const WL_DAYNAME = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
@@ -3254,11 +3283,18 @@ html[data-theme="light"] .th-week .on i{color:#FFFFFF}
     const d = new Date(iso + 'T00:00');
     return 'יום ' + WL_DAYNAME[d.getDay()] + ' · ' + d.getDate() + ' ב' + WL_MONTH[d.getMonth()];
   }
+  /* מעבר יום בכל מקום שיש תאריך או מספר יום (נובמבר 2026, "תן להם לעבור יום"):
+     במסך האימון — חצים שמחליפים את התאריך שאליו האימון יירשם (עד 14 יום
+     אחורה) וחצים שמחליפים יום בתוכנית; במסך הבית — ימי השבוע והטבעת
+     פותחים את היומן, וחצים מחליפים את האימון שמוצע; ביומן — יום קודם/הבא. */
   function logDateBar() {
-    if (!LOG_DATE) return '';
-    return '<div class="card logdate"><div><b>רושם אימון ל' + esc(wlDateLabel(LOG_DATE)) + '</b>'
-      + '<span>פותחים את היום שעשית, מסמנים את הסטים ולוחצים "סיימתי". האימון יירשם בתאריך הזה.</span></div>'
-      + '<button data-logdate-cancel>ביטול</button></div>';
+    const today = wlToday(), d = LOG_DATE || today, gap = EBWLog.dayGap(d) || 0;
+    const name = gap === 0 ? 'היום' : gap === 1 ? 'אתמול' : 'לפני ' + gap + ' ימים';
+    return '<div class="card datebar' + (LOG_DATE ? ' logdate' : '') + '" id="dateBar">'
+      + '<button data-logdate-step="-1" aria-label="יום קודם"' + (gap >= WL_BACK ? ' disabled' : '') + '>‹</button>'
+      + '<div><b>' + (LOG_DATE ? 'רושם אימון ל' + esc(wlDateLabel(d)) : 'האימון של היום') + '</b>'
+      + '<span>' + (LOG_DATE ? name + ' · האימון יירשם בתאריך הזה' : esc(wlDateLabel(d)) + ' · התאמנת ביום אחר? החצים מחליפים תאריך') + '</span></div>'
+      + '<button data-logdate-step="1" aria-label="היום הבא"' + (gap <= 0 ? ' disabled' : '') + '>›</button></div>';
   }
   function calBlock() {
     const today = wlToday(), sel = wlSel(), by = wlByDate();
@@ -3290,7 +3326,8 @@ html[data-theme="light"] .th-week .on i{color:#FFFFFF}
   function wlDayPanel(canAdd) {
     const sel = wlSel(), today = wlToday(), logs = wlByDate()[sel] || [], gap = EBWLog.dayGap(sel);
     let h = '<div class="section-head" style="margin-top:16px"><h3>' + (sel === today ? 'היום' : wlDateLabel(sel)) + '</h3>'
-      + '<span>' + (sel === today ? wlDateLabel(sel) : wlWhen(sel)) + '</span></div>';
+      + '<span>' + (sel === today ? wlDateLabel(sel) : wlWhen(sel)) + '</span>'
+      + '<span class="daystep"><button data-calstep="-1" aria-label="יום קודם">‹</button><button data-calstep="1" aria-label="היום הבא"' + (sel >= today ? ' disabled' : '') + '>›</button></span></div>';
     logs.forEach(l => {
       const en = (l.entries || []).filter(x => x.done), vol = EBWLog.volumeOf(l.entries || []);
       h += '<div class="card wl-done"><div class="wl-done-h"><b>' + esc(l.day_name || l.dayName || 'אימון') + '</b>'
@@ -4515,7 +4552,41 @@ html[data-theme="light"] .th-week .on i{color:#FFFFFF}
       openCategory('workout');
       return;
     }
-    if (e.target.closest('[data-logdate-cancel]')) { const d = LOG_DATE; WL_KEEP = d; openCategory('log'); return; }
+    const ls = e.target.closest('[data-logdate-step]');
+    if (ls) {
+      const cur = new Date((LOG_DATE || wlToday()) + 'T00:00'); cur.setDate(cur.getDate() + (+ls.dataset.logdateStep));
+      const iso = isoLocal(cur), gap = EBWLog.dayGap(iso);
+      if (gap === null || gap < 0 || gap > WL_BACK) return;
+      LOG_DATE = gap === 0 ? null : iso;
+      const el = document.getElementById('dateBar'); if (el) el.outerHTML = logDateBar();
+      return;
+    }
+    /* יום אחר בתוכנית, מראש חלון האימון */
+    const ws = e.target.closest('[data-wday-step]');
+    if (ws) {
+      const real = realDays(); let cur = real.indexOf(DAY); if (cur < 0) cur = 0;
+      DAY = real[(cur + (+ws.dataset.wdayStep) + real.length) % real.length];
+      LOG_NEXT = LOG_DATE; openCategory('workout');
+      return;
+    }
+    /* מסך הבית: יום בשבוע או הטבעת → היומן על היום הזה; חצים → אימון אחר */
+    const wk = e.target.closest('[data-week]');
+    if (wk) { WL_KEEP = wk.dataset.week; openCategory('log'); return; }
+    const hd = e.target.closest('[data-hero-day]');
+    if (hd) {
+      const real = realDays(), btn = document.querySelector('.th-hero [data-go-day]');
+      let cur = real.indexOf(btn ? +btn.dataset.goDay : real[0]); if (cur < 0) cur = 0;
+      HERO_DAY = real[(cur + (+hd.dataset.heroDay) + real.length) % real.length]; paint();
+      return;
+    }
+    /* יומן: יום קודם / הבא */
+    const cs = e.target.closest('[data-calstep]');
+    if (cs) {
+      const d0 = new Date(wlSel() + 'T00:00'); d0.setDate(d0.getDate() + (+cs.dataset.calstep));
+      const iso = isoLocal(d0); if (iso > wlToday()) return;
+      WL_SEL = iso; WL_CAL = { y: d0.getFullYear(), m: d0.getMonth() }; wlRepaint();
+      return;
+    }
 
 
     const fin = e.target.closest('[data-fin]');
@@ -5088,6 +5159,6 @@ html[data-theme="light"] .th-week .on i{color:#FFFFFF}
   });
 })();
 </script>
-<script src="ui-fx.js?v=v285"></script>
+<script src="ui-fx.js?v=v286"></script>
 </body>
 </html>

@@ -118,6 +118,53 @@ const LOGS = [{ date: '2026-11-20', day_name: 'יום A', entries: [{ ex: 'מת�
   t('חודש קודם', await p.evaluate(() => document.querySelector('.cal-h b').textContent === 'אוקטובר 2026' && document.querySelectorAll('.cal-g button').length === 31 && !document.querySelector('[data-calnav="1"]').disabled));
   t('הכול נכנס ברוחב הטלפון', await p.evaluate(() => { const d = document.querySelector('.category-dialog'); return d.scrollWidth <= d.clientWidth + 1; }));
 
+  console.log('=== מעבר יום בכל מקום ===');
+  const closeAll = () => p.evaluate(async () => { const x = document.querySelector('[data-category-close]'); if (x) x.click(); await new Promise(r => setTimeout(r, 250)); });
+  await closeAll();
+  /* מסך הבית: ימי השבוע, הטבעת, והחצים של האימון המוצע */
+  const wk = await p.evaluate(() => ({ n: document.querySelectorAll('.th-week button').length, fut: document.querySelectorAll('.th-week button:disabled').length, today: (document.querySelector('.th-week .today') || {}).dataset.week }));
+  t('פס השבוע: 7 ימים, העתידיים נעולים', wk.n === 7 && wk.fut === 2 && wk.today === '2026-11-26', JSON.stringify(wk));
+  await p.tap('.th-week [data-week="2026-11-24"]'); await p.waitForTimeout(400);
+  t('נגיעה ביום בשבוע פותחת את היומן על אותו יום', await p.evaluate(() => (document.querySelector('.cal-g button.sel') || {}).dataset.cal === '2026-11-24'));
+  await p.tap('[data-calstep="1"]'); await p.waitForTimeout(250);
+  const stepF = await p.evaluate(() => document.querySelector('.cal-g button.sel').dataset.cal);
+  await p.tap('[data-calstep="1"]'); await p.waitForTimeout(250);
+  t('ביומן: היום הבא, ונעצר בהיום', stepF === '2026-11-25' && await p.evaluate(() => document.querySelector('.cal-g button.sel').dataset.cal === '2026-11-26' && document.querySelector('[data-calstep="1"]').disabled));
+  for (let k = 0; k < 26; k++) { await p.tap('[data-calstep="-1"]'); } await p.waitForTimeout(300);
+  t('ביומן: יום קודם עובר גם לחודש הקודם', await p.evaluate(() => document.querySelector('.cal-g button.sel').dataset.cal === '2026-10-31' && document.querySelector('.cal-h b').textContent === 'אוקטובר 2026'));
+  await closeAll();
+  await p.tap('.th-ring'); await p.waitForTimeout(400);
+  t('הטבעת פותחת את היומן', await p.evaluate(() => !!document.querySelector('#categoryModal .cal')));
+  await closeAll();
+  const h0 = await p.evaluate(() => document.querySelector('.th-next strong').textContent + '|' + document.querySelector('.th-hero [data-go-day]').dataset.goDay);
+  await p.tap('[data-hero-day="1"]'); await p.waitForTimeout(300);
+  const h1 = await p.evaluate(() => document.querySelector('.th-next strong').textContent + '|' + document.querySelector('.th-hero [data-go-day]').dataset.goDay + '|' + document.querySelector('.th-k').textContent);
+  t('חצים בכרטיס הפתיחה מחליפים את האימון', h0.split('|')[1] !== h1.split('|')[1] && /האימון שבחרת|האימון הבא/.test(h1), h0 + ' → ' + h1);
+  await p.tap('.th-hero [data-go-day]'); await p.waitForTimeout(500);
+  t('"להתחיל את האימון" פותח את היום שנבחר', await p.evaluate(() => document.querySelector('#categoryModal .dayc.on').dataset.d) === h1.split('|')[1]);
+  /* מסך האימון: חצי התאריך וחצי יום התוכנית */
+  const bar0 = await p.evaluate(() => { const b = document.getElementById('dateBar'); return b.innerText.replace(/\s+/g, ' ') + '|' + b.classList.contains('logdate') + '|' + b.querySelector('[data-logdate-step="1"]').disabled; });
+  t('במסך האימון: "האימון של היום", ואין יום הבא', /האימון של היום/.test(bar0) && /\|false\|true$/.test(bar0), bar0);
+  await p.tap('[data-logdate-step="-1"]'); await p.waitForTimeout(200); await p.tap('[data-logdate-step="-1"]'); await p.waitForTimeout(200);
+  const bar2 = await p.evaluate(() => document.getElementById('dateBar').innerText.replace(/\s+/g, ' '));
+  t('חץ אחורה פעמיים — רושם ל-24 בנובמבר', /24 בנובמבר/.test(bar2) && /לפני 2 ימים/.test(bar2), bar2);
+  const dBefore = await p.evaluate(() => document.querySelector('#categoryModal .dayc.on').dataset.d);
+  await p.tap('#wprog [data-wday-step="1"]'); await p.waitForTimeout(500);
+  const dAfter = await p.evaluate(() => document.querySelector('#categoryModal .dayc.on').dataset.d + '|' + document.getElementById('dateBar').innerText.replace(/\s+/g, ' '));
+  t('חץ יום התוכנית מחליף יום ושומר על התאריך שנבחר', dAfter.split('|')[0] !== dBefore && /24 בנובמבר/.test(dAfter), dBefore + ' → ' + dAfter);
+  const dNow = dAfter.split('|')[0];
+  await p.evaluate(d => { const c = document.querySelector('#categoryModal .dayc[data-d="' + d + '"] [data-sok="0"]'); c.scrollIntoView(); c.click(); }, dNow); await p.waitForTimeout(300);
+  await p.evaluate(d => { const r = document.querySelector('#restPill [data-rest="stop"]'); if (r) r.click(); const f = document.querySelector('#categoryModal .dayc[data-d="' + d + '"] [data-fin]'); f.scrollIntoView(); f.click(); }, dNow); await p.waitForTimeout(1000);
+  const lastSent = sent[sent.length - 1];
+  t('האימון נשלח לתאריך שנבחר בחצים', lastSent && lastSent.p_date === '2026-11-24' && lastSent.p_day_index === +dNow, JSON.stringify(lastSent && [lastSent.p_date, lastSent.p_day_index]));
+  await p.evaluate(() => { const x = document.querySelector('[data-fin-close]'); if (x) x.click(); }); await p.waitForTimeout(400);
+  for (let k = 0; k < 16; k++) { }
+  await closeAll();
+  await p.tap('.category-tile[data-category="workout"]'); await p.waitForTimeout(400);
+  for (let k = 0; k < 16; k++) { const dis = await p.evaluate(() => document.querySelector('[data-logdate-step="-1"]').disabled); if (dis) break; await p.tap('[data-logdate-step="-1"]'); await p.waitForTimeout(60); }
+  t('אחורה עד 14 יום ולא יותר', /12 בנובמבר/.test(await p.evaluate(() => document.getElementById('dateBar').innerText)) && await p.evaluate(() => document.querySelector('[data-logdate-step="-1"]').disabled));
+  t('הכול נכנס ברוחב', await p.evaluate(() => { const d = document.querySelector('.category-dialog'); return d.scrollWidth <= d.clientWidth + 1 && document.documentElement.scrollWidth <= innerWidth + 1; }));
+
   t('אין שגיאות', !errs.length, errs.join(' | '));
   await b.close(); srv.close();
   console.log('\n' + (fail ? '### נכשלו: ' + fail : 'הכל עבר') + '  |  עברו: ' + pass);
