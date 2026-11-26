@@ -13,8 +13,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="התוכנית שלי">
 <meta name="robots" content="noindex,nofollow">
-<link rel="apple-touch-icon" href="icons/icon-180.png?v=v286">
-<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=v286">
+<link rel="apple-touch-icon" href="icons/icon-180.png?v=v287">
+<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=v287">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -493,6 +493,55 @@ html[data-theme="light"] .th-go{color:#FFFFFF;background:#A8764A}
 .wl-x{position:absolute;top:10px;left:12px;background:none;border:0;color:var(--dim);font:inherit;font-size:12.5px;cursor:pointer;padding:6px}
 .wl-hist{cursor:pointer}
 html[data-theme="light"] .cal-g button.on{color:#FFFFFF}
+/* משוב מהמאמן */
+.fb-card{border-color:rgba(var(--or-rgb),.6)!important;padding:14px!important}
+.fb-h{display:flex;align-items:center;gap:10px}
+.fb-ic{flex:none;width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:var(--or-soft);color:var(--or)}
+.fb-ic svg{width:20px;height:20px}
+.fb-h b{display:block;font-size:15px;font-weight:800}
+.fb-h span{display:block;font-size:12px;color:var(--mut);margin-top:1px}
+.fb-t{margin:10px 0 0;font-size:14.5px;line-height:1.6;white-space:pre-wrap;overflow-wrap:anywhere}
+.fb-more{margin-top:10px;padding-top:9px;border-top:1px solid var(--line);font-size:12px;color:var(--mut)}
+.fb-a{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.fb-a .btn{flex:1 1 auto;padding:10px 12px;font-size:14px}
+a.btn{display:inline-block;text-decoration:none;text-align:center}
+.wl-done-n b,.wl-done-c b{display:block;font-size:11px;font-weight:700;color:var(--dim);margin-bottom:2px}
+.wl-done-c{font-size:13px;margin-top:8px;padding:8px 10px;border-radius:10px 4px 4px 10px;background:rgba(var(--or-rgb),.09);border-inline-start:3px solid var(--or);white-space:pre-wrap;overflow-wrap:anywhere}
+.wl-done-c b{color:var(--or)}
+.wl-share{display:flex;align-items:center;gap:6px;margin:8px 0 0;background:none;border:0;color:var(--or);font:inherit;font-size:12.5px;font-weight:700;cursor:pointer;padding:6px 0;-webkit-tap-highlight-color:transparent}
+.wl-share svg{width:16px;height:16px}
+/* תחתית מסך הבית: לכתוב למאמן, להמליץ לחבר */
+.th-links{padding:2px 14px!important}
+.th-link{display:flex;align-items:center;gap:12px;width:100%;padding:13px 0;background:none;border:0;border-top:1px solid var(--line);color:var(--tx);font:inherit;text-align:start;text-decoration:none;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.th-link:first-child{border-top:0}
+.th-link svg{flex:none;width:22px;height:22px;color:var(--or)}
+.th-link span{flex:1;min-width:0}
+.th-link b{display:block;font-size:14.5px;font-weight:700}
+.th-link small{display:block;font-size:12px;color:var(--mut);margin-top:1px;line-height:1.45}
+/* כרטיס לשיתוף */
+.fin-sheet{max-height:calc(100vh - 36px);max-height:calc(100dvh - 36px);overflow-y:auto}
+.fin-share{display:flex;align-items:center;gap:10px;margin-top:14px;padding:10px;border:1px solid var(--line);border-radius:14px;background:var(--card);text-align:start}
+.fin-share.good{border-color:rgba(var(--or-rgb),.6)}
+.fin-thumb{flex:none;width:48px;height:60px;border-radius:8px;overflow:hidden;border:1px solid var(--line2);background:var(--ink);padding:0;cursor:pointer}
+.fin-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.fin-thumb img:not([src]){visibility:hidden}
+.fin-share > div{flex:1;min-width:0}
+.fin-share b{display:block;font-size:14px;font-weight:800}
+.fin-share span{display:block;font-size:11.5px;color:var(--mut);margin-top:1px;line-height:1.4}
+.fin-share .btn{flex:none;padding:9px 14px;font-size:14px}
+.fin-friend{margin-top:10px;font-size:12.5px;color:var(--mut);line-height:1.6}
+.fin-friend button{display:inline;background:none;border:0;color:var(--or);font:inherit;font-weight:700;text-decoration:underline;cursor:pointer;padding:4px 2px}
+.fin-ms{display:inline-block;margin-top:10px;font-size:12px;font-weight:700;color:var(--or);border:1px solid rgba(var(--or-rgb),.45);border-radius:999px;padding:3px 12px}
+.sh-sheet{padding:16px 16px 10px}
+.sh-img{border-radius:16px;overflow:hidden;border:1px solid var(--line2);background:var(--card);aspect-ratio:4/5;max-height:58vh;margin:0 auto}
+.sh-img img{width:100%;height:100%;object-fit:contain;display:block}
+.sh-img img:not([src]){visibility:hidden}
+.sh-a{display:flex;gap:8px;margin-top:12px}
+.sh-a .btn{flex:1;padding:11px 8px;font-size:14.5px}
+/* אימון שמחכה בתור לשליחה (בלי רשת) */
+.out-card{border-color:rgba(var(--cop-rgb),.6)!important}
+.wl-pend{font-style:normal;font-size:11px;font-weight:700;color:var(--amber);border:1px solid rgba(var(--cop-rgb),.5);border-radius:999px;padding:1px 8px;margin-inline-start:8px;vertical-align:2px;white-space:nowrap}
+.fin-sheet p.fin-q{margin-top:10px;font-size:13px;line-height:1.55;color:var(--tx);background:var(--card);border:1px solid rgba(var(--cop-rgb),.5);border-radius:12px;padding:9px 12px}
 /* מעבר יום: חצים בכל מקום שיש תאריך או מספר יום */
 .datebar{display:flex;align-items:center;gap:8px;padding:9px 10px!important;margin-bottom:12px}
 .datebar > div{flex:1;min-width:0;text-align:center}
@@ -585,16 +634,16 @@ html[data-theme="light"] .th-week .on i{color:#FFFFFF}
 .ex .meta{font-size:13.5px}
 .ex{padding:14px!important;border-radius:16px!important}
 </style>
-<link rel="stylesheet" href="ui-fx.css?v=v286">
-<link rel="stylesheet" href="theme-light.css?v=v286">
-<link rel="stylesheet" href="theme.css?v=v286">
+<link rel="stylesheet" href="ui-fx.css?v=v287">
+<link rel="stylesheet" href="theme-light.css?v=v287">
+<link rel="stylesheet" href="theme.css?v=v287">
 <!-- ערכת הצבע — לפני הציור, נשמרת במכשיר של המתאמן -->
-<script src="theme.js?v=v286"></script>
+<script src="theme.js?v=v287"></script>
 </head>
 <body>
 
 <header class="top">
-  <div class="brand"><img class="brand-logo" src="icons/logo-96.png?v=v286" alt="" width="34" height="34"><span>BAUER<span class="dot"></span>POWER</span></div>
+  <div class="brand"><img class="brand-logo" src="icons/logo-96.png?v=v287" alt="" width="34" height="34"><span>BAUER<span class="dot"></span>POWER</span></div>
   <h1 id="hTitle">טוען…</h1>
   <div class="sub" id="hSub"></div>
   <span class="savechip" id="saveChip" aria-live="polite"></span>
@@ -608,20 +657,21 @@ html[data-theme="light"] .th-week .on i{color:#FFFFFF}
 
 <div id="toast"></div>
 
-<script src="vendor/supabase.js?v=v286"></script>
-<script src="config.js?v=v286"></script>
-<script src="meal-library.js?v=v286"></script>
-<script src="exercise-library.js?v=v286"></script>
-<script src="anim.js?v=v286"></script>
-<script src="progress.js?v=v286"></script>
-<script src="habits.js?v=v286"></script>
-<script src="coach-bot.js?v=v286"></script>
-<script src="progress-chart.js?v=v286"></script>
-<script src="workout-log.js?v=v286"></script>
-<script src="targets.js?v=v286"></script>
-<script src="health.js?v=v286"></script>
-<script src="privacy.js?v=v286"></script>
-<script src="guides.js?v=v286"></script>
+<script src="vendor/supabase.js?v=v287"></script>
+<script src="config.js?v=v287"></script>
+<script src="meal-library.js?v=v287"></script>
+<script src="exercise-library.js?v=v287"></script>
+<script src="anim.js?v=v287"></script>
+<script src="progress.js?v=v287"></script>
+<script src="habits.js?v=v287"></script>
+<script src="coach-bot.js?v=v287"></script>
+<script src="progress-chart.js?v=v287"></script>
+<script src="workout-log.js?v=v287"></script>
+<script src="share.js?v=v287"></script>
+<script src="targets.js?v=v287"></script>
+<script src="health.js?v=v287"></script>
+<script src="privacy.js?v=v287"></script>
+<script src="guides.js?v=v287"></script>
 <script>
 (function () {
   'use strict';
@@ -662,6 +712,15 @@ html[data-theme="light"] .th-week .on i{color:#FFFFFF}
       else if (kind === 'weigh') openCategory('body');
       else if (kind === 'checkin') { if (OPEN_CATEGORY) closeCategory(); CK_OPEN = true; paint();
         const c = document.querySelector('[data-ck-send]'); if (c) c.closest('.card').scrollIntoView({ block: 'center' }); }
+      else if (kind === 'coach') {
+        if (OPEN_CATEGORY) closeCategory();
+        const c = document.querySelector('[data-fb]');
+        if (c) c.scrollIntoView({ block: 'center' });
+        else {
+          const l = (EXTRAS.srv || []).filter(x => x && x.coach).sort((a, b) => String(b.coachAt || '').localeCompare(String(a.coachAt || '')))[0];
+          if (l) { WL_KEEP = String(l.date).slice(0, 10); openCategory('log'); }
+        }
+      }
     } catch (e) {}
   }
   /* הצעה במסך הבית: נגיעה אחת מפעילה תזכורות, בלי לחפש בהגדרות */
@@ -682,7 +741,7 @@ html[data-theme="light"] .th-week .on i{color:#FFFFFF}
   function pushKeyLS() { return 'eb_push_' + (TOKEN || 'x').slice(0, 12); }
   function pushPrefs() {
     let p = null; try { p = JSON.parse(localStorage.getItem(pushKeyLS()) || 'null'); } catch (e) {}
-    return Object.assign({ on: false, workout: true, weigh: true, checkin: true, hour: 18 }, p || {});
+    return Object.assign({ on: false, workout: true, weigh: true, checkin: true, coach: true, hour: 18 }, p || {});
   }
   function pushSave(p) { try { localStorage.setItem(pushKeyLS(), JSON.stringify(p)); } catch (e) {} }
   function pushSupported() { return 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window; }
@@ -712,7 +771,7 @@ html[data-theme="light"] .th-week .on i{color:#FFFFFF}
     if (Notification.permission === 'denied') return h + '<div class="note">ההתראות חסומות בהגדרות הטלפון לאתר הזה. מאפשרים שם התראות, וחוזרים לכאן.</div></div>';
     if (!P.on) {
       h += '<button class="main" data-rem="on"' + (PUSH.busy ? ' disabled' : '') + '>' + (PUSH.busy ? 'מפעיל…' : 'להפעיל תזכורות בטלפון') + '</button>'
-        + '<div class="note">תזכורת לאימון אחרי 3 ימים בלי דיווח, שקילה ביום חמישי בבוקר, וצ׳ק-אין בתחילת חודש. אפשר לכבות כל אחת.</div>';
+        + '<div class="note">תזכורת לאימון אחרי 3 ימים בלי דיווח, שקילה ביום חמישי בבוקר, צ׳ק-אין בתחילת חודש, והודעה כשהמאמן מגיב על אימון ששלחת. אפשר לכבות כל אחת.</div>';
     } else {
       const row = (k, t, d) => '<button class="rm' + (P[k] ? ' on' : '') + '" data-rem="' + k + '" aria-pressed="' + !!P[k] + '"><span><b>' + t + '</b><small>' + d + '</small></span><i class="tg"></i></button>';
       h += row('workout', 'תזכורת לאימון', '3 ימים בלי אימון')
@@ -720,6 +779,7 @@ html[data-theme="light"] .th-week .on i{color:#FFFFFF}
         + Array.from({ length: 18 }, (_, i) => i + 5).map(hh => '<option value="' + hh + '"' + (hh === P.hour ? ' selected' : '') + '>' + String(hh).padStart(2, '0') + ':00</option>').join('') + '</select></label>'
         + row('weigh', 'שקילה שבועית', 'יום חמישי ב-08:00')
         + row('checkin', 'צ׳ק-אין חודשי', 'בתחילת כל חודש')
+        + row('coach', 'תגובה מהמאמן', 'כשהמאמן כותב לך על אימון ששלחת')
         + '<button class="rm" data-rem="off"><span><b>לכבות את כל התזכורות</b><small>במכשיר הזה</small></span></button>';
     }
     if (PUSH.msg) h += '<div class="note">' + esc(PUSH.msg) + '</div>';
@@ -729,7 +789,7 @@ html[data-theme="light"] .th-week .on i{color:#FFFFFF}
   async function pushSend(sub, P) {
     const j = sub.toJSON();
     const r = await sb.rpc('trainee_push_subscribe', { p_token: TOKEN, p_endpoint: j.endpoint, p_p256dh: j.keys.p256dh, p_auth: j.keys.auth,
-      p_prefs: { workout: !!P.workout, weigh: !!P.weigh, checkin: !!P.checkin, hour: P.hour } });
+      p_prefs: { workout: !!P.workout, weigh: !!P.weigh, checkin: !!P.checkin, coach: P.coach !== false, hour: P.hour } });
     if (r.error) throw r.error;
   }
   async function pushTurnOn() {
@@ -822,7 +882,7 @@ html[data-theme="light"] .th-week .on i{color:#FFFFFF}
     sb = supabase.createClient(CFG.URL, CFG.ANON);
     /* כל כתיבה לשרת עוברת כאן, ולכן החיווי מכסה את כולן — סימונים,
        ארוחות, עריכת תוכנית, דיווח אימון — בלי לגעת בכל אחת בנפרד. */
-    const rpc0 = sb.rpc.bind(sb), READS = { trainee_program: 1, trainee_extras: 1, trainee_login: 1 };
+    const rpc0 = sb.rpc.bind(sb), READS = { trainee_program: 1, trainee_extras: 1, trainee_login: 1, trainee_coach: 1, trainee_feedback_seen: 1, push_public_key: 1 };
     sb.rpc = async function (fn, args) {
       if (READS[fn]) return rpc0(fn, args);
       saveChip('saving');
@@ -846,6 +906,8 @@ html[data-theme="light"] .th-week .on i{color:#FFFFFF}
 
     // קודם מהמטמון — כדי שהתוכנית תיפתח מיד גם בלי רשת
     const cached = readCache();
+    extrasRestore();
+    try { COACH = JSON.parse(localStorage.getItem(coachKey()) || '{}') || {}; } catch (e) { COACH = {}; }
     if (cached) { DATA = cached; paint(); }
 
     try {
@@ -876,7 +938,8 @@ html[data-theme="light"] .th-week .on i{color:#FFFFFF}
       if (window.EBProg) EBProg.mergeServer(DATA.weighins);
       writeCache(DATA);
       paint();
-      loadExtras();
+      loadExtras().then(() => outFlush());
+      loadCoach();
       hResend();
       loadVideos();
     } catch (e) {
@@ -896,6 +959,7 @@ html[data-theme="light"] .th-week .on i{color:#FFFFFF}
     if (EDIT_W || !TOKEN || !sb || REFRESHING) return;
     /* שקילה שלא נשלחה — ניסיון נוסף בכל ריענון, לא רק בטעינה */
     if (window.EBProg) EBProg.flush();
+    outFlush();   // וגם אימון שמחכה בתור
     loadVideos();
     REFRESHING = true;
     try {
@@ -1286,8 +1350,11 @@ html[data-theme="light"] .th-week .on i{color:#FFFFFF}
   }
 
   async function myRemove(libId) {
+    const isThis = x => x.custom ? x.name === libId : x.libId === libId;
+    const pos = MY_MEALS.findIndex(isThis);
+    const gone = pos >= 0 ? MY_MEALS[pos] : null;
     const wasCustom = MY_MEALS.some(x => x.custom && x.name === libId);
-    MY_MEALS = MY_MEALS.filter(x => x.custom ? x.name !== libId : x.libId !== libId);
+    MY_MEALS = MY_MEALS.filter(x => !isThis(x));
     if (wasCustom) { writeMy(); syncCustom(); paint(); return; }
     writeMy(); refreshLib(libId);
     try {
@@ -1295,7 +1362,17 @@ html[data-theme="light"] .th-week .on i{color:#FFFFFF}
         { p_token: TOKEN, p_lib_id: libId });
       if (error) throw error;
       mergeMy(data);
-    } catch (e) {}
+    } catch (e) {
+      /* השרת לא מחק, אז הארוחה עדיין שם. מחזירים רק אותה, בלי לגעת במה
+         שנמחק מאז, ומודיעים. אחרת המתאמן רואה אותה נמחקת, ובפתיחה הבאה
+         היא חוזרת בלי הסבר. */
+      if (gone) {
+        const at = Math.min(pos, MY_MEALS.length);
+        MY_MEALS = MY_MEALS.slice(0, at).concat([gone], MY_MEALS.slice(at));
+      }
+      writeMy(); refreshLib(libId); paint(); repaintFood();
+      toast('לא הצלחנו להסיר. נסה שוב כשתהיה רשת');
+    }
   }
 
   function todayStr() {
@@ -2192,6 +2269,8 @@ html[data-theme="light"] .th-week .on i{color:#FFFFFF}
 
     screen(
         openerBlock(days)
+      + coachBlock()
+      + outboxBlock()
       + leftoverBlock(days)
       + nudgeBlock(days)
       /* האריחים מיד אחרי כרטיס הפתיחה (נובמבר 2026, "שיהיה יותר נוח"):
@@ -2204,6 +2283,7 @@ html[data-theme="light"] .th-week .on i{color:#FFFFFF}
       + monthlyBlock(days)
       + weeklyBlock(days)
       + journeyBlockSafe()
+      + contactBlock()
       + footerBlock()
     );
     bar();
@@ -3328,12 +3408,15 @@ html[data-theme="light"] .th-week .on i{color:#FFFFFF}
     let h = '<div class="section-head" style="margin-top:16px"><h3>' + (sel === today ? 'היום' : wlDateLabel(sel)) + '</h3>'
       + '<span>' + (sel === today ? wlDateLabel(sel) : wlWhen(sel)) + '</span>'
       + '<span class="daystep"><button data-calstep="-1" aria-label="יום קודם">‹</button><button data-calstep="1" aria-label="היום הבא"' + (sel >= today ? ' disabled' : '') + '>›</button></span></div>';
-    logs.forEach(l => {
+    logs.forEach((l, k) => {
       const en = (l.entries || []).filter(x => x.done), vol = EBWLog.volumeOf(l.entries || []);
-      h += '<div class="card wl-done"><div class="wl-done-h"><b>' + esc(l.day_name || l.dayName || 'אימון') + '</b>'
+      h += '<div class="card wl-done"><div class="wl-done-h"><b>' + esc(l.day_name || l.dayName || 'אימון') + (l.pending ? '<i class="wl-pend">ממתין לשליחה</i>' : '') + '</b>'
         + '<span>' + (en.length === 1 ? 'תרגיל אחד' : en.length + ' תרגילים') + (vol ? ' · ' + vol.toLocaleString('en-US') + ' ק״ג' : '') + (l.feel ? ' · ' + esc(l.feel) : '') + '</span></div>'
         + en.map(x => '<div class="wl-done-r"><span>' + esc(x.ex || x.name || 'תרגיל') + '</span><em>' + esc(wlSetsText(x)) + '</em></div>').join('')
-        + (l.note ? '<div class="wl-done-n">' + esc(l.note) + '</div>' : '') + '</div>';
+        + (l.note ? '<div class="wl-done-n"><b>כתבת למאמן</b>' + esc(l.note) + '</div>' : '')
+        + (l.coach ? '<div class="wl-done-c"><b>' + (coachFirst() ? esc(coachFirst()) : 'המאמן') + '</b>' + esc(l.coach) + '</div>' : '')
+        + (window.EBShare && en.length ? '<button class="wl-share" data-wlshare="' + k + '">' + ICO_SHARE + 'שיתוף האימון</button>' : '')
+        + '</div>';
     });
     if (!logs.length) h += '<div class="card mt" style="text-align:center;padding:16px;font-size:13.5px">' + (sel === today ? 'עוד לא נרשם אימון היום.' : 'לא נרשם אימון ביום הזה.') + '</div>';
     if (canAdd) {
@@ -4928,14 +5011,119 @@ html[data-theme="light"] .th-week .on i{color:#FFFFFF}
 
   /* ההיסטוריה למאמן החכם ולגרף. נשלפת בנפרד מ-trainee_program
      בכוונה — ראה ההסבר בראש supabase/trainee-notes-and-logs.sql. */
-  let EXTRAS = { logs: [], weighins: [] };
+  let EXTRAS = { logs: [], srv: [], weighins: [] };
+
+  /* ---------- "סיימתי" גם בלי רשת (נובמבר 2026) ----------
+     בחדר כושר בלי קליטה "סיימתי" נכשל, והאימון נשאר מסומן עד שמישהו זכר
+     לנסות שוב. עכשיו אימון שלא יצא נשמר בתור במכשיר (ebfit_outbox_*),
+     המסך מתנהג כאילו נשלח (סיכום, יומן, הטבעת השבועית), והוא יוצא לבד
+     כשהרשת חוזרת: באירוע online, בחזרה לדף ובכל ריענון.
+     בלי כפילויות: כל דיווח נושא מזהה (cid) בתרגיל הראשון. לפני שליחה
+     חוזרת בודקים מה כבר בשרת — בקשה שהתשובה שלה אבדה בדרך אולי נרשמה. */
+  let OUT_BUSY = false;
+  function outKey() { return 'ebfit_outbox_' + String(TOKEN || 'x').slice(0, 12); }
+  function outRead() { try { const a = JSON.parse(localStorage.getItem(outKey()) || '[]'); return Array.isArray(a) ? a : []; } catch (e) { return []; } }
+  function outWrite(a) {
+    try { if (a.length) localStorage.setItem(outKey(), JSON.stringify(a)); else localStorage.removeItem(outKey()); return true; }
+    catch (e) { return false; }
+  }
+  function outAdd(it) {
+    const q = outRead();
+    q.push({ cid: it.cid, args: it.args, date: it.date, at: new Date().toISOString(), tried: !!it.tried });
+    return outWrite(q.slice(-20));
+  }
+  function outDrop(cid) { outWrite(outRead().filter(x => x.cid !== cid)); }
+  function newCid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 10); }
+  function hasCid(log, cid) { return !!cid && ((log && log.entries) || []).some(e => e && e.cid === cid); }
+  /* תשובה שלא הגיעה (0) או שרת שנפל (5xx) — שווה לנסות שוב. 4xx = השרת סירב */
+  function netFail(r) { const st = Number(r && r.status) || 0; return st === 0 || st >= 500; }
+  function withTimeout(p, ms) { return Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), ms))]); }
+  function refusedText(er) {
+    const m = String((er && er.message) || '');
+    if (/too many logs/i.test(m)) return 'נשלחו היום יותר מדי דיווחים — נסה שוב מחר';
+    if (/invalid token/i.test(m)) return 'הקישור כבר לא פעיל — בקש מהמאמן קישור חדש';
+    return 'לא הצלחנו לשלוח — נסה שוב כשתהיה רשת';
+  }
+  /* היומן שהמסך רואה = מה שבשרת + מה שמחכה בתור (מסומן pending) */
+  function outMerge() {
+    const srv = EXTRAS.srv || [];
+    const wait = outRead().filter(it => !srv.some(l => hasCid(l, it.cid))).map(it => ({
+      date: it.date, dayName: it.args.p_day_name, entries: it.args.p_entries,
+      feel: it.args.p_feel, note: it.args.p_note, pending: true }));
+    EXTRAS.logs = srv.concat(wait).sort((a, b) => String(a.date || '').localeCompare(String(b.date || '')));
+  }
+  /* היומן האחרון נשמר במכשיר: בלי רשת עדיין רואים "בפעם הקודמת" ואת לוח השנה */
+  function logsKey() { return 'ebfit_logs_' + String(TOKEN || 'x').slice(0, 12); }
+  function extrasKeep() { try { localStorage.setItem(logsKey(), JSON.stringify({ logs: (EXTRAS.srv || []).slice(-80) })); } catch (e) {} }
+  function extrasRestore() {
+    try { const c = JSON.parse(localStorage.getItem(logsKey()) || 'null'); if (c && Array.isArray(c.logs) && !(EXTRAS.srv || []).length) EXTRAS.srv = c.logs; } catch (e) {}
+    outMerge();
+  }
+  async function outFlush(manual) {
+    if (OUT_BUSY || !sb || !TOKEN || !outRead().length) return;
+    if (navigator.onLine === false) { if (manual) toast('עדיין אין רשת — האימון שמור בטלפון'); return; }
+    OUT_BUSY = true; outPaint();
+    let sent = 0, left = '';
+    try {
+      const ex = await withTimeout(sb.rpc('trainee_extras', { p_token: TOKEN, p_limit: 200 }), 15000);
+      if (ex.error) throw ex.error;
+      const srv = ((ex.data && ex.data[0]) || {}).logs || [];
+      for (const it of outRead()) {
+        /* בקשה שיצאה לפני רגע אולי עוד בדרך — נותנים לה להגיע לפני שליחה שנייה */
+        if (!manual && it.tried && Date.now() - new Date(it.at).getTime() < 40000) continue;
+        if (srv.some(l => hasCid(l, it.cid))) { outDrop(it.cid); sent++; continue; }
+        /* השרת סירב לאחרונה — לא מנסים שוב ושוב, רק פעם בכמה שעות או בלחיצה */
+        if (!manual && it.err && Date.now() - (it.errAt || 0) < 6 * 3600e3) continue;
+        let r;
+        try { r = await withTimeout(logRpc(Object.assign({ p_token: TOKEN }, it.args), it.date), 15000); }
+        catch (e) { left = 'net'; break; }
+        if (!r.error) { outDrop(it.cid); sent++; continue; }
+        if (netFail(r)) { left = 'net'; break; }
+        outWrite(outRead().map(x => x.cid === it.cid ? Object.assign({}, x, { err: String(r.error.message || 'refused'), errAt: Date.now() }) : x));
+        left = 'refused';
+      }
+    } catch (e) { left = 'net'; }
+    OUT_BUSY = false;
+    if (sent) { toast(sent === 1 ? 'האימון ששמרת נשלח למאמן' : sent + ' אימונים נשלחו למאמן'); await loadExtras(); }
+    else if (manual) toast(left === 'refused' ? refusedText({ message: (outRead().find(x => x.err) || {}).err }) : 'עדיין אין חיבור — ננסה שוב לבד');
+    outMerge(); outPaint();
+  }
+  /* כרטיס במסך הבית: מה מחכה, וכפתור לשליחה עכשיו */
+  function outboxBlock() {
+    try {
+      const q = outRead(); if (!q.length) return '';
+      const bad = q.filter(x => x.err);
+      return '<div class="card th-row out-card" data-outbox style="margin-bottom:12px">'
+        + '<div style="flex:1;min-width:0"><b>' + (q.length === 1 ? 'אימון אחד ממתין לשליחה' : q.length + ' אימונים ממתינים לשליחה') + '</b>'
+        + '<span>' + (OUT_BUSY ? 'שולח…' : bad.length ? esc(refusedText({ message: bad[0].err })) : 'שמור בטלפון. יישלח למאמן לבד כשתהיה רשת') + '</span></div>'
+        + '<button class="btn" data-out-send style="flex:none;padding:9px 14px;font-size:14px"' + (OUT_BUSY ? ' disabled' : '') + '>לשלוח עכשיו</button>'
+        + (bad.length ? '<button data-out-drop class="th-later">מחיקה</button>' : '') + '</div>';
+    } catch (e) { return ''; }
+  }
+  function outPaint() {
+    const el = document.querySelector('[data-outbox]'), h = outboxBlock();
+    if (el) { if (h) el.outerHTML = h; else el.remove(); }
+    else if (h && DATA && !OPEN_CATEGORY && !document.getElementById('finSheet')) paint();
+    if (OPEN_CATEGORY === 'log') wlRepaint();
+  }
+  window.addEventListener('online', () => { setTimeout(() => outFlush(), 1200); });
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') outFlush(); });
+  document.addEventListener('click', function (e) {
+    if (!e.target.closest) return;
+    if (e.target.closest('[data-out-send]')) { outFlush(true); return; }
+    if (e.target.closest('[data-out-drop]')) {
+      if (!confirm('למחוק מהטלפון את האימון שהשרת לא קיבל? הוא לא יגיע למאמן.')) return;
+      outWrite(outRead().filter(x => !x.err)); outMerge(); outPaint(); if (!OPEN_CATEGORY) paint();
+    }
+  });
   async function loadExtras() {
     if (!sb || !TOKEN) { SRV_LOADED = true; return; }   // אין שרת — אין מה לחכות לו
     try {
       const { data, error } = await sb.rpc('trainee_extras', { p_token: TOKEN, p_limit: 200 });
       if (error) throw error;
       const row = (data && data[0]) || {};
-      EXTRAS = { logs: row.logs || [], weighins: row.weighins || [] };
+      EXTRAS = { logs: [], srv: row.logs || [], weighins: row.weighins || [] };
+      outMerge(); extrasKeep(); fbSync();
 
       /* טיוטה מהשרת — רק אם במכשיר הזה אין כלום, כדי לא לדרוס
          אימון שמתנהל ממש עכשיו במכשיר שביד. */
@@ -5018,52 +5206,80 @@ html[data-theme="light"] .th-week .on i{color:#FFFFFF}
       if (!isReal(e)) return null;   // הנחיות ושורות ריקות לא נשלחות כתרגיל
       return entryOf(e, STATE[i + ':' + j]);
     }).filter(Boolean);
-    try {
-      /* אימון של אתמול שנשלח היום נרשם באתמול */
-      const { error } = await logRpc({
-        p_token: TOKEN, p_day_index: i,
-        p_day_name: day.name || ('יום ' + (i + 1)),
-        p_entries: entries, p_feel: FEEL, p_note: (FIN_NOTE[i] || '').trim() || null
-      }, LOG_DATE || markedOn(STATE, i));
-      if (error) throw error;
-      const sumHtml = finishSummary(day, entries, LOG_DATE);
-      if (window.EBProg) EBProg.logWorkout();
-      /* מנקים רק את היום ששודר. מי שסימן מראש תרגילים ביום אחר
-         לא אמור לאבד אותם רק כי סיים אימון. */
-      Object.keys(STATE).forEach(k => { if (k.indexOf(i + ':') === 0) delete STATE[k]; });
-      writeState(); queueStateSync(); loadExtras();
-      FEEL = null; delete FIN_NOTE[i];
-      const back = LOG_DATE;
-      closeCategory(); paint();
-      showFinish(sumHtml, back);
-    } catch (err) {
-      toast('לא הצלחנו לשלוח — נסה שוב כשתהיה רשת');
-      if (btn) { btn.disabled = false; btn.textContent = 'סיימתי את האימון הזה'; }
+    /* מזהה הדיווח: שליחה חוזרת מהתור לא תירשם פעמיים */
+    const cid = newCid(); if (entries[0]) entries[0].cid = cid;
+    const args = { p_day_index: i, p_day_name: day.name || ('יום ' + (i + 1)),
+                   p_entries: entries, p_feel: FEEL, p_note: (FIN_NOTE[i] || '').trim() || null };
+    /* אימון של אתמול שנשלח היום נרשם באתמול */
+    const at = LOG_DATE || markedOn(STATE, i);
+    let queued = false, refused = null, tried = navigator.onLine !== false;
+    if (!tried) queued = true;        // אין טעם לחכות לבקשה שלא תצא
+    else {
+      try {
+        const r = await withTimeout(logRpc(Object.assign({ p_token: TOKEN }, args), at), 12000);
+        if (r && r.error) { if (netFail(r)) queued = true; else refused = r.error; }
+      } catch (err) { queued = true; }
     }
+    /* בלי רשת: האימון נכנס לתור במכשיר. אם גם זה נכשל (אחסון מלא) — נשאר מסומן */
+    if (queued && !outAdd({ cid: cid, args: args, date: at || isoLocal(new Date()), tried: tried })) { queued = false; refused = {}; }
+    if (refused) {
+      toast(refusedText(refused));
+      if (btn) { btn.disabled = false; btn.textContent = 'סיימתי את האימון הזה'; }
+      return;
+    }
+    let sumHtml = '';
+    try { sumHtml = finishSummary(day, entries, LOG_DATE, queued); } catch (err) {}
+    if (window.EBProg) EBProg.logWorkout();
+    /* מנקים רק את היום ששודר. מי שסימן מראש תרגילים ביום אחר
+       לא אמור לאבד אותם רק כי סיים אימון. */
+    Object.keys(STATE).forEach(k => { if (k.indexOf(i + ':') === 0) delete STATE[k]; });
+    writeState(); queueStateSync();
+    if (queued) outMerge(); else loadExtras();
+    FEEL = null; delete FIN_NOTE[i];
+    const back = LOG_DATE;
+    closeCategory(); paint();
+    if (sumHtml) showFinish(sumHtml, back); else toast(queued ? 'האימון נשמר בטלפון ויישלח כשתהיה רשת' : 'נשלח למאמן');
   }
 
   /* ---------- סיכום אחרי "סיימתי" (נובמבר 2026) ----------
      הודעה של שתי שניות נעלמה לפני שקראו אותה. עכשיו מסך קצר: כמה סטים,
      כמה נפח, ושיא אם נשבר — מהמספרים שנשלחו, בלי משפטי עידוד גנריים. */
-  function finishSummary(day, entries, date) {
-    const done = entries.filter(e => e && e.done);
+  function liftTop(e) { return Math.max(0, Number(e.weight) || 0, ...((e.setLog || []).map(x => Number(x.w) || 0))); }
+  function liftReps(e) {
+    const L = (e.setLog || []).filter(x => Number(x.w) > 0).sort((a, b) => Number(b.w) - Number(a.w));
+    return (L[0] && L[0].r) || e.reps || '';
+  }
+  /* המספרים של אימון אחד, מול מה שנעשה לפניו (prior): כמה, נפח, שיאים */
+  function workoutStats(entries, prior) {
+    const done = (entries || []).filter(e => e && e.done), name = e => e.ex || e.name || '';
     let sets = 0; done.forEach(e => { sets += (e.setLog || []).length || Number(e.sets) || 1; });
-    const vol = EBWLog.volumeOf(done);
-    const top = e => Math.max(0, Number(e.weight) || 0, ...((e.setLog || []).map(x => Number(x.w) || 0)));
     const before = {};
-    (EXTRAS.logs || []).forEach(l => (l.entries || []).forEach(e => { const n = e.ex || e.name; if (n && e.done) before[n] = Math.max(before[n] || 0, top(e)); }));
-    const prs = done.filter(e => before[e.ex] > 0 && top(e) > before[e.ex]).slice(0, 3);
+    (prior || []).forEach(l => (l.entries || []).forEach(e => { const n = name(e); if (n && e.done) before[n] = Math.max(before[n] || 0, liftTop(e)); }));
+    return { n: done.length, sets: sets, vol: EBWLog.volumeOf(done),
+      prs: done.filter(e => before[name(e)] > 0 && liftTop(e) > before[name(e)]).slice(0, 3).map(e => ({ ex: name(e), from: before[name(e)], to: liftTop(e) })),
+      lifts: done.filter(e => liftTop(e) > 0 && name(e)).sort((a, b) => liftTop(b) - liftTop(a)).slice(0, 3).map(e => ({ ex: name(e), w: liftTop(e), r: liftReps(e) })) };
+  }
+  function finishSummary(day, entries, date, queued) {
+    const k = workoutStats(entries, EXTRAS.logs);
+    /* כמה אימונים עד עכשיו, כולל זה. מעל 200 השרת כבר לא מחזיר את כולם */
+    const total = (EXTRAS.srv || []).length < 200 ? (EXTRAS.logs || []).length + 1 : 0;
+    const mile = [5, 10, 25, 50, 75, 100, 150].indexOf(total) > -1;
+    shareSet(day.name || 'אימון', date || isoLocal(new Date()), k);
+    FIN_GOOD = k.prs.length > 0 || mile;
     const st = (v, l) => '<div><b>' + v + '</b><span>' + l + '</span></div>';
     return '<div class="fin-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>'
-      + '<h2>האימון נשלח למאמן</h2>'
+      + '<h2>' + (queued ? 'האימון נשמר בטלפון' : 'האימון נשלח למאמן') + '</h2>'
       + '<p>' + esc(day.name || 'אימון') + (date ? ' · נרשם ל' + esc(wlDateLabel(date)) : '') + '</p>'
-      + '<div class="fin-st">' + st(done.length, done.length === 1 ? 'תרגיל' : 'תרגילים') + st(sets, sets === 1 ? 'סט' : 'סטים') + st(vol ? vol.toLocaleString('en-US') : '—', 'ק״ג נפח') + '</div>'
-      + (prs.length ? '<div class="fin-pr"><b>שיא חדש</b>' + prs.map(e => '<div><span>' + esc(e.ex) + '</span><em>' + EBWLog.r1(before[e.ex]) + ' ← ' + EBWLog.r1(top(e)) + ' ק״ג</em></div>').join('') + '</div>' : '');
+      + (queued ? '<p class="fin-q">אין רשת כרגע. הוא יישלח למאמן לבד כשהרשת תחזור — לא צריך לעשות כלום.</p>' : '')
+      + (mile ? '<div class="fin-ms">האימון ה-' + total + ' שלך</div>' : '')
+      + '<div class="fin-st">' + st(k.n, k.n === 1 ? 'תרגיל' : 'תרגילים') + st(k.sets, k.sets === 1 ? 'סט' : 'סטים') + st(k.vol ? k.vol.toLocaleString('en-US') : '—', 'ק״ג נפח') + '</div>'
+      + (k.prs.length ? '<div class="fin-pr"><b>שיא חדש</b>' + k.prs.map(e => '<div><span>' + esc(e.ex) + '</span><em>' + EBWLog.r1(e.from) + ' ← ' + EBWLog.r1(e.to) + ' ק״ג</em></div>').join('') + '</div>' : '');
   }
   function showFinish(html, backDate) {
     const old = document.getElementById('finSheet'); if (old) old.remove();
     const w = document.createElement('div'); w.id = 'finSheet'; w.className = 'fin-mask';
     w.innerHTML = '<div class="fin-sheet" role="dialog" aria-modal="true" aria-label="סיכום האימון">' + html
+      + shareRow() + (FIN_GOOD ? friendRow() : '')
       + '<button class="btn" data-fin-close style="width:100%;margin-top:16px">' + (backDate ? 'חזרה ליומן' : 'סגירה') + '</button></div>';
     w.addEventListener('click', e => {
       if (e.target !== w && !e.target.closest('[data-fin-close]')) return;
@@ -5071,7 +5287,187 @@ html[data-theme="light"] .th-week .on i{color:#FFFFFF}
       if (backDate) { WL_KEEP = backDate; openCategory('log'); }
     });
     document.body.appendChild(w);
+    shareWarm();
   }
+
+  /* ---------- כרטיס לשיתוף ו"להמליץ לחבר" (נובמבר 2026) ----------
+     הכרטיס עצמו מצויר ב-share.js. כאן רק הנתונים והכפתורים: בסוף אימון,
+     ובכל אימון ביומן. התמונה מוכנה מראש (shareWarm), כדי שחלון השיתוף של
+     הטלפון ייפתח מיד בנגיעה. ההמלצה לחבר מוצעת ברגע טוב — שיא או אימון
+     עגול — ותמיד נמצאת בתחתית מסך הבית. */
+  let SHARE = null, FIN_GOOD = false;
+  const ICO_SHARE = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15.5V4M8 7.5l4-4 4 4M5.5 12.5v6A1.5 1.5 0 0 0 7 20h10a1.5 1.5 0 0 0 1.5-1.5v-6" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  function shareSet(dayName, dateIso, k) {
+    const who = String(COACH.name || (DATA && DATA.trainer_name) || '').trim();
+    /* התמונה הקודמת כבר לא מוצגת — משחררים אותה מהזיכרון */
+    try { if (SHARE && SHARE.res && /^blob:/.test(SHARE.res.url || '')) URL.revokeObjectURL(SHARE.res.url); } catch (e) {}
+    SHARE = { text: (k.prs.length ? 'שיא חדש באימון. ' : 'אימון נוסף מאחוריי. ') + 'BAUER POWER',
+      data: {
+        title: k.prs.length ? 'שיא חדש' : 'אימון נוסף מאחוריי',
+        sub: dayName + ' · ' + wlDateLabel(String(dateIso).slice(0, 10)),
+        stats: [{ v: String(k.n), l: k.n === 1 ? 'תרגיל' : 'תרגילים' }, { v: String(k.sets), l: k.sets === 1 ? 'סט' : 'סטים' },
+                { v: k.vol ? k.vol.toLocaleString('en-US') : '—', l: 'ק״ג נפח' }],
+        prs: k.prs.map(p => ({ name: p.ex, val: EBWLog.r1(p.from) + ' ← ' + EBWLog.r1(p.to) + ' ק״ג' })),
+        lifts: k.lifts.map(x => ({ name: x.ex, val: EBWLog.r1(x.w) + ' ק״ג' + (x.r ? ' × ' + x.r : '') })),
+        foot: who && who !== 'המאמן שלך' ? 'מאמן: ' + who : 'ליווי אישי'
+      } };
+  }
+  function shareRow() {
+    if (!window.EBShare || !SHARE) return '';
+    return '<div class="fin-share' + (FIN_GOOD ? ' good' : '') + '"><button class="fin-thumb" data-share-open aria-label="תצוגת הכרטיס"><img alt=""></button>'
+      + '<div><b>כרטיס לשיתוף</b><span>תמונה של האימון, לווטסאפ או לסטורי</span></div>'
+      + '<button class="btn ghost" data-share-go disabled>שיתוף</button></div>';
+  }
+  function friendRow() {
+    return '<div class="fin-friend">חבר או חברה שרוצים להתחיל להתאמן? <button data-friend>לשלוח להם את הפרטים</button></div>';
+  }
+  function shareWarm() {
+    if (!SHARE || !window.EBShare) return;
+    const mine = SHARE;
+    if (!mine.p) mine.p = EBShare.render(mine.data).then(r => { mine.res = r; return r; }).catch(() => null);
+    mine.p.then(r => {
+      if (SHARE !== mine || !r) return;
+      document.querySelectorAll('.fin-thumb img, .sh-img img').forEach(im => { im.src = r.url; });
+      document.querySelectorAll('[data-share-go],[data-share-save]').forEach(b => { b.disabled = false; });
+    });
+  }
+  function openShareSheet() {
+    if (!SHARE || !window.EBShare) return;
+    const old = document.getElementById('shareSheet'); if (old) old.remove();
+    const w = document.createElement('div'); w.id = 'shareSheet'; w.className = 'fin-mask';
+    w.innerHTML = '<div class="fin-sheet sh-sheet" role="dialog" aria-modal="true" aria-label="כרטיס לשיתוף">'
+      + '<div class="sh-img"><img alt="כרטיס סיכום האימון"></div>'
+      + '<div class="sh-a"><button class="btn" data-share-go disabled>שיתוף</button><button class="btn ghost" data-share-save disabled>שמירת התמונה</button></div>'
+      + '<button class="th-later" data-share-close style="margin-top:6px;padding:8px 12px">סגירה</button></div>';
+    w.addEventListener('click', e => { if (e.target === w || e.target.closest('[data-share-close]')) w.remove(); });
+    document.body.appendChild(w);
+    shareWarm();
+  }
+  function friendText() {
+    const who = coachFirst(), biz = String(COACH.business || 'BAUER POWER'), me = String((DATA && DATA.name) || '').trim().split(/\s+/)[0];
+    const wa = waCoach('היי' + (who ? ' ' + who : '') + ', ' + (me ? 'קיבלתי את הפרטים שלך מ' + me : 'קיבלתי המלצה עליך') + ' ואשמח לשמוע על הליווי.');
+    let promo = ''; try { promo = new URL('promo-trainees.html', location.href).href.split('#')[0].split('?')[0]; } catch (e) {}
+    return 'שווה לך להכיר: ' + (who ? who + ' מ-' : '') + biz + ', ליווי אישי באימונים ובתזונה. אני בליווי שם ורואה תוצאות.\n'
+      + (wa ? 'אפשר לפנות בווטסאפ: ' + wa : 'כל הפרטים כאן: ' + promo);
+  }
+  document.addEventListener('click', function (e) {
+    if (!e.target.closest) return;
+    if (e.target.closest('[data-share-go]')) {
+      if (!SHARE || !SHARE.res) return;
+      EBShare.send(SHARE.res, SHARE.text).then(r => { if (r === 'saved') toast('התמונה נשמרה — אפשר לשתף אותה מהגלריה'); else if (r === 'failed') toast('לא הצלחנו לשתף מהדפדפן הזה'); });
+      return;
+    }
+    if (e.target.closest('[data-share-save]')) { if (SHARE && SHARE.res) toast(EBShare.save(SHARE.res) === 'saved' ? 'התמונה נשמרה' : 'לא הצלחנו לשמור'); return; }
+    if (e.target.closest('[data-share-open]')) { openShareSheet(); return; }
+    if (e.target.closest('[data-friend]')) { if (window.EBShare) EBShare.sendText(friendText()); return; }
+    const ws = e.target.closest('[data-wlshare]');
+    if (ws) {
+      const l = (wlByDate()[wlSel()] || [])[+ws.dataset.wlshare]; if (!l) return;
+      const d = String(l.date || '').slice(0, 10);
+      FIN_GOOD = false;
+      shareSet(l.day_name || l.dayName || 'אימון', d, workoutStats(l.entries, (EXTRAS.logs || []).filter(x => x !== l && String(x.date || '').slice(0, 10) < d)));
+      openShareSheet();
+    }
+  });
+
+  /* ---------- משוב מהמאמן ו"לכתוב למאמן" (נובמבר 2026) ----------
+     המאמן כותב שורה על אימון שנשלח (אצלו: לוח הבקרה → "תגובה"). כאן היא
+     מופיעה בראש מסך הבית עד שקוראים, ונשארת ביומן מתחת לאותו אימון.
+     התגובות מגיעות בתוך trainee_extras (coach / coachAt / coachSeen), ופרטי
+     המאמן — שם וטלפון לווטסאפ — מ-trainee_coach. שניהם ב-supabase/coach-feedback.sql;
+     שרת שעוד לא עודכן פשוט לא מחזיר אותם, והמסך נשאר כמו שהיה. */
+  let COACH = {};
+  const ICO_CHAT = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 5h15A1.5 1.5 0 0 1 21 6.5v9a1.5 1.5 0 0 1-1.5 1.5H11l-4.5 3.5V17h-2A1.5 1.5 0 0 1 3 15.5v-9A1.5 1.5 0 0 1 4.5 5z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>';
+  const ICO_FRIEND = '<svg viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 20v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="3.2"/><path d="M19 8v6M16 11h6"/></g></svg>';
+  function coachKey() { return 'ebfit_coach_' + String(TOKEN || 'x').slice(0, 12); }
+  async function loadCoach() {
+    if (!sb || !TOKEN) return;
+    try {
+      const r = await sb.rpc('trainee_coach', { p_token: TOKEN });
+      if (r.error || !r.data || typeof r.data !== 'object') return;
+      const next = { name: r.data.name || '', phone: r.data.phone || '', business: r.data.business || '' };
+      const same = JSON.stringify(next) === JSON.stringify({ name: COACH.name || '', phone: COACH.phone || '', business: COACH.business || '' });
+      COACH = next; try { localStorage.setItem(coachKey(), JSON.stringify(COACH)); } catch (e) {}
+      const typing = document.activeElement && /INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName);
+      if (!same && DATA && !typing && !OPEN_CATEGORY && !document.getElementById('finSheet') && !document.getElementById('thmSheet')) paint();
+    } catch (e) {}
+  }
+  function coachFirst() {
+    const n = String(COACH.name || (DATA && DATA.trainer_name) || '').trim();
+    return (!n || n === 'המאמן שלך') ? '' : n.split(/\s+/)[0];
+  }
+  /* מספר ישראלי מקומי (054…) → בינלאומי, כמו ש-wa.me דורש */
+  function waNum(p) {
+    let d = String(p || '').replace(/\D/g, ''); if (!d) return '';
+    if (d.indexOf('00') === 0) d = d.slice(2); else if (d.charAt(0) === '0') d = '972' + d.slice(1);
+    return d.length >= 9 ? d : '';
+  }
+  function waCoach(text) { const n = waNum(COACH.phone); return n ? 'https://wa.me/' + n + '?text=' + encodeURIComponent(text) : ''; }
+
+  function fbSeenKey() { return 'ebfit_fbseen_' + String(TOKEN || 'x').slice(0, 12); }
+  function fbLocal() { try { return JSON.parse(localStorage.getItem(fbSeenKey()) || '{}') || {}; } catch (e) { return {}; } }
+  function fbId(l) { return String(l.id || '') + '|' + String(l.coachAt || ''); }
+  function fbUnread() {
+    const seen = fbLocal();
+    return (EXTRAS.srv || []).filter(l => l && l.coach && !l.coachSeen && !seen[fbId(l)])
+      .sort((a, b) => String(b.coachAt || '').localeCompare(String(a.coachAt || '')));
+  }
+  /* "קראתי": נרשם מיד במכשיר (הכרטיס יורד גם בלי רשת), ואז בשרת — שם המאמן רואה "נקרא" */
+  function fbMarkSeen() {
+    const seen = fbLocal();
+    fbUnread().forEach(l => { seen[fbId(l)] = 1; });
+    try { localStorage.setItem(fbSeenKey(), JSON.stringify(seen)); } catch (e) {}
+    fbSync();
+  }
+  /* מה שסומן במכשיר ועוד לא הגיע לשרת — נשלח; מה שהשרת כבר יודע — יורד מהרשימה */
+  async function fbSync() {
+    const seen = fbLocal(); if (!Object.keys(seen).length) return;
+    const wait = {};
+    (EXTRAS.srv || []).forEach(l => { if (l && l.coach && !l.coachSeen && seen[fbId(l)]) wait[fbId(l)] = 1; });
+    try { if (Object.keys(wait).length) localStorage.setItem(fbSeenKey(), JSON.stringify(wait)); else localStorage.removeItem(fbSeenKey()); } catch (e) {}
+    if (!Object.keys(wait).length || !sb || !TOKEN || navigator.onLine === false) return;
+    try {
+      const r = await sb.rpc('trainee_feedback_seen', { p_token: TOKEN });
+      if (!r.error) { (EXTRAS.srv || []).forEach(l => { if (l && wait[fbId(l)]) l.coachSeen = true; }); try { localStorage.removeItem(fbSeenKey()); } catch (e) {} extrasKeep(); }
+    } catch (e) {}
+  }
+  function fbWhere(l) { return (l.dayName || l.day_name || 'אימון') + ' · ' + wlDateLabel(String(l.date || '').slice(0, 10)); }
+  function coachBlock() {
+    try {
+      const un = fbUnread(); if (!un.length) return '';
+      const who = coachFirst(), l = un[0];
+      const wa = waCoach('היי' + (who ? ' ' + who : '') + ', לגבי האימון "' + (l.dayName || l.day_name || 'אימון') + '": ');
+      return '<div class="card fb-card" data-fb style="margin-bottom:12px">'
+        + '<div class="fb-h"><i class="fb-ic">' + ICO_CHAT + '</i><div><b>' + (who ? 'תגובה מ' + esc(who) : 'תגובה מהמאמן') + '</b><span>' + esc(fbWhere(l)) + '</span></div></div>'
+        + un.slice(0, 3).map((x, k) => (k ? '<div class="fb-more">' + esc(fbWhere(x)) + '</div>' : '') + '<p class="fb-t">' + esc(x.coach) + '</p>').join('')
+        + '<div class="fb-a"><button class="btn" data-fb-seen>קראתי</button>'
+        + '<button class="btn ghost" data-fb-open="' + esc(String(l.date || '').slice(0, 10)) + '">לאימון ביומן</button>'
+        + (wa ? '<a class="btn ghost" data-fb-wa href="' + esc(wa) + '" target="_blank" rel="noopener">להשיב בווטסאפ</a>' : '') + '</div></div>';
+    } catch (e) { return ''; }
+  }
+  /* תחתית מסך הבית: לכתוב למאמן, ולהמליץ לחבר */
+  function contactBlock() {
+    try {
+      if (!DATA || !TOKEN) return '';
+      const who = coachFirst(), wa = waCoach('היי' + (who ? ' ' + who : '') + ', ');
+      return '<div class="card th-links" style="margin-bottom:12px">'
+        + (wa ? '<a class="th-link" data-coach-wa href="' + esc(wa) + '" target="_blank" rel="noopener">' + ICO_CHAT
+            + '<span><b>לכתוב ל' + (who ? esc(who) : 'מאמן') + '</b><small>שאלה, עדכון או שינוי בתוכנית — נפתח בווטסאפ</small></span></a>' : '')
+        + (window.EBShare ? '<button class="th-link" data-friend>' + ICO_FRIEND
+            + '<span><b>להמליץ לחבר או חברה</b><small>הודעה מוכנה עם הפרטים של ' + (who ? esc(who) : 'המאמן') + ', שולחים למי שרוצים</small></span></button>' : '')
+        + '</div>';
+    } catch (e) { return ''; }
+  }
+  document.addEventListener('click', function (e) {
+    if (!e.target.closest) return;
+    const op = e.target.closest('[data-fb-open]');
+    if (e.target.closest('[data-fb-seen]') || e.target.closest('[data-fb-wa]') || op) {
+      const d = op ? op.dataset.fbOpen : '';
+      fbMarkSeen();
+      const card = document.querySelector('[data-fb]'); if (card) card.remove();
+      if (d) { WL_KEEP = d; openCategory('log'); }
+    }
+  });
 
   /* מונה התרגילים בכותרת היום, בלי לצייר מחדש */
   function dayMeta(i) {
@@ -5161,6 +5557,6 @@ html[data-theme="light"] .th-week .on i{color:#FFFFFF}
   });
 })();
 </script>
-<script src="ui-fx.js?v=v286"></script>
+<script src="ui-fx.js?v=v287"></script>
 </body>
 </html>

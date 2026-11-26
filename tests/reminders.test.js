@@ -59,12 +59,14 @@ const remText = p => p.evaluate(() => (document.querySelector('.thm-rem') || {})
     const sub = calls[0] || [], opts = await p.evaluate(() => window.__subOpts);
     t('נרשם אצל הדפדפן עם המפתח של השרת', opts && opts.visible === true && opts.keyLen === 65, JSON.stringify(opts));
     t('ההרשמה נשמרה בשרת עם ברירות המחדל', sub[0] === 'trainee_push_subscribe' && sub[1].p_token === 'tok-remind' && sub[1].p_endpoint === 'https://push.example/abc'
-      && JSON.stringify(sub[1].p_prefs) === '{"workout":true,"weigh":true,"checkin":true,"hour":18}', JSON.stringify(sub));
-    t('אחרי ההפעלה — שלושה מתגים ושעה', await p.evaluate(() => document.querySelectorAll('.thm-rem .rm.on').length === 3 && document.querySelector('[data-remhour]').value === '18'));
+      && JSON.stringify(sub[1].p_prefs) === '{"workout":true,"weigh":true,"checkin":true,"coach":true,"hour":18}', JSON.stringify(sub));
+    t('אחרי ההפעלה — ארבעה מתגים (כולל תגובה מהמאמן) ושעה', await p.evaluate(() => document.querySelectorAll('.thm-rem .rm.on').length === 4 && !!document.querySelector('.thm-rem [data-rem="coach"].on') && document.querySelector('[data-remhour]').value === '18'));
     await p.tap('[data-rem="weigh"]'); await p.waitForTimeout(400);
     t('כיבוי השקילה מגיע לשרת', calls[1] && calls[1][1].p_prefs.weigh === false && calls[1][1].p_prefs.workout === true, JSON.stringify(calls[1]));
     await p.selectOption('[data-remhour]', '7'); await p.waitForTimeout(400);
     t('שינוי שעה מגיע לשרת', calls[2] && calls[2][1].p_prefs.hour === 7, JSON.stringify(calls[2]));
+    await p.tap('[data-rem="coach"]'); await p.waitForTimeout(400);
+    t('כיבוי "תגובה מהמאמן" מגיע לשרת', calls[3] && calls[3][1].p_prefs.coach === false && calls[3][1].p_prefs.workout === true && calls[3][1].p_prefs.hour === 7, JSON.stringify(calls[3]));
     await p.reload(); await p.waitForSelector('.category-tile'); await p.waitForTimeout(900);
     await p.evaluate(() => { window.__sub = { endpoint: 'https://push.example/abc', toJSON() { return { endpoint: this.endpoint, keys: { p256dh: 'p'.repeat(60), auth: 'a'.repeat(20) } }; }, unsubscribe: async () => { window.__sub = null; return true; } }; });
     await p.tap('.top .theme-sw'); await p.waitForTimeout(700);

@@ -9,7 +9,9 @@
      - גיבוי תקין יורד ומציג חלון עם הכמויות;
      - כשהעמוד הגדול של הדיווחים נכשל — עמודים קטנים משלימים את כולם;
      - כשהדיווחים נכשלים לגמרי — הקובץ עדיין יורד, והחלון אומר מה חסר;
-     - כשהשרת נכשל בטבלה ראשית — חלון "הגיבוי לא ירד", בלי קובץ.
+     - כשהשרת נכשל בטבלה ראשית — חלון "הגיבוי לא ירד", בלי קובץ;
+     - כשההעדפות נכשלות — גם זה נרשם כחסר (עד נובמבר 2026 נבלע);
+     - גיבוי חלקי לא נרשם כ"גיבוי אחרון", כדי שהכרטיס ימשיך להזכיר.
    ===================================================================== */
 const http = require('http'), fs = require('fs'), path = require('path');
 let chromium;
@@ -36,7 +38,7 @@ function t(name, ok, info) { ok ? pass++ : fail++; if (!ok) console.log('FAIL  '
   catch (e) { try { browser = await chromium.launch({ channel: 'chrome' }); }
               catch (e2) { console.log('דילוג: אין דפדפן ל-playwright'); server.close(); process.exit(0); } }
 
-  /* mode: ok | bigfail (עמוד גדול נכשל) | logsfail | mainfail */
+  /* mode: ok | bigfail (עמוד גדול נכשל) | logsfail | mainfail | prefsfail */
   async function runCase(mode) {
     const ctx = await browser.newContext({ serviceWorkers: 'block', acceptDownloads: true });
     const p = await ctx.newPage();
@@ -53,6 +55,7 @@ function t(name, ok, info) { ok ? pass++ : fail++; if (!ok) console.log('FAIL  '
         let lo = 0, hi = 1e9;
         const res = () => {
           if (mode === 'mainfail' && t === 'payments') return { data: null, error: { message: 'canceling statement due to statement timeout' } };
+          if (mode === 'prefsfail' && t === 'trainer_prefs') return { data: null, error: { message: 'permission denied' } };
           if (t === 'workout_logs') {
             if (mode === 'logsfail' || (mode === 'bigfail' && hi - lo + 1 > 100))
               return { data: null, error: { message: 'canceling statement due to statement timeout' } };
@@ -82,8 +85,9 @@ function t(name, ok, info) { ok ? pass++ : fail++; if (!ok) console.log('FAIL  '
     await p.waitForSelector('.modal .mh h3, #modal .mh h3, .mh h3', { timeout: 6000 }).catch(() => {});
     const modal = await p.evaluate(() => { const h = document.querySelector('.mh h3'); const b = h && h.closest('div').parentElement; return h ? { title: h.innerText, body: b.innerText } : null; });
     const btnText = await btn.innerText().catch(() => '');
+    const last = await p.evaluate(() => localStorage.getItem('ebfit_backup_at'));
     await ctx.close();
-    return { file, modal, errs, btnText };
+    return { file, modal, errs, btnText, last };
   }
 
   const ok = await runCase('ok');
@@ -110,7 +114,18 @@ function t(name, ok, info) { ok ? pass++ : fail++; if (!ok) console.log('FAIL  '
   t('טבלה ראשית נכשלה: לא ירד קובץ', !mf.file);
   t('טבלה ראשית נכשלה: חלון "הגיבוי לא ירד"', mf.modal && /לא ירד/.test(mf.modal.title), JSON.stringify(mf.modal));
 
-  for (const r of [ok, big, lf, mf]) t('בלי שגיאות בדף', !r.errs.length, r.errs.join(' | '));
+  const pf = await runCase('prefsfail');
+  t('העדפות נכשלו: הקובץ עדיין ירד', !!pf.file);
+  t('העדפות נכשלו: הקובץ מסמן מה חסר', pf.file && Array.isArray(pf.file.חסר) && pf.file.חסר.length === 1 && /העדפות המאמן/.test(pf.file.חסר[0]),
+    pf.file && JSON.stringify(pf.file.חסר));
+  t('העדפות נכשלו: בלי טבלה ריקה שנראית תקינה', pf.file && !('trainer_prefs' in pf.file.טבלאות));
+  t('העדפות נכשלו: החלון אומר שחסר', pf.modal && /חסר/.test(pf.modal.title) && /העדפות המאמן/.test(pf.modal.body), JSON.stringify(pf.modal));
+
+  t('גיבוי מלא נרשם כגיבוי האחרון', !!ok.last, String(ok.last));
+  t('גיבוי חלקי (דיווחים) לא נרשם כגיבוי האחרון', !!lf.file && !lf.last, String(lf.last));
+  t('גיבוי חלקי (העדפות) לא נרשם כגיבוי האחרון', !!pf.file && !pf.last, String(pf.last));
+
+  for (const r of [ok, big, lf, mf, pf]) t('בלי שגיאות בדף', !r.errs.length, r.errs.join(' | '));
 
   await browser.close(); server.close();
   console.log((fail ? '✗' : '✓') + ' גיבוי מלא: ' + pass + ' עברו' + (fail ? ', ' + fail + ' נכשלו' : ''));

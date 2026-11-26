@@ -11,6 +11,10 @@
 --                                      "push-reminders", guarded by the key
 --   a cron job that calls the edge function once an hour
 --
+-- NOTE (Nov 2026): supabase/coach-feedback.sql replaces push_due and
+-- trainee_push_subscribe with versions that also know the "coach replied"
+-- notification. If this file is run again, run coach-feedback.sql after it.
+--
 -- No service_role key anywhere. The edge function holds no secret: the
 -- cron job sends the key in a header, the function passes it back to
 -- push_due, and only then gets the list and the VAPID keys. Both tables

@@ -22,7 +22,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['backup'] = 'v286';
+  (window.EB_MOD = window.EB_MOD || {})['backup'] = 'v287';
 
   var LAST_KEY = 'ebfit_backup_at';
   var TABLES = ['trainees', 'sessions', 'measures', 'payments'];
@@ -120,11 +120,15 @@
         out.חסר.push('דיווחי המתאמנים (' + ((e && e.message) || 'שגיאה') + ')');
       }
 
-      /* העדפות המאמן */
+      /* העדפות המאמן. כשל כאן נרשם כחסר, כמו בדיווחים: גיבוי שנראה שלם
+         בלי ההעדפות (פרטי העסק וההגדרות) הוא לא שלם. */
       try {
         var pf = await sb.from('trainer_prefs').select('*');
-        if (!pf.error) out.טבלאות.trainer_prefs = pf.data || [];
-      } catch (e) {}
+        if (pf.error) throw new Error(pf.error.message || 'שגיאה');
+        out.טבלאות.trainer_prefs = pf.data || [];
+      } catch (e) {
+        out.חסר.push('העדפות המאמן (' + ((e && e.message) || 'שגיאה') + ')');
+      }
 
       /* רשימת הקבצים — לא התוכן. הקבצים עצמם נשמרים בנפרד, כי
          הטמעתם בבסיס 64 הייתה מנפחת את הקובץ פי עשרה. */
@@ -160,7 +164,8 @@
       if (!missing.length) delete out.חסר;
       var name = 'ebfit-גיבוי-' + stamp() + '.json';
       save(out, name);
-      try { localStorage.setItem(LAST_KEY, new Date().toISOString()); } catch (e) {}
+      /* גיבוי חלקי יורד לקובץ, אבל לא נרשם כ"גיבוי אחרון": הכרטיס ממשיך להזכיר */
+      if (!missing.length) { try { localStorage.setItem(LAST_KEY, new Date().toISOString()); } catch (e) {} }
       if (typeof render === 'function') render();
       /* חלון ולא toast: הודעה של שתי שניות פוספסה, ובעיני המאמן הגיבוי
          "לא עשה כלום" — בזמן שהקובץ ירד שלוש פעמים לתיקיית ההורדות. */

@@ -15,7 +15,7 @@
   'use strict';
 
   // חותמת גרסה — index.html משווה אליה כדי לזהות קובץ ישן במטמון
-  (window.EB_MOD = window.EB_MOD || {})['sync'] = 'v286';
+  (window.EB_MOD = window.EB_MOD || {})['sync'] = 'v287';
 
   const CFG      = window.EBFIT_CONFIG || { URL: '', ANON: '' };
   const SNAP_KEY = 'ebfit_sync_v1';
@@ -998,6 +998,25 @@
     if (t) t._username = u || '';
   }
 
+  /* ---------- תגובת המאמן על דיווח (נובמבר 2026) ----------
+     העמודות coach_note* מגיעות מ-supabase/coach-feedback.sql. עד שהוא רץ
+     בשרת, שאילתה שמבקשת אותן נכשלת (42703). אז חוזרים לעמודות הישנות —
+     לוח הבקרה לא נשאר ריק, וכפתור התגובה פשוט לא מוצג. בודקים שוב כל
+     חמש דקות, כדי שלשונית פתוחה תגלה שהשרת עודכן. */
+  let FB = { ok: null, at: 0 };
+  const LOG_COLS = 'id,trainee_id,date,day_name,entries,feel,note,created_at';
+  const FB_COLS = ',coach_note,coach_note_at,coach_seen_at';
+  function fbMissing(er) { return /42703|coach_note/.test(String((er && er.code) || '') + ' ' + String((er && er.message) || '')); }
+  async function replyLog(logId, note) {
+    if (!sb || !user) throw new Error('אין חיבור לשרת');
+    const { data, error } = await sb.rpc('coach_log_reply', { p_log_id: logId, p_note: String(note || '') });
+    if (error) {
+      if (error.code === 'PGRST202' || /Could not find the function/i.test(String(error.message || ''))) { FB = { ok: false, at: Date.now() }; throw new Error('התגובות עוד לא הופעלו בשרת'); }
+      throw new Error(/not your trainee|not authenticated/.test(String(error.message || '')) ? 'אין הרשאה — התחבר מחדש' : (error.message || 'שגיאה'));
+    }
+    return data;
+  }
+
   // מה המתאמן דיווח שביצע
   async function logsFor(traineeId, limit) {
     if (!sb || !user) return [];
@@ -1005,6 +1024,7 @@
       .select('*').eq('trainee_id', traineeId)
       .order('created_at', { ascending: false }).limit(limit || 20);
     if (error) return [];
+    if (data && data.length) FB = { ok: 'coach_note' in data[0], at: Date.now() };
     return data || [];
   }
 
@@ -1015,9 +1035,15 @@
     const d = new Date(); d.setDate(d.getDate() - (days || 14));
     const since = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0')
                 + '-' + String(d.getDate()).padStart(2, '0');
-    const { data, error } = await sb.from('workout_logs')
-      .select('id,trainee_id,date,day_name,entries,feel,note,created_at')
+    const q = cols => sb.from('workout_logs').select(cols)
       .gte('date', since).order('created_at', { ascending: false }).limit(2000);
+    if (FB.ok !== false || Date.now() - FB.at > 300000) {
+      const r = await q(LOG_COLS + FB_COLS);
+      if (!r.error) { FB = { ok: true, at: Date.now() }; return r.data || []; }
+      if (!fbMissing(r.error)) return null;        // תקלה אחרת — לא קשורה לעמודות
+      FB = { ok: false, at: Date.now() };
+    }
+    const { data, error } = await q(LOG_COLS);
     if (error) return null;
     return data || [];
   }
@@ -1166,6 +1192,7 @@
     user: () => user,
     client: () => sb,
     missing: () => MISSING,
-    traineeLink, setAccess, logsFor, recentLogs, setLogin, flush
+    traineeLink, setAccess, logsFor, recentLogs, setLogin, flush,
+    replyLog, feedbackOn: () => FB.ok === true
   };
 })();

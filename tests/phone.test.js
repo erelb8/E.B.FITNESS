@@ -16,7 +16,7 @@ const t = (n, ok, i) => { ok ? pass++ : fail++; console.log((ok ? '✓ ' : '✗ 
 
 /* נתונים מומצאים שממלאים כל חלק: כאב, מי שלא שילם, אימונים היום, תוכנית שהסתיימה */
 const seed = () => {
-  if (window.EBSync) { EBSync.enabled = () => false; EBSync.schedule = () => {}; } window.save = () => {};
+  if (window.EBSync) { EBSync.enabled = () => false; EBSync.schedule = () => {}; EBSync.feedbackOn = () => true; } window.save = () => {};
   const iso = d => addDays(todayISO(), -d);
   const P = { days: [{ name: 'יום A — חזה וכתפיים', exercises: [{ name: 'לחיצת חזה במוט', sets: '4', reps: '6-8' }, { name: 'הרחקות צד במשקולות', sets: '3', reps: '12' }] },
                      { name: 'יום B — רגליים', exercises: [{ name: 'סקוואט גבי', sets: '4', reps: '5' }] }] };
@@ -30,8 +30,9 @@ const seed = () => {
   S.sessions = [{ id: 's1', traineeId: 'a1', date: todayISO(), time: '17:30', type: 'אימון אישי', status: 'scheduled' },
     { id: 's2', traineeId: 'a2', date: todayISO(), time: '19:00', type: 'אימון אישי', status: 'scheduled' },
     { id: 's3', traineeId: 'a4', date: iso(-2), time: '08:00', type: 'אימון אישי', status: 'scheduled' }];
-  DASH.logs = [{ trainee_id: 'a2', date: iso(1), created_at: iso(1) + 'T10:00:00+00', day_name: 'יום B — רגליים', entries: [1], feel: 'קשה', note: 'כאב בברך ימין בסקוואט' },
-    { trainee_id: 'a4', date: iso(0), created_at: iso(0) + 'T09:00:00+00', day_name: 'יום A — חזה וכתפיים', entries: [1, 2], feel: 'טוב' },
+  DASH.logs = [{ id: 'l1', trainee_id: 'a2', date: iso(1), created_at: iso(1) + 'T10:00:00+00', day_name: 'יום B — רגליים', entries: [1], feel: 'קשה', note: 'כאב בברך ימין בסקוואט',
+      coach_note: 'ראיתי. באימון הבא יורדים בעומס ועובדים על טווח תנועה מלא, ואם זה חוזר עוצרים ומדברים איתי לפני שממשיכים', coach_note_at: iso(0) + 'T08:00:00+00', coach_seen_at: null },
+    { id: 'l2', trainee_id: 'a4', date: iso(0), created_at: iso(0) + 'T09:00:00+00', day_name: 'יום A — חזה וכתפיים', entries: [1, 2], feel: 'טוב' },
     { trainee_id: 'a5', date: iso(20), day_name: 'יום A — חזה וכתפיים', entries: [1], feel: 'קל' }];
   S.trainees[4].weighins = [{ date: iso(20), weight: 61 }];
   DASH.at = Date.now() + 1e9; DASH.tile = ''; VIEW = 'dash'; render(); window.scrollTo(0, 0);
@@ -104,6 +105,20 @@ const look = () => {
       } catch (e) { badT.push(k + ' לא נלחץ'); }
     }
     t('כל אריח נפתח במסך ונסגר (' + keys.join(', ') + ')', keys.length >= 6 && !badT.length, badT.join(' | '));
+
+    /* תגובת המאמן על אימון (נובמבר 2026): בפיד שבאריח, ובחלון */
+    await p.locator('.dtiles > .dtile[onclick*="\'feed\'"]').tap(); await p.waitForTimeout(450);
+    const rep = await p.evaluate(() => ({ btn: document.querySelectorAll('#dpanel .ev-rep').length, done: document.querySelectorAll('#dpanel .ev-reply').length,
+      w: document.documentElement.scrollWidth, in: [].every.call(document.querySelectorAll('#dpanel .ev-rep, #dpanel .ev-reply'), e => { const r = e.getBoundingClientRect(); return r.left >= 0 && r.right <= innerWidth + 1; }) }));
+    t('בפיד: תגובה שנכתבה וכפתור "תגובה", בתוך המסך', rep.btn === 1 && rep.done === 1 && rep.w <= w + 1 && rep.in, JSON.stringify(rep));
+    await p.locator('#dpanel .ev-rep').first().tap(); await p.waitForTimeout(350);
+    const lr = await p.evaluate(() => { const ta = document.getElementById('lr_t'), go = document.getElementById('lr_go'); if (!ta || !go) return null;
+      const inside = e => { const r = e.getBoundingClientRect(); return r.left >= 0 && r.right <= innerWidth + 1 && r.width > 0; };
+      const out = { view: VIEW, ta: inside(ta), go: inside(go), chips: [].every.call(document.querySelectorAll('.lr-quick button'), inside), n: document.querySelectorAll('.lr-quick button').length,
+        fits: document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1 };
+      closeModal(); return out; });
+    t('חלון התגובה נפתח מהפיד ונכנס במסך', !!lr && lr.view === 'dash' && lr.ta && lr.go && lr.chips && lr.n === 4 && lr.fits, JSON.stringify(lr));
+    await p.locator('#dpanel .dp-head .iconbtn').tap(); await p.waitForTimeout(200);
 
     /* "עוד התראות", כפתור הצבע, ושתי הפעולות */
     await p.evaluate(() => window.scrollTo(0, 0));
