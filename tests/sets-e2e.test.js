@@ -60,6 +60,7 @@ const D = { name: 'דני בדיקה', goal: 'כוח', health: { signedAt: '2026
   console.log('=== יומן האימון ===');
   await p.evaluate(() => { const m = document.getElementById('categoryModal'); if (m) m.remove(); document.body.style.overflow = ''; });
   await p.click('[data-category="log"]'); await p.waitForTimeout(600);
+  await p.click('[data-wladd]'); await p.waitForTimeout(400);   // מנובמבר 2026: לוח שנה קודם, הטופס נפתח מהכפתור
   const l = await p.evaluate(() => {
     const ex = [...document.querySelectorAll('.wl-ex')];
     return ex.map(x => [...x.querySelectorAll('.wl-role')].map(r => r.textContent));

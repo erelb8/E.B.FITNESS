@@ -13,8 +13,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="התוכנית שלי">
 <meta name="robots" content="noindex,nofollow">
-<link rel="apple-touch-icon" href="icons/icon-180.png?v=v284">
-<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=v284">
+<link rel="apple-touch-icon" href="icons/icon-180.png?v=v285">
+<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=v285">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -462,6 +462,54 @@ html[data-theme="light"] .th-go{color:#FFFFFF;background:#A8764A}
 .th-list li em{flex:none;font-style:normal;font-size:12px;color:var(--dim);direction:ltr;font-variant-numeric:tabular-nums}
 .th-list li.more{color:var(--dim);font-size:12.5px;padding-inline-start:32px}
 .th-list li.more::before{display:none}
+/* לוח שנה ביומן */
+.cal{padding:12px!important;margin-bottom:6px}
+.cal-h{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.cal-h > div{flex:1;text-align:center}
+.cal-h b{display:block;font-size:16px;font-weight:800}
+.cal-h span{display:block;font-size:11.5px;color:var(--dim);margin-top:1px}
+.cal-h button{flex:none;width:38px;height:38px;border-radius:50%;border:1px solid var(--line);background:var(--ink);color:var(--tx);font-size:20px;line-height:1;cursor:pointer}
+.cal-h button:disabled{opacity:.3}
+.cal-g{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;justify-items:center}
+.cal-w span{font-size:11px;color:var(--dim);padding:2px 0 4px}
+.cal-g button{width:100%;max-width:44px;aspect-ratio:1;border-radius:50%;border:1.5px solid transparent;background:none;color:var(--tx);
+  font:inherit;font-size:14px;font-weight:600;cursor:pointer;display:grid;place-items:center;padding:0;-webkit-tap-highlight-color:transparent}
+.cal-g button.on{background:var(--or);color:var(--ink);font-weight:800}
+.cal-g button.today{border-color:var(--or)}
+.cal-g button.sel{box-shadow:0 0 0 2px var(--ink),0 0 0 4px var(--tx)}
+.cal-g button.fut{color:var(--dim);opacity:.4;cursor:default}
+.cal-key{display:flex;align-items:center;justify-content:center;gap:6px;font-size:11px;color:var(--dim);margin-top:9px}
+.cal-key i{width:11px;height:11px;border-radius:50%;display:inline-block;margin-inline-start:10px}
+.cal-key .k-on{background:var(--or);margin-inline-start:0}
+.cal-key .k-today{border:1.5px solid var(--or)}
+.wl-done{padding:12px 14px!important;margin-bottom:8px}
+.wl-done-h b{display:block;font-size:15px;font-weight:800}
+.wl-done-h span{display:block;font-size:12px;color:var(--mut);margin:1px 0 6px}
+.wl-done-r{display:flex;gap:10px;align-items:baseline;padding:6px 0;border-top:1px solid var(--line);font-size:13.5px}
+.wl-done-r span{flex:1;min-width:0}
+.wl-done-r em{flex:none;max-width:58%;font-style:normal;font-size:12.5px;color:var(--mut);direction:ltr;text-align:left;font-variant-numeric:tabular-nums}
+.wl-done-n{font-size:12.5px;color:var(--mut);border-top:1px solid var(--line);padding-top:7px;margin-top:2px;white-space:pre-wrap}
+.wl-top{position:relative}
+.wl-x{position:absolute;top:10px;left:12px;background:none;border:0;color:var(--dim);font:inherit;font-size:12.5px;cursor:pointer;padding:6px}
+.wl-hist{cursor:pointer}
+html[data-theme="light"] .cal-g button.on{color:#FFFFFF}
+/* שורה לכל סט */
+.sets{margin-top:12px}
+.shead,.srow{display:grid;grid-template-columns:26px minmax(0,1fr) minmax(0,1fr) 46px;gap:7px;align-items:center}
+.shead{font-size:11px;color:var(--dim);text-align:center;margin-bottom:2px}
+.srow{margin-top:7px}
+.sn{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:800;border:1.5px solid var(--line2);color:var(--mut)}
+.srow.warm .sn{border-style:dashed;color:var(--dim)}
+.srow.ok .sn{background:var(--or);border-color:var(--or);color:var(--ink)}
+.srow input{width:100%;min-width:0;min-height:46px;background:var(--ink);border:1px solid var(--line2);border-radius:11px;padding:8px 4px;
+  font:inherit;font-size:17px;font-weight:700;text-align:center;color:var(--tx)}
+.srow input:focus{border-color:var(--or);outline:none}
+.srow input::placeholder{color:var(--dim);opacity:.45;font-weight:500}
+.srow.ok input{border-color:rgba(var(--or-rgb),.5)}
+.sok{width:46px;height:46px;border-radius:12px;border:2px solid var(--line2);background:none;color:transparent;font-size:21px;cursor:pointer;
+  display:grid;place-items:center;-webkit-tap-highlight-color:transparent;transition:transform .12s}
+.sok:active{transform:scale(.92)}
+.srow.ok .sok{background:var(--or);border-color:var(--or);color:var(--ink)}
 /* כרטיס התרגיל: יחידות בתוך השדה, ושורת הסטים שקטה יותר */
 .logs .lg{position:relative;flex:1;min-width:0;display:block}
 .logs .lg input{width:100%;padding-inline-end:46px;padding-inline-start:10px}
@@ -471,16 +519,16 @@ html[data-theme="light"] .th-go{color:#FFFFFF;background:#A8764A}
 .ex .meta{font-size:13.5px}
 .ex{padding:14px!important;border-radius:16px!important}
 </style>
-<link rel="stylesheet" href="ui-fx.css?v=v284">
-<link rel="stylesheet" href="theme-light.css?v=v284">
-<link rel="stylesheet" href="theme.css?v=v284">
+<link rel="stylesheet" href="ui-fx.css?v=v285">
+<link rel="stylesheet" href="theme-light.css?v=v285">
+<link rel="stylesheet" href="theme.css?v=v285">
 <!-- ערכת הצבע — לפני הציור, נשמרת במכשיר של המתאמן -->
-<script src="theme.js?v=v284"></script>
+<script src="theme.js?v=v285"></script>
 </head>
 <body>
 
 <header class="top">
-  <div class="brand"><img class="brand-logo" src="icons/logo-96.png?v=v284" alt="" width="34" height="34"><span>BAUER<span class="dot"></span>POWER</span></div>
+  <div class="brand"><img class="brand-logo" src="icons/logo-96.png?v=v285" alt="" width="34" height="34"><span>BAUER<span class="dot"></span>POWER</span></div>
   <h1 id="hTitle">טוען…</h1>
   <div class="sub" id="hSub"></div>
   <span class="savechip" id="saveChip" aria-live="polite"></span>
@@ -494,20 +542,20 @@ html[data-theme="light"] .th-go{color:#FFFFFF;background:#A8764A}
 
 <div id="toast"></div>
 
-<script src="vendor/supabase.js?v=v284"></script>
-<script src="config.js?v=v284"></script>
-<script src="meal-library.js?v=v284"></script>
-<script src="exercise-library.js?v=v284"></script>
-<script src="anim.js?v=v284"></script>
-<script src="progress.js?v=v284"></script>
-<script src="habits.js?v=v284"></script>
-<script src="coach-bot.js?v=v284"></script>
-<script src="progress-chart.js?v=v284"></script>
-<script src="workout-log.js?v=v284"></script>
-<script src="targets.js?v=v284"></script>
-<script src="health.js?v=v284"></script>
-<script src="privacy.js?v=v284"></script>
-<script src="guides.js?v=v284"></script>
+<script src="vendor/supabase.js?v=v285"></script>
+<script src="config.js?v=v285"></script>
+<script src="meal-library.js?v=v285"></script>
+<script src="exercise-library.js?v=v285"></script>
+<script src="anim.js?v=v285"></script>
+<script src="progress.js?v=v285"></script>
+<script src="habits.js?v=v285"></script>
+<script src="coach-bot.js?v=v285"></script>
+<script src="progress-chart.js?v=v285"></script>
+<script src="workout-log.js?v=v285"></script>
+<script src="targets.js?v=v285"></script>
+<script src="health.js?v=v285"></script>
+<script src="privacy.js?v=v285"></script>
+<script src="guides.js?v=v285"></script>
 <script>
 (function () {
   'use strict';
@@ -2075,9 +2123,10 @@ html[data-theme="light"] .th-go{color:#FFFFFF;background:#A8764A}
   let OPEN_CATEGORY = null;
   function openCategory(key) {
     if (DATA && rollWeek()) paint();   // שבוע חדש בזמן שהדף היה פתוח
-    const labels={log:['יומן האימונים','מה שעשית בפועל'],workout:['אימון','התוכנית והביצוע'],food:['תזונה','התפריט והיעדים שלך'],body:['גוף','מדדים, בריאות וקבצים'],follow:['מעקב','ההתקדמות שלך'],habits:['הרגלים','מה שקורה כל יום'],guides:['מדריכים','איך משתמשים באפליקציה']};
+    const labels={log:['יומן האימונים','לוח שנה, ומה שעשית בפועל'],workout:['אימון','התוכנית והביצוע'],food:['תזונה','התפריט והיעדים שלך'],body:['גוף','מדדים, בריאות וקבצים'],follow:['מעקב','ההתקדמות שלך'],habits:['הרגלים','מה שקורה כל יום'],guides:['מדריכים','איך משתמשים באפליקציה']};
     const item=labels[key]||labels.workout;
     closeCategory(true);
+    if (key === 'log') { WL_SEL = null; WL_CAL = null; WL_FORM = false; }
     OPEN_CATEGORY = key;
     /* כפתור "חזור" של הטלפון סוגר את החלון ולא יוצא מהאפליקציה */
     try { if (!(history.state && history.state.ebWin)) history.pushState({ ebWin: 1 }, ''); } catch (e) {}
@@ -2745,7 +2794,7 @@ html[data-theme="light"] .th-go{color:#FFFFFF;background:#A8764A}
       workout:'<path d="M6 8v8M10 6v12M14 6v12M18 8v8M3 10h18M3 14h18"/>',
       food:'<path d="M5 3v8M8 3v8M5 7h3M6.5 11v10M15 3v18M15 3c3 2 4 5 4 8h-4"/>',
       body:'<circle cx="12" cy="5" r="2.5"/><path d="M8 21l1.5-7L7 11l2-3 3 2 3-2 2 3-2.5 3 1.5 7M9.5 14h5"/>',
-      log:'<path d="M5 4.5h11a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H5z"/><path d="M5 4.5a2 2 0 0 0 0 4h2"/><path d="M9.5 11h5M9.5 15h3"/>',
+      log:'<rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/><path d="M8 14h.01M12 14h.01M16 14h.01M8 17.2h.01M12 17.2h.01"/>',
       follow:'<circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3.5 2M8.5 3.5l-2-2M15.5 3.5l2-2"/>',
       guides:'<path d="M4 5.5A2 2 0 0 1 6 3.5h13v15H6a2 2 0 0 0-2 2z"/><path d="M4 20.5v-15M8.5 8h6.5M8.5 11.5h4.5"/>',
       habits:'<path d="M20.5 6.5l-9 9-4-4"/><path d="M3.5 6.5h3M3.5 12h3M3.5 17.5h11"/><path d="M20.5 15.5l-3 3-1.5-1.5"/>'
@@ -2976,6 +3025,71 @@ html[data-theme="light"] .th-go{color:#FFFFFF;background:#A8764A}
      הטיוטה יושבת במכשיר בלבד. מה שנשלח בלחיצה נשמר בשרת דרך
      trainee_log, ומשם המאמן החכם קורא אותו. */
   let WL_DAY = null, WL_DRAFT = null;
+  /* לוח שנה (נובמבר 2026): מתאמנים ביקשו לראות מתי התאמנו ולהוסיף אימון
+     ליום אחר — מי ששכח לדווח ביום שלישי רושם אותו ביום חמישי, בתאריך הנכון.
+     WL_SEL = היום שנבחר בלוח; WL_FORM = טופס הרישום פתוח ליום הזה.
+     השרת מקבל תאריך עד 14 יום אחורה (trainee-log-date.sql). */
+  let WL_SEL = null, WL_CAL = null, WL_FORM = false;
+  const WL_BACK = 14;
+  const WL_MONTH = ['ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי', 'יוני', 'יולי', 'אוגוסט', 'ספטמבר', 'אוקטובר', 'נובמבר', 'דצמבר'];
+  const WL_DAYNAME = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
+  function wlToday() { return isoLocal(new Date()); }
+  function wlSel() { return WL_SEL || wlToday(); }
+  function wlByDate() {
+    const by = {};
+    (EXTRAS.logs || []).forEach(l => { const d = String(l.date || '').slice(0, 10); if (d) (by[d] = by[d] || []).push(l); });
+    return by;
+  }
+  function wlDateLabel(iso) {
+    const d = new Date(iso + 'T00:00');
+    return 'יום ' + WL_DAYNAME[d.getDay()] + ' · ' + d.getDate() + ' ב' + WL_MONTH[d.getMonth()];
+  }
+  function calBlock() {
+    const today = wlToday(), sel = wlSel(), by = wlByDate();
+    if (!WL_CAL) { const d0 = new Date(sel + 'T00:00'); WL_CAL = { y: d0.getFullYear(), m: d0.getMonth() }; }
+    const y = WL_CAL.y, m = WL_CAL.m, first = new Date(y, m, 1), n = new Date(y, m + 1, 0).getDate();
+    const pad = x => String(x).padStart(2, '0'), pre = y + '-' + pad(m + 1) + '-';
+    const tm = new Date(today + 'T00:00'), isCur = tm.getFullYear() === y && tm.getMonth() === m;
+    let cnt = 0; for (let d = 1; d <= n; d++) if (by[pre + pad(d)]) cnt++;
+    let h = '<div class="card cal"><div class="cal-h">'
+      + '<button data-calnav="-1" aria-label="החודש הקודם">‹</button>'
+      + '<div><b>' + WL_MONTH[m] + ' ' + y + '</b><span>' + (cnt ? (cnt === 1 ? 'יום אימון אחד' : cnt + ' ימי אימון') : 'עוד אין אימונים בחודש הזה') + '</span></div>'
+      + '<button data-calnav="1" aria-label="החודש הבא"' + (isCur ? ' disabled' : '') + '>›</button></div>'
+      + '<div class="cal-g cal-w">' + ['א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ש'].map(x => '<span>' + x + '</span>').join('') + '</div><div class="cal-g">';
+    for (let i = 0; i < first.getDay(); i++) h += '<span></span>';
+    for (let d = 1; d <= n; d++) {
+      const iso = pre + pad(d), fut = iso > today;
+      h += '<button data-cal="' + iso + '" class="' + (by[iso] ? 'on ' : '') + (iso === today ? 'today ' : '') + (iso === sel ? 'sel ' : '') + (fut ? 'fut' : '') + '"'
+        + (fut ? ' disabled' : '') + ' aria-label="' + d + ' ב' + WL_MONTH[m] + (by[iso] ? ' — יש אימון' : '') + '"' + (iso === sel ? ' aria-pressed="true"' : '') + '>' + d + '</button>';
+    }
+    return h + '</div><div class="cal-key"><i class="k-on"></i>התאמנת<i class="k-today"></i>היום</div></div>';
+  }
+  /* מה נרשם ביום שנבחר, וכפתור להוספת אימון ליום הזה */
+  function wlSetsText(e) {
+    const L = e.setLog || [];
+    if (L.length) return L.map(x => (x.w ? EBWLog.r1(x.w) : '—') + '×' + (x.r || '—')).join(' · ');
+    if (!e.weight && !e.reps) return '';
+    return (e.weight ? EBWLog.r1(Number(e.weight)) : '—') + '×' + (e.reps || '—') + (Number(e.sets) > 1 ? ' · ' + e.sets + ' סטים' : '');
+  }
+  function wlDayPanel(canAdd) {
+    const sel = wlSel(), today = wlToday(), logs = wlByDate()[sel] || [], gap = EBWLog.dayGap(sel);
+    let h = '<div class="section-head" style="margin-top:16px"><h3>' + (sel === today ? 'היום' : wlDateLabel(sel)) + '</h3>'
+      + '<span>' + (sel === today ? wlDateLabel(sel) : wlWhen(sel)) + '</span></div>';
+    logs.forEach(l => {
+      const en = (l.entries || []).filter(x => x.done), vol = EBWLog.volumeOf(l.entries || []);
+      h += '<div class="card wl-done"><div class="wl-done-h"><b>' + esc(l.day_name || l.dayName || 'אימון') + '</b>'
+        + '<span>' + (en.length === 1 ? 'תרגיל אחד' : en.length + ' תרגילים') + (vol ? ' · ' + vol.toLocaleString('en-US') + ' ק״ג' : '') + (l.feel ? ' · ' + esc(l.feel) : '') + '</span></div>'
+        + en.map(x => '<div class="wl-done-r"><span>' + esc(x.ex || x.name || 'תרגיל') + '</span><em>' + esc(wlSetsText(x)) + '</em></div>').join('')
+        + (l.note ? '<div class="wl-done-n">' + esc(l.note) + '</div>' : '') + '</div>';
+    });
+    if (!logs.length && !WL_FORM) h += '<div class="card mt" style="text-align:center;padding:16px;font-size:13.5px">' + (sel === today ? 'עוד לא נרשם אימון היום.' : 'לא נרשם אימון ביום הזה.') + '</div>';
+    if (!WL_FORM && canAdd) {
+      h += (gap !== null && gap <= WL_BACK)
+        ? '<button class="btn" data-wladd style="width:100%;margin:2px 0 6px">+ ' + (sel === today ? 'רישום אימון של היום' : 'הוספת אימון ל-' + new Date(sel + 'T00:00').getDate() + ' ב' + WL_MONTH[new Date(sel + 'T00:00').getMonth()]) + '</button>'
+        : '<div class="mt" style="font-size:12.5px;text-align:center;margin:4px 0 8px">אפשר להוסיף אימון עד ' + WL_BACK + ' יום אחורה. לאימון ישן יותר — כתוב למאמן.</div>';
+    }
+    return h;
+  }
 
   function wlKey() { return 'ebfit_wl_' + String(TOKEN || '').slice(0, 12); }
   function wlAll() {
@@ -3014,7 +3128,7 @@ html[data-theme="light"] .th-go{color:#FFFFFF;background:#A8764A}
     }
     const days = wlDays();
     if (!days.some(d => realOf(d).length)) {
-      return '<div class="card" style="text-align:center;padding:28px 16px">'
+      return calBlock() + wlDayPanel(false) + '<div class="card" style="text-align:center;padding:28px 16px">'
         + '<div style="font-size:16px;font-weight:700;margin-bottom:7px">עוד אין תוכנית</div>'
         + '<div class="mt" style="font-size:13px;line-height:1.7">ברגע שהמאמן יבנה לך תוכנית אימון, '
         + 'כל אימון שתעשה יירשם כאן — משקל, חזרות והתקדמות מאימון לאימון.</div></div>';
@@ -3023,11 +3137,14 @@ html[data-theme="light"] .th-go{color:#FFFFFF;background:#A8764A}
     const ex = day.exercises || [];
     const entries = wlEntries();
     const vol = EBWLog.volumeOf(entries);
+    const selD = wlSel(), isToday = selD === wlToday();
+    if (!WL_FORM) return calBlock() + wlDayPanel(true) + wlHistory();
 
     /* המספר הגדול: נפח. הוא זז גם כשהמשקל לא זז — עוד סט באותו
        משקל הוא עוד עבודה, ומספר שלא זז אף פעם מפסיקים להסתכל עליו. */
-    let h = '<div class="wl-top">'
-      + '<div class="wl-kick">האימון של היום</div>'
+    let h = calBlock() + wlDayPanel(true) + '<div class="wl-top" id="wlForm">'
+      + '<button data-wlcancel class="wl-x" aria-label="ביטול">ביטול</button>'
+      + '<div class="wl-kick">' + (isToday ? 'האימון של היום' : 'אימון ב' + wlDateLabel(selD).replace('יום ', 'יום ')) + '</div>'
       + '<div class="wl-big"><span id="wlVol">' + vol.toLocaleString('en-US') + '</span>'
       + '<small>ק״ג נפח</small></div>'
       + '<div class="wl-sub" id="wlSub">' + (entries.length
@@ -3094,7 +3211,7 @@ html[data-theme="light"] .th-go{color:#FFFFFF;background:#A8764A}
         + '<textarea data-wlnote maxlength="500" placeholder="הערה למאמן (לא חובה) — למשל אם משהו כאב או הרגיש לא נכון" style="width:100%;margin-top:10px;min-height:54px;resize:vertical;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:9px 11px;font:inherit;font-size:14px;color:var(--tx)">'
         + esc(draft.note || '') + '</textarea>'
         + '<button class="btn" data-wlsave style="width:100%;margin-top:11px"'
-        + (entries.length ? '' : ' disabled') + '>שמירת האימון</button>'
+        + (entries.length ? '' : ' disabled') + '>' + (isToday ? 'שמירת האימון' : 'שמירת האימון ל-' + new Date(selD + 'T00:00').getDate() + ' ב' + WL_MONTH[new Date(selD + 'T00:00').getMonth()]) + '</button>'
         + '<div class="mt" style="font-size:11.5px;margin-top:8px;text-align:center">'
         + 'נשמר אצל המאמן ונכנס למעקב ההתקדמות שלך.</div></div>';
     }
@@ -3115,7 +3232,7 @@ html[data-theme="light"] .th-go{color:#FFFFFF;background:#A8764A}
       const d = new Date(String(l.date).slice(0, 10) + 'T00:00');
       const entries = l.entries || [];
       const vol = EBWLog.volumeOf(entries);
-      h += '<div class="wl-hist">'
+      h += '<div class="wl-hist" data-cal="' + esc(String(l.date).slice(0, 10)) + '" role="button" tabindex="0">'
         + '<div class="wl-histd"><b>' + (isFinite(d.getTime()) ? d.getDate() : '—') + '</b>'
         + '<span>' + (isFinite(d.getTime()) ? WL_MON[d.getMonth()] : '') + '</span></div>'
         + '<div style="flex:1;min-width:0">'
@@ -3168,15 +3285,16 @@ html[data-theme="light"] .th-go{color:#FFFFFF;background:#A8764A}
     const i = wlIdx(), day = wlDays()[i] || {}, draft = wlDraft();
     if (btn) { btn.disabled = true; btn.textContent = 'שומר…'; }
     try {
-      const { error } = await sb.rpc('trainee_log', {
+      const { error } = await logRpc({
         p_token: TOKEN, p_day_index: i,
         p_day_name: day.name || ('יום ' + (i + 1)),
         p_entries: entries, p_feel: draft.feel || null, p_note: (draft.note || '').trim() || null
-      });
+      }, wlSel());
       if (error) throw error;
       /* מנקים רק את היום ששודר */
       delete wlAll()['d' + i];
       wlWrite();
+      WL_FORM = false;
       if (window.EBProg) EBProg.logWorkout();
       toast('האימון נשמר. כל הכבוד! 💪');
       await loadExtras();
@@ -3956,7 +4074,7 @@ html[data-theme="light"] .th-go{color:#FFFFFF;background:#A8764A}
     const st = STATE[d + ':' + i] || {};
     const meta = fmtSpec(e, true);
     const roles = typeof EBWLog !== 'undefined' && EBWLog.setRoles ? EBWLog.setRoles(e, ((DATA.program || {}).days || [])[d]) : null;
-    return '<div class="ex' + (st.done ? ' done' : '') + '" data-ex="' + i + '" data-exd="' + d + '">'
+    return '<div class="ex' + (exDone(e, st) ? ' done' : '') + '" data-ex="' + i + '" data-exd="' + d + '">'
       + '<div class="hd"><button class="chk" data-chk="' + i + '" data-chkd="' + d + '">✓</button>'
       + '<div style="flex:1;min-width:0"><div class="nm">' + esc(e.name || 'תרגיל') + '</div>'
       + (meta ? '<div class="meta">' + esc(meta) + '</div>' : '')
@@ -3965,10 +4083,7 @@ html[data-theme="light"] .th-go{color:#FFFFFF;background:#A8764A}
       + lastLine(e)
       + '<div class="ex-acts">' + vidBtn(e) + restBtn(e) + '</div>'
       + '</div></div>'
-      + '<div class="logs">'
-      + '<label class="lg"><input data-f="weight" data-i="' + i + '" data-d="' + d + '" inputmode="decimal" placeholder="' + esc(lastPh(e, 'weight') || 'משקל') + '" aria-label="משקל בק״ג" value="' + esc(st.weight != null ? st.weight : (e.weight || '')) + '"><i>ק״ג</i></label>'
-      + '<label class="lg"><input data-f="reps" data-i="' + i + '" data-d="' + d + '" inputmode="numeric" placeholder="' + esc(lastPh(e, 'reps') || 'חזרות') + '" aria-label="חזרות" value="' + esc(st.reps != null ? st.reps : '') + '"><i>חזרות</i></label>'
-      + '</div></div>';
+      + setRows(e, i, d, st) + '</div>';
   }
 
 
@@ -3984,6 +4099,95 @@ html[data-theme="light"] .th-go{color:#FFFFFF;background:#A8764A}
       if (!l || !(l.weight || l.reps)) return '';
       return '<div class="ex-last">בפעם הקודמת <b>' + (l.weight ? EBWLog.r1(l.weight) + ' ק״ג' : '') + (l.weight && l.reps ? ' × ' : '') + (l.reps ? l.reps : '') + '</b></div>';
     } catch (er) { return ''; }
+  }
+  /* ---------- שורה לכל סט (נובמבר 2026) ----------
+     מתאמנים התלוננו על הסימון: שדה משקל אחד ושדה חזרות אחד לכל התרגיל,
+     כשבפועל עושים 3-5 סטים במשקלים שונים. עכשיו שורה לכל סט, עם וי משלה.
+     וי על סט ריק ממלא אותו מהרמז האפור (הסט הקודם, משקל המאמן או הפעם
+     הקודמת) — סט רגיל הוא נגיעה אחת. אחרי וי מתחילה מנוחה לבד, ואחרי
+     הסט האחרון המסך עובר לתרגיל הבא.
+     נשמר ב-STATE[יום:תרגיל].sets = { 0: {w, r, ok}, ... }; done = כל הסטים.
+     לשרת יוצא setLog, אותו מבנה שהיומן שולח. */
+  const filled = v => String(v == null ? '' : v).trim() !== '';
+  function exDone(e, st) { return !!(st && st.done); }
+  function adoptLegacy(st) {
+    if (!st.sets && (filled(st.weight) || filled(st.reps))) st.sets = { 0: { w: st.weight, r: st.reps, ok: true } };
+    st.sets = st.sets || {};
+  }
+  function numStr(v) { const n = parseFloat(String(v == null ? '' : v).replace(',', '.')); return isFinite(n) && n > 0 ? String(n) : ''; }
+  function repLow(e) { const t = String((e && e.reps) || ''); if (/שנ|דק|sec|min/i.test(t)) return ''; const m = t.match(/\d+/); return m ? m[0] : ''; }
+  function setHint(e, st, sIdx, roles) {
+    const S = (st && st.sets) || {}, role = roles && roles[sIdx];
+    let w = '', r = '';
+    for (let q = sIdx - 1; q >= 0; q--) {
+      if (roles && roles[q] !== role) break;
+      const c = S[q];
+      if (c && (filled(c.w) || filled(c.r))) { w = filled(c.w) ? String(c.w) : ''; r = filled(c.r) ? String(c.r) : ''; break; }
+    }
+    if (role === 'move') return { w: '', r: r || repLow(e) };
+    if (role !== 'warm') { if (!w) w = numStr(e.weight) || lastPh(e, 'weight'); if (!r) r = lastPh(e, 'reps') || repLow(e); }
+    else if (!r) r = repLow(e);
+    return { w: w || '', r: r || '' };
+  }
+  function rolesOf(e, d) { try { return EBWLog.setRoles ? EBWLog.setRoles(e, ((DATA.program || {}).days || [])[d]) : null; } catch (er) { return null; } }
+  function setRows(e, i, d, st) {
+    const n = EBWLog.setCount(e), roles = rolesOf(e, d);
+    const legacy = !st.sets && (filled(st.weight) || filled(st.reps));
+    let h = '<div class="sets"><div class="shead"><span></span><span>ק״ג</span><span>חזרות</span><span></span></div>';
+    for (let q = 0; q < n; q++) {
+      const c = (st.sets && st.sets[q]) || (legacy && q === 0 ? { w: st.weight, r: st.reps, ok: true } : {});
+      const hint = setHint(e, st, q, roles), role = roles && roles[q], at = ' data-s="' + q + '" data-i="' + i + '" data-d="' + d + '"';
+      h += '<div class="srow' + (c.ok ? ' ok' : '') + (role && role !== 'work' ? ' warm' : '') + '" data-srow="' + q + '">'
+        + '<span class="sn">' + (q + 1) + '</span>'
+        + '<input data-sf="w"' + at + ' inputmode="decimal" aria-label="סט ' + (q + 1) + ' — משקל בק״ג" placeholder="' + esc(role === 'move' ? '—' : hint.w) + '" value="' + esc(c.w != null ? c.w : '') + '">'
+        + '<input data-sf="r"' + at + ' inputmode="numeric" aria-label="סט ' + (q + 1) + ' — חזרות" placeholder="' + esc(hint.r) + '" value="' + esc(c.r != null ? c.r : '') + '">'
+        + '<button class="sok" data-sok="' + q + '" data-i="' + i + '" data-d="' + d + '" aria-label="סט ' + (q + 1) + ' בוצע" aria-pressed="' + !!c.ok + '">✓</button></div>';
+    }
+    return h + '</div>';
+  }
+  /* אחרי שינוי בסט: וי, רמזים, מונים — בלי לצייר את החלון מחדש */
+  function afterSet(ex, st, card, d, i) {
+    const n = EBWLog.setCount(ex), roles = rolesOf(ex, d);
+    let all = n > 0;
+    for (let q = 0; q < n; q++) if (!(st.sets[q] || {}).ok) all = false;
+    st.done = all;
+    st.at = isoLocal(new Date());
+    if (card) {
+      card.classList.toggle('done', all);
+      card.querySelectorAll('.srow').forEach(row => {
+        const q = +row.dataset.srow, c = st.sets[q] || {}, hint = setHint(ex, st, q, roles);
+        row.classList.toggle('ok', !!c.ok);
+        const b = row.querySelector('.sok'); if (b) b.setAttribute('aria-pressed', String(!!c.ok));
+        row.querySelectorAll('input[data-sf]').forEach(inp => {
+          const f = inp.dataset.sf;
+          if (!(f === 'w' && roles && roles[q] === 'move')) inp.placeholder = hint[f] || '';
+          if (document.activeElement !== inp) inp.value = c[f] != null ? c[f] : '';
+        });
+      });
+    }
+    writeState(); queueStateSync(); dayMeta(d); bar();
+    return all;
+  }
+  /* מה נשלח לשרת על תרגיל אחד */
+  function entryOf(e, st) {
+    st = st || {};
+    const S = st.sets || null, log = [];
+    let heavy = null, okN = 0;
+    if (S) {
+      const n = EBWLog.setCount(e);
+      for (let q = 0; q < n; q++) {
+        const c = S[q]; if (!c || !c.ok) continue;
+        okN++;
+        const w = EBWLog.num(c.w), r = EBWLog.num(c.r);
+        if (w === null && r === null) continue;
+        log.push({ w: w, r: r });
+        if (w !== null && (heavy === null || w > heavy.w)) heavy = { w: w, r: r };
+      }
+    }
+    if (!S || !okN) return { ex: e.name || '', done: !!st.done, weight: st.weight || '', reps: st.reps || '' };
+    const out = { ex: e.name || '', done: true, weight: heavy ? heavy.w : '', reps: heavy && heavy.r ? heavy.r : (log[0] && log[0].r) || '', sets: okN };
+    if (log.length) out.setLog = log;
+    return out;
   }
   /* השדה הריק מראה באפור את מה שנרשם בפעם הקודמת */
   function lastPh(e, f) {
@@ -4088,12 +4292,42 @@ html[data-theme="light"] .th-go{color:#FFFFFF;background:#A8764A}
       STATE[k].done = !STATE[k].done;
       STATE[k].at = isoLocal(new Date());   // היום שבו סומן — לדיווח באיחור
       chk.closest('.ex').classList.toggle('done', STATE[k].done);
+      /* הווי הגדול מסמן (או מנקה) את כל הסטים; סט ריק מתמלא מהרמז שלו */
+      { const st = STATE[k], card = chk.closest('.ex'), on = st.done;
+        const exo = (((DATA.program.days || [])[d] || {}).exercises || [])[+chk.dataset.chk] || {};
+        adoptLegacy(st);
+        card.querySelectorAll('.srow').forEach(row => {
+          const q = +row.dataset.srow, c = st.sets[q] = st.sets[q] || {};
+          c.ok = on;
+          if (on) row.querySelectorAll('input[data-sf]').forEach(inp => { const f = inp.dataset.sf; if (!filled(c[f]) && /^\d/.test(inp.placeholder)) c[f] = inp.placeholder; });
+        });
+        afterSet(exo, st, card, +d, +chk.dataset.chk); st.done = on; card.classList.toggle('done', on); }
       /* עד נובמבר 2026 הסימון לא נשמר: הוא חי רק בזיכרון, ומתאמן שסימן וי
          בלי להקליד משקל וסגר את האפליקציה — פתח אותה שוב בלי הסימונים */
       writeState(); queueStateSync();
       dayMeta(+d);
       bar();
       if (STATE[k].done) nextEx(chk.closest('.ex'));
+      return;
+    }
+    const sok = e.target.closest('[data-sok]');
+    if (sok) {
+      const d = +sok.dataset.d, i = +sok.dataset.i, q = +sok.dataset.sok, k = d + ':' + i;
+      const exo = (((DATA.program.days || [])[d] || {}).exercises || [])[i] || {};
+      const st = STATE[k] = STATE[k] || {}, row = sok.closest('.srow'), card = sok.closest('.ex');
+      adoptLegacy(st);
+      const c = st.sets[q] = st.sets[q] || {};
+      c.ok = !c.ok;
+      if (c.ok) row.querySelectorAll('input[data-sf]').forEach(inp => { const f = inp.dataset.sf; if (!filled(c[f]) && /^\d/.test(inp.placeholder)) c[f] = inp.placeholder; });
+      const all = afterSet(exo, st, card, d, i);
+      if (c.ok) {
+        if (all) nextEx(card);
+        else {
+          startRest(restSec(exo), exo.name || '');
+          const nx = card.querySelector('.srow:not(.ok)');
+          if (nx) setTimeout(() => nx.scrollIntoView({ behavior: 'smooth', block: 'center' }), 150);
+        }
+      }
       return;
     }
     const rb = e.target.closest('[data-rest]');
@@ -4168,6 +4402,25 @@ html[data-theme="light"] .th-go{color:#FFFFFF;background:#A8764A}
 
     const wld = e.target.closest('[data-wlday]');
     if (wld) { WL_DAY = +wld.dataset.wlday; wlRepaint(); return; }
+    const cnv = e.target.closest('[data-calnav]');
+    if (cnv && WL_CAL) {
+      const d0 = new Date(WL_CAL.y, WL_CAL.m + (+cnv.dataset.calnav), 1);
+      WL_CAL = { y: d0.getFullYear(), m: d0.getMonth() }; wlRepaint(); return;
+    }
+    const cd = e.target.closest('[data-cal]');
+    if (cd) {
+      WL_SEL = cd.dataset.cal; WL_FORM = false;
+      const d0 = new Date(WL_SEL + 'T00:00'); WL_CAL = { y: d0.getFullYear(), m: d0.getMonth() };
+      wlRepaint();
+      if (cd.classList.contains('wl-hist')) { const dg = document.querySelector('.category-dialog'); if (dg) dg.scrollTop = 0; }
+      return;
+    }
+    if (e.target.closest('[data-wladd]')) {
+      WL_FORM = true; wlRepaint();
+      const f = document.getElementById('wlForm'); if (f) setTimeout(() => f.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60);
+      return;
+    }
+    if (e.target.closest('[data-wlcancel]')) { WL_FORM = false; wlRepaint(); return; }
 
     const wlf = e.target.closest('[data-wlfeel]');
     if (wlf) {
@@ -4231,6 +4484,19 @@ html[data-theme="light"] .th-go{color:#FFFFFF;background:#A8764A}
       wlTouch();
       return;
     }
+    const sf = e.target.dataset && e.target.dataset.sf;
+    if (sf) {
+      const d = +e.target.dataset.d, i = +e.target.dataset.i, q = +e.target.dataset.s, k = d + ':' + i;
+      const exo = (((DATA.program.days || [])[d] || {}).exercises || [])[i] || {};
+      const st = STATE[k] = STATE[k] || {};
+      adoptLegacy(st);
+      const c = st.sets[q] = st.sets[q] || {};
+      c[sf] = e.target.value;
+      /* סט שהוקלד בו מספר נחשב בוצע; סט שרוקן — לא */
+      c.ok = filled(c.w) || filled(c.r);
+      afterSet(exo, st, e.target.closest('.ex'), d, i);
+      return;
+    }
     const f = e.target.dataset && e.target.dataset.f;
     if (!f) return;
     const d = e.target.dataset.d != null ? e.target.dataset.d : DAY;
@@ -4269,7 +4535,8 @@ html[data-theme="light"] .th-go{color:#FFFFFF;background:#A8764A}
     return isoLocal(x);
   }
   function hasWork(st) {
-    return !!(st && (st.done || String(st.weight == null ? '' : st.weight).trim() || String(st.reps == null ? '' : st.reps).trim()));
+    return !!(st && (st.done || String(st.weight == null ? '' : st.weight).trim() || String(st.reps == null ? '' : st.reps).trim()
+      || Object.keys(st.sets || {}).some(k => st.sets[k] && st.sets[k].ok)));
   }
   function rollWeek() {
     if (!STATE || typeof STATE !== 'object') return false;
@@ -4345,8 +4612,7 @@ html[data-theme="light"] .th-go{color:#FFFFFF;background:#A8764A}
       const day = days[x.d];
       const entries = (day.exercises || []).map((e, j) => {
         if (!isReal(e)) return null;
-        const st = S0[x.d + ':' + j] || {};
-        return { ex: e.name || '', done: !!st.done, weight: st.weight || '', reps: st.reps || '' };
+        return entryOf(e, S0[x.d + ':' + j]);
       }).filter(Boolean);
       try {
         /* בלי סימון יום (סומן בגרסה ישנה) — שבת של אותו שבוע */
@@ -4605,8 +4871,7 @@ html[data-theme="light"] .th-go{color:#FFFFFF;background:#A8764A}
     const day = (DATA.program.days || [])[i] || {};
     const entries = (day.exercises || []).map((e, j) => {
       if (!isReal(e)) return null;   // הנחיות ושורות ריקות לא נשלחות כתרגיל
-      const st = STATE[i + ':' + j] || {};
-      return { ex: e.name || '', done: !!st.done, weight: st.weight || '', reps: st.reps || '' };
+      return entryOf(e, STATE[i + ':' + j]);
     }).filter(Boolean);
     try {
       /* אימון של אתמול שנשלח היום נרשם באתמול */
@@ -4713,6 +4978,6 @@ html[data-theme="light"] .th-go{color:#FFFFFF;background:#A8764A}
   });
 })();
 </script>
-<script src="ui-fx.js?v=v284"></script>
+<script src="ui-fx.js?v=v285"></script>
 </body>
 </html>

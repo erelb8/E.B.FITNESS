@@ -54,6 +54,7 @@ async function traineeVisit(b, when, act) {
 }
 async function logWorkout(p, bench, squat) {
   await p.click('[data-category="log"]'); await p.waitForTimeout(500);
+  await p.click('[data-wladd]'); await p.waitForTimeout(400);   // מנובמבר 2026: לוח שנה קודם, הטופס נפתח מהכפתור
   const fill = async (sel, v) => { const el = await p.$(sel); await el.fill(String(v)); await el.dispatchEvent('input'); await el.dispatchEvent('change'); };
   await fill('[data-ws="0:0"][data-wf="w"]', bench); await fill('[data-ws="0:0"][data-wf="r"]', 8);
   await fill('[data-ws="1:0"][data-wf="w"]', squat); await fill('[data-ws="1:0"][data-wf="r"]', 6);
