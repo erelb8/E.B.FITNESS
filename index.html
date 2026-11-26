@@ -1692,7 +1692,7 @@ function dashEvents(){
     const t=live.get(l.trainee_id); if(!t || String(l.date).slice(0,10)<since) return;
     const n=(l.entries||[]).length;
     ev.push({t, kind:'log', when:l.created_at||l.date, day:l.date,
-      what:(t.gender==='נקבה'?'השלימה':'השלים')+' אימון'+(l.day_name?' · '+l.day_name:'')+(n?' · '+n+' תרגילים':''),
+      what:(t.gender==='נקבה'?'השלימה':'השלים')+' אימון'+(l.day_name?' · '+l.day_name:'')+(n?' · '+heN(n,'תרגיל אחד','תרגילים'):''),
       feel:l.feel||'', note:(l.note||'').trim()});
   });
   live.forEach(t=>{
@@ -1981,7 +1981,7 @@ function vDash(){
    + kpi('פעילים השבוע', activeWk, 'מתוך '+act.length, ICO.users, se.act, deltaChip(se.act[0],se.act[1],'משבוע שעבר'))
    + kpi('אימונים השבוע', wkDone, '', ICO.check, se.wo, deltaChip(se.wo[0],se.wo[1],'משבוע שעבר'))
    + kpi('שקילות השבוע', wkWeigh, '', ICO.scale, se.wg, deltaChip(se.wg[0],se.wg[1],'משבוע שעבר'))
-   + kpi('הכנסות החודש', money(income), meK.expect?'מתוך '+moneyTxt(meK.expect)+' צפוי':pays.length+' תשלומים', ICO.shekel, se.inc,
+   + kpi('הכנסות החודש', money(income), meK.expect?'מתוך '+moneyTxt(meK.expect)+' צפוי':heN(pays.length,'תשלום אחד','תשלומים')+'', ICO.shekel, se.inc,
          se.inc[1]?'<span class="kpi-delta flat">חודש שעבר '+moneyTxt(se.inc[1])+'</span>':'')
    + '</div>';
   const pulse=dashPulse(se), gfix=genderFixCard(), ck=dashCheckins(), unp=dashUnpaid();
@@ -2110,10 +2110,10 @@ function vDash(){
   /* האריח הרחב: הסכום, כמה ממנו נגבה מתוך הצפוי, וששת החודשים האחרונים */
   const pctIn=meK.expect?Math.min(1,income/meK.expect):null;
   const statsTile='<span class="dt-top"><span class="dt-ic">'+ICO.shekel+'</span><span class="dt-t">הכנסות החודש</span><span class="dt-spark">'+sparkSVG(se.inc)+'</span></span>'
-    +'<span class="dt-big"><span class="dt-n">'+money(income)+'</span><span class="dt-s">'+(meK.expect?'מתוך '+money(meK.expect)+' צפוי':pays.length+' תשלומים')+'</span></span>'
+    +'<span class="dt-big"><span class="dt-n">'+money(income)+'</span><span class="dt-s">'+(meK.expect?'מתוך '+money(meK.expect)+' צפוי':heN(pays.length,'תשלום אחד','תשלומים')+'')+'</span></span>'
     +(pctIn!=null?bar(pctIn):'')
     +'<span class="dt-foot"><span>'+(pctIn!=null?Math.round(pctIn*100)+'% נגבה':HE_MON_FULL[new Date().getMonth()])+'</span>'
-    +'<span>'+(se.inc[1]?'חודש שעבר '+money(se.inc[1]):wkDone+' אימונים השבוע')+'</span></span>';
+    +'<span>'+(se.inc[1]?'חודש שעבר '+money(se.inc[1]):(wkDone===1?'אימון אחד השבוע':wkDone+' אימונים השבוע'))+'</span></span>';
   const tiles=[
     {k:'stats', ic:'shekel', t:'הכנסות החודש', wide:true, raw:statsTile, html:kpis+pulse},
     today.length && {k:'today', ic:'cal', t:'האימונים של היום', b:today.length, html:todayCard,
@@ -2577,7 +2577,7 @@ function selfExBlock(t){
   let h='<div class="card" style="margin-bottom:14px;border-color:var(--line2)">'
    +'<div class="row" style="align-items:baseline;margin-bottom:8px">'
    +'<h3 style="flex:1;font-size:14.5px">'+esc(t.name.split(' ')[0])+' הוסיף לעצמו</h3>'
-   +'<span class="muted" style="font-size:12px">'+rows.length+' תרגילים</span></div>';
+   +'<span class="muted" style="font-size:12px">'+heN(rows.length,'תרגיל אחד','תרגילים')+'</span></div>';
   rows.forEach(x=>{
     h+='<div class="row" style="padding:7px 0;border-top:1px solid var(--line);font-size:13px">'
      +'<span style="flex:1;min-width:0">'+esc(x.n)+'</span>'
@@ -2656,7 +2656,7 @@ function tabProgram(t){
      +'<span class="daynum">'+(di+1)+'</span>'
      +'<input class="f dayname" style="flex:1;font-family:Heebo;font-weight:700;font-size:15.5px;background:transparent;border-color:transparent;padding:2px 4px" value="'+esc(d.name)+'" onclick="event.stopPropagation()" onchange="setDay(\''+t.id+'\','+di+',\'name\',this.value)">'
      +(d.place?'<span class="pill" style="font-size:11.5px;white-space:nowrap">'+esc(EBEx.placeIcon(d.place)+' '+EBEx.placeName(d.place))+'</span>':'')
-     +'<span class="muted" style="font-size:12.5px;white-space:nowrap">'+ex.length+' תרגילים</span>'
+     +'<span class="muted" style="font-size:12.5px;white-space:nowrap">'+heN(ex.length,'תרגיל אחד','תרגילים')+'</span>'
      +'<span class="daychev"></span></div>'
      +'<div class="daybody">'
      +placeRow(t.id,di,d)
@@ -3404,7 +3404,7 @@ function traineeLogsCard(t){
   const c=TLOGS[t.id]||{};
   let h='<div class="card" style="margin-bottom:14px"><div class="row" style="margin-bottom:8px">'
    +'<h3 style="flex:1;font-size:15px">'+(t.gender==='נקבה'?'מה היא דיווחה':'מה הוא דיווח')+' מהדף</h3>'
-   +(c.rows&&c.rows.length?'<span class="muted" style="font-size:12px">'+c.rows.length+' אימונים אחרונים</span>':'')+'</div>';
+   +(c.rows&&c.rows.length?'<span class="muted" style="font-size:12px">'+(c.rows.length===1?'אימון אחד':c.rows.length+' אימונים אחרונים')+'</span>':'')+'</div>';
   if(c.rows===null||c.rows===undefined) return h+'<div class="muted" style="font-size:13px">'
     +(c.loading?'טוען דיווחים…':'הדיווחים מופיעים כשהסנכרון מחובר.')+'</div></div>';
   if(!c.rows.length) return h+'<div class="muted" style="font-size:13px;line-height:1.6">עוד אין דיווחים. כשהמתאמן לוחץ '
@@ -3419,7 +3419,7 @@ function traineeLogsCard(t){
      +'<summary style="cursor:pointer;display:flex;align-items:center;gap:8px;font-size:13.5px;list-style:none">'
      +'<span class="muted" style="min-width:74px">'+fmtFull(String(l.date).slice(0,10))+'</span>'
      +'<span style="flex:1;min-width:0;font-weight:600">'+esc(l.day_name||'אימון')+feel+'</span>'
-     +'<span class="muted" style="font-size:12px">'+(ex.length===1?'תרגיל אחד':ex.length+' תרגילים')+'</span></summary>'
+     +'<span class="muted" style="font-size:12px">'+(ex.length===1?'תרגיל אחד':heN(ex.length,'תרגיל אחד','תרגילים')+'')+'</span></summary>'
      +(l.note?'<div class="ev-note'+(hurt?' pain':'')+'" style="margin:8px 0">'+esc(l.note)+'</div>':'')
      +ex.map(e=>'<div class="row" style="font-size:13px;padding:4px 0;gap:8px"><span style="flex:1;min-width:0">'+esc(e.ex||e.name)+'</span>'
        +'<span class="muted" dir="ltr" style="font-variant-numeric:tabular-nums">'+esc(setsText(e))+'</span></div>').join('')
@@ -3452,7 +3452,7 @@ function tabPay(t){
   ps.forEach(p=>{ h+=payRow(p,false); });
   const sum=ps.reduce((a,p)=>a+Number(p.amount||0),0);
   return h+'</tbody></table></div></div>'
-   +'<div class="muted" style="font-size:12.5px;margin-top:8px">סה״כ '+money(sum)+' ב-'+ps.length+' תשלומים.</div>';
+   +'<div class="muted" style="font-size:12.5px;margin-top:8px">סה״כ '+money(sum)+' ב-'+heN(ps.length,'תשלום אחד','תשלומים')+'.</div>';
 }
 
 /* --------- מודולים אופציונליים בתיק --------- */
@@ -3917,7 +3917,7 @@ function payWaText(){
       L.push('• '+d+' '+(t?t.name:'מתאמן שנמחק')+' — '+moneyTxt(p.amount)+[payCat(p),p.method].filter(Boolean).map(x=>' · '+x).join('')); });
   });
   const total=all.reduce((a,p)=>a+Number(p.amount||0),0);
-  L.push('','*סה״כ: '+moneyTxt(total)+'* · '+all.length+' תשלומים');
+  L.push('','*סה״כ: '+moneyTxt(total)+'* · '+heN(all.length,'תשלום אחד','תשלומים')+'');
   return L.join('\n');
 }
 function openPayWa(){
@@ -3935,7 +3935,7 @@ function vMoney(){
   const total=all.reduce((a,p)=>a+Number(p.amount||0),0);
   const due=activeTrainees().reduce((a,t)=>a+Number(t.balanceDue||0),0);
   let h=head('תשלומים','מעקב הכנסות וחובות פתוחים','<button class="btn ghost" onclick="openPayWa()">📋 לווטסאפ</button><button class="btn" onclick="openPay()">+ תשלום</button>');
-  h+='<div class="grid g4">'+stat('הכנסות החודש',money(thisM),'')+stat('סה״כ הכנסות',money(total),all.length+' תשלומים')
+  h+='<div class="grid g4">'+stat('הכנסות החודש',money(thisM),'')+stat('סה״כ הכנסות',money(total),heN(all.length,'תשלום אחד','תשלומים')+'')
    +stat('חובות פתוחים',money(due),'')+stat('ממוצע לתשלום',money(all.length?Math.round(total/all.length):0),'')+'</div>';
   h+=payMonthCard();
   /* גרף חודשי */
@@ -4042,7 +4042,7 @@ function payByCat(list){
   const max=Math.max(1,...keys.map(k=>by[k].all));
   return '<div class="card" style="margin-top:14px"><h3 style="font-size:15px;margin-bottom:12px">הכנסות לפי קטגוריה</h3>'
    +keys.map(k=>'<div style="padding:7px 0;border-top:1px solid var(--line)">'
-     +'<div class="row" style="font-size:13.5px;margin-bottom:5px"><span style="flex:1">'+esc(k)+' <span class="muted" style="font-size:12px">· '+by[k].n+' תשלומים</span></span>'
+     +'<div class="row" style="font-size:13.5px;margin-bottom:5px"><span style="flex:1">'+esc(k)+' <span class="muted" style="font-size:12px">· '+heN(by[k].n,'תשלום אחד','תשלומים')+'</span></span>'
      +(by[k].mon?'<span class="muted" style="font-size:12px;margin-inline-end:10px">החודש '+money(by[k].mon)+'</span>':'')
      +'<b style="font-family:Heebo">'+money(by[k].all)+'</b></div>'
      +'<div style="height:5px;background:var(--panel);border-radius:20px;overflow:hidden"><div style="height:100%;width:'+Math.round(by[k].all/max*100)+'%;background:linear-gradient(90deg,var(--or),var(--amber))"></div></div></div>').join('')
@@ -4460,6 +4460,8 @@ function importTrainee(e){
 
 /* ריבוי בעברית למתאמנים. "1 מתאמנים" נתפס שוב ושוב, ולכן זה
    יושב בפונקציה ולא בשורה. */
+/* "תשלום אחד" ולא "1 תשלומים" */
+function heN(n, one, many){ return Number(n)===1 ? one : n+' '+many; }
 function heTrainees(n){ return n===1 ? 'מתאמן אחד' : n+' מתאמנים'; }
 
 /* ---------- ייבוא גיבוי ----------

@@ -2747,7 +2747,7 @@ html[data-theme="light"] .th-week .on i{color:#FFFFFF}
     const nCount = nd ? realOf(nd).length : 0;
     const next = nd
       ? '<div class="th-next"><span class="th-k">' + (nextI === sug ? 'האימון הבא שלך' : 'האימון שבחרת') + '</span><strong>' + esc(nName) + '</strong>'
-        + '<span class="th-s">' + nCount + ' תרגילים' + (sinceTxt === 'היום' ? ' · כבר התאמנת היום' : '') + '</span>'
+        + '<span class="th-s">' + heN(nCount, 'תרגיל אחד', 'תרגילים') + (sinceTxt === 'היום' ? ' · כבר התאמנת היום' : '') + '</span>'
         + (realIdx.length > 1 ? '<span class="th-sw"><button data-hero-day="-1" aria-label="היום הקודם בתוכנית">‹</button><i>יום ' + (realIdx.indexOf(nextI) + 1) + ' מתוך ' + realIdx.length
           + '</i><button data-hero-day="1" aria-label="היום הבא בתוכנית">›</button></span>' : '') + '</div>'
       : '<div class="th-next"><span class="th-k">התוכנית</span><strong>המאמן עוד בונה לך תוכנית</strong></div>';
@@ -3186,7 +3186,7 @@ html[data-theme="light"] .th-week .on i{color:#FFFFFF}
     if (!shown.length && !EDIT_W) return '';
     let vn = 0;
     let h = warmupNote((DATA.program || {}).warmupNote) + trainerNote((DATA.program || {}).note, 'הערה מהמאמן')
-      + '<div class="section-head"><h3>תוכנית האימון</h3><span>' + (EDIT_W ? days.length : days.filter(d => realOf(d).length).length) + ' ימים · ' + days.reduce((n, d) => n + (EDIT_W ? (d.exercises || []).length : realOf(d).length), 0) + ' תרגילים</span></div>';
+      + '<div class="section-head"><h3>תוכנית האימון</h3><span>' + heN((EDIT_W ? days.length : days.filter(d => realOf(d).length).length), 'יום אחד', 'ימים') + ' · ' + heN(days.reduce((n, d) => n + (EDIT_W ? (d.exercises || []).length : realOf(d).length), 0), 'תרגיל אחד', 'תרגילים') + '</span></div>';
 
     days.forEach((d, i) => {
       if (!EDIT_W && !dayShown(d)) return;
@@ -3201,7 +3201,7 @@ html[data-theme="light"] .th-week .on i{color:#FFFFFF}
         + '<button class="dayh" data-day="' + i + '">'
         + '<span class="daynum">' + (EDIT_W ? i + 1 : vn) + '</span>'
         + '<span class="dayt"><span class="dayn">' + esc(d.name || ('יום ' + (EDIT_W ? i + 1 : vn))) + '</span>'
-        + '<span class="daym">' + (real ? (done ? '<em>' + done + '</em>/' : '') + real + ' תרגילים' : 'הנחיות')
+        + '<span class="daym">' + (real ? (done ? '<em>' + done + '</em>/' + real + ' תרגילים' : heN(real, 'תרגיל אחד', 'תרגילים')) : 'הנחיות')
         + (d.place && window.EBEx && EBEx.placeName(d.place)
             ? ' · ' + esc(EBEx.placeIcon(d.place) + ' ' + EBEx.placeName(d.place)) : '')
         + '</span></span>'
@@ -4234,6 +4234,8 @@ html[data-theme="light"] .th-week .on i{color:#FFFFFF}
      נשמר ב-STATE[יום:תרגיל].sets = { 0: {w, r, ok}, ... }; done = כל הסטים.
      לשרת יוצא setLog, אותו מבנה שהיומן שולח. */
   const filled = v => String(v == null ? '' : v).trim() !== '';
+  /* "תרגיל אחד" ולא "1 תרגילים" */
+  function heN(n, one, many) { return Number(n) === 1 ? one : n + ' ' + many; }
   function exDone(e, st) { return !!(st && st.done); }
   function adoptLegacy(st) {
     if (!st.sets && (filled(st.weight) || filled(st.reps))) st.sets = { 0: { w: st.weight, r: st.reps, ok: true } };
@@ -4722,7 +4724,7 @@ html[data-theme="light"] .th-week .on i{color:#FFFFFF}
       const n = L.reduce((a, x) => a + x.ex.length, 0);
       return '<div class="card" style="margin-bottom:14px;border-color:var(--line2)">'
         + '<div style="font-weight:800;font-size:15px;margin-bottom:4px">שבוע חדש — התוכנית התאפסה</div>'
-        + '<div class="mt" style="font-size:13px;line-height:1.6;margin-bottom:12px">בשבוע שעבר סימנת ' + n + ' תרגילים ב' + names
+        + '<div class="mt" style="font-size:13px;line-height:1.6;margin-bottom:12px">בשבוע שעבר סימנת ' + heN(n, 'תרגיל אחד', 'תרגילים') + ' ב' + names
         + ' ולא שלחת. לשלוח אותם למאמן?</div>'
         + '<div style="display:flex;gap:8px"><button class="btn" data-left-send style="flex:1;padding:11px">לשלוח למאמן</button>'
         + '<button class="btn ghost" data-left-hide style="flex:none;padding:11px 16px">לא צריך</button></div></div>';
@@ -5079,7 +5081,7 @@ html[data-theme="light"] .th-week .on i{color:#FFFFFF}
     const real = realOf(day).length;
     const done = ex.filter((e, j) => isReal(e) && (STATE[i + ':' + j] || {}).done).length;
     const meta = card.querySelector('.daym');
-    if (meta) meta.innerHTML = real ? (done ? '<em>' + done + '</em>/' : '') + real + ' תרגילים' : 'הנחיות';
+    if (meta) meta.innerHTML = real ? (done ? '<em>' + done + '</em>/' + real + ' תרגילים' : heN(real, 'תרגיל אחד', 'תרגילים')) : 'הנחיות';
     card.classList.toggle('full', real > 0 && done === real);
     const fin = card.querySelector('[data-fin]');
     if (fin) fin.disabled = !dayAny(i);
