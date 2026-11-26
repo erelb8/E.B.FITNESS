@@ -45,33 +45,27 @@ const D = { name: 'דני בדיקה', goal: 'כוח', health: { signedAt: '2026
       guide1: !!(days[0] && days[0].querySelector('.sets-guide')),
       guideTxt: days[0] && days[0].querySelector('.sets-guide') ? days[0].querySelector('.sets-guide').textContent : '',
       guide2: !!(days[1] && days[1].querySelector('.sets-guide')),
-      roles: [...(days[0] ? days[0].querySelectorAll('.ex') : [])].map(x => (x.querySelector('.roles') || {}).textContent || '')
+      roles: [...(days[0] ? days[0].querySelectorAll('.ex') : [])].map(x => [...x.querySelectorAll('.srole')].map(r => r.textContent)),
+      ph: (days[0] && days[0].querySelector('[data-sf="w"][data-i="0"][data-s="0"]') || {}).placeholder
     };
   });
   t('ההסבר בראש יום הרגליים', w.guide1);
   t('ההסבר כולל 5, 4 ו-3 סטים', /5 סטים/.test(w.guideTxt) && /4 סטים/.test(w.guideTxt) && /3 סטים/.test(w.guideTxt) && /בלי משקל/.test(w.guideTxt), w.guideTxt);
   t('אין הסבר ביום מוביליטי', !w.guide2);
-  t('סקוואט 5 סטים — חימום תנועה', /חימום תנועה/.test(w.roles[0]) && /3 סטי עבודה/.test(w.roles[0]), w.roles[0]);
-  t('לחיצת רגליים 4 סטים — חימום קל ו-3 עבודה', /^סט 1 חימום קל/.test(w.roles[1]) && !/תנועה/.test(w.roles[1]), w.roles[1]);
-  t('פשיטת ברך 3 סטים — עבודה', w.roles[2] === '3 סטי עבודה במשקל גבוה', w.roles[2]);
-  t('בטן 2 סטים — בלי שורה', w.roles[3] === '', w.roles[3]);
+  /* מנובמבר 2026 התוויות יושבות מעל שורות הסטים עצמן, במסך האימון */
+  t('סקוואט: תנועה, חימום, עבודה 3–5', JSON.stringify(w.roles[0]) === JSON.stringify(['סט 1 · חימום תנועה · בלי משקל', 'סט 2 · חימום · משקל נמוך', 'סטים 3–5 · עבודה · משקל גבוה']), JSON.stringify(w.roles[0]));
+  t('לחיצת רגליים: חימום, עבודה 2–4', JSON.stringify(w.roles[1]) === JSON.stringify(['סט 1 · חימום · משקל נמוך', 'סטים 2–4 · עבודה · משקל גבוה']), JSON.stringify(w.roles[1]));
+  t('פשיטת ברך 3 סטים — עבודה בלבד', JSON.stringify(w.roles[2]) === JSON.stringify(['סטים 1–3 · עבודה · משקל גבוה']), JSON.stringify(w.roles[2]));
+  t('בטן 2 סטים — בלי תוויות', w.roles[3] && w.roles[3].length === 0, JSON.stringify(w.roles[3]));
+  t('סט תנועה — בלי משקל בשדה', w.ph === '—', w.ph);
   await p.screenshot({ path: path.join(require('os').tmpdir(), 'sets-workout.png'), fullPage: false });
 
   console.log('=== יומן האימון ===');
   await p.evaluate(() => { const m = document.getElementById('categoryModal'); if (m) m.remove(); document.body.style.overflow = ''; });
   await p.click('[data-category="log"]'); await p.waitForTimeout(600);
-  await p.click('[data-wladd]'); await p.waitForTimeout(400);   // מנובמבר 2026: לוח שנה קודם, הטופס נפתח מהכפתור
-  const l = await p.evaluate(() => {
-    const ex = [...document.querySelectorAll('.wl-ex')];
-    return ex.map(x => [...x.querySelectorAll('.wl-role')].map(r => r.textContent));
-  });
-  t('סקוואט: תנועה, חימום, עבודה 3–5', JSON.stringify(l[0]) === JSON.stringify(['סט 1 · חימום תנועה · בלי משקל', 'סט 2 · חימום · משקל נמוך', 'סטים 3–5 · עבודה · משקל גבוה']), JSON.stringify(l[0]));
-  t('לחיצת רגליים: חימום, עבודה 2–4', JSON.stringify(l[1]) === JSON.stringify(['סט 1 · חימום · משקל נמוך', 'סטים 2–4 · עבודה · משקל גבוה']), JSON.stringify(l[1]));
-  t('בטן: בלי תוויות', l[3] && l[3].length === 0, JSON.stringify(l[3]));
-  const ph = await p.$eval('[data-ws="0:0"][data-wf="w"]', x => x.placeholder);
-  t('סט תנועה — "בלי משקל" במקום משקל', ph === 'בלי משקל', ph);
-  t('ההסבר גם ביומן', !!(await p.$('.wl-ex ~ .sets-guide, .sets-guide')));
-  await p.screenshot({ path: path.join(require('os').tmpdir(), 'sets-log.png'), fullPage: false });
+  t('ביומן לוח שנה, בלי טופס רישום שני', !!(await p.$('.cal')) && !(await p.$('[data-ws]')) && !(await p.$('.srow')));
+  await p.click('[data-wladd]'); await p.waitForTimeout(500);
+  t('"רישום אימון" מהיומן פותח את מסך האימון', !!(await p.$('#categoryModal .dayc .srow')) && !(await p.$('.logdate')));
   t('אין שגיאות', !errs.length, errs.join(' | '));
 
   await c.close(); await b.close(); srv.close();

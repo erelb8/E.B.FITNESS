@@ -176,6 +176,29 @@ async function staleWhileRevalidate(req, cacheName) {
 }
 
 // מאפשר לדף לבקש הפעלת גרסה חדשה מיד
+// ---------- תזכורות (נובמבר 2026) ----------
+// ההתראה מגיעה מהשרת (supabase/functions/push-reminders). כאן רק מציגים
+// אותה, ובנגיעה פותחים את דף המתאמן — חלון פתוח אם יש, אחרת חדש.
+self.addEventListener('push', e => {
+  let d = {};
+  try { d = e.data ? e.data.json() : {}; } catch (er) { d = {}; }
+  e.waitUntil(self.registration.showNotification(d.title || 'BAUER POWER', {
+    body: d.body || '', tag: d.tag || 'bp', renotify: true, dir: 'rtl', lang: 'he',
+    icon: './icons/icon-192.png', badge: './icons/favicon-64.png',
+    data: { url: d.url || 't.html', kind: d.kind || '' }
+  }));
+});
+self.addEventListener('notificationclick', e => {
+  e.notification.close();
+  const url = new URL((e.notification.data && e.notification.data.url) || 't.html', self.registration.scope).href;
+  e.waitUntil((async () => {
+    const all = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    const open = all.find(c => c.url.split('#')[0] === url.split('#')[0]);
+    if (open) { try { await open.focus(); } catch (er) {} return; }
+    await self.clients.openWindow(url);
+  })());
+});
+
 self.addEventListener('message', e => {
   if (e.data === 'skipWaiting') self.skipWaiting();
 });

@@ -97,6 +97,21 @@ html[data-theme="mono"] ::selection{background:#FFFFFF;color:#000}
 .thm-pc b{display:block;margin-top:auto;height:11px;border-radius:6px;width:55%}
 .thm-nm{display:flex;align-items:center;justify-content:center;gap:4px;font-size:13px;font-weight:700}
 .thm-nm .ico{width:14px;height:14px;color:var(--or)}
+.thm-sheet{max-height:calc(100dvh - 24px);overflow:auto}
+.thm-rem{display:flex;flex-direction:column;gap:7px}
+.thm-rem .rm{display:flex;align-items:center;gap:10px;padding:11px 12px;border:1px solid var(--line);border-radius:14px;background:var(--card);color:var(--tx);font:inherit;text-align:right;cursor:pointer;width:100%}
+.thm-rem .rm > span{flex:1;min-width:0}
+.thm-rem .rm b{display:block;font-size:14px;font-weight:700}
+.thm-rem .rm small{display:block;font-size:11.5px;color:var(--dim);margin-top:1px}
+.thm-rem .tg{flex:none;width:42px;height:25px;border-radius:20px;background:var(--line2);position:relative;transition:background .15s}
+.thm-rem .tg::after{content:'';position:absolute;top:3px;right:3px;width:19px;height:19px;border-radius:50%;background:var(--tx);transition:transform .15s}
+.thm-rem .rm.on .tg{background:var(--or)}
+.thm-rem .rm.on .tg::after{transform:translateX(-17px);background:var(--ink)}
+.thm-rem .rm.off{opacity:.5}
+.thm-rem select{flex:none;background:var(--ink);color:var(--tx);border:1px solid var(--line2);border-radius:10px;padding:7px 8px;font:inherit;font-size:14px}
+.thm-rem .note{font-size:12px;color:var(--mut);line-height:1.6;padding:2px 2px 0}
+.thm-rem .main{display:block;width:100%;padding:12px;border:0;border-radius:14px;background:var(--or);color:#1E160F;font:inherit;font-size:15px;font-weight:800;cursor:pointer}
+html[data-theme="light"] .thm-rem .main{color:#FFFFFF}
 .thm-figs{display:grid;grid-template-columns:1fr 1fr;gap:9px}
 .thm-fig{appearance:none;position:relative;border:1.5px solid var(--line);background:var(--card);border-radius:16px;padding:14px 8px 12px;cursor:pointer;
   display:flex;flex-direction:column;align-items:center;gap:6px;color:var(--tx);font:inherit;font-size:14px;font-weight:700}

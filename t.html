@@ -493,6 +493,50 @@ html[data-theme="light"] .th-go{color:#FFFFFF;background:#A8764A}
 .wl-x{position:absolute;top:10px;left:12px;background:none;border:0;color:var(--dim);font:inherit;font-size:12.5px;cursor:pointer;padding:6px}
 .wl-hist{cursor:pointer}
 html[data-theme="light"] .cal-g button.on{color:#FFFFFF}
+/* השבוע בכרטיס הפתיחה */
+.th-week{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
+.th-week div{display:flex;flex-direction:column;align-items:center;gap:4px}
+.th-week i{width:28px;height:28px;border-radius:50%;border:1.5px solid var(--line2);display:grid;place-items:center;color:var(--ink)}
+.th-week i svg{width:15px;height:15px}
+.th-week span{font-size:11px;color:var(--dim)}
+.th-week .on i{background:var(--or);border-color:var(--or)}
+.th-week .today i{border-color:var(--or)}
+.th-week .today span{color:var(--tx);font-weight:700}
+.th-week .fut i{border-style:dashed;opacity:.55}
+html[data-theme="light"] .th-week .on i{color:#FFFFFF}
+.th-list{margin-top:12px!important}
+/* ראש החלון נשאר במסך; באימון — התקדמות הסטים */
+.cat-top{position:sticky;top:-18px;z-index:6;background:var(--ink);margin:-18px -16px 0;padding:18px 16px 2px}
+.wprog:empty{display:none}
+.wprog{padding:2px 0 10px}
+.wprog-t{display:flex;align-items:baseline;gap:6px;font-size:12.5px;color:var(--mut)}
+.wprog-t span{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--tx);font-weight:700;font-size:13.5px}
+.wprog-t b{color:var(--tx);font-size:15px}
+.wprog-b{height:5px;border-radius:5px;background:var(--line);margin-top:6px;overflow:hidden}
+.wprog-b i{display:block;height:100%;border-radius:5px;background:var(--or);transition:width .3s}
+/* רישום ליום אחר, וסיכום בסוף אימון */
+.logdate{display:flex;align-items:center;gap:10px;padding:12px 14px!important;margin-bottom:12px;border-color:var(--or)!important}
+.logdate > div{flex:1;min-width:0}
+.logdate b{display:block;font-size:14.5px;font-weight:800}
+.logdate span{display:block;font-size:12px;color:var(--mut);margin-top:2px;line-height:1.5}
+.logdate button{flex:none;background:none;border:1px solid var(--line2);color:var(--tx);border-radius:20px;padding:7px 13px;font:inherit;font-size:12.5px;cursor:pointer}
+.fin-mask{position:fixed;inset:0;z-index:10040;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;padding:18px;animation:thm-fade .2s ease-out}
+.fin-sheet{width:min(400px,100%);background:var(--ink);border:1px solid var(--line2);border-radius:24px;padding:24px 20px 18px;text-align:center;box-shadow:0 24px 60px rgba(0,0,0,.45);animation:thm-up .25s cubic-bezier(.2,.8,.2,1)}
+.fin-ic{width:64px;height:64px;border-radius:50%;margin:0 auto 12px;display:grid;place-items:center;background:var(--or);color:var(--ink)}
+.fin-ic svg{width:34px;height:34px}
+.fin-sheet h2{font-size:22px}
+.fin-sheet p{margin:4px 0 0;color:var(--mut);font-size:13.5px}
+.fin-st{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:16px}
+.fin-st div{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:11px 4px}
+.fin-st b{display:block;font-family:'Frank Ruhl Libre',Georgia,serif;font-size:24px;font-weight:900;line-height:1.1}
+.fin-st span{display:block;font-size:11px;color:var(--mut);margin-top:3px}
+.fin-pr{margin-top:12px;text-align:right;background:var(--or-soft);border:1px solid rgba(var(--or-rgb),.4);border-radius:14px;padding:10px 12px}
+.fin-pr b{display:block;font-size:12px;color:var(--or);letter-spacing:.06em;margin-bottom:3px}
+.fin-pr div{display:flex;gap:10px;font-size:13.5px;padding:3px 0}
+.fin-pr span{flex:1;min-width:0}
+.fin-pr em{flex:none;font-style:normal;font-weight:700}
+.srole{font-size:11px;font-weight:700;color:var(--dim);margin:10px 2px 0}
+.srole.r-work{color:var(--mut)}
 /* שורה לכל סט */
 .sets{margin-top:12px}
 .shead,.srow{display:grid;grid-template-columns:26px minmax(0,1fr) minmax(0,1fr) 46px;gap:7px;align-items:center}
@@ -579,6 +623,98 @@ html[data-theme="light"] .cal-g button.on{color:#FFFFFF}
     if (f === 'm' || f === 'f') return f;
     return DATA && DATA.program && DATA.program.fig === 'f' ? 'f' : 'm';
   }
+  /* ---------- תזכורות (נובמבר 2026) ----------
+     התראה שקופצת בטלפון גם כשהאפליקציה סגורה: אימון (3 ימים בלי דיווח),
+     שקילה (חמישי בבוקר), צ׳ק-אין חודשי. השרת שולח פעם בשעה
+     (supabase/push-reminders.sql + functions/push-reminders); כאן רק
+     ההרשמה וההעדפות. הכול נשמר בשרת לפי המכשיר, ובמכשיר ב-eb_push_*.
+     באייפון התראות עובדות רק כשהאפליקציה מותקנת במסך הבית (iOS 16.4+). */
+  const PUSH = { key: undefined, busy: false, msg: '' };
+  function pushKeyLS() { return 'eb_push_' + (TOKEN || 'x').slice(0, 12); }
+  function pushPrefs() {
+    let p = null; try { p = JSON.parse(localStorage.getItem(pushKeyLS()) || 'null'); } catch (e) {}
+    return Object.assign({ on: false, workout: true, weigh: true, checkin: true, hour: 18 }, p || {});
+  }
+  function pushSave(p) { try { localStorage.setItem(pushKeyLS(), JSON.stringify(p)); } catch (e) {} }
+  function pushSupported() { return 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window; }
+  function isIOS() { return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1); }
+  function isStandalone() { return (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true; }
+  function b64u(s) { const pad = '='.repeat((4 - s.length % 4) % 4), raw = atob((s + pad).replace(/-/g, '+').replace(/_/g, '/')); const out = new Uint8Array(raw.length); for (let i = 0; i < raw.length; i++) out[i] = raw.charCodeAt(i); return out; }
+  async function pushLoadKey() {
+    if (PUSH.key !== undefined || !sb) return;
+    PUSH.key = null;
+    try { const r = await sb.rpc('push_public_key'); if (!r.error && typeof r.data === 'string' && r.data.length > 40) PUSH.key = r.data; } catch (e) {}
+    if (window.EBTheme && EBTheme.refresh) EBTheme.refresh();
+  }
+  function remindersBlock() {
+    if (!TOKEN || !DATA) return '';
+    const P = pushPrefs();
+    let h = '<div class="thm-lbl">תזכורות</div><div class="thm-rem">';
+    if (!pushSupported()) {
+      h += '<div class="note">' + (isIOS() && !isStandalone()
+        ? 'באייפון התראות עובדות רק מהאפליקציה שבמסך הבית: בספארי לוחצים על כפתור השיתוף ← "הוסף למסך הבית", פותחים משם, וחוזרים לכאן.'
+        : 'הדפדפן הזה לא תומך בהתראות.') + '</div>';
+      return h + '</div>';
+    }
+    if (PUSH.key === undefined) { pushLoadKey(); return h + '<div class="note">בודק…</div></div>'; }
+    if (!PUSH.key) return h + '<div class="note">התזכורות עוד לא הופעלו אצל המאמן.</div></div>';
+    if (Notification.permission === 'denied') return h + '<div class="note">ההתראות חסומות בהגדרות הטלפון לאתר הזה. מאפשרים שם התראות, וחוזרים לכאן.</div></div>';
+    if (!P.on) {
+      h += '<button class="main" data-rem="on"' + (PUSH.busy ? ' disabled' : '') + '>' + (PUSH.busy ? 'מפעיל…' : 'להפעיל תזכורות בטלפון') + '</button>'
+        + '<div class="note">תזכורת לאימון אחרי 3 ימים בלי דיווח, שקילה ביום חמישי בבוקר, וצ׳ק-אין בתחילת חודש. אפשר לכבות כל אחת.</div>';
+    } else {
+      const row = (k, t, d) => '<button class="rm' + (P[k] ? ' on' : '') + '" data-rem="' + k + '" aria-pressed="' + !!P[k] + '"><span><b>' + t + '</b><small>' + d + '</small></span><i class="tg"></i></button>';
+      h += row('workout', 'תזכורת לאימון', '3 ימים בלי אימון')
+        + '<label class="rm' + (P.workout || P.checkin ? '' : ' off') + '" style="cursor:default"><span><b>באיזו שעה</b><small>לאימון ולצ׳ק-אין</small></span><select data-remhour aria-label="שעת התזכורת">'
+        + Array.from({ length: 18 }, (_, i) => i + 5).map(hh => '<option value="' + hh + '"' + (hh === P.hour ? ' selected' : '') + '>' + String(hh).padStart(2, '0') + ':00</option>').join('') + '</select></label>'
+        + row('weigh', 'שקילה שבועית', 'יום חמישי ב-08:00')
+        + row('checkin', 'צ׳ק-אין חודשי', 'בתחילת כל חודש')
+        + '<button class="rm" data-rem="off"><span><b>לכבות את כל התזכורות</b><small>במכשיר הזה</small></span></button>';
+    }
+    if (PUSH.msg) h += '<div class="note">' + esc(PUSH.msg) + '</div>';
+    return h + '</div>';
+  }
+  async function pushSub() { const reg = await navigator.serviceWorker.ready; return reg.pushManager.getSubscription(); }
+  async function pushSend(sub, P) {
+    const j = sub.toJSON();
+    const r = await sb.rpc('trainee_push_subscribe', { p_token: TOKEN, p_endpoint: j.endpoint, p_p256dh: j.keys.p256dh, p_auth: j.keys.auth,
+      p_prefs: { workout: !!P.workout, weigh: !!P.weigh, checkin: !!P.checkin, hour: P.hour } });
+    if (r.error) throw r.error;
+  }
+  async function pushTurnOn() {
+    PUSH.busy = true; PUSH.msg = ''; EBTheme.refresh();
+    try {
+      const perm = await Notification.requestPermission();
+      if (perm !== 'granted') throw new Error('perm');
+      const reg = await navigator.serviceWorker.ready;
+      const sub = (await reg.pushManager.getSubscription()) || await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64u(PUSH.key) });
+      const P = pushPrefs(); P.on = true;
+      await pushSend(sub, P); pushSave(P);
+      PUSH.msg = 'התזכורות פועלות במכשיר הזה.';
+    } catch (e) {
+      PUSH.msg = (e && e.message === 'perm') ? 'לא ניתן אישור להתראות, אז התזכורות לא הופעלו.' : 'לא הצלחנו להפעיל — נסה שוב כשתהיה רשת.';
+    }
+    PUSH.busy = false; EBTheme.refresh();
+  }
+  async function pushChange(mut) {
+    const P = pushPrefs(); mut(P); pushSave(P); PUSH.msg = ''; EBTheme.refresh();
+    try {
+      const sub = await pushSub();
+      if (!P.on) { if (sub) { try { await sb.rpc('trainee_push_unsubscribe', { p_token: TOKEN, p_endpoint: sub.endpoint }); } catch (e) {} try { await sub.unsubscribe(); } catch (e) {} } return; }
+      if (sub) await pushSend(sub, P);
+    } catch (e) { PUSH.msg = 'השינוי נשמר במכשיר, אבל לא הגיע לשרת — נסה שוב כשתהיה רשת.'; EBTheme.refresh(); }
+  }
+  document.addEventListener('click', function (e) {
+    const b = e.target.closest && e.target.closest('[data-rem]'); if (!b) return;
+    const k = b.dataset.rem;
+    if (k === 'on') { if (!PUSH.busy) pushTurnOn(); return; }
+    if (k === 'off') { pushChange(P => { P.on = false; }); return; }
+    pushChange(P => { P[k] = !P[k]; });
+  });
+  document.addEventListener('change', function (e) {
+    if (e.target && e.target.matches && e.target.matches('[data-remhour]')) { const v = +e.target.value; pushChange(P => { P.hour = v; }); }
+  });
+  if (window.EBTheme) EBTheme.extra = remindersBlock;
   if (window.EBTheme) EBTheme.figure = {
     get: figOf,
     remember: function (g) { try { localStorage.setItem(figKey(), g); } catch (e) {} },
@@ -2029,7 +2165,7 @@ html[data-theme="light"] .cal-g button.on{color:#FFFFFF}
        ספריית הדמיות) עמדו מעליו, ובטלפון התרגיל הראשון היה מתחת למסך.
        במצב עריכה הסרגל נשאר למעלה — שם עובדים איתו */
     if(key==='workout') return EDIT_W ? editBar()+exButton()+planBlock(days)+exBlockSafe()
-                                      : planBlock(days)+editBar()+exButton()+exBlockSafe();
+                                      : logDateBar()+planBlock(days)+editBar()+exButton()+exBlockSafe();
     if(key==='food') return libButton()+makerButton()+nutritionDisclaimer()+targetsBlock()+nutritionPlan();
     if(key==='body') return botBody()+bodyMetricsBlock()+healthAlert()+healthFolder()+filesBlock(files);
     if(key==='habits') return habitsScreen();
@@ -2128,13 +2264,31 @@ html[data-theme="light"] .cal-g button.on{color:#FFFFFF}
     const labels={log:['יומן האימונים','לוח שנה, ומה שעשית בפועל'],workout:['אימון','התוכנית והביצוע'],food:['תזונה','התפריט והיעדים שלך'],body:['גוף','מדדים, בריאות וקבצים'],follow:['מעקב','ההתקדמות שלך'],habits:['הרגלים','מה שקורה כל יום'],guides:['מדריכים','איך משתמשים באפליקציה']};
     const item=labels[key]||labels.workout;
     closeCategory(true);
-    if (key === 'log') { WL_SEL = null; WL_CAL = null; WL_FORM = false; }
+    if (key === 'log') { WL_SEL = WL_KEEP; WL_CAL = null; WL_KEEP = null; }
+    LOG_DATE = key === 'workout' ? LOG_NEXT : null; LOG_NEXT = null;
     OPEN_CATEGORY = key;
     /* כפתור "חזור" של הטלפון סוגר את החלון ולא יוצא מהאפליקציה */
     try { if (!(history.state && history.state.ebWin)) history.pushState({ ebWin: 1 }, ''); } catch (e) {}
     const modal=document.createElement('div'); modal.className='category-modal'; modal.id='categoryModal';
-    modal.innerHTML='<div class="category-dialog" role="dialog" aria-modal="true"><div class="category-dialog-head"><div style="flex:1"><h2>'+item[0]+'</h2><p>'+item[1]+'</p></div><button class="category-close" data-category-close aria-label="סגירה">×</button></div><div class="category-dialog-body">'+categoryContent(key)+'</div></div>';
+    modal.innerHTML='<div class="category-dialog" role="dialog" aria-modal="true"><div class="cat-top"><div class="category-dialog-head"><div style="flex:1"><h2>'+item[0]+'</h2><p>'+item[1]+'</p></div><button class="category-close" data-category-close aria-label="סגירה">×</button></div>'+(key==='workout'?'<div class="wprog" id="wprog"></div>':'')+'</div><div class="category-dialog-body">'+categoryContent(key)+'</div></div>';
     document.body.appendChild(modal); document.body.style.overflow='hidden';
+    wprogPaint();
+  }
+  /* כמה סטים נעשו ביום הפתוח — בראש חלון האימון, נשאר במסך בגלילה */
+  function wprogPaint() {
+    const el = document.getElementById('wprog'); if (!el || !DATA || !DATA.program) return;
+    if (EDIT_W) { el.innerHTML = ''; return; }
+    const day = (DATA.program.days || [])[DAY]; if (!day) { el.innerHTML = ''; return; }
+    let tot = 0, done = 0;
+    (day.exercises || []).forEach((e, j) => {
+      if (!isReal(e)) return;
+      const n = EBWLog.setCount(e), st = STATE[DAY + ':' + j] || {}; tot += n;
+      let k = 0; for (let q = 0; q < n; q++) if (st.sets && st.sets[q] && st.sets[q].ok) k++;
+      done += st.done ? n : k;
+    });
+    if (!tot) { el.innerHTML = ''; return; }
+    el.innerHTML = '<div class="wprog-t"><span>' + esc(String(day.name || 'אימון')) + '</span><b>' + done + '</b> מתוך ' + tot + ' סטים</div>'
+      + '<div class="wprog-b"><i style="width:' + Math.round(done / tot * 100) + '%"></i></div>';
   }
   /* סגירה באמצע עריכה משמיטה את השינויים שלא נשמרו — כמו ביטול */
   let POP_SKIP = false;
@@ -2461,6 +2615,17 @@ html[data-theme="light"] .cal-g button.on{color:#FFFFFF}
     paint();
   });
 
+  /* השבוע במבט אחד: באיזה ימים כבר התאמנת (ראשון עד שבת) */
+  function weekStrip(logs) {
+    const now = new Date(), t0 = new Date(now); t0.setHours(0, 0, 0, 0); t0.setDate(t0.getDate() - t0.getDay());
+    const on = {}; (logs || []).forEach(l => { on[String(l.date).slice(0, 10)] = 1; });
+    return '<div class="th-week" aria-hidden="true">' + ['א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ש'].map((ch, k) => {
+      const d = new Date(t0); d.setDate(t0.getDate() + k); const iso = isoLocal(d);
+      return '<div class="' + (on[iso] ? 'on ' : '') + (k === now.getDay() ? 'today ' : '') + (k > now.getDay() ? 'fut' : '') + '"><i>'
+        + (on[iso] ? '<svg viewBox="0 0 24 24"><path d="M6 12.5l4 4 8-9" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>' : '')
+        + '</i><span>' + ch + '</span></div>';
+    }).join('') + '</div>';
+  }
   function openerBlock(days) {
     const first = (DATA.name || '').trim().split(/\s+/)[0] || '';
     const ex    = days.reduce((a, d) => a + realOf(d).length, 0);
@@ -2521,6 +2686,7 @@ html[data-theme="light"] .cal-g button.on{color:#FFFFFF}
     return '<section class="hero th-hero">'
       + '<div class="th-hi">' + hello + (first ? ', ' + esc(first) : '') + ' <span>· יום ' + wdays[new Date().getDay()] + '</span></div>'
       + '<div class="th-main">' + ring + next + '</div>'
+      + weekStrip(logs)
       /* מה מחכה באימון — שמות התרגילים כבר כאן, בלי לפתוח */
       + (nd ? (function () {
           const r = realOf(nd), top = r.slice(0, 4);
@@ -2780,7 +2946,7 @@ html[data-theme="light"] .cal-g button.on{color:#FFFFFF}
 
   function categoryBlock() {
     return '<div class="section-head"><h3>המרחב שלך</h3><button class="theme-sw" data-thm-sw onclick="EBTheme.open()">'
-      + '<i><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18c1.2 0 1.8-.8 1.8-1.7 0-1.1-.9-1.5-.9-2.6 0-1 .8-1.7 1.8-1.7h2.1A4.2 4.2 0 0 0 21 10.8C21 6.5 17 3 12 3z"/><circle cx="7.6" cy="11.5" r="1.1"/><circle cx="10.4" cy="7.4" r="1.1"/><circle cx="15.2" cy="7.6" r="1.1"/></svg></i>צבעים ודמות</button></div>'
+      + '<i><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18c1.2 0 1.8-.8 1.8-1.7 0-1.1-.9-1.5-.9-2.6 0-1 .8-1.7 1.8-1.7h2.1A4.2 4.2 0 0 0 21 10.8C21 6.5 17 3 12 3z"/><circle cx="7.6" cy="11.5" r="1.1"/><circle cx="10.4" cy="7.4" r="1.1"/><circle cx="15.2" cy="7.6" r="1.1"/></svg></i>צבעים ותזכורות</button></div>'
       + '<div class="category-grid">'
       + categoryTile('log','יומן','מה שעשית בפועל')
       + categoryTile('workout','אימון','התוכנית והביצוע')
@@ -3004,7 +3170,7 @@ html[data-theme="light"] .cal-g button.on{color:#FFFFFF}
           + '<textarea data-finnote="' + i + '" maxlength="500" placeholder="הערה למאמן (לא חובה) — למשל אם משהו כאב או הרגיש לא נכון" style="width:100%;margin-top:10px;min-height:54px;resize:vertical;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:9px 11px;font:inherit;font-size:14px;color:var(--tx)">'
           + esc(FIN_NOTE[i] || '') + '</textarea>'
           + '<button class="btn" data-fin="' + i + '" style="width:100%;margin-top:10px"'
-          + (done ? '' : ' disabled') + '>סיימתי את האימון הזה</button></div>';
+          + (dayAny(i) ? '' : ' disabled') + '>סיימתי את האימון הזה</button></div>';
       }
       h += '</div></div>';
     });
@@ -3029,9 +3195,11 @@ html[data-theme="light"] .cal-g button.on{color:#FFFFFF}
   let WL_DAY = null, WL_DRAFT = null;
   /* לוח שנה (נובמבר 2026): מתאמנים ביקשו לראות מתי התאמנו ולהוסיף אימון
      ליום אחר — מי ששכח לדווח ביום שלישי רושם אותו ביום חמישי, בתאריך הנכון.
-     WL_SEL = היום שנבחר בלוח; WL_FORM = טופס הרישום פתוח ליום הזה.
+     WL_SEL = היום שנבחר בלוח. "הוספת אימון" פותחת את מסך האימון לתאריך הזה.
      השרת מקבל תאריך עד 14 יום אחורה (trainee-log-date.sql). */
-  let WL_SEL = null, WL_CAL = null, WL_FORM = false;
+  let WL_SEL = null, WL_CAL = null, WL_KEEP = null;
+  /* LOG_DATE — מסך האימון פתוח כדי לרשום אימון ליום אחר (נבחר בלוח השנה) */
+  let LOG_DATE = null, LOG_NEXT = null;
   const WL_BACK = 14;
   const WL_MONTH = ['ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי', 'יוני', 'יולי', 'אוגוסט', 'ספטמבר', 'אוקטובר', 'נובמבר', 'דצמבר'];
   const WL_DAYNAME = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
@@ -3045,6 +3213,12 @@ html[data-theme="light"] .cal-g button.on{color:#FFFFFF}
   function wlDateLabel(iso) {
     const d = new Date(iso + 'T00:00');
     return 'יום ' + WL_DAYNAME[d.getDay()] + ' · ' + d.getDate() + ' ב' + WL_MONTH[d.getMonth()];
+  }
+  function logDateBar() {
+    if (!LOG_DATE) return '';
+    return '<div class="card logdate"><div><b>רושם אימון ל' + esc(wlDateLabel(LOG_DATE)) + '</b>'
+      + '<span>פותחים את היום שעשית, מסמנים את הסטים ולוחצים "סיימתי". האימון יירשם בתאריך הזה.</span></div>'
+      + '<button data-logdate-cancel>ביטול</button></div>';
   }
   function calBlock() {
     const today = wlToday(), sel = wlSel(), by = wlByDate();
@@ -3084,8 +3258,8 @@ html[data-theme="light"] .cal-g button.on{color:#FFFFFF}
         + en.map(x => '<div class="wl-done-r"><span>' + esc(x.ex || x.name || 'תרגיל') + '</span><em>' + esc(wlSetsText(x)) + '</em></div>').join('')
         + (l.note ? '<div class="wl-done-n">' + esc(l.note) + '</div>' : '') + '</div>';
     });
-    if (!logs.length && !WL_FORM) h += '<div class="card mt" style="text-align:center;padding:16px;font-size:13.5px">' + (sel === today ? 'עוד לא נרשם אימון היום.' : 'לא נרשם אימון ביום הזה.') + '</div>';
-    if (!WL_FORM && canAdd) {
+    if (!logs.length) h += '<div class="card mt" style="text-align:center;padding:16px;font-size:13.5px">' + (sel === today ? 'עוד לא נרשם אימון היום.' : 'לא נרשם אימון ביום הזה.') + '</div>';
+    if (canAdd) {
       h += (gap !== null && gap <= WL_BACK)
         ? '<button class="btn" data-wladd style="width:100%;margin:2px 0 6px">+ ' + (sel === today ? 'רישום אימון של היום' : 'הוספת אימון ל-' + new Date(sel + 'T00:00').getDate() + ' ב' + WL_MONTH[new Date(sel + 'T00:00').getMonth()]) + '</button>'
         : '<div class="mt" style="font-size:12.5px;text-align:center;margin:4px 0 8px">אפשר להוסיף אימון עד ' + WL_BACK + ' יום אחורה. לאימון ישן יותר — כתוב למאמן.</div>';
@@ -3135,90 +3309,9 @@ html[data-theme="light"] .cal-g button.on{color:#FFFFFF}
         + '<div class="mt" style="font-size:13px;line-height:1.7">ברגע שהמאמן יבנה לך תוכנית אימון, '
         + 'כל אימון שתעשה יירשם כאן — משקל, חזרות והתקדמות מאימון לאימון.</div></div>';
     }
-    const i = wlIdx(), day = days[i] || {}, draft = wlDraft();
-    const ex = day.exercises || [];
-    const entries = wlEntries();
-    const vol = EBWLog.volumeOf(entries);
-    const selD = wlSel(), isToday = selD === wlToday();
-    if (!WL_FORM) return calBlock() + wlDayPanel(true) + wlHistory();
-
-    /* המספר הגדול: נפח. הוא זז גם כשהמשקל לא זז — עוד סט באותו
-       משקל הוא עוד עבודה, ומספר שלא זז אף פעם מפסיקים להסתכל עליו. */
-    let h = calBlock() + wlDayPanel(true) + '<div class="wl-top" id="wlForm">'
-      + '<button data-wlcancel class="wl-x" aria-label="ביטול">ביטול</button>'
-      + '<div class="wl-kick">' + (isToday ? 'האימון של היום' : 'אימון ב' + wlDateLabel(selD).replace('יום ', 'יום ')) + '</div>'
-      + '<div class="wl-big"><span id="wlVol">' + vol.toLocaleString('en-US') + '</span>'
-      + '<small>ק״ג נפח</small></div>'
-      + '<div class="wl-sub" id="wlSub">' + (entries.length
-          ? (entries.length === 1 ? 'תרגיל אחד' : entries.length + ' תרגילים') + ' מתוך ' + realOf(day).length + (entries.length === 1 ? ' נרשם' : ' נרשמו')
-          : 'רשום משקל וחזרות לכל סט שסיימת') + '</div></div>';
-
-    h += '<div class="wl-days">' + days.map(function (d, j) {
-      if (!realOf(d).length) return '';
-      return '<button data-wlday="' + j + '"' + (j === i ? ' class="on"' : '') + '>'
-        + esc(d.name || ('יום ' + (j + 1))) + '</button>';
-    }).join('') + '</div>';
-
-    if (!ex.length) {
-      h += '<div class="card mt" style="text-align:center;padding:20px;font-size:13.5px">'
-        + 'אין תרגילים ביום הזה.</div>';
-    }
-
-    h += setsGuide(day);
-
-    ex.forEach(function (e, j) {
-      if (!isReal(e)) return;
-      const n = EBWLog.setCount(e);
-      const last = EBWLog.lastTimeOf(EXTRAS.logs, e.name);
-      let filled = 0;
-      for (let s = 0; s < n; s++) {
-        const c = draft.sets[EBWLog.setKey(j, s)];
-        if (c && (c.w || c.r)) filled++;
-      }
-      const target = fmtSpec(e, false);
-      h += '<div class="wl-ex' + (filled ? ' has' : '') + '" data-wlex="' + j + '">'
-        + '<div class="wl-exname">' + esc(e.name || 'תרגיל') + '</div>'
-        + (target ? '<div class="mt" style="font-size:12.5px;margin-top:2px">' + esc(target) + '</div>' : '')
-        + (last
-            ? '<div class="wl-last">בפעם הקודמת ' + EBWLog.r1(last.weight || 0) + ' ק״ג'
-              + (last.reps ? ' × ' + last.reps : '') + ' · ' + wlWhen(last.date) + '</div>'
-            : '<div class="wl-none">פעם ראשונה שהתרגיל הזה נרשם</div>');
-      const roles = EBWLog.setRoles ? EBWLog.setRoles(e, day) : null;
-      for (let s = 0; s < n; s++) {
-        const cell = draft.sets[EBWLog.setKey(j, s)] || {};
-        const on = (cell.w || cell.r) ? ' filled' : '';
-        const role = roles && roles[s];
-        if (role && role !== roles[s - 1]) {
-          let to = s; while (roles[to + 1] === role) to++;
-          h += '<div class="wl-role r-' + role + '">' + (to > s ? 'סטים ' + (s + 1) + '–' + (to + 1) : 'סט ' + (s + 1))
-            + ' · ' + esc(EBWLog.ROLE_LABEL[role]) + '</div>';
-        }
-        h += '<div class="wl-set' + on + '">'
-          + '<span class="wl-setn">' + (s + 1) + '</span>'
-          + '<input data-ws="' + j + ':' + s + '" data-wf="w" inputmode="decimal" placeholder="' + (role === 'move' ? 'בלי משקל' : 'משקל') + '" value="'
-          + esc(cell.w != null ? cell.w : '') + '">'
-          + '<input data-ws="' + j + ':' + s + '" data-wf="r" inputmode="numeric" placeholder="חזרות" value="'
-          + esc(cell.r != null ? cell.r : '') + '">'
-          + '</div>';
-      }
-      h += '</div>';
-    });
-
-    if (ex.length) {
-      h += '<div class="card" style="background:var(--ink);margin-top:4px">'
-        + '<label style="font-size:13px;color:var(--mut)">איך היה?</label>'
-        + '<div class="feel">' + ['קל', 'בסדר', 'קשה'].map(function (f) {
-            return '<button data-wlfeel="' + f + '"' + (draft.feel === f ? ' class="on"' : '') + '>' + f + '</button>';
-          }).join('') + '</div>'
-        + '<textarea data-wlnote maxlength="500" placeholder="הערה למאמן (לא חובה) — למשל אם משהו כאב או הרגיש לא נכון" style="width:100%;margin-top:10px;min-height:54px;resize:vertical;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:9px 11px;font:inherit;font-size:14px;color:var(--tx)">'
-        + esc(draft.note || '') + '</textarea>'
-        + '<button class="btn" data-wlsave style="width:100%;margin-top:11px"'
-        + (entries.length ? '' : ' disabled') + '>' + (isToday ? 'שמירת האימון' : 'שמירת האימון ל-' + new Date(selD + 'T00:00').getDate() + ' ב' + WL_MONTH[new Date(selD + 'T00:00').getMonth()]) + '</button>'
-        + '<div class="mt" style="font-size:11.5px;margin-top:8px;text-align:center">'
-        + 'נשמר אצל המאמן ונכנס למעקב ההתקדמות שלך.</div></div>';
-    }
-
-    return h + wlHistory();
+    /* מנובמבר 2026 רושמים אימון במקום אחד — מסך האימון. היומן הוא לוח שנה
+       והיסטוריה; "הוספת אימון" פותחת את מסך האימון לתאריך שנבחר */
+    return calBlock() + wlDayPanel(true) + wlHistory();
   }
 
   /* ההיסטוריה: מה שכבר נשמר בשרת. זה מה שמפריד בין "רשמתי" לבין
@@ -3257,55 +3350,10 @@ html[data-theme="light"] .cal-g button.on{color:#FFFFFF}
     if (body && OPEN_CATEGORY === 'log') body.innerHTML = logScreen();
   }
 
-  /* עדכון המספר הגדול בלי ציור מחדש — ציור בכל הקלדה מוציא
-     את הסמן מהשדה אחרי כל ספרה. */
-  function wlTouch() {
-    const entries = wlEntries();
-    const volEl = document.getElementById('wlVol');
-    if (volEl) volEl.textContent = EBWLog.volumeOf(entries).toLocaleString('en-US');
-    const realN = realOf(wlDays()[wlIdx()]).length;
-    const subEl = document.getElementById('wlSub');
-    if (subEl) {
-      subEl.textContent = entries.length
-        ? (entries.length === 1 ? 'תרגיל אחד' : entries.length + ' תרגילים') + ' מתוך ' + realN + (entries.length === 1 ? ' נרשם' : ' נרשמו')
-        : 'רשום משקל וחזרות לכל סט שסיימת';
-    }
-    const btn = document.querySelector('[data-wlsave]');
-    if (btn) btn.disabled = !entries.length;
-  }
-
   document.addEventListener('input', function (e) {
     const fn = e.target.closest && e.target.closest('[data-finnote]');
     if (fn) { FIN_NOTE[fn.dataset.finnote] = fn.value; return; }
-    const wn = e.target.closest && e.target.closest('[data-wlnote]');
-    if (wn) { const d = wlDraft(); d.note = wn.value; wlWrite(); }
   });
-
-  async function wlSaveWorkout(btn) {
-    const entries = wlEntries();
-    if (!entries.length) { toast('רשום לפחות סט אחד'); return; }
-    const i = wlIdx(), day = wlDays()[i] || {}, draft = wlDraft();
-    if (btn) { btn.disabled = true; btn.textContent = 'שומר…'; }
-    try {
-      const { error } = await logRpc({
-        p_token: TOKEN, p_day_index: i,
-        p_day_name: day.name || ('יום ' + (i + 1)),
-        p_entries: entries, p_feel: draft.feel || null, p_note: (draft.note || '').trim() || null
-      }, wlSel());
-      if (error) throw error;
-      /* מנקים רק את היום ששודר */
-      delete wlAll()['d' + i];
-      wlWrite();
-      WL_FORM = false;
-      if (window.EBProg) EBProg.logWorkout();
-      toast('האימון נשמר. כל הכבוד! 💪');
-      await loadExtras();
-      wlRepaint();
-    } catch (err) {
-      toast('לא הצלחנו לשמור — נסה שוב כשתהיה רשת');
-      if (btn) { btn.disabled = false; btn.textContent = 'שמירת האימון'; }
-    }
-  }
 
   /* ---------- הצהרת בריאות ----------
      שבע שאלות הסינון מגיעות מ-health.js, אותו מקור שהמאמן קורא ממנו,
@@ -4075,12 +4123,10 @@ html[data-theme="light"] .cal-g button.on{color:#FFFFFF}
     }
     const st = STATE[d + ':' + i] || {};
     const meta = fmtSpec(e, true);
-    const roles = typeof EBWLog !== 'undefined' && EBWLog.setRoles ? EBWLog.setRoles(e, ((DATA.program || {}).days || [])[d]) : null;
     return '<div class="ex' + (exDone(e, st) ? ' done' : '') + '" data-ex="' + i + '" data-exd="' + d + '">'
       + '<div class="hd"><button class="chk" data-chk="' + i + '" data-chkd="' + d + '">✓</button>'
       + '<div style="flex:1;min-width:0"><div class="nm">' + esc(e.name || 'תרגיל') + '</div>'
       + (meta ? '<div class="meta">' + esc(meta) + '</div>' : '')
-      + (roles ? '<div class="roles">' + esc(EBWLog.rolesLine(roles)) + '</div>' : '')
       + (e.note ? '<div class="note">' + esc(e.note) + '</div>' : '')
       + lastLine(e)
       + '<div class="ex-acts">' + vidBtn(e) + restBtn(e) + '</div>'
@@ -4139,6 +4185,10 @@ html[data-theme="light"] .cal-g button.on{color:#FFFFFF}
     for (let q = 0; q < n; q++) {
       const c = (st.sets && st.sets[q]) || (legacy && q === 0 ? { w: st.weight, r: st.reps, ok: true } : {});
       const hint = setHint(e, st, q, roles), role = roles && roles[q], at = ' data-s="' + q + '" data-i="' + i + '" data-d="' + d + '"';
+      if (role && role !== roles[q - 1]) {
+        let to = q; while (roles[to + 1] === role) to++;
+        h += '<div class="srole r-' + role + '">' + (to > q ? 'סטים ' + (q + 1) + '–' + (to + 1) : 'סט ' + (q + 1)) + ' · ' + esc(EBWLog.ROLE_LABEL[role]) + '</div>';
+      }
       h += '<div class="srow' + (c.ok ? (c.t ? ' typed' : ' ok') : '') + (role && role !== 'work' ? ' warm' : '') + '" data-srow="' + q + '">'
         + '<span class="sn">' + (q + 1) + '</span>'
         + '<input data-sf="w"' + at + ' inputmode="decimal" aria-label="סט ' + (q + 1) + ' — משקל בק״ג" placeholder="' + esc(role === 'move' ? '—' : hint.w) + '" value="' + esc(c.w != null ? c.w : '') + '">'
@@ -4257,6 +4307,7 @@ html[data-theme="light"] .cal-g button.on{color:#FFFFFF}
     if (!tot) { if (b) b.remove(); return; }
     if (!b) { b = document.createElement('div'); b.className = 'bar'; document.body.appendChild(b); }
     const pct = Math.round(done / tot * 100);
+    wprogPaint();
     /* הסרגל הוא גם כפתור: נגיעה פותחת את האימון */
     b.setAttribute('data-category', 'workout'); b.setAttribute('role', 'button'); b.setAttribute('aria-label', 'פתיחת האימון');
     b.innerHTML =
@@ -4404,8 +4455,6 @@ html[data-theme="light"] .cal-g button.on{color:#FFFFFF}
       return;
     }
 
-    const wld = e.target.closest('[data-wlday]');
-    if (wld) { WL_DAY = +wld.dataset.wlday; wlRepaint(); return; }
     const cnv = e.target.closest('[data-calnav]');
     if (cnv && WL_CAL) {
       const d0 = new Date(WL_CAL.y, WL_CAL.m + (+cnv.dataset.calnav), 1);
@@ -4413,32 +4462,21 @@ html[data-theme="light"] .cal-g button.on{color:#FFFFFF}
     }
     const cd = e.target.closest('[data-cal]');
     if (cd) {
-      WL_SEL = cd.dataset.cal; WL_FORM = false;
+      WL_SEL = cd.dataset.cal;
       const d0 = new Date(WL_SEL + 'T00:00'); WL_CAL = { y: d0.getFullYear(), m: d0.getMonth() };
       wlRepaint();
       if (cd.classList.contains('wl-hist')) { const dg = document.querySelector('.category-dialog'); if (dg) dg.scrollTop = 0; }
       return;
     }
     if (e.target.closest('[data-wladd]')) {
-      WL_FORM = true; wlRepaint();
-      const f = document.getElementById('wlForm'); if (f) setTimeout(() => f.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60);
+      const sel = wlSel();
+      LOG_NEXT = sel === wlToday() ? null : sel;
+      try { DAY = EBWLog.suggestDay(DATA.program, EXTRAS.logs); } catch (er) {}
+      openCategory('workout');
       return;
     }
-    if (e.target.closest('[data-wlcancel]')) { WL_FORM = false; wlRepaint(); return; }
+    if (e.target.closest('[data-logdate-cancel]')) { const d = LOG_DATE; WL_KEEP = d; openCategory('log'); return; }
 
-    const wlf = e.target.closest('[data-wlfeel]');
-    if (wlf) {
-      const d = wlDraft();
-      d.feel = d.feel === wlf.dataset.wlfeel ? null : wlf.dataset.wlfeel;
-      wlWrite();
-      document.querySelectorAll('[data-wlfeel]').forEach(function (b) {
-        b.classList.toggle('on', b.dataset.wlfeel === d.feel);
-      });
-      return;
-    }
-
-    const wls = e.target.closest('[data-wlsave]');
-    if (wls) { wlSaveWorkout(wls); return; }
 
     const fin = e.target.closest('[data-fin]');
     if (fin) { finish(+fin.dataset.fin, fin); return; }
@@ -4473,19 +4511,6 @@ html[data-theme="light"] .cal-g button.on{color:#FFFFFF}
     if (esf) {
       const mx = MY_EX.find(x => x.exId === e.target.dataset.exid);
       if (mx) { mx[esf] = e.target.value; writeEx(); }
-      return;
-    }
-    const ws = e.target.dataset && e.target.dataset.ws;
-    if (ws) {
-      const d = wlDraft();
-      d.sets[ws] = d.sets[ws] || {};
-      d.sets[ws][e.target.dataset.wf] = e.target.value;
-      wlWrite();
-      const row = e.target.closest('.wl-set');
-      if (row) row.classList.toggle('filled', !!(d.sets[ws].w || d.sets[ws].r));
-      const card = e.target.closest('.wl-ex');
-      if (card) card.classList.add('has');
-      wlTouch();
       return;
     }
     const sf = e.target.dataset && e.target.dataset.sf;
@@ -4886,19 +4911,53 @@ html[data-theme="light"] .cal-g button.on{color:#FFFFFF}
         p_token: TOKEN, p_day_index: i,
         p_day_name: day.name || ('יום ' + (i + 1)),
         p_entries: entries, p_feel: FEEL, p_note: (FIN_NOTE[i] || '').trim() || null
-      }, markedOn(STATE, i));
+      }, LOG_DATE || markedOn(STATE, i));
       if (error) throw error;
-      toast('נשלח למאמן. כל הכבוד! 💪');
+      const sumHtml = finishSummary(day, entries, LOG_DATE);
       if (window.EBProg) EBProg.logWorkout();
       /* מנקים רק את היום ששודר. מי שסימן מראש תרגילים ביום אחר
          לא אמור לאבד אותם רק כי סיים אימון. */
       Object.keys(STATE).forEach(k => { if (k.indexOf(i + ':') === 0) delete STATE[k]; });
       writeState(); queueStateSync(); loadExtras();
-      FEEL = null; delete FIN_NOTE[i]; paint();
+      FEEL = null; delete FIN_NOTE[i];
+      const back = LOG_DATE;
+      closeCategory(); paint();
+      showFinish(sumHtml, back);
     } catch (err) {
       toast('לא הצלחנו לשלוח — נסה שוב כשתהיה רשת');
       if (btn) { btn.disabled = false; btn.textContent = 'סיימתי את האימון הזה'; }
     }
+  }
+
+  /* ---------- סיכום אחרי "סיימתי" (נובמבר 2026) ----------
+     הודעה של שתי שניות נעלמה לפני שקראו אותה. עכשיו מסך קצר: כמה סטים,
+     כמה נפח, ושיא אם נשבר — מהמספרים שנשלחו, בלי משפטי עידוד גנריים. */
+  function finishSummary(day, entries, date) {
+    const done = entries.filter(e => e && e.done);
+    let sets = 0; done.forEach(e => { sets += (e.setLog || []).length || Number(e.sets) || 1; });
+    const vol = EBWLog.volumeOf(done);
+    const top = e => Math.max(0, Number(e.weight) || 0, ...((e.setLog || []).map(x => Number(x.w) || 0)));
+    const before = {};
+    (EXTRAS.logs || []).forEach(l => (l.entries || []).forEach(e => { const n = e.ex || e.name; if (n && e.done) before[n] = Math.max(before[n] || 0, top(e)); }));
+    const prs = done.filter(e => before[e.ex] > 0 && top(e) > before[e.ex]).slice(0, 3);
+    const st = (v, l) => '<div><b>' + v + '</b><span>' + l + '</span></div>';
+    return '<div class="fin-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>'
+      + '<h2>האימון נשלח למאמן</h2>'
+      + '<p>' + esc(day.name || 'אימון') + (date ? ' · נרשם ל' + esc(wlDateLabel(date)) : '') + '</p>'
+      + '<div class="fin-st">' + st(done.length, done.length === 1 ? 'תרגיל' : 'תרגילים') + st(sets, 'סטים') + st(vol ? vol.toLocaleString('en-US') : '—', 'ק״ג נפח') + '</div>'
+      + (prs.length ? '<div class="fin-pr"><b>שיא חדש</b>' + prs.map(e => '<div><span>' + esc(e.ex) + '</span><em>' + EBWLog.r1(before[e.ex]) + ' ← ' + EBWLog.r1(top(e)) + ' ק״ג</em></div>').join('') + '</div>' : '');
+  }
+  function showFinish(html, backDate) {
+    const old = document.getElementById('finSheet'); if (old) old.remove();
+    const w = document.createElement('div'); w.id = 'finSheet'; w.className = 'fin-mask';
+    w.innerHTML = '<div class="fin-sheet" role="dialog" aria-modal="true" aria-label="סיכום האימון">' + html
+      + '<button class="btn" data-fin-close style="width:100%;margin-top:16px">' + (backDate ? 'חזרה ליומן' : 'סגירה') + '</button></div>';
+    w.addEventListener('click', e => {
+      if (e.target !== w && !e.target.closest('[data-fin-close]')) return;
+      w.remove();
+      if (backDate) { WL_KEEP = backDate; openCategory('log'); }
+    });
+    document.body.appendChild(w);
   }
 
   /* מונה התרגילים בכותרת היום, בלי לצייר מחדש */
@@ -4912,7 +4971,11 @@ html[data-theme="light"] .cal-g button.on{color:#FFFFFF}
     if (meta) meta.innerHTML = real ? (done ? '<em>' + done + '</em>/' : '') + real + ' תרגילים' : 'הנחיות';
     card.classList.toggle('full', real > 0 && done === real);
     const fin = card.querySelector('[data-fin]');
-    if (fin) fin.disabled = !done;
+    if (fin) fin.disabled = !dayAny(i);
+  }
+  /* "סיימתי" נפתח כשיש משהו לשלוח — גם סט אחד, לא רק תרגיל שלם */
+  function dayAny(i) {
+    return Object.keys(STATE).some(k => { const v = STATE[k]; return k.indexOf(i + ':') === 0 && v && (v.done || Object.keys(v.sets || {}).some(q => v.sets[q] && v.sets[q].ok)); });
   }
 
   boot();

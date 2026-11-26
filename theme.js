@@ -68,7 +68,10 @@
         }).join('') + '</div>';
   }
   function body() {
-    return '<div class="thm-lbl">צבעים</div><div class="thm-row">' + THEMES.map(swatch).join('') + '</div>' + figRow();
+    /* extra — קטע שהדף עצמו מוסיף לחלון (דף המתאמן: תזכורות). הלחיצות בו
+       מטופלות בדף, לא כאן; אחרי שינוי הדף קורא ל-EBTheme.refresh() */
+    var ex = ''; try { ex = EBTheme.extra ? (EBTheme.extra() || '') : ''; } catch (e) { ex = ''; }
+    return '<div class="thm-lbl">צבעים</div><div class="thm-row">' + THEMES.map(swatch).join('') + '</div>' + figRow() + ex;
   }
   /* דמות חיה מההדמיות עצמן — רואים בדיוק מה ייראה בתרגילים */
   function mountFigs(root) {
@@ -105,7 +108,8 @@
     try { window.dispatchEvent(new CustomEvent('eb-theme', { detail: get() })); } catch (e) {}
   }
 
-  window.EBTheme = { THEMES: THEMES, get: get, set: set, open: open, close: close, sw: sw, figure: null };
+  function refresh() { var b = document.querySelector('#thmSheet .thm-body'); if (b) { b.innerHTML = body(); mountFigs(b); } }
+  window.EBTheme = { THEMES: THEMES, get: get, set: set, open: open, close: close, sw: sw, figure: null, extra: null, refresh: refresh };
   /* שמות שהדפים כבר קוראים להם */
   window.themeSw = sw;
   window.toggleTheme = open;

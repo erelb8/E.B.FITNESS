@@ -53,13 +53,15 @@ async function traineeVisit(b, when, act) {
   return errs;
 }
 async function logWorkout(p, bench, squat) {
+  /* מנובמבר 2026 רושמים במקום אחד: יומן → "רישום אימון של היום" → מסך האימון */
   await p.click('[data-category="log"]'); await p.waitForTimeout(500);
-  await p.click('[data-wladd]'); await p.waitForTimeout(400);   // מנובמבר 2026: לוח שנה קודם, הטופס נפתח מהכפתור
-  const fill = async (sel, v) => { const el = await p.$(sel); await el.fill(String(v)); await el.dispatchEvent('input'); await el.dispatchEvent('change'); };
-  await fill('[data-ws="0:0"][data-wf="w"]', bench); await fill('[data-ws="0:0"][data-wf="r"]', 8);
-  await fill('[data-ws="1:0"][data-wf="w"]', squat); await fill('[data-ws="1:0"][data-wf="r"]', 6);
+  await p.click('[data-wladd]'); await p.waitForTimeout(500);
+  const fill = async (sel, v) => { const el = await p.$('#categoryModal .dayc.on ' + sel); await el.fill(String(v)); await el.dispatchEvent('input'); };
+  await fill('[data-sf="w"][data-i="0"][data-s="0"]', bench); await fill('[data-sf="r"][data-i="0"][data-s="0"]', 8);
+  await fill('[data-sf="w"][data-i="1"][data-s="0"]', squat); await fill('[data-sf="r"][data-i="1"][data-s="0"]', 6);
   await p.waitForTimeout(300);
-  await p.click('[data-wlsave]'); await p.waitForTimeout(800);
+  await p.evaluate(() => { const f = document.querySelector('#categoryModal .dayc.on [data-fin]'); f.scrollIntoView(); f.click(); }); await p.waitForTimeout(900);
+  await p.evaluate(() => { const x = document.querySelector('[data-fin-close]'); if (x) x.click(); const r = document.querySelector('#restPill [data-rest="stop"]'); if (r) r.click(); }); await p.waitForTimeout(300);
 }
 async function weigh(p, w) {
   await p.click('[data-category="follow"]'); await p.waitForTimeout(500);

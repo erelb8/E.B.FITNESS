@@ -95,6 +95,7 @@ const look = p => p.evaluate(k => {
     await p.click('[data-category="workout"]'); await p.waitForTimeout(400);
     await p.click('.dayc.on [data-fin="0"]'); await p.waitForTimeout(900);
     const a = { logs: io.logs.slice() };
+    await p.evaluate(() => { const x = document.querySelector('[data-fin-close]'); if (x) x.click(); }); await p.waitForTimeout(300);   // מסך הסיכום שנפתח אחרי "סיימתי"
     await p.click('[data-category="workout"]').catch(() => {}); await p.waitForTimeout(300);
     await p.click('#categoryModal .dayc.on [data-chk="0"]').catch(() => {}); await p.waitForTimeout(200);
     await p.click('#categoryModal .dayc.on [data-fin="0"]').catch(() => {}); await p.waitForTimeout(900);
