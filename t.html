@@ -4984,7 +4984,7 @@ html[data-theme="light"] .th-week .on i{color:#FFFFFF}
     return '<div class="fin-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>'
       + '<h2>האימון נשלח למאמן</h2>'
       + '<p>' + esc(day.name || 'אימון') + (date ? ' · נרשם ל' + esc(wlDateLabel(date)) : '') + '</p>'
-      + '<div class="fin-st">' + st(done.length, done.length === 1 ? 'תרגיל' : 'תרגילים') + st(sets, 'סטים') + st(vol ? vol.toLocaleString('en-US') : '—', 'ק״ג נפח') + '</div>'
+      + '<div class="fin-st">' + st(done.length, done.length === 1 ? 'תרגיל' : 'תרגילים') + st(sets, sets === 1 ? 'סט' : 'סטים') + st(vol ? vol.toLocaleString('en-US') : '—', 'ק״ג נפח') + '</div>'
       + (prs.length ? '<div class="fin-pr"><b>שיא חדש</b>' + prs.map(e => '<div><span>' + esc(e.ex) + '</span><em>' + EBWLog.r1(before[e.ex]) + ' ← ' + EBWLog.r1(top(e)) + ' ק״ג</em></div>').join('') + '</div>' : '');
   }
   function showFinish(html, backDate) {

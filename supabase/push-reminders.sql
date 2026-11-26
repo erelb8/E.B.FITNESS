@@ -24,7 +24,7 @@
 --            check-in was not sent yet
 -- =====================================================================
 
-create extension if not exists pg_net;
+create extension if not exists pg_net with schema extensions;
 create extension if not exists pg_cron;
 
 create table if not exists public.push_subs (
