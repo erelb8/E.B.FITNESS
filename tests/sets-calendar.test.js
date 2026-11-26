@@ -54,6 +54,12 @@ const LOGS = [{ date: '2026-11-20', day_name: 'יום A', entries: [{ ex: 'מת�
   await p.fill(ex0 + ' >> [data-sf="w"][data-s="1"]', '65'); await p.fill(ex0 + ' >> [data-sf="r"][data-s="1"]', '7'); await p.waitForTimeout(200);
   s0 = await st('0:0');
   t('הקלדה מסמנת את הסט כבוצע', s0.sets[1].ok && s0.sets[1].w === '65' && !s0.done, JSON.stringify(s0.sets));
+  /* מי שמקליד ואז נוגע בווי "לאשר" — הסט נשאר מסומן, ולא מתבטל */
+  await p.evaluate(() => { const x = document.querySelector('#restPill [data-rest="stop"]'); if (x) x.click(); }); await p.waitForTimeout(100);
+  t('סט שהוקלד מוצג כממתין לאישור', await p.$eval(ex0 + ' >> [data-srow="1"]', x => x.classList.contains('typed') && !x.classList.contains('ok')));
+  await p.tap(ex0 + ' >> [data-sok="1"]'); await p.waitForTimeout(250);
+  s0 = await st('0:0');
+  t('וי אחרי הקלדה מאשר (לא מבטל) ומתחיל מנוחה', s0.sets[1].ok === true && !s0.sets[1].t && s0.sets[1].w === '65' && await p.evaluate(() => !!document.getElementById('restPill')) && await p.$eval(ex0 + ' >> [data-srow="1"]', x => x.classList.contains('ok')), JSON.stringify(s0.sets[1]));
   t('הסט הבא מקבל את הרמז מהסט שלפניו', await p.$eval(ex0 + ' >> [data-sf="w"][data-s="2"]', x => x.placeholder) === '65');
   await p.tap(ex0 + ' >> [data-sok="2"]'); await p.waitForTimeout(400);
   s0 = await st('0:0');

@@ -510,6 +510,8 @@ html[data-theme="light"] .cal-g button.on{color:#FFFFFF}
   display:grid;place-items:center;-webkit-tap-highlight-color:transparent;transition:transform .12s}
 .sok:active{transform:scale(.92)}
 .srow.ok .sok{background:var(--or);border-color:var(--or);color:var(--ink)}
+.srow.typed .sok{border-color:var(--or);color:var(--or)}
+.srow.typed .sn{border-color:var(--or);color:var(--or)}
 /* כרטיס התרגיל: יחידות בתוך השדה, ושורת הסטים שקטה יותר */
 .logs .lg{position:relative;flex:1;min-width:0;display:block}
 .logs .lg input{width:100%;padding-inline-end:46px;padding-inline-start:10px}
@@ -4137,11 +4139,11 @@ html[data-theme="light"] .cal-g button.on{color:#FFFFFF}
     for (let q = 0; q < n; q++) {
       const c = (st.sets && st.sets[q]) || (legacy && q === 0 ? { w: st.weight, r: st.reps, ok: true } : {});
       const hint = setHint(e, st, q, roles), role = roles && roles[q], at = ' data-s="' + q + '" data-i="' + i + '" data-d="' + d + '"';
-      h += '<div class="srow' + (c.ok ? ' ok' : '') + (role && role !== 'work' ? ' warm' : '') + '" data-srow="' + q + '">'
+      h += '<div class="srow' + (c.ok ? (c.t ? ' typed' : ' ok') : '') + (role && role !== 'work' ? ' warm' : '') + '" data-srow="' + q + '">'
         + '<span class="sn">' + (q + 1) + '</span>'
         + '<input data-sf="w"' + at + ' inputmode="decimal" aria-label="סט ' + (q + 1) + ' — משקל בק״ג" placeholder="' + esc(role === 'move' ? '—' : hint.w) + '" value="' + esc(c.w != null ? c.w : '') + '">'
         + '<input data-sf="r"' + at + ' inputmode="numeric" aria-label="סט ' + (q + 1) + ' — חזרות" placeholder="' + esc(hint.r) + '" value="' + esc(c.r != null ? c.r : '') + '">'
-        + '<button class="sok" data-sok="' + q + '" data-i="' + i + '" data-d="' + d + '" aria-label="סט ' + (q + 1) + ' בוצע" aria-pressed="' + !!c.ok + '">✓</button></div>';
+        + '<button class="sok" data-sok="' + q + '" data-i="' + i + '" data-d="' + d + '" aria-label="סט ' + (q + 1) + ' בוצע" aria-pressed="' + !!(c.ok && !c.t) + '">✓</button></div>';
     }
     return h + '</div>';
   }
@@ -4156,8 +4158,9 @@ html[data-theme="light"] .cal-g button.on{color:#FFFFFF}
       card.classList.toggle('done', all);
       card.querySelectorAll('.srow').forEach(row => {
         const q = +row.dataset.srow, c = st.sets[q] || {}, hint = setHint(ex, st, q, roles);
-        row.classList.toggle('ok', !!c.ok);
-        const b = row.querySelector('.sok'); if (b) b.setAttribute('aria-pressed', String(!!c.ok));
+        row.classList.toggle('ok', !!c.ok && !c.t);
+        row.classList.toggle('typed', !!c.ok && !!c.t);
+        const b = row.querySelector('.sok'); if (b) b.setAttribute('aria-pressed', String(!!c.ok && !c.t));
         row.querySelectorAll('input[data-sf]').forEach(inp => {
           const f = inp.dataset.sf;
           if (!(f === 'w' && roles && roles[q] === 'move')) inp.placeholder = hint[f] || '';
@@ -4298,7 +4301,7 @@ html[data-theme="light"] .cal-g button.on{color:#FFFFFF}
         adoptLegacy(st);
         card.querySelectorAll('.srow').forEach(row => {
           const q = +row.dataset.srow, c = st.sets[q] = st.sets[q] || {};
-          c.ok = on;
+          c.ok = on; delete c.t;
           if (on) row.querySelectorAll('input[data-sf]').forEach(inp => { const f = inp.dataset.sf; if (!filled(c[f]) && /^\d/.test(inp.placeholder)) c[f] = inp.placeholder; });
         });
         afterSet(exo, st, card, +d, +chk.dataset.chk); st.done = on; card.classList.toggle('done', on); }
@@ -4317,7 +4320,8 @@ html[data-theme="light"] .cal-g button.on{color:#FFFFFF}
       const st = STATE[k] = STATE[k] || {}, row = sok.closest('.srow'), card = sok.closest('.ex');
       adoptLegacy(st);
       const c = st.sets[q] = st.sets[q] || {};
-      c.ok = !c.ok;
+      if (c.ok && c.t) delete c.t;          // הוקלד — הנגיעה מאשרת
+      else { c.ok = !c.ok; delete c.t; }
       if (c.ok) row.querySelectorAll('input[data-sf]').forEach(inp => { const f = inp.dataset.sf; if (!filled(c[f]) && /^\d/.test(inp.placeholder)) c[f] = inp.placeholder; });
       const all = afterSet(exo, st, card, d, i);
       if (c.ok) {
@@ -4494,6 +4498,9 @@ html[data-theme="light"] .cal-g button.on{color:#FFFFFF}
       c[sf] = e.target.value;
       /* סט שהוקלד בו מספר נחשב בוצע; סט שרוקן — לא */
       c.ok = filled(c.w) || filled(c.r);
+      /* t = הוקלד ועוד לא אושר בווי. נחשב בוצע (שלא יאבד למי ששכח את הווי),
+         אבל הווי עדיין "פתוח": נגיעה בו מאשרת ומתחילה מנוחה, ולא מבטלת */
+      if (c.ok) c.t = 1; else delete c.t;
       afterSet(exo, st, e.target.closest('.ex'), d, i);
       return;
     }
