@@ -16,13 +16,13 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['share'] = 'v288';
+  (window.EB_MOD = window.EB_MOD || {})['share'] = 'v289';
 
   var W = 1080, H = 1350, PAD = 76;
   var C = { top: '#35281E', bot: '#211710', card: '#3E3026', line: '#5B4838',
             tx: '#F7F1E9', mut: '#DBCEBE', dim: '#AD9A83', or: '#D6B188', gold: '#EBD6AF' };
   var SERIF = '"Frank Ruhl Libre", Georgia, serif', SANS = 'Heebo, Arial, sans-serif';
-  var LOGO = 'icons/icon-512.png?v=v288';
+  var LOGO = 'icons/icon-512.png?v=v289';
   var NAME = 'bauer-power-workout.png';
 
   function loadImg(src) {

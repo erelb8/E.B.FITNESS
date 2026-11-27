@@ -8,7 +8,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['exUi'] = 'v288';
+  (window.EB_MOD = window.EB_MOD || {})['exUi'] = 'v289';
 
   var Q = '', MUS = 'all', EQ = 'all', PLACE = 'all', FOR = null, DAY = 0, TARGET = null;
 
@@ -378,9 +378,60 @@
     base:     { n:'כושר כללי', comp:['3','10-12','75 שנ׳'],  iso:['3','12','60 שנ׳'] }
   };
 
-  /* ליבה, אירובי, גמישות וניידות לא נמדדים בסטים וחזרות של משקולות,
-     ולכן נשארים עם מה שהספרייה קבעה להם. */
-  var KEEP = { core:1, cardio:1, flex:1, mob:1 };
+  /* לא כל שורה בתוכנית היא תרגיל משקולות. מה שנמדד בזמן, במרחק, בצעדים או בסבבים — חימום,
+     אירובי, מתיחות, פלאנק, נשיאות — וגם ליבה, ניידות, אגרוף, כוח מתפרץ וגלישה, נשאר עם
+     המרשם שכתוב בו: "5×3-5" לא אומר עליו כלום.
+
+     עד נובמבר 2026 נשמרו רק שורות שהשם שלהן זהה לשם בספרייה. שורה שהמאמן הקליד בעצמו
+     ("חימום", "הליכה יומית", "ליבה — פלאנק צד") קיבלה מרשם של תרגיל בידוד, וכך "10 דק׳",
+     "12,000 צעדים" ו-"40 שנ׳" הפכו ל-"3 × 6-8" אצל מתאמנים אמיתיים. לכן שלושה סימנים,
+     וכל אחד מהם מספיק כדי להשאיר את השורה כמו שהיא:
+       1. מה שכבר כתוב בה הוא זמן, מרחק או מילה ("כשל") ולא טווח חזרות;
+       2. התרגיל בספרייה אינו תרגיל משקולות, או שהספרייה מודדת אותו בזמן או במרחק;
+       3. השם עצמו אומר חימום, אירובי, מתיחות, ליבה וכדומה.
+     בספק משאירים: שורה שנשארה עם המספרים הישנים שלה היא טעות קטנה מ"הליכה 3 × 6-8". */
+  var KEEP = { core:1, cardio:1, flex:1, mob:1, box:1, power:1, surf:1 };
+
+  /* זמן, מרחק, צעדים, סבבים. הקיצורים עם גרש עברי, גרש רגיל או בלי גרש אחרי מספר. */
+  var TIMED = /שנ[׳'’]|שניות|(^|[\s\d])שנ(?![א-ת])|דק[׳'’]|דקות|דקה|(^|[\s\d])דק(?![א-ת])|שעה|שעות|מטר|מ[׳'’]|ק[״"]מ|(^|[\s\d])קמ(?![א-ת])|צעד|סבב|סיבובים|נשימ|נשיפ/;
+
+  /* \b של JS לא מכיר עברית, ולכן הגבול נבדק ביד: "הליכה" כן, "הליכתי" לא. */
+  var SOFT_START = /^(חימום|שחרור|הרפיה|קירור|מתיחה|מתיחת|מתיחות|גמישות|ניידות|מוביליטי|אירובי|קרדיו|ליבה|בטן|מעגל|הליכה|הליכת|ריצה|ריצת|שחייה|רכיבה|אופניים|סיבובי)(?![א-ת])/;
+  var SOFT_ANY = /אינטרוול|ספרינט|פלאנק|Z[1-5]|HIIT|טבטה|90-90|russian twist|(כפיפות|תרגיל|תרגילי|גלגלת) בטן|(הנפ|הרמ)(ת|ות) (רגליים|ברכיים)|(רגל|רגליים|ברך|ברכיים) בתלייה/i;
+
+  var LIB_BY = null, LIB_SOFT = null, LIB_N = -1;
+  function libIndex() {
+    if (LIB_BY && LIB_N === EBEx.ALL.length) return;
+    LIB_BY = {}; LIB_SOFT = []; LIB_N = EBEx.ALL.length;
+    EBEx.ALL.forEach(function (x) {
+      var k = String(x.n || '').trim().toLowerCase();
+      LIB_BY[k] = x;
+      if (k.length >= 5 && (KEEP[x.m] || TIMED.test(String(x.r || '')))) LIB_SOFT.push(k);
+    });
+  }
+  function isLetter(c) { return !!c && /[א-תA-Za-z0-9]/.test(c); }
+  function hasWord(hay, needle) {
+    var i = hay.indexOf(needle);
+    while (i >= 0) {
+      if (!isLetter(hay.charAt(i - 1)) && !isLetter(hay.charAt(i + needle.length))) return true;
+      i = hay.indexOf(needle, i + 1);
+    }
+    return false;
+  }
+
+  /* האם מרשם לפי מטרה לא שייך לשורה הזאת */
+  function keepsRx(e) {
+    libIndex();
+    var nm = String((e && e.name) || '').trim(), low = nm.toLowerCase();
+    var sets = String(!e || e.sets == null ? '' : e.sets), reps = String(!e || e.reps == null ? '' : e.reps);
+    if (TIMED.test(sets + ' ' + reps)) return true;
+    if (/[א-תA-Za-z]/.test(reps) && !/\d/.test(reps)) return true;
+    var lib = LIB_BY[low];
+    if (lib) return !!KEEP[lib.m] || TIMED.test(String(lib.r || ''));
+    if (SOFT_START.test(nm) || SOFT_ANY.test(nm)) return true;
+    for (var i = 0; i < LIB_SOFT.length; i++) if (hasWord(low, LIB_SOFT[i])) return true;
+    return false;
+  }
 
   function goalKey(t) {
     var g = String((t && t.goal) || '') + ' ' + String((t && t.goal2) || '');
@@ -399,13 +450,16 @@
     (((t.program || {}).days) || []).forEach(function (d) {
       (d.exercises || []).forEach(function (e) {
         var nm = String(e.name || '').trim();
-        var lib = EBEx.ALL.filter(function (x) { return x.n === nm; })[0];
-        if (lib && KEEP[lib.m]) { kept++; return; }
+        if (keepsRx(e)) { kept++; return; }
         /* תרגיל שאינו בספרייה עדיין מקבל מרשם — הוא בדרך כלל תרגיל
            משקולות שהמאמן הקליד בעצמו. */
         var set = COMPOUND.test(nm) ? rx.comp : rx.iso;
-        if (e.sets !== set[0] || e.reps !== set[1] || e.rest !== set[2]) changed++;
-        e.sets = set[0]; e.reps = set[1]; e.rest = set[2];
+        /* "8 לכל צד" נשאר "לכל צד": המרשם מחליף את המספר, לא את מה שהוא סופר. */
+        var side = (String(e.reps == null ? '' : e.reps).match(/\s+((לכל|בכל)\s+(צד|רגל|יד|כיוון)|לצד|לרגל|ליד)\s*$/) || [''])[0]
+                     .replace(/\s+/g, ' ').replace(/ $/, '');
+        var reps = set[1] + side;
+        if (e.sets !== set[0] || e.reps !== reps || e.rest !== set[2]) changed++;
+        e.sets = set[0]; e.reps = reps; e.rest = set[2];
       });
     });
     if (!silent && changed) { save(); render(); }
@@ -442,7 +496,7 @@
         + '</div>'
         + '<div class="muted" style="font-size:11.5px;margin-top:3px">'
         + r.changed + ' תרגילים עודכנו'
-        + (r.kept ? ' · ' + r.kept + ' נשארו (ליבה, אירובי, גמישות)' : '')
+        + (r.kept ? ' · ' + r.kept + ' נשארו כמו שהם (חימום, אירובי, ליבה, מתיחות)' : '')
         + '</div></div>';
     });
     h += '</div><div class="mf"><button class="btn ghost" onclick="closeModal()">סגירה</button></div>';
@@ -451,5 +505,5 @@
 
   window.EBExUI = { open: open, close: close,
                     fillTrainee: fillTrainee, fillAll: fillAll, fillDay: fillDay,
-                    applyGoal: applyGoal, applyGoalAll: applyGoalAll, goalKey: goalKey, search: search, setMuscle: setMuscle, setEquip: setEquip, setPlace: setPlace, setPos: setPos, add: add };
+                    applyGoal: applyGoal, applyGoalAll: applyGoalAll, goalKey: goalKey, rxKeeps: keepsRx, search: search, setMuscle: setMuscle, setEquip: setEquip, setPlace: setPlace, setPos: setPos, add: add };
 })();
