@@ -27,7 +27,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['weight-plan'] = 'v290';
+  (window.EB_MOD = window.EB_MOD || {})['weight-plan'] = 'v291';
 
   var WEIGH_DAY = 4;      // חמישי. getDay: 0 ראשון … 4 חמישי
   var MAX_GAP   = 8;      // שבועות. מעבר לזה המשקל הישן כבר לא אומר כלום

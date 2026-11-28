@@ -13,7 +13,7 @@
   'use strict';
 
   // חותמת גרסה — index.html משווה אליה כדי לזהות קובץ ישן במטמון
-  (window.EB_MOD = window.EB_MOD || {})['files'] = 'v290';
+  (window.EB_MOD = window.EB_MOD || {})['files'] = 'v291';
 
   var BUCKET = 'programs';
   var MAX    = 10 * 1024 * 1024;   // 10MB, תואם למגבלת הדלי

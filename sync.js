@@ -15,7 +15,7 @@
   'use strict';
 
   // חותמת גרסה — index.html משווה אליה כדי לזהות קובץ ישן במטמון
-  (window.EB_MOD = window.EB_MOD || {})['sync'] = 'v290';
+  (window.EB_MOD = window.EB_MOD || {})['sync'] = 'v291';
 
   const CFG      = window.EBFIT_CONFIG || { URL: '', ANON: '' };
   const SNAP_KEY = 'ebfit_sync_v1';
@@ -326,9 +326,77 @@
   let RUN_START_SIG = null, KEPT = null;
   /* ההגדרות כפי שהגיעו מהשרת במשיכה האחרונה — הבסיס לדחיפה הבאה */
   let PULLED_PREFS = null;
+  /* התצלום של מה שהשרת החזיר, לפני שהאפליקציה חישבה ממנו יעדים מחדש,
+     ומעקב אחרי שורות שיוצאות שונות אחרי כל סבב (ראה run) */
+  let PULLED_SNAP = null, PULLED_JSON = null;
+  /* מפסק (ראה run): לכל מתאמן — מה המכשיר הזה כתב לאחרונה בשדות המחושבים,
+     וכמה פעמים בשעה מכשיר אחר כתב שם משהו אחר */
+  const DERIVED = {};                       // מזהה → { n, at }
+  const SENT = {};                          // מזהה → canon של השדות המחושבים שנכתבו
+  /* ערכים שחושבו מיד אחרי המשיכה האחרונה בחלון הזה — רק הם נשלחים. ערכים
+     שנשארו ב-S מהפעלה קודמת, או מחלון שעמד ברקע, עלולים להיות ישנים. */
+  let FRESH = {};
+  /* ניסיון שלא הצליח: אותו ערך לא נשלח שוב מיד (לולאה), אלא בסנכרון הרגיל
+     ובהמתנה שגדלה; הסרה של יעד יומי — אף פעם, עד שהערך משתנה */
+  const TRIED = {};                         // מזהה → { v, n, until }
+  let DERIVED_OFF = false;                  // השרת דחה גרסה — עד הטעינה הבאה
+  /* שורות המתאמנים כפי שהחלון הזה משך אותן בפעם האחרונה. התצלום משותף לכל
+     החלונות במכשיר (localStorage), ולכן הוא לא אומר על מה מבוססת השורה של
+     החלון הזה — זה כן. */
+  let BASE_JSON = {};
+  const DERIVED_MAX = 3, DERIVED_WINDOW = 3600000;
+  const pickDerived = prog => { const o = {}; DFIELDS.forEach(k => { if (prog && prog[k] !== undefined) o[k] = prog[k]; }); return canon(o); };
+  /* השדות שהאפליקציה של המאמן מחשבת בעצמה בתוך התוכנית (refreshTargets) */
+  const DFIELDS = ['targets', 'wplan', 'fig'];
+  function stripDerived(x) {
+    const c = JSON.parse(JSON.stringify(x || {}));
+    delete c.rev; delete c.appVer; delete c._base;     // _base אינו תוכן — שורה ששונה רק בו לא נשלחת כשורה שלמה
+    if (c.program && typeof c.program === 'object') DFIELDS.forEach(k => { delete c.program[k]; });
+    return canon(c);
+  }
+  /* השורה שונה מהתצלום רק במה שמחושב (ובמונה) — ולא בשום דבר שמישהו הקליד */
+  function derivedOnly(prevJson, o) {
+    try { return stripDerived(JSON.parse(prevJson)) === stripDerived(o); } catch (e) { return false; }
+  }
+  /* שולחים ערכים מחושבים רק כשכל מה שמחשב אותם נטען, ובגרסה של האפליקציה.
+     מודול שלא עלה, או קובץ ישן מהמטמון, מחשבים אחרת — ואסור שזה יגיע למתאמן. */
+  function derivedReady() {
+    const v = APPVER(), m = window.EB_MOD || {};
+    return !DERIVED_OFF && !!v && !!(window.EBMetrics && window.EBTargets && window.EBWPlan && window.EBCardio && window.EBAnalyze)
+      && ['metrics', 'targets', 'weight-plan', 'cardio', 'analysis'].every(k => m[k] === v);
+  }
+  function markTried(id, v, kind) {
+    const prev = TRIED[id] && TRIED[id].v === v ? TRIED[id].n : 0, n = prev + 1;
+    TRIED[id] = { v: v, n: n, until: kind === 'never' ? Infinity : kind === 'race' ? 0 : Date.now() + Math.min(n, 5) * 60000 };
+  }
+  /* מה שהדחיפה כותבת בשורת מתאמן, בלי המונה, הגרסה והערכים המחושבים */
+  function rowCore(r0) {
+    const r = JSON.parse(JSON.stringify(r0 || {}));
+    delete r.trainer_id;
+    if (r.private) { delete r.private.rev; delete r.private.appVer; }
+    if (r.program) DFIELDS.forEach(k => { delete r.program[k]; });
+    return canon(r);
+  }
+  function pushCore(x) {
+    try { return rowCore(traineeToRow(JSON.parse(JSON.stringify(x || {})))); }
+    catch (e) { return '#' + Math.random(); }
+  }
+  /* חתימה קצרה (53 ביט) — נשמרת בכל שורת מתאמן במכשיר */
+  function hash53(str) {
+    let h1 = 0xdeadbeef, h2 = 0x41c6ce57;
+    for (let i = 0, ch; i < str.length; i++) { ch = str.charCodeAt(i); h1 = Math.imul(h1 ^ ch, 2654435761); h2 = Math.imul(h2 ^ ch, 1597334677); }
+    h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+    h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+    return (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(36);
+  }
+  const progCore = pr => { const c = Object.assign({}, pr || { days: [] }); DFIELDS.forEach(k => { delete c[k]; }); return canon(c); };
+  function derivedHeld(id) {
+    const d = DERIVED[id];
+    return !!(d && Date.now() - d.at <= DERIVED_WINDOW && d.n >= DERIVED_MAX);
+  }
   function rowSig(o) {
     if (!o || typeof o !== 'object') return '';
-    const c = Object.assign({}, o); delete c.rev;
+    const c = Object.assign({}, o); delete c.rev; delete c._base;
     return canon(c);
   }
   /* חתימה ועותק של כל שורה בתחילת הסנכרון. העותק נחוץ כדי לדעת אילו
@@ -531,10 +599,52 @@
         return;
       }
       const snap = readSnap();
-      RUN_START_SIG = sigOf(window.S); KEPT = null;
+      RUN_START_SIG = sigOf(window.S); KEPT = null; PULLED_SNAP = null; PULLED_JSON = null;
       const skipped = await push(snap);
       await pull();
-      writeSnap(snapshotOf(window.S));
+      /* ---------- מה שהאפליקציה חישבה ממה שנמשך ----------
+         המשיכה נגמרת בשמירה, והשמירה מחשבת מחדש את היעדים היומיים, את
+         יעד המשקל השבועי ואת הדמות (refreshTargets ב-index.html) — ממה
+         שהגיע עכשיו: שקילה של מתאמן, מדידה ממכשיר אחר, גרסה חדשה של
+         האפליקציה. עד נובמבר 2026 התצלום צולם אחרי החישוב, ולכן המספרים
+         החדשים נרשמו כ"כבר בשרת" ולא נשלחו לעולם: 28.11.2026 יעד המשקל
+         השבועי היה במכשיר אצל 20 מתאמנים ובשרת אצל אף אחד, ויעד קלורי
+         שהשתנה אחרי שקילה לא הגיע למתאמן עד שהמאמן ערך אותו ביד.
+         עכשיו התצלום הוא מה שהשרת החזיר, ושורה שיצאה אחרת נשלחת מיד. */
+      const pulled = PULLED_SNAP || snapshotOf(window.S);
+      PULLED_SNAP = null;
+      const after = snapshotOf(window.S), pt = pulled.trainees || {}, nt = after.trainees || {};
+      const derived = Object.keys(nt).filter(id => pt[id] !== undefined && pt[id] !== nt[id]);
+      /* מפסק: שני מכשירים בגרסאות שמחשבות אחרת כותבים זה מעל זה. הסימן: מה
+         שהגיע מהשרת בשדות המחושבים שונה ממה שהמכשיר הזה כתב שם בעצמו — מישהו
+         אחר כתב אחריו. שקילה של מתאמן לא נספרת (היא לא נוגעת בשדות האלה).
+         אחרי DERIVED_MAX פעמים בשעה המכשיר הזה מפסיק לכתוב את המתאמן הזה עד
+         שתעבור השעה. */
+      const nowMs = Date.now(), held = [];
+      const live = {}; (window.S.trainees || []).forEach(o => { if (o && o.id) live[o.id] = o; });
+      FRESH = {};
+      derived.forEach(id => { if (live[id]) FRESH[id] = pickDerived(live[id].program); });
+      derived.forEach(id => {
+        let srvProg = null; try { srvProg = (JSON.parse((PULLED_JSON && PULLED_JSON[id]) || pt[id]) || {}).program; } catch (e) {}
+        if (SENT[id] !== undefined && pickDerived(srvProg) !== SENT[id]) {
+          let d = DERIVED[id];
+          if (!d || nowMs - d.at > DERIVED_WINDOW) d = DERIVED[id] = { n: 0, at: nowMs };
+          d.n++;
+        }
+        if (derivedHeld(id)) held.push(id);
+      });
+      /* שורה מוחזקת נשארת "שונה" מהתצלום: pushDerived מדלג עליה, אבל עריכה
+         אמיתית בה (לא רק ערכים מחושבים) עדיין נשלחת כרגיל */
+      if (held.length) logError('recomputed rows keep changing — holding them for now', { rows: held.length });
+      writeSnap(pulled);
+      /* סנכרון נוסף מיד רק בשביל ערך שעוד לא נוסה. ערך שנוסה ולא נכתב מחכה
+         לסנכרון הרגיל — אחרת שגיאה קבועה הייתה מסנכרנת בלי הפסקה */
+      const toSend = derived.filter(id => held.indexOf(id) < 0 && !(TRIED[id] && TRIED[id].v === FRESH[id]));
+      if (toSend.length && derivedReady()) {
+        log('recomputed rows to send', { rows: toSend.length });
+        pending = true;
+        setTimeout(() => schedule(300), 0);
+      }
       /* בתצלום נרשמות ההגדרות של השרת ולא של המכשיר. מפתח שנוצר במכשיר
          בזמן שהסנכרון רץ (אחרי הדחיפה) לא הגיע לשרת — אם התצלום ירשום
          אותו כ"מסונכרן", הוא לא יישלח לעולם. 3.10.2026 כך מפתח רשימת
@@ -626,12 +736,65 @@
       for (const r of payload) {
         const { error } = await sb.from(table).upsert([r], { onConflict: 'id' });
         if (error) { await handleUpsertError(table, [r], error); }
+        SENT[r.id] = pickDerived(r.program);
+        { const live = (window.S.trainees || []).find(x => x && x.id === r.id); if (live) live._base = hash53(rowCore(r)); }
       }
       return;
     }
     const { error } = await sb.from(table).upsert(payload, { onConflict: 'id' });
     if (!error) return;
     await handleUpsertError(table, payload, error);
+  }
+
+  /* ---------- כתיבה צרה של ערכים מחושבים ----------
+     לכל שורה: קריאה טרייה של התוכנית, החלפה של targets / wplan / fig בלבד,
+     מונה +1, וכתיבה בתנאי ש-updated_at לא זז מאז הקריאה (טריגר touch_trainees
+     מזיז אותו בכל כתיבה, גם של המתאמן). מישהו כתב בינתיים — לא כותבים;
+     המשיכה הבאה תביא את מה שכתב, והחישוב יחזור עליו. כישלון כאן לא עוצר
+     את הסנכרון: הערכים המחושבים יכולים לחכות, השאר לא. */
+  async function pushDerived(rows) {
+    if (!derivedReady()) { log('recomputed rows waiting — modules not ready', { rows: rows.length }); return; }
+    for (const o of rows) {
+      const v = pickDerived(o.program);
+      if (FRESH[o.id] !== v) continue;                  // לא חושב מהמשיכה האחרונה בחלון הזה
+      if (derivedHeld(o.id)) continue;
+      const tr = TRIED[o.id];
+      if (tr && tr.v === v && Date.now() < tr.until) continue;
+      try {
+        const { data, error } = await sb.from('trainees').select('program,private,updated_at')
+          .eq('trainer_id', user.id).eq('id', o.id).eq('deleted', false).maybeSingle();
+        if (error) { logError('recomputed row: read failed', { error: error }); markTried(o.id, v, 'error'); continue; }
+        if (!data) { markTried(o.id, v, 'never'); continue; }
+        /* מישהו (חלון או מכשיר אחר) כתב ערכים מחושבים מאז שהחלון הזה משך — לא
+           כותבים מעליהם ערך שחושב מנתונים ישנים יותר; המשיכה הבאה תחשב מחדש */
+        let basePr = null; try { basePr = BASE_JSON[o.id] ? JSON.parse(BASE_JSON[o.id]).program : null; } catch (e) {}
+        if (!basePr || pickDerived(data.program) !== pickDerived(basePr)) { markTried(o.id, v, 'race'); continue; }
+        const prog = Object.assign({}, data.program || {}), mine = o.program || {};
+        /* יעד יומי שנעלם בחישוב (חישוב שנכשל, נתון חסר) לא נמחק אצל המתאמן;
+           היעד השבועי והדמות עדיין נשלחים */
+        DFIELDS.forEach(k => { if (mine[k] !== undefined) prog[k] = mine[k]; else if (k !== 'targets') delete prog[k]; });
+        if (canon(prog) === canon(data.program || {})) { SENT[o.id] = pickDerived(prog); markTried(o.id, v, 'never'); continue; }   // אין מה לשלוח
+        const rev = revOf(data.private) + 1;
+        const priv = Object.assign({}, data.private || {}, { rev: rev, appVer: APPVER() });
+        const res = await sb.from('trainees').update({ program: prog, private: priv })
+          .eq('trainer_id', user.id).eq('id', o.id).eq('updated_at', data.updated_at).select('id');
+        if (res.error) {
+          logError('recomputed row: write failed', { error: res.error });
+          /* השרת דוחה את הגרסה הזאת — לא מנסים יותר עד שהאפליקציה תיטען מחדש */
+          if (/גרסה ישנה|app_ver|version/i.test(String(res.error.message || ''))) DERIVED_OFF = true;
+          markTried(o.id, v, 'error'); continue;
+        }
+        if (res.data && res.data.length === 1) {
+          o.rev = rev; SENT[o.id] = pickDerived(prog); log('recomputed row sent', { id: o.id });
+          try { const bj = JSON.parse(BASE_JSON[o.id]); bj.program = Object.assign({}, bj.program || {});
+                DFIELDS.forEach(k => { if (prog[k] === undefined) delete bj.program[k]; else bj.program[k] = prog[k]; });
+                BASE_JSON[o.id] = JSON.stringify(bj); } catch (e) {}
+          /* יעד יומי שנשאר בשרת בכוונה — אותו ערך לא נשלח שוב */
+          if (canon(prog) !== canon(Object.assign({}, data.program || {}, o.program || {}))) markTried(o.id, v, 'never'); else delete TRIED[o.id];
+        }
+        else { markTried(o.id, v, 'race'); log('recomputed row: changed on the server meanwhile — next sync', { id: o.id }); }
+      } catch (e) { logError('recomputed row failed', e); markTried(o.id, v, 'error'); }
+    }
   }
 
   async function handleUpsertError(table, rows, error) {
@@ -664,13 +827,27 @@
       const list = window.S[key] || [];
       const prev = snap[key] || {};
       const seen = new Set();
-      const changed = [];
+      let changed = [];
 
       list.forEach(o => {
         if (!o || !o.id) return;
         seen.add(o.id);
         if (prev[o.id] !== JSON.stringify(o)) changed.push(o);
       });
+
+      /* שורת מתאמן שהשתנה בה רק מה שהאפליקציה חישבה — לא נשלחת כשורה שלמה.
+         היא נכתבת בשלושת השדות שלה בלבד, על גבי מה שיש בשרת באותו רגע
+         (pushDerived). שליחה של כל התוכנית הייתה דורסת עריכה שהמתאמן עשה
+         בדף שלו בשניות שבין המשיכה לשליחה: הפונקציות של המתאמן לא מעלות
+         את המונה, ולכן שום בדיקה אחרת לא הייתה תופסת את זה. */
+      if (key === 'trainees' && changed.length) {
+        const dOnly = changed.filter(o => prev[o.id] !== undefined && derivedOnly(prev[o.id], o));
+        if (dOnly.length) {
+          const ids = new Set(dOnly.map(o => o.id));
+          changed = changed.filter(o => !ids.has(o.id));
+          await pushDerived(dOnly);
+        }
+      }
 
       if (changed.length) {
         /* מונה הגרסה של השורות האלה בשרת ברגע זה. נשלף רק לשורות
@@ -686,6 +863,29 @@
         } catch (e) { srv = null; }   // בלי מידע ממשיכים כרגיל
 
         const part = splitByRev(changed, prev, srv);
+        /* שורת מתאמן "ישנה" רק כי מכשיר או חלון אחר כתב בה ערכים מחושבים (יעדים
+           אחרי שקילה) — זו לא עריכה של מישהו, ואין סיבה לזרוק בגללה את העריכה
+           כאן. בודקים שהשרת שונה מהגרסה שהשורה הזאת מבוססת עליה (_base) רק
+           בערכים המחושבים; אז שולחים את העריכה על גבי הערכים שבשרת. כל הבדל
+           אחר — גם תרגיל שהמתאמן הוסיף ושהחלון הזה לא ראה — והשורה נשארת ישנה. */
+        if (key === 'trainees' && part.stale.length && srv) {
+          try {
+            const cand = part.stale.filter(id => list.some(x => x && x.id === id && x._base));
+            if (cand.length) {
+              const { data } = await sb.from('trainees').select('*').eq('trainer_id', user.id).in('id', cand);
+              (data || []).forEach(row => {
+                const o = list.find(x => x && x.id === row.id); if (!o || row.deleted) return;
+                if (hash53(pushCore(traineeFromRow(row))) !== o._base) return;
+                o.program = Object.assign({}, o.program || {});
+                DFIELDS.forEach(k => { const v = (row.program || {})[k]; if (v === undefined) delete o.program[k]; else o.program[k] = v; });
+                srv[row.id] = revOf(row.private);          // המונה מהקריאה הטרייה, לא מהקודמת
+                part.stale = part.stale.filter(id => id !== row.id);
+                part.send.push(o);
+                log('stale row rebased on recomputed values', { id: row.id });
+              });
+            }
+          } catch (e) { logError('stale rebase check failed', e); }
+        }
         if (part.stale.length) {
           logError('push skipped — device is behind', { table: key, ids: part.stale });
           skippedStale.push(part.stale.length + ' ב"' + key + '"');
@@ -847,6 +1047,17 @@
     const localNow = {};
     ARRAYS.forEach(k => { localNow[k] = window.S[k] || []; });
     window.S.trainees = fetched.trainees.map(traineeFromRow);
+    /* השורות כפי שהשרת שלח אותן — לפני שעריכה לא-שמורה מוחזרת לאחת מהן
+       למטה. מכאן נלקח "מה יש בשרת" לתצלום; עד נובמבר 2026 נרשמה בו
+       העריכה שהוחזרה, כאילו כבר נשלחה, והיא לא נשלחה ואבדה במשיכה הבאה. */
+    /* _base: חתימה של הגרסה בשרת שעליה השורה הזאת במכשיר מבוססת. נשמרת עם
+       השורה (גם אחרי סגירה וגם בגיבוי), לא נשלחת לשרת (שדה עם _), ומתעדכנת
+       במשיכה ובכל דחיפה מוצלחת. בעזרתה "השרת השתנה רק בערכים מחושבים" נבדק
+       מול מה שהשורה הזאת באמת מבוססת עליו — לא מול התצלום המשותף לחלונות. */
+    window.S.trainees.forEach(o => { if (o && o.id) o._base = hash53(pushCore(o)); });
+    PULLED_JSON = {};
+    window.S.trainees.forEach(o => { if (o && o.id) PULLED_JSON[o.id] = JSON.stringify(o); });
+    BASE_JSON = PULLED_JSON;
 
     /* העריכה המקומית גוברת רק אם השרת לא השתנה מאז הבסיס. אם השתנה —
        מישהו אחר כתב (מכשיר אחר, או המתאמן), והגרסה המקומית היא עותק
@@ -856,8 +1067,12 @@
        ההשוואה מסדרת מפתחות: jsonb בשרת לא שומר על סדר המפתחות. */
     if (unsavedProg) {
       const t = window.S.trainees.find(x => x.id === unsavedProg.id);
-      const same = t && canon(t.program || { days: [] }) === canon(window.PROGRAM_BASE || { days: [] });
+      const same = t && progCore(t.program) === progCore(window.PROGRAM_BASE);
+      /* השרת כבר מחזיק בדיוק את העריכה הזאת (היא נשלחה בדחיפה של הסנכרון
+         הזה, לפני שהשמירה האוטומטית הספיקה לעדכן את הבסיס) — אין כאן מכשיר
+         אחר ואין מה להחזיר. ההשוואה בלי הערכים המחושבים, שיחושבו מחדש למטה. */
       if (t && same) t.program = unsavedProg.program;   // השרת לא זז — מחזירים את העריכה הלא-שמורה
+      else if (t && progCore(t.program) === progCore(unsavedProg.program)) unsavedProg = null;
       else if (t) {
         logError('unsaved program dropped — server changed', { id: unsavedProg.id });
         if (typeof window.toast === 'function') {
@@ -905,12 +1120,25 @@
            1.10.2026 טלפון שהתעדכן אחרי שעות עם עותק ישן, וחישוב היעדים
            בעלייה "ערך" את השורות שלו תוך כדי הסנכרון הראשון — והוא החזיר
            תשלום ותוכניות לגרסה ישנה. */
-        if (i > -1 && revOf(arr[i]) > revOf(o)) return;
-        (KEPT[k] = KEPT[k] || {})[o.id] = i > -1 ? JSON.stringify(arr[i]) : null;
+        if (i > -1 && revOf(arr[i]) > revOf(o)) {
+          /* השרת חדש יותר רק בערכים מחושבים (מכשיר אחר כתב יעדים) — העריכה
+             שנעשתה כאן בזמן הסנכרון היא עדיין עריכה, ונשמרת */
+          let onlyDerived = false;
+          try { onlyDerived = k === 'trainees' && !!st && PULLED_JSON && PULLED_JSON[o.id] !== undefined
+                  && pushCore(JSON.parse(PULLED_JSON[o.id])) === pushCore(st.obj); } catch (e) {}
+          if (!onlyDerived) return;
+        }
+        (KEPT[k] = KEPT[k] || {})[o.id] = i < 0 ? null
+          : (k === 'trainees' && PULLED_JSON[o.id] !== undefined) ? PULLED_JSON[o.id] : JSON.stringify(arr[i]);
         const merged = mergeEdited(i > -1 ? arr[i] : null, st && st.obj, o);
         if (i > -1) arr[i] = merged; else arr.push(merged);
       });
     });
+    /* מה שהשרת החזיר — הבסיס של הדחיפה הבאה (ראה run). כאן ולא אחרי
+       השמירה: השמירה מחשבת יעדים מחדש, ועריכה שנעשית בזמן שמחכים
+       להגדרות מהשרת צריכה להיראות כשינוי שעוד לא נשלח. */
+    PULLED_SNAP = snapshotOf(window.S);
+    if (unsavedProg && PULLED_JSON[unsavedProg.id] !== undefined) PULLED_SNAP.trainees[unsavedProg.id] = PULLED_JSON[unsavedProg.id];
     const { data: p } = await sb.from('trainer_prefs')
       .select('data').eq('trainer_id', user.id).maybeSingle();
     PULLED_PREFS = p && p.data ? p.data : null;
@@ -929,11 +1157,13 @@
        ה-dock היה מראה "יש שינויים שטרם נשמרו" על שינוי שבכלל הגיע
        מהמתאמן ולא מהמאמן. מסנכרנים את התצלום — אבל רק אם אין למאמן
        עריכה מקומית שלא נשמרה (אז ה-dock ממשיך לשקף אותה). */
+    /* אחרי השמירה ולא לפניה: השמירה מחשבת יעדים לתוך התוכנית, ובסיס
+       שנלקח לפניה נראה בסנכרון הבא כמו עריכה שלא נשמרה */
+    if (typeof window.rawSave === 'function') window.rawSave();
     if (window.PROGRAM_BASE_ID && !unsavedProg) {
       const cur = (window.S.trainees || []).find(x => x.id === window.PROGRAM_BASE_ID);
       if (cur) window.PROGRAM_BASE = JSON.parse(JSON.stringify(cur.program || { days: [] }));
     }
-    if (typeof window.rawSave === 'function') window.rawSave();
     /* מציירים מחדש רק אם משהו השתנה, ולא באמצע הקלדה. עד ספטמבר 2026 כל
        סנכרון צייר את כל המסך מחדש — גם בלי שום שינוי — והחליף את השדה
        שהמאמן הקליד בו. בבניית תוכנית תא נשמר רק ביציאה ממנו, ולכן מה
