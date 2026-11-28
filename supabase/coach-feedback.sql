@@ -226,6 +226,10 @@ end $$;
 -- As in push-reminders.sql, plus one item per phone for every coach reply
 -- that was not announced yet (last 3 days only), plus a birthday greeting:
 -- once a year, at the first run from 09:00 Israel time on the day itself.
+-- The Thursday weigh-in reminder is not sent to a trainee who already weighed
+-- in this week (Sunday to Thursday morning), and it mentions the weekly weight
+-- target when the trainee has one (program.wplan, written by the coach's app).
+-- The number itself stays out of the notification: it would show on a lock screen.
 create or replace function public.push_due(p_key text)
 returns jsonb language plpgsql security definer set search_path = public as $$
 declare
@@ -244,7 +248,7 @@ begin
   if v_cfg.vapid_public is null then return jsonb_build_object('need_init', true); end if;
 
   for r in
-    select s.*, t.access_token, t.program, t.session_state,
+    select s.*, t.access_token, t.program, t.session_state, t.weighins,
            split_part(btrim(coalesce(t.name, '')), ' ', 1) as first_name
       from public.push_subs s
       join public.trainees t on t.id = s.trainee_id
@@ -265,10 +269,14 @@ begin
 
     -- weekly weigh-in, Thursday morning
     elsif coalesce((r.prefs->>'weigh')::boolean, true) and v_dow = 4 and v_hour = 8
-       and coalesce(r.last_sent->>'weigh', '') <> v_today::text then
+       and coalesce(r.last_sent->>'weigh', '') <> v_today::text
+       and not exists (select 1 from jsonb_array_elements(
+             case when jsonb_typeof(r.weighins) = 'array' then r.weighins else '[]'::jsonb end) w
+             where coalesce(w->>'date', '') >= (v_today - v_dow)::text) then
       v_kind := 'weigh';
       v_title := 'יום שקילה';
-      v_body := 'בוקר טוב' || case when r.first_name <> '' then ', ' || r.first_name else '' end || '. שקילה על הבוקר, לפני אוכל — ולרשום באפליקציה.';
+      v_body := 'בוקר טוב' || case when r.first_name <> '' then ', ' || r.first_name else '' end || '. שקילה על הבוקר, לפני אוכל — ולרשום באפליקציה.'
+             || case when jsonb_typeof(r.program->'wplan') = 'object' then ' היעד של השבוע מחכה שם.' else '' end;
 
     -- no workout for 3+ days
     elsif coalesce((r.prefs->>'workout')::boolean, true) and v_hour = v_h

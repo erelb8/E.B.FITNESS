@@ -19,9 +19,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="BAUER POWER">
-<link rel="apple-touch-icon" href="icons/icon-180.png?v=v289">
-<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=v289">
-<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=v289">
+<link rel="apple-touch-icon" href="icons/icon-180.png?v=v290">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=v290">
+<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=v290">
 <meta name="format-detection" content="telephone=no">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -725,15 +725,15 @@ tbody tr:hover{background:var(--panel)}
   .rep-sub{flex-basis:100%;margin-inline-start:106px}
 }
 </style>
-<link rel="stylesheet" href="ui-fx.css?v=v289">
-<link rel="stylesheet" href="theme-light.css?v=v289">
-<link rel="stylesheet" href="theme.css?v=v289">
+<link rel="stylesheet" href="ui-fx.css?v=v290">
+<link rel="stylesheet" href="theme-light.css?v=v290">
+<link rel="stylesheet" href="theme.css?v=v290">
 <!-- ערכת הצבע (חום מט / חום ולבן / שחור ולבן) — לפני הציור הראשון, כדי שלא יהבהב -->
-<script src="theme.js?v=v289"></script>
+<script src="theme.js?v=v290"></script>
 </head>
 <body>
 <header class="top">
-  <div class="brand"><img class="brand-logo" src="icons/logo-96.png?v=v289" alt="" width="30" height="30"><span class="brand-word" dir="ltr">BAUER<span class="dot"></span>POWER</span> <small id="brandSub">ניהול מתאמנים</small></div>
+  <div class="brand"><img class="brand-logo" src="icons/logo-96.png?v=v290" alt="" width="30" height="30"><span class="brand-word" dir="ltr">BAUER<span class="dot"></span>POWER</span> <small id="brandSub">ניהול מתאמנים</small></div>
   <div class="spacer"></div>
   <button class="syncpill s-off" id="syncPill" onclick="go('settings')" title="מצב סנכרון">מקומי בלבד</button>
   <span class="now" id="topDate"></span>
@@ -753,8 +753,8 @@ tbody tr:hover{background:var(--panel)}
 <div id="toast"></div>
 
 <!-- ספריית Supabase מקומית (לא מ-CDN) כדי שהאפליקציה תעבוד גם בלי רשת -->
-<script src="vendor/supabase.js?v=v289"></script>
-<script src="config.js?v=v289"></script>
+<script src="vendor/supabase.js?v=v290"></script>
+<script src="config.js?v=v290"></script>
 
 <script>
 /* =======================================================================
@@ -789,7 +789,7 @@ function age(b){ if(!b) return null; const d=new Date(b), t=new Date(); let a=t.
 
 /* ---------------- אחסון ---------------- */
 const KEY='ebfit_v1';
-const EB_VERSION='v289';   // חייב להתאים ל-VERSION ב-sw.js
+const EB_VERSION='v290';   // חייב להתאים ל-VERSION ב-sw.js
 window.EB_APP_VER=EB_VERSION;   // נשלח בכל שורה — השרת דוחה גרסאות ישנות (sync.js)
 let mem=null, canStore=true;
 function load(){
@@ -848,7 +848,143 @@ function refreshTargets(){
     if(JSON.stringify(p.targets||null) !== JSON.stringify(next)){
       if(next) p.targets = next; else delete p.targets;
     }
+
+    /* יעד המשקל השבועי (weight-plan.js) — כיוון, קצב ומשקל יעד, בתוך
+       התוכנית כמו היעדים. כשהמודול או החישוב לא עלו לא נוגעים: טעינה
+       חלקית הייתה מוחקת את היעד של כל המתאמנים ודוחפת את המחיקה לשרת. */
+    if(window.EBWPlan && m && t.status!=='archived'){
+      let wp; try{ wp = wplanFor(t, m, next); }catch(e){ wp = undefined; }
+      if(wp !== undefined && JSON.stringify(p.wplan||null) !== JSON.stringify(wp)){
+        if(wp) p.wplan = wp; else delete p.wplan;
+      }
+    }
   });
+}
+
+/* ---------- יעד המשקל השבועי ----------
+   כל יום חמישי: כמה המתאמן אמור לשקול לפי המטרה, מול מה שנשקל בפועל.
+   הכיוון הוא המטרה שלפיה חושב היעד הקלורי (חיטוב / מסה / שמירה), כדי
+   שהמאזניים והתפריט יגידו אותו דבר. כשהמאמן לא בחר אותה ביד, היא חייבת
+   להתאים גם למטרה הכתובה (analysis.js) — אחרת אין יעד: "כוח" שנפל
+   לשמירה, או "חיטוב ועלייה במסה" שקיבל עודף קלורי, לא מקבלים מספר.
+   ההגדרות של המאמן (t.wgoal: כבוי, קצב, משקל יעד) נשארות אצלו; מה
+   שהמתאמן צריך כדי לחשב נשמר ב-program.wplan.
+   מחזיר undefined כשאי אפשר לדעת (מודול שלא עלה) — ואז לא נוגעים. */
+function wplanFor(t,m,targets){
+  if(!window.EBWPlan || !m) return undefined;
+  const explicit=['cut','mass','keep'].indexOf(String(t.macroGoal||''))>-1;
+  if(!explicit && !(window.EBAnalyze && EBAnalyze.direction)) return undefined;
+  const textDir=explicit ? null : EBAnalyze.direction(t.goal);
+  const kcal=(targets && targets.kcal!=null && window.EBTargets) ? EBTargets.midVal(targets.kcal) : (m.kcal||null);
+  return EBWPlan.build({ mode:m.goal, explicit:explicit, textDir:textDir, tdee:m.tdee||null, kcal:kcal,
+    weight:m.weight?m.weight.v:null, cfg:t.wgoal||{},
+    measures:(S.measures||[]).filter(x=>x && x.traineeId===t.id), today:todayISO() });
+}
+function setWGoal(id,key,v){
+  const t=tById(id); if(!t) return;
+  const c=Object.assign({},t.wgoal||{});
+  if(key==='off'){ if(v) c.off=true; else delete c.off; }
+  else{
+    const raw=String(v==null?'':v).replace(',','.').trim(), n=Number(raw);
+    const ok = key==='rate' ? (isFinite(n) && n>=0.05 && n<=1.5) : (isFinite(n) && n>=30 && n<=300);
+    if(!raw) delete c[key];
+    else if(ok) c[key]=n;
+    else { toast(key==='rate'?'קצב בין 0.05 ל-1.5 ק״ג בשבוע':'משקל יעד בין 30 ל-300 ק״ג'); render(); return; }
+  }
+  if(Object.keys(c).length) t.wgoal=c; else delete t.wgoal;
+  save(); render();
+}
+/* המשקל שהיה אמור להיות בשבוע של שקילה מסוימת — לשורה בלוח הבקרה */
+function wplanNote(t,date){
+  try{
+    const p=(t.program||{}).wplan; if(!window.EBWPlan || !p) return '';
+    const o=EBWPlan.at(p,t.weighins,EBWPlan.weekOf(String(date).slice(0,10)));
+    return o.expected!=null ? ' · היעד '+EBWPlan.fmt(o.expected) : '';
+  }catch(e){ return ''; }
+}
+function weightPlanCard(t){
+  if(!window.EBWPlan) return '';
+  const WP=EBWPlan, cfg=t.wgoal||{};
+  const sw=(on,label,val)=>'<button onclick="setWGoal(&#39;'+t.id+'&#39;,&#39;off&#39;,'+val+')" '
+    +'style="padding:6px 13px;border-radius:9px;font-family:inherit;font-size:12.5px;font-weight:'+(on?'800':'600')+';cursor:pointer;'
+    +'border:1px solid '+(on?'var(--cop)':'var(--line)')+';background:'+(on?'rgba(var(--cop-rgb),.14)':'transparent')+';'
+    +'color:'+(on?'var(--cop)':'var(--mut)')+'">'+label+'</button>';
+  const txt=x=>'<div class="muted" style="font-size:13px;line-height:1.7">'+x+'</div>';
+  let h='<div class="card" data-wplan style="margin-bottom:14px">'
+   +'<div class="row" style="align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px">'
+   +'<div style="flex:1;min-width:140px;font-family:Heebo;font-weight:700;font-size:15px">יעד משקל שבועי</div>'
+   +'<div class="row noprint" style="gap:6px">'+sw(!cfg.off,'פעיל','false')+sw(!!cfg.off,'כבוי','true')+'</div></div>';
+  if(cfg.off) return h+txt('כבוי למתאמן הזה, והוא לא רואה יעד משקל.')+'</div>';
+
+  let m=null; try{ m=window.EBMetrics?EBMetrics.compute(t):null; }catch(e){ m=null; }
+  let live; try{ live=wplanFor(t,m,(t.program||{}).targets); }catch(e){ live=undefined; }
+  const plan=WP.norm(live===undefined ? (t.program||{}).wplan : live);
+  if(!plan) return h+txt('אין יעד משקל, כי מהמטרה של המתאמן לא ברור לאן המשקל אמור ללכת: ירידה, עלייה או שמירה. '
+     +'בוחרים חיטוב, מסה או שמירה ב"חישוב לפי המטרה" (תוכנית אימון ← הגדרות התוכנית), והיעד מופיע כאן לבד.')+'</div>';
+
+  const o=WP.now(plan,t.weighins), she=t.gender==='נקבה';
+  const big=(label,val,color)=>'<div style="flex:1;min-width:96px"><div class="muted" style="font-size:11.5px;margin-bottom:3px">'+label+'</div>'
+     +'<div style="font-family:Heebo;font-weight:800;font-size:24px;line-height:1.1;color:'+(color||'var(--tx)')+'">'+val
+     +'<span style="font-size:12px;font-weight:400;color:var(--mut)"> ק״ג</span></div></div>';
+  h+='<div class="muted" style="font-size:12px;margin-bottom:8px">'+esc(WP.headText(o))+'</div>';
+  if(o.state==='wait'){
+    h+='<div class="row" style="gap:12px;flex-wrap:wrap;align-items:flex-start">'+big('אמור להיות',WP.fmt(o.expected),'var(--cop)')
+      +'<div style="flex:1;min-width:96px"><div class="muted" style="font-size:11.5px;margin-bottom:3px">בפועל</div>'
+      +'<div class="muted" style="font-size:13.5px;padding-top:6px">עוד לא '+(she?'נשקלה':'נשקל')+' השבוע</div></div></div>';
+  } else if(o.state==='done'){
+    const good=o.verdict.cls==='good';
+    h+='<div class="row" style="gap:12px;flex-wrap:wrap;align-items:flex-start">'+big('אמור להיות',WP.fmt(o.expected))
+      +big(o.actual.src==='coach'?'בפועל · מדידה שלך':'בפועל',WP.fmt(o.actual.w),good?'var(--ok)':'var(--cop)')+'</div>'
+      +'<div style="margin-top:8px"><span class="pill '+(good?'ok':'warn')+'">'+esc(o.verdict.txt)+'</span></div>';
+  } else if(o.state==='first'){
+    h+=txt('נקודת ההתחלה: <b style="color:var(--tx)">'+WP.fmt(o.actual.w)+' ק״ג</b>. היעד לחמישי הבא: <b style="color:var(--tx)">'+WP.fmt(o.next)+' ק״ג</b>.');
+  } else if(o.state==='stale'){
+    h+=txt('המשקל האחרון נרשם לפני '+o.gap+' שבועות, ולכן אין יעד לשבוע הזה. מדידה אחת שלך או שקילה אחת בדף המתאמן מחזירה אותו.');
+  } else {
+    h+=txt('עוד אין אף משקל. מדידה אחת שלך או שקילה אחת בדף המתאמן קובעת את נקודת ההתחלה.');
+  }
+
+  /* מאיפה הקצב */
+  const kc=(window.EBTargets && (t.program||{}).targets) ? EBTargets.midVal(t.program.targets.kcal) : null;
+  const dk=(m && m.tdee && kc) ? Math.round(kc-m.tdee) : null;
+  const auto=plan.dir==='keep' ? 0 : WP.autoRate(plan.dir,{tdee:m&&m.tdee,kcal:kc,weight:m&&m.weight?m.weight.v:null});
+  let why;
+  if(plan.dir==='keep') why='היעד הוא המשקל של השבוע הקודם.';
+  else if(cfg.rate) why='קצב שקבעת. שדה ריק חוזר לחישוב האוטומטי ('+auto+' ק״ג בשבוע).';
+  else if(dk!=null && (plan.dir==='down' ? dk<-50 : dk>50)){
+    const raw=Math.max(0.1,Math.round(Math.abs(dk)*7/7700*20)/20);
+    why='מחושב מהיעד הקלורי: '+(dk<0?'גירעון':'עודף')+' של '+Math.abs(dk)+' קק״ל ביום.'
+      +(Math.abs(raw-auto)>0.001 ? ' הקצב הוגבל לטווח סביר ביחס למשקל הגוף.' : '');
+  }
+  else why='מחושב כאחוז ממשקל הגוף, כי אין יעד קלורי.';
+  h+='<div class="muted" style="font-size:12.5px;line-height:1.7;margin-top:10px"><b style="color:var(--tx)">'+esc(WP.paceText(plan))+'.</b> '+why+'</div>';
+
+  if(plan.dir!=='keep'){
+    const inp=(label,key,val,ph,unit)=>'<div><label class="f" style="display:block;font-size:12px;margin-bottom:4px;color:'
+      +(val?'var(--cop)':'var(--mut)')+'">'+label+(val&&key==='rate'?' · ידני':'')+'</label>'
+      +'<input class="f" type="text" inputmode="decimal" data-wgoal="'+key+'" style="width:100%'+(val?';border-color:var(--cop)':'')+'" '
+      +'value="'+(val?esc(val):'')+'" placeholder="'+esc(ph)+'" '
+      +'onchange="setWGoal(&#39;'+t.id+'&#39;,&#39;'+key+'&#39;,this.value)">'
+      +'<div class="muted" style="font-size:11px;margin-top:3px">'+unit+'</div></div>';
+    h+='<div class="noprint" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px">'
+      +inp('קצב','rate',cfg.rate,String(auto),'ק״ג בשבוע')
+      +inp('משקל יעד','goal',cfg.goal,'—','ק״ג · כשמגיעים אליו, היעד נעצר')+'</div>';
+  }
+
+  const hist=WP.history(plan,t.weighins,null,7).filter(x=>x.actual || x.expected!=null);
+  if(hist.some(x=>x.actual)){
+    h+='<div style="overflow-x:auto;margin-top:12px"><table style="width:100%"><thead><tr><th>שבוע</th><th>אמור להיות</th><th>בפועל</th><th>הפרש</th></tr></thead><tbody>'
+     +hist.map(x=>{
+        const d=x.diff, c=x.verdict ? (x.verdict.cls==='good'?'var(--ok)':'var(--cop)') : 'var(--mut)';
+        return '<tr><td style="white-space:nowrap">חמישי '+WP.dayLabel(x.thu)+'</td><td>'+(x.expected!=null?WP.fmt(x.expected):'—')+'</td>'
+          +'<td style="white-space:nowrap">'+(x.actual ? WP.fmt(x.actual.w)+(x.actual.src==='coach'?' <span class="muted" style="font-size:11px">מדידה</span>':'') : '—')+'</td>'
+          +'<td style="color:'+c+'">'+(d!=null ? '<bdi dir="ltr">'+(d>0?'+':'')+d.toFixed(1)+'</bdi>' : '—')+'</td></tr>';
+      }).join('')
+     +'</tbody></table></div>';
+  }
+  h+='<div class="muted" style="font-size:11.5px;line-height:1.65;margin-top:10px">המתאמן רואה את היעד ב"מעקב", ומיום חמישי גם במסך הבית עד שנשקל. '
+    +'התראה בטלפון ביום חמישי ב-08:00 מגיעה למי שהפעיל תזכורות.</div>';
+  return h+'</div>';
 }
 
 
@@ -1717,7 +1853,7 @@ function dashEvents(){
       const prev=i?Number(w[i-1].weight):null, cur=Number(x.weight);
       const dl=prev?Math.round((cur-prev)*10)/10:null;
       ev.push({t, kind:'w', when:x.at||x.date, day:x.date,
-        what:(t.gender==='נקבה'?'נשקלה':'נשקל')+' · '+cur+' ק״ג'+(x.fat?' · '+x.fat+'% שומן':''), delta:dl});
+        what:(t.gender==='נקבה'?'נשקלה':'נשקל')+' · '+cur+' ק״ג'+(x.fat?' · '+x.fat+'% שומן':'')+wplanNote(t,x.date), delta:dl});
     });
   });
   /* תזונה: שורה אחת ליום שבו המתאמן סימן או רשם מה אכל. אין לסימון
@@ -3334,7 +3470,8 @@ function setEx(id,di,ei,k,v){ tById(id).program.days[di].exercises[ei][k]=v; upd
 /* --------- מדידות + גרף --------- */
 function tabMeasures(t){
   const ms=S.measures.filter(m=>m.traineeId===t.id).sort((a,b)=>a.date.localeCompare(b.date));
-  let h='<div class="row noprint" style="margin-bottom:12px"><button class="btn sm" onclick="editMeasure(null,\''+t.id+'\')">+ מדידה</button></div>';
+  let h='<div class="row noprint" style="margin-bottom:12px"><button class="btn sm" onclick="editMeasure(null,\''+t.id+'\')">+ מדידה</button></div>'
+    +weightPlanCard(t);
   if(!ms.length) return h+'<div class="empty"><div class="big">📏</div>אין מדידות. מדידת פתיחה היא נקודת הייחוס לכל ההתקדמות.</div>';
   h+='<div class="grid g2"><div class="card"><h3 style="font-size:15px;margin-bottom:10px">משקל לאורך זמן</h3>'
    + lineChart(ms.filter(m=>m.weight).map(m=>({x:m.date,y:Number(m.weight)})),'ק״ג')+'</div>';
@@ -4813,42 +4950,43 @@ if (location.protocol === 'file:') {
 }
 </script>
 
-<script src="health.js?v=v289"></script>
-<script src="privacy.js?v=v289"></script>
-<script src="backup.js?v=v289"></script>
-<script src="reorder.js?v=v289"></script>
-<script src="access.js?v=v289"></script>
-<script src="analysis.js?v=v289"></script>
-<script src="reports.js?v=v289"></script>
-<script src="business.js?v=v289"></script>
-<script src="team.js?v=v289"></script>
-<script src="intake.js?v=v289"></script>
-<script src="files.js?v=v289"></script>
-<script src="builder.js?v=v289"></script>
-<script src="import-program.js?v=v289"></script>
-<script src="tracking.js?v=v289"></script>
-<script src="metrics.js?v=v289"></script>
-<script src="targets.js?v=v289"></script>
-<script src="meal-library.js?v=v289"></script>
+<script src="health.js?v=v290"></script>
+<script src="privacy.js?v=v290"></script>
+<script src="backup.js?v=v290"></script>
+<script src="reorder.js?v=v290"></script>
+<script src="access.js?v=v290"></script>
+<script src="analysis.js?v=v290"></script>
+<script src="reports.js?v=v290"></script>
+<script src="business.js?v=v290"></script>
+<script src="team.js?v=v290"></script>
+<script src="intake.js?v=v290"></script>
+<script src="files.js?v=v290"></script>
+<script src="builder.js?v=v290"></script>
+<script src="import-program.js?v=v290"></script>
+<script src="tracking.js?v=v290"></script>
+<script src="metrics.js?v=v290"></script>
+<script src="targets.js?v=v290"></script>
+<script src="weight-plan.js?v=v290"></script>
+<script src="meal-library.js?v=v290"></script>
 <!-- חלקים של המאמן בלבד (תאילנדי, פירות). לא נטען ב-t.html בכוונה. -->
-<script src="meal-extra.js?v=v289"></script>
-<script src="progress-chart.js?v=v289"></script>
-<script src="notes.js?v=v289"></script>
-<script src="notes-ui.js?v=v289"></script>
-<script src="guides.js?v=v289"></script>
-<script src="library-ui.js?v=v289"></script>
-<script src="menu-auto.js?v=v289"></script>
-<script src="period-card.js?v=v289"></script>
-<script src="ui-fx.js?v=v289"></script>
-<script src="export-plan.js?v=v289"></script>
-<script src="cardio.js?v=v289"></script>
-<script src="cardio-ui.js?v=v289"></script>
-<script src="exercise-library.js?v=v289"></script>
-<script src="exercise-ui.js?v=v289"></script>
-<script src="video.js?v=v289"></script>
-<script src="anim.js?v=v289"></script>
-<script src="meals.js?v=v289"></script>
-<script src="sync.js?v=v289"></script>
+<script src="meal-extra.js?v=v290"></script>
+<script src="progress-chart.js?v=v290"></script>
+<script src="notes.js?v=v290"></script>
+<script src="notes-ui.js?v=v290"></script>
+<script src="guides.js?v=v290"></script>
+<script src="library-ui.js?v=v290"></script>
+<script src="menu-auto.js?v=v290"></script>
+<script src="period-card.js?v=v290"></script>
+<script src="ui-fx.js?v=v290"></script>
+<script src="export-plan.js?v=v290"></script>
+<script src="cardio.js?v=v290"></script>
+<script src="cardio-ui.js?v=v290"></script>
+<script src="exercise-library.js?v=v290"></script>
+<script src="exercise-ui.js?v=v290"></script>
+<script src="video.js?v=v290"></script>
+<script src="anim.js?v=v290"></script>
+<script src="meals.js?v=v290"></script>
+<script src="sync.js?v=v290"></script>
 <script>
 /* =================== חיבור הסנכרון לאפליקציה =================== */
 

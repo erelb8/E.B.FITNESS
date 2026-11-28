@@ -20,7 +20,7 @@
 (function () {
   'use strict';
 
-  (window.EB_MOD = window.EB_MOD || {})['progress'] = 'v289';
+  (window.EB_MOD = window.EB_MOD || {})['progress'] = 'v290';
 
   var esc = function (s) {
     return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
@@ -316,7 +316,7 @@
             + (i === rows.length - 1 ? 3.5 : 2) + '" fill="var(--or)"/>';
         }).join('')
       + '<text x="' + x(rows.length - 1).toFixed(1) + '" y="' + (y(last.log.w) - 8).toFixed(1) + '" '
-      + 'text-anchor="end" font-size="11" fill="var(--mut)">' + r1(last.log.w) + '</text>'
+      + 'text-anchor="end" direction="ltr" font-size="11" fill="var(--mut)">' + r1(last.log.w) + '</text>'
       + '</svg>';
   }
 
@@ -335,9 +335,82 @@
       + 'אפשר לשקול גם היום, רק תשמור על אותו יום בכל שבוע.</div>';
   }
 
+  /* ---------- היעד של השבוע ----------
+     כמה המשקל אמור להיות ביום חמישי לפי המטרה, ומולו מה שנשקל. מי שעוד
+     לא נשקל רואה את היעד בלבד. החישוב עצמו ב-weight-plan.js, משותף עם
+     האפליקציה של המאמן, כדי ששני הצדדים יראו אותו מספר. */
+  function planOf(data) {
+    try { return (window.EBWPlan && data && data.program) ? window.EBWPlan.norm(data.program.wplan) : null; }
+    catch (e) { return null; }
+  }
+  function bigNum(v, color) {
+    return '<span style="font-family:Frank Ruhl Libre,serif;font-weight:900;font-size:30px;line-height:1;'
+      + 'color:' + (color || 'var(--tx)') + '">' + num2(v) + '</span>';
+  }
+  function targetBlock(plan) {
+    if (!plan) return '';
+    var WP = window.EBWPlan, o;
+    try { o = WP.now(plan, DB.logs); } catch (e) { return ''; }
+    if (!o || o.state === 'none') return '';
+    var box = function (inner, on) {
+      return '<div data-wp="' + o.state + '" style="margin-top:10px;padding:12px 13px;border-radius:12px;'
+        + 'background:' + (on ? 'var(--or-soft)' : 'var(--ink)') + ';border:1px solid '
+        + (on ? 'var(--or)' : 'var(--line)') + '">' + inner + '</div>';
+    };
+    var kick = function (t) { return '<div class="mt" style="font-size:11.5px;margin-bottom:6px">' + esc(t) + '</div>'; };
+    var note = function (t) { return '<div class="mt" style="font-size:12.5px;line-height:1.6;margin-top:7px">' + esc(t) + '</div>'; };
+    var line = function (h) { return '<div style="font-size:13px;line-height:1.6">' + h + '</div>'; };
+
+    if (o.state === 'start') {
+      return box(kick('היעד השבועי')
+        + line('שקילה ראשונה קובעת את נקודת ההתחלה. מהשבוע שאחריה יופיע כאן, כל יום חמישי, '
+             + 'המשקל שאליו אמורים להגיע לפי המטרה.'), false);
+    }
+    if (o.state === 'stale') {
+      return box(kick('היעד השבועי')
+        + line('המשקל האחרון שנרשם הוא מלפני ' + o.gap + ' שבועות. שקילה אחת מחזירה את היעד השבועי.'), false);
+    }
+    if (o.state === 'first') {
+      return box(kick('היעד השבועי')
+        + line('נקודת ההתחלה: <b>' + num2(WP.fmt(o.actual.w)) + ' ק״ג</b>. היעד לחמישי הבא: <b>'
+             + num2(WP.fmt(o.next)) + ' ק״ג</b>.')
+        + note(WP.paceText(plan) + '.'), false);
+    }
+    if (o.state === 'wait') {
+      return box(kick(WP.headText(o))
+        + '<div>' + bigNum(WP.fmt(o.expected), 'var(--or)') + ' <span class="mt" style="font-size:13px">ק״ג</span></div>'
+        + note(o.reached
+            ? 'הגעת למשקל היעד שנקבע לך. עכשיו שומרים עליו.'
+            : 'זה מה שהמשקל אמור להיות לפי המטרה: ' + WP.basisText(o) + '.'), true);
+    }
+    /* נשקל השבוע: היעד מול מה שנמדד */
+    var v = o.verdict, vc = v.cls === 'good' ? 'var(--ok)' : 'var(--cop)';
+    var cell = function (label, val, color) {
+      return '<div style="flex:1;min-width:0;text-align:center">'
+        + '<div class="mt" style="font-size:11px;margin-bottom:4px">' + label + '</div>' + bigNum(val, color) + '</div>';
+    };
+    return box(kick(WP.headText(o))
+      + '<div style="display:flex;gap:10px;align-items:flex-end">'
+      + cell('אמור להיות', WP.fmt(o.expected), 'var(--mut)')
+      + cell(o.actual.src === 'coach' ? 'נמדד אצל המאמן' : 'בפועל', WP.fmt(o.actual.w), vc)
+      + '</div>'
+      + '<div data-wp-verdict style="text-align:center;font-size:13.5px;font-weight:700;color:' + vc
+      + ';margin-top:8px">' + esc(v.txt) + '</div>'
+      /* יעד שנשען על משקל מלפני כמה שבועות — אומרים מאיפה הוא, כדי שפער גדול לא ייראה כמו טעות */
+      + (o.gap >= 2 ? note('היעד חושב ' + (o.anchor.src === 'coach' ? 'מהמדידה אצל המאמן ב-' : 'מהשקילה ב-')
+                           + WP.dayLabel(o.anchor.date) + ', לפני ' + o.gap + ' שבועות.') : '')
+      + note('היעד לחמישי הבא: ' + WP.fmt(o.next) + ' ק״ג.'), false);
+  }
+  /* היעד של שבוע שעבר, לטבלת כל השקילות */
+  function expectedAt(plan, week) {
+    try { var o = window.EBWPlan.at(plan, DB.logs, week); return o.expected; } catch (e) { return null; }
+  }
+
   /* ---------- הכרטיס ---------- */
   function block(data) {
-    var dir  = direction((data && data.goal) || '');
+    /* הכיוון שהמאמן קבע (דרך היעד הקלורי) גובר על ניחוש מהמטרה הכתובה */
+    var plan = planOf(data);
+    var dir  = plan ? plan.dir : direction((data && data.goal) || '');
     var rows = byWeek();
     var thisW = weekOf(today());
     var cur = null;
@@ -354,6 +427,7 @@
 
     if (!rows.length) {
       return h
+        + targetBlock(plan)
         + '<div class="mt" style="font-size:13px;line-height:1.6;margin:8px 0 4px">'
         + 'שקול את עצמך פעם בשבוע ביום חמישי, באותה שעה — הכי מדויק בבוקר, אחרי השירותים ולפני האוכל.'
         + '</div>'
@@ -362,6 +436,8 @@
         + '<div class="mt" style="font-size:11.5px;margin-top:10px">'
         + 'השקילות נשמרות במכשיר ונשלחות למאמן.</div></div>';
     }
+
+    h += targetBlock(plan);
 
     var delta = (cur && prev) ? r1(cur.log.w - prev.log.w) : null;
     var j = judge(delta, dir);
@@ -424,15 +500,19 @@
         + 'padding-bottom:5px;border-bottom:1px solid var(--line)">'
         + '<span style="flex:1;min-width:0">שבוע</span>'
         + '<span style="min-width:52px;text-align:center">ק״ג</span>'
+        + (plan ? '<span style="min-width:46px;text-align:center">יעד</span>' : '')
         + '<span style="min-width:48px;text-align:center">שינוי</span></div>'
         + rows.slice().reverse().map(function (r, i, arr) {
             var nx = arr[i + 1];
             var d  = nx ? r1(r.log.w - nx.log.w) : null;
+            var ex = plan ? expectedAt(plan, r.week) : null;
             return '<div style="display:flex;gap:12px;align-items:baseline;font-size:12.5px;'
               + 'padding:6px 0;border-bottom:1px solid var(--line)">'
               + '<span class="mt" style="flex:1;min-width:0">' + num2(weekLabel(r.week)) + '</span>'
               + '<span style="font-family:Heebo;font-weight:700;min-width:52px;text-align:center">'
               + num2(r1(r.log.w)) + '</span>'
+              + (plan ? '<span class="mt" style="min-width:46px;text-align:center;font-family:Heebo">'
+                        + (ex === null ? '—' : num2(window.EBWPlan.fmt(ex))) + '</span>' : '')
               + '<span style="min-width:48px;text-align:center;font-family:Heebo;color:'
               + (d === null ? 'var(--dim)' : d < 0 ? 'var(--ok)' : d > 0 ? '#D9605A' : 'var(--dim)') + '">'
               + (d === null ? '—' : num2((d > 0 ? '+' : '') + d)) + '</span></div>';
@@ -492,7 +572,7 @@
     direction: direction, weekOf: weekOf, judge: judge, coach: coach,
     attach: attach, mergeServer: mergeServer, flush: flush,
     isWeighDay: isWeighDay, daysToWeighDay: daysToWeighDay, trendPerWeek: trendPerWeek,
-    PACE: PACE, WEIGH_DAY: WEIGH_DAY,
+    PACE: PACE, WEIGH_DAY: WEIGH_DAY, planOf: planOf, targetBlock: targetBlock,
     db: function () { return DB; }
   };
 })();

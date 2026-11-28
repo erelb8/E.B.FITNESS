@@ -13,8 +13,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="התוכנית שלי">
 <meta name="robots" content="noindex,nofollow">
-<link rel="apple-touch-icon" href="icons/icon-180.png?v=v289">
-<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=v289">
+<link rel="apple-touch-icon" href="icons/icon-180.png?v=v290">
+<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=v290">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -642,16 +642,16 @@ html[data-theme="light"] .th-week .on i{color:#FFFFFF}
 .ex .meta{font-size:13.5px}
 .ex{padding:14px!important;border-radius:16px!important}
 </style>
-<link rel="stylesheet" href="ui-fx.css?v=v289">
-<link rel="stylesheet" href="theme-light.css?v=v289">
-<link rel="stylesheet" href="theme.css?v=v289">
+<link rel="stylesheet" href="ui-fx.css?v=v290">
+<link rel="stylesheet" href="theme-light.css?v=v290">
+<link rel="stylesheet" href="theme.css?v=v290">
 <!-- ערכת הצבע — לפני הציור, נשמרת במכשיר של המתאמן -->
-<script src="theme.js?v=v289"></script>
+<script src="theme.js?v=v290"></script>
 </head>
 <body>
 
 <header class="top">
-  <div class="brand"><img class="brand-logo" src="icons/logo-96.png?v=v289" alt="" width="34" height="34"><span>BAUER<span class="dot"></span>POWER</span></div>
+  <div class="brand"><img class="brand-logo" src="icons/logo-96.png?v=v290" alt="" width="34" height="34"><span>BAUER<span class="dot"></span>POWER</span></div>
   <h1 id="hTitle">טוען…</h1>
   <div class="sub" id="hSub"></div>
   <span class="savechip" id="saveChip" aria-live="polite"></span>
@@ -665,21 +665,22 @@ html[data-theme="light"] .th-week .on i{color:#FFFFFF}
 
 <div id="toast"></div>
 
-<script src="vendor/supabase.js?v=v289"></script>
-<script src="config.js?v=v289"></script>
-<script src="meal-library.js?v=v289"></script>
-<script src="exercise-library.js?v=v289"></script>
-<script src="anim.js?v=v289"></script>
-<script src="progress.js?v=v289"></script>
-<script src="habits.js?v=v289"></script>
-<script src="coach-bot.js?v=v289"></script>
-<script src="progress-chart.js?v=v289"></script>
-<script src="workout-log.js?v=v289"></script>
-<script src="share.js?v=v289"></script>
-<script src="targets.js?v=v289"></script>
-<script src="health.js?v=v289"></script>
-<script src="privacy.js?v=v289"></script>
-<script src="guides.js?v=v289"></script>
+<script src="vendor/supabase.js?v=v290"></script>
+<script src="config.js?v=v290"></script>
+<script src="meal-library.js?v=v290"></script>
+<script src="exercise-library.js?v=v290"></script>
+<script src="anim.js?v=v290"></script>
+<script src="weight-plan.js?v=v290"></script>
+<script src="progress.js?v=v290"></script>
+<script src="habits.js?v=v290"></script>
+<script src="coach-bot.js?v=v290"></script>
+<script src="progress-chart.js?v=v290"></script>
+<script src="workout-log.js?v=v290"></script>
+<script src="share.js?v=v290"></script>
+<script src="targets.js?v=v290"></script>
+<script src="health.js?v=v290"></script>
+<script src="privacy.js?v=v290"></script>
+<script src="guides.js?v=v290"></script>
 <script>
 (function () {
   'use strict';
@@ -709,7 +710,7 @@ html[data-theme="light"] .th-week .on i{color:#FFFFFF}
      באייפון התראות עובדות רק כשהאפליקציה מותקנת במסך הבית (iOS 16.4+). */
   const PUSH = { key: undefined, busy: false, msg: '' };
   /* נגיעה בהתראה מביאה ישר למסך הנכון: אימון → האימון הבא פתוח,
-     שקילה → "גוף", צ׳ק-אין → השאלון פתוח. הדף נפתח עם ?go=, ודף שכבר
+     שקילה → כרטיס השקילה ב"מעקב", צ׳ק-אין → השאלון פתוח. הדף נפתח עם ?go=, ודף שכבר
      פתוח מקבל הודעה מה-service worker */
   let GO_PENDING = null;
   try { const g = new URLSearchParams(location.search).get('go'); if (g) { GO_PENDING = g; history.replaceState(history.state, '', location.pathname + location.hash); } } catch (e) {}
@@ -717,7 +718,7 @@ html[data-theme="light"] .th-week .on i{color:#FFFFFF}
   function goTo(kind) {
     try {
       if (kind === 'workout') { try { DAY = EBWLog.suggestDay(DATA.program, EXTRAS.logs); } catch (e) {} openCategory('workout'); }
-      else if (kind === 'weigh') openCategory('body');
+      else if (kind === 'weigh') goWeigh();
       else if (kind === 'checkin') { if (OPEN_CATEGORY) closeCategory(); CK_OPEN = true; paint();
         const c = document.querySelector('[data-ck-send]'); if (c) c.closest('.card').scrollIntoView({ block: 'center' }); }
       else if (kind === 'bday') {
@@ -2286,6 +2287,7 @@ html[data-theme="light"] .th-week .on i{color:#FFFFFF}
       + outboxBlock()
       + leftoverBlock(days)
       + nudgeBlock(days)
+      + weighCard()
       /* האריחים מיד אחרי כרטיס הפתיחה (נובמבר 2026, "שיהיה יותר נוח"):
          עד אז הם ישבו מתחת לשאלונים ולסיכומים, ומתאמן שרצה את התזונה
          גלל מסך וחצי כדי להגיע אליה */
@@ -2519,6 +2521,62 @@ html[data-theme="light"] .th-week .on i{color:#FFFFFF}
     if (gd) { DAY = +gd.dataset.goDay; openCategory('workout'); return; }
     if (e.target.closest('[data-nudge-hide]')) {
       try { localStorage.setItem(nudgeKey(), EBHabits.todayISO()); } catch (er) {}
+      paint();
+    }
+  });
+
+  /* ---------- יום חמישי: שקילה והיעד של השבוע ----------
+     מיום חמישי ועד סוף השבוע, למי שיש לו יעד משקל ועוד לא נשקל השבוע:
+     כרטיס במסך הבית עם המשקל שאמור להיות לפי המטרה, וכפתור שמביא ישר
+     לטופס השקילה. זו התזכורת של מי שלא הפעיל התראות בטלפון — ההתראה
+     עצמה (חמישי ב-08:00) נשלחת מהשרת רק למי שהפעיל. "לא היום" מסתיר עד
+     מחר. החישוב ב-weight-plan.js. */
+  function weighKey() { return 'eb_weigh_hide_' + (TOKEN || 'x').slice(0, 12); }
+  function weighCard() {
+    try {
+      if (!SRV_LOADED || !window.EBWPlan || !window.EBProg || !DATA || !DATA.program) return '';
+      const plan = EBWPlan.norm(DATA.program.wplan);
+      if (!plan) return '';
+      const now = new Date(), dow = now.getDay(), today = isoLocal(now);
+      if (dow < EBWPlan.WEIGH_DAY) return '';
+      try { if (localStorage.getItem(weighKey()) === today) return ''; } catch (e) {}
+      const logs = EBProg.db().logs || [], wk = EBProg.weekOf(today);
+      if (logs.some(l => l && l.date && EBProg.weekOf(l.date) === wk)) return '';
+      const o = EBWPlan.now(plan, logs);
+      const head = dow === EBWPlan.WEIGH_DAY ? 'היום יום שקילה' : 'עוד אין שקילה השבוע';
+      const sub = o.expected != null
+        ? 'לפי המטרה, המשקל אמור להיות בסביבות <b style="color:var(--tx)"><span dir="ltr" style="unicode-bidi:isolate">' + EBWPlan.fmt(o.expected) + '</span> ק״ג</b>'
+        : 'על הבוקר, אחרי השירותים ולפני האוכל. מהשקילה הזאת מתחיל היעד השבועי.';
+      return '<div class="card" data-weigh-card style="margin-bottom:14px;border-color:var(--or);display:flex;align-items:center;gap:12px">'
+        + '<div style="flex:1;min-width:0">'
+        + '<div style="font-family:Heebo;font-weight:700;font-size:15px">' + head + '</div>'
+        + '<div class="mt" style="font-size:13px;margin-top:3px;line-height:1.5">' + sub + '</div></div>'
+        + '<div style="display:flex;flex-direction:column;gap:6px;flex:none">'
+        + '<button class="btn" data-weigh-go style="font-size:13.5px;padding:9px 14px">לשקילה ←</button>'
+        + '<button data-weigh-hide style="background:none;border:0;color:var(--dim);font-size:12px;cursor:pointer;font-family:inherit">לא היום</button>'
+        + '</div></div>';
+    } catch (e) { return ''; }
+  }
+  /* טופס השקילה נמצא ב"מעקב". פותחים שם וגוללים אליו */
+  function goWeigh() {
+    openCategory('follow');
+    setTimeout(() => {
+      const el = document.querySelector('#categoryModal [data-wp]') || document.getElementById('pg_w');
+      if (el) el.scrollIntoView({ block: 'center' });
+    }, 80);
+  }
+  /* אחרי רישום או עדכון של שקילה: החלון הפתוח מצטייר מחדש, כדי שהיעד
+     מול מה שנשקל יופיע מיד ולא רק בפתיחה הבאה */
+  function repaintFollow() {
+    if (OPEN_CATEGORY !== 'follow') return;
+    const body = document.querySelector('#categoryModal .category-dialog-body');
+    if (body) { const y = body.scrollTop; body.innerHTML = categoryContent('follow'); body.scrollTop = y; }
+  }
+  document.addEventListener('click', function (e) {
+    if (!e.target.closest) return;
+    if (e.target.closest('[data-weigh-go]')) { goWeigh(); return; }
+    if (e.target.closest('[data-weigh-hide]')) {
+      try { localStorage.setItem(weighKey(), isoLocal(new Date())); } catch (er) {}
       paint();
     }
   });
@@ -4622,9 +4680,9 @@ html[data-theme="light"] .th-week .on i{color:#FFFFFF}
         const v = inp ? inp.value : '';
         if (!String(v).trim()) { toast('הזן משקל'); if (inp) inp.focus(); return; }
         if (!EBProg.add(v)) { toast('משקל לא תקין'); if (inp) inp.select(); return; }
-        toast('נרשם ✓'); paint();
+        toast('נרשם ✓'); paint(); repaintFollow();
       } else if (pg.dataset.pg === 'edit') {
-        EBProg.clearToday(); paint();
+        EBProg.clearToday(); paint(); repaintFollow();
         const inp = document.getElementById('pg_w'); if (inp) inp.focus();
       }
       return;
@@ -5599,6 +5657,6 @@ html[data-theme="light"] .th-week .on i{color:#FFFFFF}
   });
 })();
 </script>
-<script src="ui-fx.js?v=v289"></script>
+<script src="ui-fx.js?v=v290"></script>
 </body>
 </html>
